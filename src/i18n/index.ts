@@ -1,5 +1,5 @@
 import * as Localization from "expo-localization";
-import i18n from "i18next";
+import { createInstance } from "i18next";
 import { initReactI18next } from "react-i18next";
 
 export const resources = {
@@ -184,6 +184,7 @@ export const resources = {
 } as const;
 
 const deviceLanguage = Localization.getLocales()[0]?.languageCode;
+const i18n = createInstance();
 
 void i18n.use(initReactI18next).init({
   resources,

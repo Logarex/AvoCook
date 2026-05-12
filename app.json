@@ -39,8 +39,7 @@
     "plugins": [
       "expo-secure-store",
       "expo-sqlite",
-      "expo-localization",
-      "expo-keep-awake"
+      "expo-localization"
     ],
     "extra": {
       "eas": {

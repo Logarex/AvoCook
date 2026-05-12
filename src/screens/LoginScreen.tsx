@@ -90,7 +90,7 @@ export function LoginScreen(_props: Props) {
           disabled={!serverUrl || !username || !appPassword || submitting}
           icon={submitting ? undefined : LockKeyhole}
           label={submitting ? t("common.loading") : t("auth.login")}
-          onPress={handleLogin}
+          onPress={() => void handleLogin()}
         />
         {submitting ? <ActivityIndicator color={colors.primary} /> : null}
       </GlassPanel>

@@ -30,8 +30,6 @@ import { humanDuration } from "../utils/duration";
 type Props = NativeStackScreenProps<RootStackParamList, "RecipeDetail">;
 
 export function RecipeDetailScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
-  const { colors } = useAppTheme();
   const { getClient } = useAuth();
   const { keepScreenAwake } = usePreferences();
   const { deleteRecipe, getRecipe } = useRecipes();
@@ -276,7 +274,7 @@ function RecipeSection({
 
 function normalizeNutrition(
   nutrition?: Nutrition | Nutrition[] | null
-): Array<[string, string]> {
+): [string, string][] {
   const node = Array.isArray(nutrition) ? nutrition[0] : nutrition;
   if (!node || typeof node !== "object") {
     return [];

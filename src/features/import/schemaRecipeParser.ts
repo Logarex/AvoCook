@@ -1,6 +1,6 @@
 import { normalizeRecipe, type Recipe } from "../recipes/types";
 
-type JsonLdValue = Record<string, unknown> | Array<JsonLdValue> | string;
+type JsonLdValue = Record<string, unknown> | JsonLdValue[] | string;
 
 export type ImportSource = {
   host: string;

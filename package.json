@@ -9,6 +9,7 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "assets": "node scripts/generate-assets.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "lint": "eslint . --ext .ts,.tsx"
@@ -48,6 +49,9 @@
     "eslint-config-expo": "^10.0.0",
     "typescript": "~5.9.2",
     "vitest": "^4.0.14"
+  },
+  "overrides": {
+    "postcss": "^8.5.10"
   },
   "engines": {
     "node": ">=22"
