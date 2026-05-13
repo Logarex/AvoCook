@@ -1,7 +1,7 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StatusBar } from "expo-status-bar";
-import React, { useEffect } from "react";
+import React from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -10,7 +10,6 @@ import { AppText } from "./src/components/AppText";
 import { AuthProvider, useAuth } from "./src/features/auth/AuthProvider";
 import { PreferencesProvider } from "./src/features/preferences/PreferencesProvider";
 import { RecipesProvider } from "./src/features/recipes/RecipesProvider";
-import { configureTimerNotifications } from "./src/features/timers/timerNotifications";
 import type { RootStackParamList } from "./src/navigation/types";
 import { ImportRecipeScreen } from "./src/screens/ImportRecipeScreen";
 import { LoginScreen } from "./src/screens/LoginScreen";
@@ -24,10 +23,6 @@ import { AppThemeProvider, useAppTheme } from "./src/theme/ThemeProvider";
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function App() {
-  useEffect(() => {
-    void configureTimerNotifications();
-  }, []);
-
   return (
     <GestureHandlerRootView style={styles.flex}>
       <SafeAreaProvider>
