@@ -31,6 +31,7 @@
     "expo-localization": "~17.0.8",
     "expo-notifications": "~0.32.17",
     "expo-secure-store": "~15.0.8",
+    "expo-splash-screen": "~0.30.10",
     "expo-sqlite": "~16.0.10",
     "expo-status-bar": "~3.0.9",
     "i18next": "^25.7.2",

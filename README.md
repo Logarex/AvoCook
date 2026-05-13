@@ -2,6 +2,8 @@
 
 Application mobile iOS, iPadOS et Android pour consulter, importer, créer et modifier des recettes synchronisées avec l'application Nextcloud Cookbook.
 
+[Télécharger la version Android](https://github.com/Logarex/AvoCook/releases/latest)
+
 ## Fonctionnalités
 
 - Connexion directe à un serveur Nextcloud via app password.
@@ -16,6 +18,7 @@ Application mobile iOS, iPadOS et Android pour consulter, importer, créer et mo
 - Thèmes clair/sombre/système et langues français/anglais.
 - Interface adaptative avec surfaces glass sur iOS et rendu sobre sur Android.
 - Option pour garder l'écran allumé pendant la consultation d'une recette.
+- Minuteurs de recette avec notifications locales pour sonner quand le téléphone est verrouillé.
 
 ## Stack
 
