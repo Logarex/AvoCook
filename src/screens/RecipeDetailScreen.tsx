@@ -588,6 +588,9 @@ function HealthSection({ profile }: { profile: HealthProfile }) {
           <AppText muted variant="caption">
             {t("recipes.health.localNote")}
           </AppText>
+          <AppText muted variant="caption">
+            {t("recipes.health.calculation")}
+          </AppText>
         </View>
       </View>
       <View style={styles.nutriScale}>

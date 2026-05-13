@@ -39,10 +39,28 @@ export const resources = {
         useLocal: "Utiliser sans Nextcloud",
         showPassword: "Afficher le mot de passe",
         hidePassword: "Masquer le mot de passe",
+        appPasswordHelp: "Comment créer un app password ?",
         localSubtitle:
           "Mode local gratuit : vos recettes restent uniquement sur cet appareil.",
         badCredentials:
-          "Identifiant ou mot de passe d'application incorrect. Créez un app password Nextcloud dédié."
+          "Identifiant ou mot de passe d'application incorrect. Créez un app password Nextcloud dédié.",
+        tutorial: {
+          title: "Créer un mot de passe d'application Nextcloud",
+          steps: {
+            openNextcloud:
+              "Ouvrez Nextcloud dans un navigateur et connectez-vous à votre compte.",
+            openSettings:
+              "Cliquez sur votre avatar ou votre nom, puis ouvrez Paramètres, Paramètres personnels ou Personal settings selon la version.",
+            openSecurity:
+              "Ouvrez Sécurité. Sur certaines versions, la section s'appelle Appareils et sessions, Devices & sessions ou App passwords.",
+            createPassword:
+              "Créez un nouveau mot de passe d'application, par exemple nommé Cookbook Mobile.",
+            copyPassword:
+              "Copiez le mot de passe affiché une seule fois, puis collez-le ici avec votre identifiant Nextcloud."
+          },
+          versionNote:
+            "Les noms exacts changent selon les versions et thèmes Nextcloud, mais le chemin reste toujours dans les paramètres personnels du compte, section sécurité ou sessions."
+        }
       },
       recipes: {
         title: "Recettes",
@@ -65,14 +83,18 @@ export const resources = {
         uncategorized: "Sans catégorie",
         categories: "Catégories",
         categoryCount: "{{count}} recette",
-        categoryCount_plural: "{{count}} recettes",
+        categoryCount_one: "{{count}} recette",
+        categoryCount_other: "{{count}} recettes",
         newCategory: "Nouvelle catégorie",
         categoryName: "Nom de catégorie",
         createCategory: "Créer la catégorie",
+        chooseCategory: "Choisir une catégorie",
+        moreCategories: "Plus",
         loadingRecipes: "Chargement des recettes...",
         syncingRecipes: "Synchronisation en cours...",
         loadedRecipes: "{{count}} recette chargée",
-        loadedRecipes_plural: "{{count}} recettes chargées",
+        loadedRecipes_one: "{{count}} recette chargée",
+        loadedRecipes_other: "{{count}} recettes chargées",
         selectedCategory: "Catégorie sélectionnée : {{category}}",
         servings: {
           title: "Portions",
@@ -80,7 +102,8 @@ export const resources = {
           decrease: "Réduire les portions",
           increase: "Augmenter les portions",
           original: "Recette d'origine : {{count}} personne",
-          original_plural: "Recette d'origine : {{count}} personnes",
+          original_one: "Recette d'origine : {{count}} personne",
+          original_other: "Recette d'origine : {{count}} personnes",
           reset: "Revenir à l'origine"
         },
         timers: {
@@ -95,10 +118,12 @@ export const resources = {
         },
         health: {
           title: "Santé",
-          estimated: "Nutri-Score estimé",
+          estimated: "Score santé estimé",
           missingTitle: "Informations nutritionnelles à compléter",
           localNote:
-            "Cette analyse reste locale et n'est pas envoyée à Nextcloud.",
+            "Estimation locale non officielle, basée sur les valeurs par portion/personne.",
+          calculation:
+            "Le score pénalise calories, sucres, graisses saturées et sodium, puis valorise fibres et protéines. Il devient fiable seulement si les valeurs nutritionnelles sont renseignées.",
           calories: "Calories",
           sugar: "Sucres",
           fat: "Matières grasses",
@@ -140,6 +165,17 @@ export const resources = {
         prepMinutes: "Préparation en minutes",
         cookMinutes: "Cuisson en minutes",
         totalMinutes: "Total en minutes",
+        nutrition: "Nutrition par portion",
+        nutritionHelp:
+          "Ces valeurs servent au score santé. Laissez vide si vous ne les connaissez pas.",
+        caloriesKcal: "Calories (kcal)",
+        carbsGrams: "Glucides (g)",
+        sugarGrams: "Sucres (g)",
+        fatGrams: "Matières grasses (g)",
+        saturatedFatGrams: "Graisses saturées (g)",
+        sodiumMg: "Sodium / sel (mg)",
+        fiberGrams: "Fibres (g)",
+        proteinGrams: "Protéines (g)",
         requiredName: "Le nom de la recette est obligatoire."
       },
       importRecipe: {
@@ -223,10 +259,28 @@ export const resources = {
         useLocal: "Use without Nextcloud",
         showPassword: "Show password",
         hidePassword: "Hide password",
+        appPasswordHelp: "How do I create an app password?",
         localSubtitle:
           "Free local mode: your recipes stay only on this device.",
         badCredentials:
-          "Wrong username or app password. Create a dedicated Nextcloud app password."
+          "Wrong username or app password. Create a dedicated Nextcloud app password.",
+        tutorial: {
+          title: "Create a Nextcloud app password",
+          steps: {
+            openNextcloud:
+              "Open Nextcloud in a browser and sign in to your account.",
+            openSettings:
+              "Select your avatar or name, then open Settings, Personal settings or Personal depending on the version.",
+            openSecurity:
+              "Open Security. On some versions, the section is called Devices & sessions or App passwords.",
+            createPassword:
+              "Create a new app password, for example named Cookbook Mobile.",
+            copyPassword:
+              "Copy the password shown once, then paste it here with your Nextcloud username."
+          },
+          versionNote:
+            "Exact labels vary across Nextcloud versions and themes, but the path stays in personal account settings under security or sessions."
+        }
       },
       recipes: {
         title: "Recipes",
@@ -249,14 +303,18 @@ export const resources = {
         uncategorized: "No category",
         categories: "Categories",
         categoryCount: "{{count}} recipe",
-        categoryCount_plural: "{{count}} recipes",
+        categoryCount_one: "{{count}} recipe",
+        categoryCount_other: "{{count}} recipes",
         newCategory: "New category",
         categoryName: "Category name",
         createCategory: "Create category",
+        chooseCategory: "Choose category",
+        moreCategories: "More",
         loadingRecipes: "Loading recipes...",
         syncingRecipes: "Syncing recipes...",
         loadedRecipes: "{{count}} recipe loaded",
-        loadedRecipes_plural: "{{count}} recipes loaded",
+        loadedRecipes_one: "{{count}} recipe loaded",
+        loadedRecipes_other: "{{count}} recipes loaded",
         selectedCategory: "Selected category: {{category}}",
         servings: {
           title: "Servings",
@@ -264,7 +322,8 @@ export const resources = {
           decrease: "Decrease servings",
           increase: "Increase servings",
           original: "Original recipe: {{count}} person",
-          original_plural: "Original recipe: {{count}} people",
+          original_one: "Original recipe: {{count}} person",
+          original_other: "Original recipe: {{count}} people",
           reset: "Reset to original"
         },
         timers: {
@@ -279,10 +338,12 @@ export const resources = {
         },
         health: {
           title: "Health",
-          estimated: "Estimated Nutri-Score",
+          estimated: "Estimated health score",
           missingTitle: "Nutrition details missing",
           localNote:
-            "This analysis stays local and is not sent to Nextcloud.",
+            "Unofficial local estimate based on per-serving/person nutrition values.",
+          calculation:
+            "The score penalizes calories, sugar, saturated fat and sodium, then rewards fiber and protein. It is reliable only when nutrition values are filled in.",
           calories: "Calories",
           sugar: "Sugar",
           fat: "Fat",
@@ -322,6 +383,17 @@ export const resources = {
         prepMinutes: "Prep minutes",
         cookMinutes: "Cook minutes",
         totalMinutes: "Total minutes",
+        nutrition: "Nutrition per serving",
+        nutritionHelp:
+          "These values feed the health score. Leave them empty if you do not know them.",
+        caloriesKcal: "Calories (kcal)",
+        carbsGrams: "Carbs (g)",
+        sugarGrams: "Sugar (g)",
+        fatGrams: "Fat (g)",
+        saturatedFatGrams: "Saturated fat (g)",
+        sodiumMg: "Sodium / salt (mg)",
+        fiberGrams: "Fiber (g)",
+        proteinGrams: "Protein (g)",
         requiredName: "Recipe name is required."
       },
       importRecipe: {

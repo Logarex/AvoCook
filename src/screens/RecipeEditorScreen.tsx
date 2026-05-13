@@ -12,7 +12,11 @@ import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { persistRecipeImage } from "../features/recipes/recipeImages";
-import { createEmptyRecipe, normalizeRecipe } from "../features/recipes/types";
+import {
+  createEmptyRecipe,
+  normalizeRecipe,
+  type Nutrition
+} from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
 import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -61,6 +65,20 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
     initialRecipe.recipeInstructions.join("\n")
   );
   const [tools, setTools] = useState(initialRecipe.tool.join("\n"));
+  const initialNutrition = useMemo(
+    () => normalizeNutritionForEditor(initialRecipe.nutrition),
+    [initialRecipe.nutrition]
+  );
+  const [calories, setCalories] = useState(initialNutrition.calories);
+  const [carbohydrates, setCarbohydrates] = useState(
+    initialNutrition.carbohydrates
+  );
+  const [sugar, setSugar] = useState(initialNutrition.sugar);
+  const [fat, setFat] = useState(initialNutrition.fat);
+  const [saturatedFat, setSaturatedFat] = useState(initialNutrition.saturatedFat);
+  const [sodium, setSodium] = useState(initialNutrition.sodium);
+  const [fiber, setFiber] = useState(initialNutrition.fiber);
+  const [protein, setProtein] = useState(initialNutrition.protein);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -77,7 +95,15 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
     setIngredients(initialRecipe.recipeIngredient.join("\n"));
     setInstructions(initialRecipe.recipeInstructions.join("\n"));
     setTools(initialRecipe.tool.join("\n"));
-  }, [initialRecipe]);
+    setCalories(initialNutrition.calories);
+    setCarbohydrates(initialNutrition.carbohydrates);
+    setSugar(initialNutrition.sugar);
+    setFat(initialNutrition.fat);
+    setSaturatedFat(initialNutrition.saturatedFat);
+    setSodium(initialNutrition.sodium);
+    setFiber(initialNutrition.fiber);
+    setProtein(initialNutrition.protein);
+  }, [initialRecipe, initialNutrition]);
 
   async function handleSave() {
     if (!name.trim()) {
@@ -103,7 +129,18 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         totalTime: minutesToIsoDuration(Number.parseInt(totalMinutes, 10)),
         recipeIngredient: splitLines(ingredients),
         recipeInstructions: splitLines(instructions),
-        tool: splitLines(tools)
+        tool: splitLines(tools),
+        nutrition: {
+          "@type": "NutritionInformation",
+          calories: formatNutritionValue(calories, "kcal"),
+          carbohydrateContent: formatNutritionValue(carbohydrates, "g"),
+          sugarContent: formatNutritionValue(sugar, "g"),
+          fatContent: formatNutritionValue(fat, "g"),
+          saturatedFatContent: formatNutritionValue(saturatedFat, "g"),
+          sodiumContent: formatNutritionValue(sodium, "mg"),
+          fiberContent: formatNutritionValue(fiber, "g"),
+          proteinContent: formatNutritionValue(protein, "g")
+        }
       });
       const saved = existingRecipe
         ? await updateRecipe(recipe)
@@ -254,6 +291,77 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         value={tools}
       />
 
+      <View style={styles.sectionTitle}>
+        <AppText variant="subtitle">{t("editor.nutrition")}</AppText>
+        <AppText muted variant="caption">
+          {t("editor.nutritionHelp")}
+        </AppText>
+      </View>
+      <View style={styles.row}>
+        <TextField
+          containerStyle={styles.rowItem}
+          keyboardType="decimal-pad"
+          label={t("editor.caloriesKcal")}
+          onChangeText={setCalories}
+          value={calories}
+        />
+        <TextField
+          containerStyle={styles.rowItem}
+          keyboardType="decimal-pad"
+          label={t("editor.carbsGrams")}
+          onChangeText={setCarbohydrates}
+          value={carbohydrates}
+        />
+      </View>
+      <View style={styles.row}>
+        <TextField
+          containerStyle={styles.rowItem}
+          keyboardType="decimal-pad"
+          label={t("editor.sugarGrams")}
+          onChangeText={setSugar}
+          value={sugar}
+        />
+        <TextField
+          containerStyle={styles.rowItem}
+          keyboardType="decimal-pad"
+          label={t("editor.fatGrams")}
+          onChangeText={setFat}
+          value={fat}
+        />
+      </View>
+      <View style={styles.row}>
+        <TextField
+          containerStyle={styles.rowItem}
+          keyboardType="decimal-pad"
+          label={t("editor.saturatedFatGrams")}
+          onChangeText={setSaturatedFat}
+          value={saturatedFat}
+        />
+        <TextField
+          containerStyle={styles.rowItem}
+          keyboardType="decimal-pad"
+          label={t("editor.sodiumMg")}
+          onChangeText={setSodium}
+          value={sodium}
+        />
+      </View>
+      <View style={styles.row}>
+        <TextField
+          containerStyle={styles.rowItem}
+          keyboardType="decimal-pad"
+          label={t("editor.fiberGrams")}
+          onChangeText={setFiber}
+          value={fiber}
+        />
+        <TextField
+          containerStyle={styles.rowItem}
+          keyboardType="decimal-pad"
+          label={t("editor.proteinGrams")}
+          onChangeText={setProtein}
+          value={protein}
+        />
+      </View>
+
       {error ? <AppText style={{ color: colors.danger }}>{error}</AppText> : null}
 
       <PrimaryButton
@@ -278,6 +386,43 @@ function minutesToString(value: string | null) {
   return minutes ? String(minutes) : "";
 }
 
+function normalizeNutritionForEditor(
+  nutrition?: Nutrition | Nutrition[] | null
+) {
+  const node = Array.isArray(nutrition) ? nutrition[0] : nutrition;
+  return {
+    calories: stripNutritionUnit(node?.calories),
+    carbohydrates: stripNutritionUnit(node?.carbohydrateContent),
+    sugar: stripNutritionUnit(node?.sugarContent),
+    fat: stripNutritionUnit(node?.fatContent),
+    saturatedFat: stripNutritionUnit(node?.saturatedFatContent),
+    sodium: stripNutritionUnit(node?.sodiumContent),
+    fiber: stripNutritionUnit(node?.fiberContent),
+    protein: stripNutritionUnit(node?.proteinContent)
+  };
+}
+
+function stripNutritionUnit(value?: string) {
+  if (!value) {
+    return "";
+  }
+
+  return value.replace(/[^\d,.+-]/g, "").trim();
+}
+
+function formatNutritionValue(value: string, unit: "g" | "kcal" | "mg") {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  if (/[a-zA-Z]/.test(trimmed)) {
+    return trimmed;
+  }
+
+  return `${trimmed} ${unit}`;
+}
+
 const styles = StyleSheet.create({
   photo: {
     height: "100%",
@@ -294,6 +439,9 @@ const styles = StyleSheet.create({
   },
   rowItem: {
     flex: 1
+  },
+  sectionTitle: {
+    gap: spacing.xs
   },
   toolbar: {
     alignItems: "center",
