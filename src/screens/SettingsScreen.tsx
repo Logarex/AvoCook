@@ -1,6 +1,8 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   ArrowLeft,
+  Bell,
   Info,
   LogOut,
   RefreshCw,
@@ -26,8 +28,6 @@ import {
   requestTimerNotificationPermission,
   type TimerNotificationState
 } from "../features/timers/timerNotifications";
-import { Bell } from "lucide-react-native";
-import { useFocusEffect } from "@react-navigation/native";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Settings">;
 
@@ -94,7 +94,7 @@ export function SettingsScreen({ navigation }: Props) {
   }
 
   return (
-    <Screen>
+    <Screen showScrollTop={false}>
       <View style={styles.toolbar}>
         <IconButton
           icon={ArrowLeft}
@@ -155,8 +155,7 @@ export function SettingsScreen({ navigation }: Props) {
               : t("settings.notificationsDisabled")
           }
           onPress={() => void handleToggleNotifications()}
-          tone={notificationState === "ready" ? "primary" : "default"}
-          variant="ghost"
+          variant={notificationState === "ready" ? "primary" : "ghost"}
         />
       </GlassPanel>
 

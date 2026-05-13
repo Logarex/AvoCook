@@ -111,30 +111,42 @@ function drawMark(canvas, palette, scale = 1, offsetY = 0) {
   drawRect(canvas, Math.round(cx - 262 * scale), Math.round(cy + 236 * scale), Math.round(524 * scale), Math.round(64 * scale), palette.base);
 }
 
-function encodePng(canvas) {
-  const scanlineLength = canvas.width * 4 + 1;
+function encodePng(canvas, options = {}) {
+  const alpha = options.alpha ?? true;
+  const bytesPerPixel = alpha ? 4 : 3;
+  const scanlineLength = canvas.width * bytesPerPixel + 1;
   const raw = new Uint8Array(scanlineLength * canvas.height);
   for (let y = 0; y < canvas.height; y += 1) {
     const rawOffset = y * scanlineLength;
     const dataOffset = y * canvas.width * 4;
     raw[rawOffset] = 0;
-    raw.set(canvas.data.subarray(dataOffset, dataOffset + canvas.width * 4), rawOffset + 1);
+    if (alpha) {
+      raw.set(canvas.data.subarray(dataOffset, dataOffset + canvas.width * 4), rawOffset + 1);
+    } else {
+      for (let x = 0; x < canvas.width; x += 1) {
+        const sourceOffset = dataOffset + x * 4;
+        const targetOffset = rawOffset + 1 + x * 3;
+        raw[targetOffset] = canvas.data[sourceOffset];
+        raw[targetOffset + 1] = canvas.data[sourceOffset + 1];
+        raw[targetOffset + 2] = canvas.data[sourceOffset + 2];
+      }
+    }
   }
 
   return Buffer.concat([
     Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
-    chunk("IHDR", ihdr(canvas.width, canvas.height)),
+    chunk("IHDR", ihdr(canvas.width, canvas.height, alpha ? 6 : 2)),
     chunk("IDAT", deflateSync(raw, { level: 9 })),
     chunk("IEND", Buffer.alloc(0))
   ]);
 }
 
-function ihdr(width, height) {
+function ihdr(width, height, colorType) {
   const data = Buffer.alloc(13);
   data.writeUInt32BE(width, 0);
   data.writeUInt32BE(height, 4);
   data[8] = 8;
-  data[9] = 6;
+  data[9] = colorType;
   data[10] = 0;
   data[11] = 0;
   data[12] = 0;
@@ -161,16 +173,18 @@ function crc32(buffer) {
   return (crc ^ 0xffffffff) >>> 0;
 }
 
-function writeAsset(path, width, height, scale, offsetY = 0, background = colors.cream, palette = lightPalette) {
+function writeAsset(path, width, height, scale, offsetY = 0, background = colors.cream, palette = lightPalette, options = {}) {
   const canvas = createCanvas(width, height, background);
   drawMark(canvas, palette, scale, offsetY);
-  writeFileSync(path, encodePng(canvas));
+  writeFileSync(path, encodePng(canvas, options));
 }
 
-writeAsset("assets/icon.png", 1024, 1024, 1);
-writeAsset("assets/adaptive-icon.png", 1024, 1024, 1);
+const opaquePng = { alpha: false };
+
+writeAsset("assets/icon.png", 1024, 1024, 1, 0, colors.cream, lightPalette, opaquePng);
+writeAsset("assets/adaptive-icon.png", 1024, 1024, 1, 0, colors.cream, lightPalette, opaquePng);
 writeAsset("assets/splash.png", 1242, 2436, 0.74, -80);
 writeAsset("assets/favicon.png", 64, 64, 0.054);
-writeAsset("assets/icon-dark.png", 1024, 1024, 1, 0, colors.darkBackground, darkPalette);
+writeAsset("assets/icon-dark.png", 1024, 1024, 1, 0, colors.darkBackground, darkPalette, opaquePng);
 writeAsset("assets/logo-dark.png", 1024, 1024, 1, 0, colors.darkBackground, darkPalette);
 writeAsset("assets/splash-dark.png", 1242, 2436, 0.74, -80, colors.darkBackground, darkPalette);
