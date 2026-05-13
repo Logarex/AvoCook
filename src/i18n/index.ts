@@ -222,7 +222,10 @@ export const resources = {
         reindexConfirmBody:
           "Cette action demande à Nextcloud Cookbook de rescanner le dossier de recettes. C'est utile si des recettes ont été ajoutées ou modifiées hors de l'app, mais cela peut prendre du temps sur un gros Cookbook.",
         reindexDone: "Réindexation demandée",
-        openPrivacy: "Confidentialité et données"
+        openPrivacy: "Confidentialité et données",
+        notifications: "Notifications",
+        notificationsEnabled: "Activées",
+        notificationsDisabled: "Désactivées (cliquer pour activer)"
       },
       privacy: {
         title: "Confidentialité",
@@ -454,7 +457,10 @@ export const resources = {
         reindexConfirmBody:
           "This asks Nextcloud Cookbook to rescan the recipe folder. It is useful if recipes were added or changed outside the app, but it can take a while on a large Cookbook.",
         reindexDone: "Reindex requested",
-        openPrivacy: "Privacy and data"
+        openPrivacy: "Privacy and data",
+        notifications: "Notifications",
+        notificationsEnabled: "Enabled",
+        notificationsDisabled: "Disabled (click to enable)"
       },
       privacy: {
         title: "Privacy",
