@@ -25,8 +25,8 @@ export const resources = {
         continue: "Continuer"
       },
       auth: {
-        title: "Nextcloud Cookbook",
-        subtitle: "Vos recettes Nextcloud, prêtes en cuisine.",
+        title: "AvoCook",
+        subtitle: "Vos recettes cloud, prêtes en cuisine.",
         server: "Adresse Nextcloud",
         username: "Identifiant",
         appPassword: "Mot de passe d'application",
@@ -246,8 +246,8 @@ export const resources = {
         continue: "Continue"
       },
       auth: {
-        title: "Nextcloud Cookbook",
-        subtitle: "Your Nextcloud recipes, ready in the kitchen.",
+        title: "AvoCook",
+        subtitle: "Your cloud recipes, ready in the kitchen.",
         server: "Nextcloud address",
         username: "Username",
         appPassword: "App password",

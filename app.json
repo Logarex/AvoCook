@@ -1,8 +1,8 @@
 {
   "expo": {
-    "name": "Nextcloud Cookbook",
-    "slug": "nextcloud-cookbook-mobile",
-    "scheme": "nccookbook",
+    "name": "AvoCook",
+    "slug": "avocook",
+    "scheme": "avocook",
     "version": "0.1.0",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
@@ -17,7 +17,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.nextcloudcookbook.mobile",
+      "bundleIdentifier": "app.avocook.mobile",
       "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
@@ -28,7 +28,7 @@
       }
     },
     "android": {
-      "package": "app.nextcloudcookbook.mobile",
+      "package": "app.avocook.mobile",
       "versionCode": 1,
       "permissions": [],
       "blockedPermissions": [

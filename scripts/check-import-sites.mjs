@@ -13,7 +13,7 @@ for (const url of urls) {
       headers: {
         Accept: "text/html,application/xhtml+xml",
         "User-Agent":
-          "Mozilla/5.0 compatible; NextcloudCookbookImportCheck/0.1"
+          "Mozilla/5.0 compatible; AvoCookImportCheck/0.1"
       }
     });
     const html = await response.text();
