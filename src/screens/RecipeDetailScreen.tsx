@@ -35,7 +35,9 @@ import { useRecipes } from "../features/recipes/RecipesProvider";
 import {
   addTimerStopListener,
   cancelTimerNotification,
-  scheduleTimerNotification
+  getTimerNotificationState,
+  scheduleTimerNotification,
+  type TimerNotificationState
 } from "../features/timers/timerNotifications";
 import {
   normalizeRecipe,
@@ -62,6 +64,7 @@ type TimerState = {
   remainingSeconds: number;
   running: boolean;
 };
+type TimerNotificationStatus = TimerNotificationState | "unknown";
 
 const nutriScoreColors: Record<NutriScoreGrade, string> = {
   A: "#1B8F4B",
@@ -154,6 +157,8 @@ function RecipeDetailContent({
     [recipe, t]
   );
   const [timers, setTimers] = useState<Record<string, TimerState>>({});
+  const [timerNotificationStatus, setTimerNotificationStatus] =
+    useState<TimerNotificationStatus>("unknown");
   const hasRunningTimer = useMemo(
     () =>
       Object.values(timers).some(
@@ -180,6 +185,23 @@ function RecipeDetailContent({
       return next;
     });
   }, [timerPresets]);
+
+  useEffect(() => {
+    if (!timerPresets.length) {
+      return;
+    }
+
+    let mounted = true;
+    void getTimerNotificationState().then((status) => {
+      if (mounted) {
+        setTimerNotificationStatus(status);
+      }
+    });
+
+    return () => {
+      mounted = false;
+    };
+  }, [timerPresets.length]);
 
   useEffect(() => {
     if (!hasRunningTimer) {
@@ -325,13 +347,27 @@ function RecipeDetailContent({
 
     const remainingSeconds =
       timer.remainingSeconds > 0 ? timer.remainingSeconds : timer.durationSeconds;
-    const notificationId = await scheduleTimerNotification({
+    const scheduledNotification = await scheduleTimerNotification({
       body: recipe.name,
       recipeId,
       seconds: remainingSeconds,
       timerId,
       title: t("recipes.timers.notificationTitle", { timer: preset.label })
     });
+    setTimerNotificationStatus(scheduledNotification.state);
+    if (scheduledNotification.state !== "ready") {
+      Alert.alert(
+        t("recipes.timers.notificationsRequiredTitle"),
+        t(
+          scheduledNotification.state === "unavailable"
+            ? "recipes.timers.notificationsUnavailableBody"
+            : "recipes.timers.notificationsRequiredBody"
+        )
+      );
+      return;
+    }
+
+    const notificationId = scheduledNotification.notificationId;
     const endsAt = Date.now() + remainingSeconds * 1000;
 
     setTimers((current) => {
@@ -458,6 +494,7 @@ function RecipeDetailContent({
       <TimerSection
         presets={timerPresets}
         timers={timers}
+        notificationStatus={timerNotificationStatus}
         onReset={handleResetTimer}
         onToggle={(timerId) => void handleToggleTimer(timerId)}
       />
@@ -578,11 +615,13 @@ function ServingsControl({
 function TimerSection({
   presets,
   timers,
+  notificationStatus,
   onReset,
   onToggle
 }: {
   presets: TimerPreset[];
   timers: Record<string, TimerState>;
+  notificationStatus: TimerNotificationStatus;
   onReset: (timerId: string) => void;
   onToggle: (timerId: string) => void;
 }) {
@@ -598,6 +637,22 @@ function TimerSection({
         <Timer color={colors.primary} size={21} />
         <AppText variant="subtitle">{t("recipes.timers.title")}</AppText>
       </View>
+      <AppText
+        muted={notificationStatus !== "denied" && notificationStatus !== "unavailable"}
+        variant="caption"
+        style={
+          notificationStatus === "denied" ||
+          notificationStatus === "unavailable"
+            ? { color: colors.danger }
+            : undefined
+        }
+      >
+        {notificationStatus === "unavailable"
+          ? t("recipes.timers.notificationsUnavailable")
+          : notificationStatus === "denied"
+            ? t("recipes.timers.notificationsOff")
+            : t("recipes.timers.notificationHint")}
+      </AppText>
       <View style={styles.timerList}>
         {presets.map((preset) => {
           const timer = timers[preset.id];

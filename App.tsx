@@ -1,5 +1,6 @@
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
@@ -43,10 +44,14 @@ export default function App() {
 function RootNavigator() {
   const { credentials, hydrated, isLocalMode } = useAuth();
   const { colors, isDark, navTheme } = useAppTheme();
+  const loadingLogo = isDark
+    ? require("./assets/logo-dark.png")
+    : require("./assets/logo.png");
 
   if (!hydrated) {
     return (
       <View style={[styles.loading, { backgroundColor: colors.background }]}>
+        <Image source={loadingLogo} style={styles.loadingLogo} contentFit="contain" />
         <ActivityIndicator color={colors.primary} />
         <AppText muted>AvoCook</AppText>
       </View>
@@ -88,7 +93,11 @@ const styles = StyleSheet.create({
   loading: {
     alignItems: "center",
     flex: 1,
-    gap: 12,
+    gap: 14,
     justifyContent: "center"
+  },
+  loadingLogo: {
+    height: 96,
+    width: 96
   }
 });

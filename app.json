@@ -10,7 +10,11 @@
     "splash": {
       "image": "./assets/logo.png",
       "resizeMode": "contain",
-      "backgroundColor": "#F7F3EA"
+      "backgroundColor": "#F7F3EA",
+      "dark": {
+        "image": "./assets/logo-dark.png",
+        "backgroundColor": "#10201D"
+      }
     },
     "assetBundlePatterns": [
       "**/*"
@@ -19,6 +23,10 @@
       "supportsTablet": true,
       "bundleIdentifier": "app.avocook.mobile",
       "buildNumber": "1",
+      "icon": {
+        "light": "./assets/icon.png",
+        "dark": "./assets/icon-dark.png"
+      },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIRequiresFullScreen": false,
@@ -47,6 +55,19 @@
       "expo-secure-store",
       "expo-sqlite",
       "expo-localization",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#F7F3EA",
+          "image": "./assets/logo.png",
+          "imageWidth": 220,
+          "resizeMode": "contain",
+          "dark": {
+            "backgroundColor": "#10201D",
+            "image": "./assets/logo-dark.png"
+          }
+        }
+      ],
       "expo-notifications",
       [
         "expo-image-picker",
