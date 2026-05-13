@@ -12,7 +12,7 @@ import {
   removeLocalRecipe,
   saveLocalRecipe
 } from "./offlineDatabase";
-import { persistRecipeImage } from "./recipeImages";
+import { persistRecipeImage, pruneRecipeImageCache } from "./recipeImages";
 import {
   hasLocalMetadata,
   normalizeRecipe,
@@ -28,6 +28,7 @@ export async function initialiseRecipeStore() {
 export async function clearSyncedLocalRecipes() {
   await migrateDatabase();
   await clearLocalRecipeCache();
+  await pruneRecipeImageCache(await loadLocalRecipes());
 }
 
 export async function createRecipe(
@@ -69,14 +70,18 @@ export async function updateRecipe(
       localRecipe.id ?? "",
       localRecipe
     );
+    await pruneRecipeImageCache(await loadLocalRecipes());
     return localRecipe;
   }
 
   try {
     await client.updateRecipe(toCookbookRecipe(localRecipe));
-    return saveLocalRecipe(localRecipe, false);
+    const saved = await saveLocalRecipe(localRecipe, false);
+    await pruneRecipeImageCache(await loadLocalRecipes());
+    return saved;
   } catch {
     await enqueueSyncOperation("update", localRecipe.id ?? "", localRecipe);
+    await pruneRecipeImageCache(await loadLocalRecipes());
     return localRecipe;
   }
 }
@@ -86,12 +91,14 @@ export async function deleteRecipe(id: string, client: CookbookClient | null) {
 
   if (!client || id.startsWith("local-")) {
     await enqueueSyncOperation("delete", id, null);
+    await pruneRecipeImageCache(await loadLocalRecipes());
     return;
   }
 
   try {
     await client.deleteRecipe(id);
     await removeLocalRecipe(id);
+    await pruneRecipeImageCache(await loadLocalRecipes());
   } catch {
     await enqueueSyncOperation("delete", id, null);
   }
@@ -148,6 +155,8 @@ export async function syncRecipes(client: CookbookClient, persistLocal = true) {
       recipes.push(normalized);
     }
   }
+
+  await pruneRecipeImageCache(await loadLocalRecipes());
 
   return recipes;
 }
