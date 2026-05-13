@@ -117,7 +117,18 @@ export const resources = {
           reset: "Réinitialiser",
           stop: "Arrêter",
           done: "Terminé",
-          notificationTitle: "{{timer}} terminé"
+          notificationTitle: "{{timer}} terminé",
+          notificationHint:
+            "Les minuteurs sonnent via les notifications. Elles doivent être autorisées.",
+          notificationsOff:
+            "Notifications désactivées : les minuteurs ne peuvent pas sonner.",
+          notificationsUnavailable:
+            "Notifications indisponibles dans ce runtime. Installez un vrai build pour utiliser les minuteurs.",
+          notificationsRequiredTitle: "Notifications nécessaires",
+          notificationsRequiredBody:
+            "Activez les notifications pour AvoCook dans les réglages du téléphone. Sans elles, le minuteur ne peut pas sonner quand l'iPhone est verrouillé.",
+          notificationsUnavailableBody:
+            "Ce build ne contient pas encore le module natif de notifications. Installez un vrai build iOS reconstruit pour utiliser les minuteurs."
         },
         health: {
           title: "Santé",
@@ -343,7 +354,17 @@ export const resources = {
           reset: "Reset",
           stop: "Stop",
           done: "Done",
-          notificationTitle: "{{timer}} done"
+          notificationTitle: "{{timer}} done",
+          notificationHint:
+            "Timers ring through notifications. Notifications must be allowed.",
+          notificationsOff: "Notifications are off: timers cannot ring.",
+          notificationsUnavailable:
+            "Notifications are unavailable in this runtime. Install a real build to use timers.",
+          notificationsRequiredTitle: "Notifications required",
+          notificationsRequiredBody:
+            "Enable notifications for AvoCook in phone settings. Without them, the timer cannot ring when the iPhone is locked.",
+          notificationsUnavailableBody:
+            "This build does not include the native notifications module yet. Install a rebuilt real iOS build to use timers."
         },
         health: {
           title: "Health",
