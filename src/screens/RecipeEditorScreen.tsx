@@ -3,7 +3,7 @@ import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { ArrowLeft, ImagePlus, Save, X } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { IconButton } from "../components/IconButton";
@@ -27,7 +27,8 @@ type Props = NativeStackScreenProps<RootStackParamList, "RecipeEditor">;
 export function RecipeEditorScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
-  const { createRecipe, getRecipe, updateRecipe } = useRecipes();
+  const { createRecipe, customCategories, getRecipe, recipes, updateRecipe } =
+    useRecipes();
   const existingRecipe = route.params.id ? getRecipe(route.params.id) : undefined;
   const initialRecipe = useMemo(
     () =>
@@ -81,6 +82,31 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const [protein, setProtein] = useState(initialNutrition.protein);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const categorySuggestions = useMemo(() => {
+    const normalizedCategory = normalizeCategorySearch(category);
+    const existingCategories = Array.from(
+      new Set(
+        [
+          ...customCategories,
+          ...recipes.map((recipe) => recipe.recipeCategory)
+        ]
+          .map((item) => item.replace(/\s+/g, " ").trim())
+          .filter(Boolean)
+      )
+    ).sort((left, right) =>
+      left.localeCompare(right, undefined, { sensitivity: "base" })
+    );
+
+    return existingCategories
+      .filter((item) => {
+        const normalizedItem = normalizeCategorySearch(item);
+        return (
+          normalizedItem !== normalizedCategory &&
+          (!normalizedCategory || normalizedItem.includes(normalizedCategory))
+        );
+      })
+      .slice(0, 6);
+  }, [category, customCategories, recipes]);
 
   useEffect(() => {
     setName(initialRecipe.name);
@@ -245,6 +271,27 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           value={recipeYield}
         />
       </View>
+      {categorySuggestions.length ? (
+        <View style={styles.suggestionList}>
+          {categorySuggestions.map((suggestion) => (
+            <Pressable
+              key={suggestion}
+              accessibilityRole="button"
+              onPress={() => setCategory(suggestion)}
+              style={({ pressed }) => [
+                styles.suggestionChip,
+                {
+                  backgroundColor: colors.chip,
+                  borderColor: colors.border,
+                  opacity: pressed ? 0.76 : 1
+                }
+              ]}
+            >
+              <AppText variant="caption">{suggestion}</AppText>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
       <TextField
         label={t("editor.keywords")}
         onChangeText={setKeywords}
@@ -386,6 +433,14 @@ function minutesToString(value: string | null) {
   return minutes ? String(minutes) : "";
 }
 
+function normalizeCategorySearch(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 function normalizeNutritionForEditor(
   nutrition?: Nutrition | Nutrition[] | null
 ) {
@@ -439,6 +494,17 @@ const styles = StyleSheet.create({
   },
   rowItem: {
     flex: 1
+  },
+  suggestionChip: {
+    borderRadius: 999,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs
+  },
+  suggestionList: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs
   },
   sectionTitle: {
     gap: spacing.xs

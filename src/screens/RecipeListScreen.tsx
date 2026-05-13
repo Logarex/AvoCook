@@ -119,19 +119,25 @@ export function RecipeListScreen({ navigation }: Props) {
   }, [category, categoryOptions]);
 
   const filteredRecipes = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return recipes.filter((recipe) => {
+    const normalizedQuery = normalizeSearchText(query);
+    const matchingRecipes = recipes.filter((recipe) => {
       const matchesCategory =
         !category || recipe.recipeCategory === category;
-      const searchable = [
-        recipe.name,
-        recipe.description,
-        recipe.recipeCategory,
-        recipe.keywords
-      ]
-        .join(" ")
-        .toLowerCase();
+      const searchable = normalizeSearchText(getRecipeSearchText(recipe));
       return matchesCategory && searchable.includes(normalizedQuery);
+    });
+
+    if (!normalizedQuery) {
+      return matchingRecipes;
+    }
+
+    return matchingRecipes.sort((left, right) => {
+      const leftScore = getRecipeSearchScore(left, normalizedQuery);
+      const rightScore = getRecipeSearchScore(right, normalizedQuery);
+      return (
+        leftScore - rightScore ||
+        left.name.localeCompare(right.name, undefined, { sensitivity: "base" })
+      );
     });
   }, [category, query, recipes]);
 
@@ -142,15 +148,10 @@ export function RecipeListScreen({ navigation }: Props) {
       ? t("common.online")
       : t("common.offline");
   const statusDetail = syncing
-    ? t("recipes.syncingRecipes")
+    ? t("recipes.syncingRecipesShort")
     : loading
       ? t("recipes.loadingRecipes")
-      : t(
-          recipes.length <= 1
-            ? "recipes.loadedRecipes_one"
-            : "recipes.loadedRecipes_other",
-          { count: recipes.length }
-        );
+      : undefined;
 
   async function handleCreateCategory() {
     const normalized = newCategory.replace(/\s+/g, " ").trim();
@@ -515,6 +516,40 @@ function safeTranslation(value: string, fallback: string) {
   return value.includes(".") ? fallback : value;
 }
 
+function getRecipeSearchText(recipe: Recipe) {
+  return [
+    recipe.name,
+    recipe.description,
+    recipe.recipeCategory,
+    recipe.keywords,
+    recipe.recipeIngredient.join(" "),
+    recipe.recipeInstructions.join(" "),
+    recipe.tool.join(" ")
+  ].join(" ");
+}
+
+function getRecipeSearchScore(recipe: Recipe, normalizedQuery: string) {
+  const normalizedName = normalizeSearchText(recipe.name);
+  if (normalizedName === normalizedQuery) {
+    return 0;
+  }
+  if (normalizedName.startsWith(normalizedQuery)) {
+    return 1;
+  }
+  if (normalizedName.includes(normalizedQuery)) {
+    return 2;
+  }
+  return 3;
+}
+
+function normalizeSearchText(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
 const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
@@ -569,7 +604,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.sm,
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    marginBottom: spacing.xs
   },
   headerIcon: {
     height: 40,

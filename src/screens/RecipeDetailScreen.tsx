@@ -1,6 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image, type ImageSource } from "expo-image";
 import { useKeepAwake } from "expo-keep-awake";
+import * as Notifications from "expo-notifications";
 import type { LucideIcon } from "lucide-react-native";
 import {
   ArrowLeft,
@@ -13,12 +14,13 @@ import {
   Play,
   Plus,
   RotateCcw,
+  Square,
   Timer,
   Trash2,
   Users
 } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, Linking, StyleSheet, View } from "react-native";
+import { Alert, Linking, StyleSheet, Vibration, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -31,6 +33,11 @@ import { usePreferences } from "../features/preferences/PreferencesProvider";
 import type { HealthProfile } from "../features/recipes/health";
 import { getRecipeHealthProfile } from "../features/recipes/health";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import {
+  cancelTimerNotification,
+  scheduleTimerNotification,
+  TIMER_STOP_ACTION
+} from "../features/timers/timerNotifications";
 import {
   normalizeRecipe,
   type NutriScoreGrade,
@@ -51,6 +58,8 @@ type TimerPreset = {
 };
 type TimerState = {
   durationSeconds: number;
+  endsAt?: number;
+  notificationId?: string | null;
   remainingSeconds: number;
   running: boolean;
 };
@@ -183,12 +192,19 @@ function RecipeDetailContent({
         const next: Record<string, TimerState> = {};
         for (const [id, timer] of Object.entries(current)) {
           const remainingSeconds = timer.running
-            ? Math.max(0, timer.remainingSeconds - 1)
+            ? Math.max(
+                0,
+                Math.ceil(((timer.endsAt ?? Date.now()) - Date.now()) / 1000)
+              )
             : timer.remainingSeconds;
+          if (timer.running && timer.remainingSeconds > 0 && remainingSeconds === 0) {
+            Vibration.vibrate([0, 500, 250, 500]);
+          }
           next[id] = {
             ...timer,
             remainingSeconds,
-            running: timer.running && remainingSeconds > 0
+            running: timer.running && remainingSeconds > 0,
+            endsAt: remainingSeconds > 0 ? timer.endsAt : undefined
           };
         }
         return next;
@@ -197,6 +213,42 @@ function RecipeDetailContent({
 
     return () => clearInterval(interval);
   }, [hasRunningTimer]);
+
+  useEffect(() => {
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        if (response.actionIdentifier !== TIMER_STOP_ACTION) {
+          return;
+        }
+
+        const data = response.notification.request.content.data;
+        if (data.recipeId !== recipeId || typeof data.timerId !== "string") {
+          return;
+        }
+
+        void cancelTimerNotification(response.notification.request.identifier);
+        setTimers((current) => {
+          const timer = current[data.timerId as string];
+          if (!timer) {
+            return current;
+          }
+
+          return {
+            ...current,
+            [data.timerId as string]: {
+              ...timer,
+              endsAt: undefined,
+              notificationId: null,
+              remainingSeconds: timer.durationSeconds,
+              running: false
+            }
+          };
+        });
+      }
+    );
+
+    return () => subscription.remove();
+  }, [recipeId]);
 
   if (!recipe) {
     return (
@@ -245,28 +297,72 @@ function RecipeDetailContent({
     );
   }
 
-  function handleToggleTimer(timerId: string) {
+  async function handleToggleTimer(timerId: string) {
+    const timer = timers[timerId];
+    const preset = timerPresets.find((item) => item.id === timerId);
+    if (!timer || !preset || !recipe) {
+      return;
+    }
+
+    if (timer.running) {
+      await cancelTimerNotification(timer.notificationId);
+      setTimers((current) => {
+        const currentTimer = current[timerId];
+        if (!currentTimer) {
+          return current;
+        }
+        return {
+          ...current,
+          [timerId]: {
+            ...currentTimer,
+            endsAt: undefined,
+            notificationId: null,
+            remainingSeconds: Math.max(
+              0,
+              Math.ceil(((currentTimer.endsAt ?? Date.now()) - Date.now()) / 1000)
+            ),
+            running: false
+          }
+        };
+      });
+      return;
+    }
+
+    const remainingSeconds =
+      timer.remainingSeconds > 0 ? timer.remainingSeconds : timer.durationSeconds;
+    const notificationId = await scheduleTimerNotification({
+      body: recipe.name,
+      recipeId,
+      seconds: remainingSeconds,
+      timerId,
+      title: t("recipes.timers.notificationTitle", { timer: preset.label })
+    });
+    const endsAt = Date.now() + remainingSeconds * 1000;
+
     setTimers((current) => {
-      const timer = current[timerId];
-      if (!timer) {
+      const currentTimer = current[timerId];
+      if (!currentTimer) {
         return current;
       }
 
       return {
         ...current,
         [timerId]: {
-          ...timer,
+          ...currentTimer,
+          endsAt,
+          notificationId,
           remainingSeconds:
-            timer.remainingSeconds > 0
-              ? timer.remainingSeconds
-              : timer.durationSeconds,
-          running: timer.remainingSeconds <= 0 ? true : !timer.running
+            currentTimer.remainingSeconds > 0
+              ? currentTimer.remainingSeconds
+              : currentTimer.durationSeconds,
+          running: true
         }
       };
     });
   }
 
   function handleResetTimer(timerId: string) {
+    void cancelTimerNotification(timers[timerId]?.notificationId);
     setTimers((current) => {
       const timer = current[timerId];
       if (!timer) {
@@ -277,6 +373,8 @@ function RecipeDetailContent({
         ...current,
         [timerId]: {
           ...timer,
+          endsAt: undefined,
+          notificationId: null,
           remainingSeconds: timer.durationSeconds,
           running: false
         }
@@ -285,7 +383,7 @@ function RecipeDetailContent({
   }
 
   return (
-    <Screen>
+    <Screen showScrollTop={false}>
       <View style={styles.toolbar}>
         <IconButton
           icon={ArrowLeft}
@@ -366,7 +464,7 @@ function RecipeDetailContent({
         presets={timerPresets}
         timers={timers}
         onReset={handleResetTimer}
-        onToggle={handleToggleTimer}
+        onToggle={(timerId) => void handleToggleTimer(timerId)}
       />
 
       <RecipeSection title={t("recipes.ingredients")} items={scaledIngredients} />
@@ -546,8 +644,12 @@ function TimerSection({
                   tone="primary"
                 />
                 <IconButton
-                  icon={RotateCcw}
-                  label={t("recipes.timers.reset")}
+                  icon={running || finished ? Square : RotateCcw}
+                  label={
+                    running || finished
+                      ? t("recipes.timers.stop")
+                      : t("recipes.timers.reset")
+                  }
                   onPress={() => onReset(preset.id)}
                 />
               </View>

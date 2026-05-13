@@ -28,7 +28,7 @@ export function SettingsScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors, mode, setMode } = useAppTheme();
   const { credentials, getClient, isLocalMode, logout } = useAuth();
-  const { sync } = useRecipes();
+  const { recipes, sync } = useRecipes();
   const {
     keepRecipesLocal,
     keepScreenAwake,
@@ -139,6 +139,14 @@ export function SettingsScreen({ navigation }: Props) {
         </AppText>
         <AppText muted variant="caption">
           {credentials?.username}
+        </AppText>
+        <AppText muted variant="caption">
+          {t(
+            recipes.length <= 1
+              ? "recipes.loadedRecipes_one"
+              : "recipes.loadedRecipes_other",
+            { count: recipes.length }
+          )}
         </AppText>
         <AppText muted variant="caption">
           {t("settings.secureStore")}

@@ -92,6 +92,7 @@ export const resources = {
         moreCategories: "Plus",
         loadingRecipes: "Chargement des recettes...",
         syncingRecipes: "Synchronisation en cours...",
+        syncingRecipesShort: "Synchronisation...",
         loadedRecipes: "{{count}} recette chargée",
         loadedRecipes_one: "{{count}} recette chargée",
         loadedRecipes_other: "{{count}} recettes chargées",
@@ -114,7 +115,9 @@ export const resources = {
           start: "Lancer le minuteur",
           pause: "Mettre en pause",
           reset: "Réinitialiser",
-          done: "Terminé"
+          stop: "Arrêter",
+          done: "Terminé",
+          notificationTitle: "{{timer}} terminé"
         },
         health: {
           title: "Santé",
@@ -315,6 +318,7 @@ export const resources = {
         moreCategories: "More",
         loadingRecipes: "Loading recipes...",
         syncingRecipes: "Syncing recipes...",
+        syncingRecipesShort: "Syncing...",
         loadedRecipes: "{{count}} recipe loaded",
         loadedRecipes_one: "{{count}} recipe loaded",
         loadedRecipes_other: "{{count}} recipes loaded",
@@ -337,7 +341,9 @@ export const resources = {
           start: "Start timer",
           pause: "Pause",
           reset: "Reset",
-          done: "Done"
+          stop: "Stop",
+          done: "Done",
+          notificationTitle: "{{timer}} done"
         },
         health: {
           title: "Health",
