@@ -14,12 +14,14 @@ import { AppText } from "./AppText";
 type TextFieldProps = TextInputProps & {
   label: string;
   containerStyle?: StyleProp<ViewStyle>;
+  rightElement?: React.ReactNode;
 };
 
 export function TextField({
   label,
   containerStyle,
   multiline,
+  rightElement,
   style,
   ...props
 }: TextFieldProps) {
@@ -27,22 +29,28 @@ export function TextField({
   return (
     <View style={[styles.container, containerStyle]}>
       <AppText variant="label">{label}</AppText>
-      <TextInput
-        {...props}
-        multiline={multiline}
-        placeholderTextColor={colors.textMuted}
-        selectionColor={colors.primary}
-        style={[
-          styles.input,
-          multiline ? styles.multiline : null,
-          {
-            backgroundColor: colors.input,
-            borderColor: colors.border,
-            color: colors.text
-          },
-          style
-        ]}
-      />
+      <View style={styles.inputWrap}>
+        <TextInput
+          {...props}
+          multiline={multiline}
+          placeholderTextColor={colors.textMuted}
+          selectionColor={colors.primary}
+          style={[
+            styles.input,
+            multiline ? styles.multiline : null,
+            rightElement ? styles.inputWithRightElement : null,
+            {
+              backgroundColor: colors.input,
+              borderColor: colors.border,
+              color: colors.text
+            },
+            style
+          ]}
+        />
+        {rightElement ? (
+          <View style={styles.rightElement}>{rightElement}</View>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -50,6 +58,9 @@ export function TextField({
 const styles = StyleSheet.create({
   container: {
     gap: spacing.xs
+  },
+  inputWrap: {
+    justifyContent: "center"
   },
   input: {
     borderRadius: radius.sm,
@@ -59,8 +70,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm
   },
+  inputWithRightElement: {
+    paddingRight: 54
+  },
   multiline: {
     minHeight: 120,
     textAlignVertical: "top"
+  },
+  rightElement: {
+    position: "absolute",
+    right: spacing.xs
   }
 });

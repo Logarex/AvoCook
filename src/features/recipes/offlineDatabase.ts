@@ -135,3 +135,8 @@ export async function deleteQueuedOperation(id: number) {
   const db = await dbPromise;
   await db.runAsync("DELETE FROM sync_queue WHERE id = ?", id);
 }
+
+export async function clearLocalRecipeCache() {
+  const db = await dbPromise;
+  await db.runAsync("DELETE FROM recipes WHERE dirty = 0");
+}

@@ -7,7 +7,10 @@ import React, {
   useState
 } from "react";
 import { useAuth } from "../auth/AuthProvider";
+import { usePreferences } from "../preferences/PreferencesProvider";
+import { loadCustomCategories, saveCustomCategory } from "./categoryStore";
 import {
+  clearSyncedLocalRecipes,
   createRecipe as createRecipeInRepository,
   deleteRecipe as deleteRecipeInRepository,
   importRecipe as importRecipeInRepository,
@@ -19,6 +22,7 @@ import type { Recipe } from "./types";
 
 type RecipesContextValue = {
   recipes: Recipe[];
+  customCategories: string[];
   loading: boolean;
   syncing: boolean;
   lastError: string | null;
@@ -29,6 +33,7 @@ type RecipesContextValue = {
   updateRecipe: (recipe: Recipe) => Promise<Recipe>;
   deleteRecipe: (id: string) => Promise<void>;
   importRecipe: (url: string) => Promise<Recipe>;
+  createCategory: (category: string) => Promise<string[]>;
 };
 
 const RecipesContext = createContext<RecipesContextValue | undefined>(
@@ -36,8 +41,10 @@ const RecipesContext = createContext<RecipesContextValue | undefined>(
 );
 
 export function RecipesProvider({ children }: { children: React.ReactNode }) {
-  const { credentials, getClient } = useAuth();
+  const { credentials, getClient, isLocalMode } = useAuth();
+  const { keepRecipesLocal } = usePreferences();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [customCategories, setCustomCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
@@ -58,6 +65,10 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     void reloadLocal();
   }, [reloadLocal]);
 
+  useEffect(() => {
+    void loadCustomCategories().then(setCustomCategories);
+  }, []);
+
   const sync = useCallback(async () => {
     const client = getClient();
     if (!client) {
@@ -66,7 +77,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
 
     setSyncing(true);
     try {
-      setRecipes(await syncRecipes(client));
+      setRecipes(await syncRecipes(client, keepRecipesLocal));
       setLastError(null);
     } catch (error) {
       setLastError(error instanceof Error ? error.message : String(error));
@@ -74,13 +85,19 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setSyncing(false);
     }
-  }, [getClient]);
+  }, [getClient, keepRecipesLocal]);
 
   useEffect(() => {
     if (credentials) {
       void sync();
     }
   }, [credentials, sync]);
+
+  useEffect(() => {
+    if (credentials && !keepRecipesLocal && !isLocalMode) {
+      void clearSyncedLocalRecipes();
+    }
+  }, [credentials, isLocalMode, keepRecipesLocal]);
 
   const createRecipe = useCallback(
     async (recipe: Recipe) => {
@@ -117,6 +134,12 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     [getClient]
   );
 
+  const createCategory = useCallback(async (category: string) => {
+    const nextCategories = await saveCustomCategory(category);
+    setCustomCategories(nextCategories);
+    return nextCategories;
+  }, []);
+
   const getRecipe = useCallback(
     (id: string) => recipes.find((recipe) => recipe.id === id),
     [recipes]
@@ -125,6 +148,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       recipes,
+      customCategories,
       loading,
       syncing,
       lastError,
@@ -134,10 +158,12 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       createRecipe,
       updateRecipe,
       deleteRecipe,
-      importRecipe
+      importRecipe,
+      createCategory
     }),
     [
       recipes,
+      customCategories,
       loading,
       syncing,
       lastError,
@@ -147,7 +173,8 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       createRecipe,
       updateRecipe,
       deleteRecipe,
-      importRecipe
+      importRecipe,
+      createCategory
     ]
   );
 

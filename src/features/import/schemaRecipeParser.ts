@@ -48,7 +48,7 @@ export async function importRecipeFromWeb(url: string): Promise<Recipe> {
 
 export function findRecipeJsonLd(html: string): Record<string, unknown> | null {
   const scripts = html.matchAll(
-    /<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi
+    /<script[^>]+type=["']application(?:\/|&#x2F;)ld(?:\+|&#x2B;)json["'][^>]*>([\s\S]*?)<\/script>/gi
   );
 
   for (const script of scripts) {

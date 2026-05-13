@@ -6,7 +6,9 @@ export type RootStackParamList = {
   };
   RecipeEditor: {
     id?: string;
+    category?: string;
   };
   ImportRecipe: undefined;
   Settings: undefined;
+  Privacy: undefined;
 };

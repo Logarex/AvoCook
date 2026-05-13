@@ -41,4 +41,21 @@ describe("schemaRecipeParser", () => {
     expect(recipe.recipeYield).toBe(6);
     expect(recipe.image).toBe("https://example.com/tarte.jpg");
   });
+
+  it("extracts Recipe JSON-LD when the script type is HTML-encoded", () => {
+    const html = `
+      <script type="application&#x2F;ld&#x2B;json">
+        {
+          "@context": "https://schema.org",
+          "@type": "Recipe",
+          "name": "Crêpes",
+          "recipeIngredient": ["250 g de farine"],
+          "recipeInstructions": ["Mélanger."]
+        }
+      </script>
+    `;
+
+    const jsonLd = findRecipeJsonLd(html);
+    expect(jsonLd?.name).toBe("Crêpes");
+  });
 });

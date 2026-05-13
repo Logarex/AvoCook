@@ -1,10 +1,11 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { LockKeyhole, Server } from "lucide-react-native";
+import { ChefHat, Eye, EyeOff, LockKeyhole, Server } from "lucide-react-native";
 import React, { useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
+import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
@@ -18,10 +19,11 @@ type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 export function LoginScreen(_props: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
-  const { login } = useAuth();
+  const { login, startLocalMode } = useAuth();
   const [serverUrl, setServerUrl] = useState("");
   const [username, setUsername] = useState("");
   const [appPassword, setAppPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -34,7 +36,9 @@ export function LoginScreen(_props: Props) {
       const message =
         caught instanceof Error && caught.message === "INSECURE_URL"
           ? t("auth.insecureUrl")
-          : t("auth.failed");
+          : caught instanceof Error && /401|997|credentials/i.test(caught.message)
+            ? t("auth.badCredentials")
+            : t("auth.failed");
       setError(message);
     } finally {
       setSubmitting(false);
@@ -79,7 +83,15 @@ export function LoginScreen(_props: Props) {
           autoCorrect={false}
           label={t("auth.appPassword")}
           onChangeText={setAppPassword}
-          secureTextEntry
+          rightElement={
+            <IconButton
+              icon={showPassword ? EyeOff : Eye}
+              label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+              onPress={() => setShowPassword((visible) => !visible)}
+              style={styles.passwordButton}
+            />
+          }
+          secureTextEntry={!showPassword}
           textContentType="password"
           value={appPassword}
         />
@@ -92,11 +104,18 @@ export function LoginScreen(_props: Props) {
           label={submitting ? t("common.loading") : t("auth.login")}
           onPress={() => void handleLogin()}
         />
+        <PrimaryButton
+          disabled={submitting}
+          icon={ChefHat}
+          label={t("auth.useLocal")}
+          onPress={() => void startLocalMode()}
+          variant="ghost"
+        />
         {submitting ? <ActivityIndicator color={colors.primary} /> : null}
       </GlassPanel>
 
       <AppText muted variant="caption" style={styles.center}>
-        {t("auth.secure")}
+        {t("auth.secure")}{"\n"}{t("auth.localSubtitle")}
       </AppText>
     </Screen>
   );
@@ -123,5 +142,9 @@ const styles = StyleSheet.create({
   },
   form: {
     gap: spacing.md
+  },
+  passwordButton: {
+    height: 36,
+    width: 36
   }
 });

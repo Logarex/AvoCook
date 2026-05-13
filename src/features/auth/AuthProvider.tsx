@@ -1,4 +1,5 @@
 import * as SecureStore from "expo-secure-store";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, {
   createContext,
   useCallback,
@@ -14,11 +15,14 @@ import {
 } from "../nextcloud/cookbookClient";
 
 const CREDENTIALS_KEY = "nextcloud.credentials";
+const LOCAL_MODE_KEY = "auth.localMode";
 
 type AuthContextValue = {
   credentials: NextcloudCredentials | null;
+  isLocalMode: boolean;
   hydrated: boolean;
   login: (credentials: NextcloudCredentials) => Promise<void>;
+  startLocalMode: () => Promise<void>;
   logout: () => Promise<void>;
   getClient: () => CookbookClient | null;
 };
@@ -29,14 +33,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [credentials, setCredentials] = useState<NextcloudCredentials | null>(
     null
   );
+  const [isLocalMode, setIsLocalMode] = useState(false);
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    void SecureStore.getItemAsync(CREDENTIALS_KEY)
-      .then((stored) => {
+    void Promise.all([
+      SecureStore.getItemAsync(CREDENTIALS_KEY),
+      AsyncStorage.getItem(LOCAL_MODE_KEY)
+    ])
+      .then(([stored, localMode]) => {
         if (stored) {
           setCredentials(JSON.parse(stored) as NextcloudCredentials);
         }
+        setIsLocalMode(localMode === "true" && !stored);
       })
       .finally(() => setHydrated(true));
   }, []);
@@ -48,10 +57,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const normalizedCredentials = {
       ...nextCredentials,
       serverUrl,
-      username: nextCredentials.username.trim()
+      username: nextCredentials.username.trim(),
+      appPassword: nextCredentials.appPassword.replace(/\s+/g, "")
     };
     const client = new CookbookClient(normalizedCredentials);
-    await client.getCapabilities();
+    await client.validateConnection();
+    await client.getCapabilities().catch(() => undefined);
 
     await SecureStore.setItemAsync(
       CREDENTIALS_KEY,
@@ -60,12 +71,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY
       }
     );
+    await AsyncStorage.setItem(LOCAL_MODE_KEY, "false");
+    setIsLocalMode(false);
     setCredentials(normalizedCredentials);
+  }, []);
+
+  const startLocalMode = useCallback(async () => {
+    await SecureStore.deleteItemAsync(CREDENTIALS_KEY);
+    await AsyncStorage.setItem(LOCAL_MODE_KEY, "true");
+    setCredentials(null);
+    setIsLocalMode(true);
   }, []);
 
   const logout = useCallback(async () => {
     await SecureStore.deleteItemAsync(CREDENTIALS_KEY);
+    await AsyncStorage.setItem(LOCAL_MODE_KEY, "false");
     setCredentials(null);
+    setIsLocalMode(false);
   }, []);
 
   const getClient = useCallback(() => {
@@ -76,8 +98,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [credentials]);
 
   const value = useMemo(
-    () => ({ credentials, hydrated, login, logout, getClient }),
-    [credentials, hydrated, login, logout, getClient]
+    () => ({
+      credentials,
+      isLocalMode,
+      hydrated,
+      login,
+      startLocalMode,
+      logout,
+      getClient
+    }),
+    [credentials, isLocalMode, hydrated, login, startLocalMode, logout, getClient]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

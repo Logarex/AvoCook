@@ -5,11 +5,13 @@ Application mobile iOS, iPadOS et Android pour consulter, importer, créer et mo
 ## Fonctionnalités
 
 - Connexion directe à un serveur Nextcloud via app password.
+- Mode local gratuit sans compte Nextcloud.
 - Synchronisation avec l'API publique Nextcloud Cookbook `0.1.3`.
-- Recettes disponibles hors ligne avec cache SQLite local.
+- Option pour conserver une copie locale des recettes et les consulter hors ligne.
 - File de synchronisation pour créations, modifications et suppressions hors connexion.
 - Import depuis une URL via l'endpoint Cookbook, puis fallback JSON-LD schema.org côté mobile.
 - Import pensé pour les grands sites de recettes français et internationaux exposant schema.org Recipe, dont Marmiton, CuisineAZ, 750g, Chefkoch, BBC Good Food, Allrecipes, GialloZafferano et Cookpad.
+- Photos de recettes récupérées depuis les sites importés ou ajoutées manuellement depuis la galerie.
 - Ajout et modification manuels avec champs clairs.
 - Thèmes clair/sombre/système et langues français/anglais.
 - Interface adaptative avec surfaces glass sur iOS et rendu sobre sur Android.
@@ -21,7 +23,7 @@ Application mobile iOS, iPadOS et Android pour consulter, importer, créer et mo
 - React Navigation
 - Expo SecureStore pour les identifiants
 - Expo SQLite pour le mode hors ligne
-- Expo Blur/Image/KeepAwake pour l'expérience mobile
+- Expo Blur/Image/ImagePicker/FileSystem/KeepAwake pour l'expérience mobile
 - i18next pour l'internationalisation
 - Vitest pour les tests unitaires purs
 
@@ -41,6 +43,16 @@ Puis lancer l'app dans Expo Go, un simulateur iOS, un émulateur Android ou un d
 3. Se connecter dans l'app avec l'URL du serveur, l'identifiant et l'app password.
 
 L'app refuse les URL HTTP sauf `localhost` pendant le développement.
+
+La validation de connexion utilise `/ocs/v2.php/cloud/user?format=json` avec l'en-tête `OCS-APIRequest: true`, ce qui force Nextcloud à vérifier réellement l'identifiant et l'app password. L'appel aux capacités sert ensuite à détecter l'environnement serveur.
+
+## Mode local
+
+Le bouton `Utiliser sans Nextcloud` permet d'utiliser l'app gratuitement sans compte ni serveur. Les recettes et photos restent dans le stockage de l'application sur l'appareil.
+
+## Dossier Cookbook
+
+Dans les réglages, le champ `Dossier Cookbook` modifie la configuration utilisateur de Cookbook via l'API `/apps/cookbook/api/v1/config`. Le dossier est normalisé avec un `/` initial.
 
 ## Publication
 
@@ -63,6 +75,7 @@ npx eas build --platform android --profile production
 ```bash
 npm run typecheck
 npm test
+npm run import:check -- https://www.marmiton.org/recettes/recette_gateau-leger-au-chocolat_15680.aspx
 ```
 
 ## Notes sur l'import de recettes
@@ -70,3 +83,5 @@ npm test
 Nextcloud Cookbook importe déjà les pages contenant des métadonnées schema.org Recipe. L'app utilise ce mécanisme en priorité pour que la recette arrive directement dans le serveur de l'utilisateur. Si le serveur ne peut pas importer la page, l'app tente une extraction JSON-LD locale puis crée la recette dans Cookbook.
 
 Les sites qui changent souvent leur HTML doivent être ajoutés sous forme d'adapters dédiés dans `src/features/import/` plutôt que via du scraping fragile.
+
+Le script `npm run import:check -- <url>` vérifie rapidement qu'une page expose un objet `Recipe`, des ingrédients, des étapes et une image.

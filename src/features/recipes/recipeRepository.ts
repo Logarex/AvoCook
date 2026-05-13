@@ -2,6 +2,7 @@ import { importRecipeFromWeb } from "../import/schemaRecipeParser";
 import type { CookbookClient } from "../nextcloud/cookbookClient";
 import {
   deleteQueuedOperation,
+  clearLocalRecipeCache,
   enqueueSyncOperation,
   listQueuedOperations,
   loadLocalRecipes,
@@ -10,11 +11,17 @@ import {
   removeLocalRecipe,
   saveLocalRecipe
 } from "./offlineDatabase";
+import { persistRecipeImage } from "./recipeImages";
 import { normalizeRecipe, type Recipe } from "./types";
 
 export async function initialiseRecipeStore() {
   await migrateDatabase();
   return loadLocalRecipes();
+}
+
+export async function clearSyncedLocalRecipes() {
+  await migrateDatabase();
+  await clearLocalRecipeCache();
 }
 
 export async function createRecipe(
@@ -83,18 +90,20 @@ export async function importRecipe(url: string, client: CookbookClient | null) {
   if (client) {
     try {
       const imported = await client.importRecipe(url);
-      return saveLocalRecipe(normalizeRecipe(imported), false);
+      const withLocalPhoto = await cacheRecipePhoto(normalizeRecipe(imported));
+      return saveLocalRecipe(withLocalPhoto, false);
     } catch {
       const parsed = await importRecipeFromWeb(url);
-      return createRecipe(parsed, client);
+      const saved = await createRecipe(parsed, client);
+      return saveLocalRecipe(await cacheRecipePhoto(saved), false);
     }
   }
 
   const parsed = await importRecipeFromWeb(url);
-  return createRecipe(parsed, null);
+  return createRecipe(await cacheRecipePhoto(parsed), null);
 }
 
-export async function syncRecipes(client: CookbookClient) {
+export async function syncRecipes(client: CookbookClient, persistLocal = true) {
   await migrateDatabase();
   await flushSyncQueue(client);
 
@@ -107,8 +116,13 @@ export async function syncRecipes(client: CookbookClient) {
       continue;
     }
     const recipe = await client.getRecipe(id);
-    const saved = await saveLocalRecipe(normalizeRecipe(recipe), false);
-    recipes.push(saved);
+    const normalized = normalizeRecipe(recipe);
+    if (persistLocal) {
+      const saved = await saveLocalRecipe(normalized, false);
+      recipes.push(saved);
+    } else {
+      recipes.push(normalized);
+    }
   }
 
   return recipes;
@@ -148,4 +162,19 @@ async function flushSyncQueue(client: CookbookClient) {
     await saveLocalRecipe(operation.payload, false);
     await deleteQueuedOperation(operation.id);
   }
+}
+
+export async function cacheRecipePhoto(recipe: Recipe) {
+  const image = recipe.image || recipe.imageUrl;
+  if (!image) {
+    return recipe;
+  }
+
+  const localImage = await persistRecipeImage(image);
+  return normalizeRecipe({
+    ...recipe,
+    image: localImage,
+    imageUrl: localImage,
+    imagePlaceholderUrl: localImage
+  });
 }

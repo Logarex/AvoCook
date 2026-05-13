@@ -8,8 +8,32 @@ export type NextcloudCredentials = {
   appPassword: string;
 };
 
+export type CookbookConfig = {
+  folder?: string;
+  update_interval?: number;
+  print_image?: boolean;
+  visibleInfoBlocks?: Record<string, boolean>;
+};
+
 type RequestOptions = RequestInit & {
   ocs?: boolean;
+};
+
+type OcsResponse<T> = {
+  ocs?: {
+    meta?: {
+      status?: string;
+      statuscode?: number;
+      message?: string;
+    };
+    data?: T;
+  };
+};
+
+export type NextcloudUser = {
+  id?: string;
+  displayname?: string;
+  email?: string;
 };
 
 export class CookbookApiError extends Error {
@@ -30,7 +54,7 @@ export class CookbookClient {
   constructor(credentials: NextcloudCredentials) {
     this.serverUrl = normalizeNextcloudUrl(credentials.serverUrl);
     this.authorization = `Basic ${base64Encode(
-      `${credentials.username}:${credentials.appPassword}`
+      `${credentials.username}:${credentials.appPassword.replace(/\s+/g, "")}`
     )}`;
   }
 
@@ -50,6 +74,45 @@ export class CookbookClient {
     return this.request<unknown>("/ocs/v2.php/cloud/capabilities?format=json", {
       ocs: true
     });
+  }
+
+  async getCurrentUser() {
+    const payload = await this.request<OcsResponse<NextcloudUser>>(
+      "/ocs/v2.php/cloud/user?format=json",
+      {
+        ocs: true
+      }
+    );
+    const meta = payload.ocs?.meta;
+    const statusOk =
+      meta?.status?.toLowerCase() === "ok" ||
+      meta?.statuscode === 100 ||
+      meta?.statuscode === 200;
+
+    if (!statusOk || !payload.ocs?.data) {
+      throw new CookbookApiError(
+        meta?.message || "Invalid Nextcloud credentials",
+        meta?.statuscode ?? 401,
+        payload
+      );
+    }
+
+    return payload.ocs.data;
+  }
+
+  async validateConnection() {
+    try {
+      const user = await this.getCurrentUser();
+      await this.listRecipes();
+      return user;
+    } catch (userError) {
+      try {
+        await this.listRecipes();
+        return null;
+      } catch (cookbookError) {
+        throw cookbookError instanceof Error ? cookbookError : userError;
+      }
+    }
   }
 
   async getApiVersion() {
@@ -116,6 +179,17 @@ export class CookbookClient {
     });
   }
 
+  async getConfig() {
+    return this.request<CookbookConfig>("/apps/cookbook/api/v1/config");
+  }
+
+  async setConfig(config: CookbookConfig) {
+    return this.request<string>("/apps/cookbook/api/v1/config", {
+      method: "POST",
+      body: JSON.stringify(config)
+    });
+  }
+
   private async request<T>(path: string, options: RequestOptions = {}) {
     const headers = new Headers(options.headers);
     headers.set("Accept", "application/json");
@@ -136,7 +210,7 @@ export class CookbookClient {
 
     const contentType = response.headers.get("content-type") ?? "";
     const payload = contentType.includes("application/json")
-      ? await response.json()
+      ? await safeJson(response)
       : await response.text();
 
     if (!response.ok) {
@@ -149,4 +223,12 @@ export class CookbookClient {
 
     return payload as T;
   }
+}
+
+async function safeJson(response: Response) {
+  const text = await response.text();
+  if (!text) {
+    return null;
+  }
+  return JSON.parse(text) as unknown;
 }

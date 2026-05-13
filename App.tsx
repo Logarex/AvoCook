@@ -17,6 +17,7 @@ import { RecipeDetailScreen } from "./src/screens/RecipeDetailScreen";
 import { RecipeEditorScreen } from "./src/screens/RecipeEditorScreen";
 import { RecipeListScreen } from "./src/screens/RecipeListScreen";
 import { SettingsScreen } from "./src/screens/SettingsScreen";
+import { PrivacyScreen } from "./src/screens/PrivacyScreen";
 import { AppThemeProvider, useAppTheme } from "./src/theme/ThemeProvider";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -40,7 +41,7 @@ export default function App() {
 }
 
 function RootNavigator() {
-  const { credentials, hydrated } = useAuth();
+  const { credentials, hydrated, isLocalMode } = useAuth();
   const { colors, isDark, navTheme } = useAppTheme();
 
   if (!hydrated) {
@@ -62,13 +63,14 @@ function RootNavigator() {
             headerShown: false
           }}
         >
-          {credentials ? (
+          {credentials || isLocalMode ? (
             <>
               <Stack.Screen name="Recipes" component={RecipeListScreen} />
               <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
               <Stack.Screen name="RecipeEditor" component={RecipeEditorScreen} />
               <Stack.Screen name="ImportRecipe" component={ImportRecipeScreen} />
               <Stack.Screen name="Settings" component={SettingsScreen} />
+              <Stack.Screen name="Privacy" component={PrivacyScreen} />
             </>
           ) : (
             <Stack.Screen name="Login" component={LoginScreen} />

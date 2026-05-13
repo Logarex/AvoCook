@@ -21,12 +21,18 @@
       "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "UIRequiresFullScreen": false
+        "UIRequiresFullScreen": false,
+        "NSPhotoLibraryUsageDescription": "Autoriser l'accès aux photos pour ajouter une image à une recette.",
+        "NSPhotoLibraryAddUsageDescription": "Autoriser l'enregistrement d'images de recettes si nécessaire."
       }
     },
     "android": {
       "package": "app.nextcloudcookbook.mobile",
       "versionCode": 1,
+      "permissions": [],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#F7F3EA"
@@ -39,7 +45,15 @@
     "plugins": [
       "expo-secure-store",
       "expo-sqlite",
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Autoriser l'accès aux photos pour ajouter une image à une recette.",
+          "cameraPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "extra": {
       "eas": {
