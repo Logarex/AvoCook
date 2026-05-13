@@ -11,6 +11,7 @@ import { AppText } from "./src/components/AppText";
 import { AuthProvider, useAuth } from "./src/features/auth/AuthProvider";
 import { PreferencesProvider } from "./src/features/preferences/PreferencesProvider";
 import { RecipesProvider } from "./src/features/recipes/RecipesProvider";
+import { TimersProvider } from "./src/features/timers/TimersProvider";
 import type { RootStackParamList } from "./src/navigation/types";
 import { ImportRecipeScreen } from "./src/screens/ImportRecipeScreen";
 import { LoginScreen } from "./src/screens/LoginScreen";
@@ -31,7 +32,9 @@ export default function App() {
           <PreferencesProvider>
             <AuthProvider>
               <RecipesProvider>
-                <RootNavigator />
+                <TimersProvider>
+                  <RootNavigator />
+                </TimersProvider>
               </RecipesProvider>
             </AuthProvider>
           </PreferencesProvider>

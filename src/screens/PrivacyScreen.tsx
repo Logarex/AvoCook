@@ -27,7 +27,7 @@ export function PrivacyScreen({ navigation }: Props) {
   ];
 
   return (
-    <Screen>
+    <Screen showScrollTop={false}>
       <View style={styles.toolbar}>
         <IconButton
           icon={ArrowLeft}
