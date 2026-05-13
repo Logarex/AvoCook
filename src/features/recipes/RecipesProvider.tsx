@@ -16,6 +16,7 @@ import {
   importRecipe as importRecipeInRepository,
   initialiseRecipeStore,
   syncRecipes,
+  updateRecipeLocalPreferences,
   updateRecipe as updateRecipeInRepository
 } from "./recipeRepository";
 import type { Recipe } from "./types";
@@ -31,6 +32,7 @@ type RecipesContextValue = {
   sync: () => Promise<void>;
   createRecipe: (recipe: Recipe) => Promise<Recipe>;
   updateRecipe: (recipe: Recipe) => Promise<Recipe>;
+  updateRecipePreferences: (recipe: Recipe) => Promise<Recipe>;
   deleteRecipe: (id: string) => Promise<void>;
   importRecipe: (url: string) => Promise<Recipe>;
   createCategory: (category: string) => Promise<string[]>;
@@ -117,6 +119,21 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     [getClient]
   );
 
+  const updateRecipePreferences = useCallback(async (recipe: Recipe) => {
+    setRecipes((currentRecipes) =>
+      currentRecipes.map((currentRecipe) =>
+        currentRecipe.id === recipe.id ? recipe : currentRecipe
+      )
+    );
+    const saved = await updateRecipeLocalPreferences(recipe);
+    setRecipes((currentRecipes) =>
+      currentRecipes.map((currentRecipe) =>
+        currentRecipe.id === saved.id ? saved : currentRecipe
+      )
+    );
+    return saved;
+  }, []);
+
   const deleteRecipe = useCallback(
     async (id: string) => {
       await deleteRecipeInRepository(id, getClient());
@@ -157,6 +174,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       sync,
       createRecipe,
       updateRecipe,
+      updateRecipePreferences,
       deleteRecipe,
       importRecipe,
       createCategory
@@ -172,6 +190,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       sync,
       createRecipe,
       updateRecipe,
+      updateRecipePreferences,
       deleteRecipe,
       importRecipe,
       createCategory

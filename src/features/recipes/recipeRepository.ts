@@ -31,6 +31,11 @@ export async function clearSyncedLocalRecipes() {
   await pruneRecipeImageCache(await loadLocalRecipes());
 }
 
+export async function updateRecipeLocalPreferences(recipe: Recipe) {
+  await migrateDatabase();
+  return saveLocalRecipe(recipe, false, false);
+}
+
 export async function createRecipe(
   recipe: Recipe,
   client: CookbookClient | null

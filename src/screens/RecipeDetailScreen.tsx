@@ -69,7 +69,7 @@ const nutriScoreGrades: NutriScoreGrade[] = ["A", "B", "C", "D", "E"];
 export function RecipeDetailScreen({ navigation, route }: Props) {
   const { getClient } = useAuth();
   const { keepScreenAwake } = usePreferences();
-  const { deleteRecipe, getRecipe, updateRecipe } = useRecipes();
+  const { deleteRecipe, getRecipe, updateRecipePreferences } = useRecipes();
   const recipe = getRecipe(route.params.id);
 
   if (keepScreenAwake) {
@@ -81,7 +81,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
           recipeId={route.params.id}
           recipe={recipe}
           deleteRecipe={deleteRecipe}
-          updateRecipe={updateRecipe}
+          updateRecipePreferences={updateRecipePreferences}
           getImageSource={() => getImageSource(recipe, getClient())}
         />
       </>
@@ -94,7 +94,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
       recipeId={route.params.id}
       recipe={recipe}
       deleteRecipe={deleteRecipe}
-      updateRecipe={updateRecipe}
+      updateRecipePreferences={updateRecipePreferences}
       getImageSource={() => getImageSource(recipe, getClient())}
     />
   );
@@ -110,14 +110,14 @@ function RecipeDetailContent({
   recipeId,
   recipe,
   deleteRecipe,
-  updateRecipe,
+  updateRecipePreferences,
   getImageSource
 }: {
   navigation: Props["navigation"];
   recipeId: string;
   recipe: ReturnType<typeof useRecipes>["recipes"][number] | undefined;
   deleteRecipe: (id: string) => Promise<void>;
-  updateRecipe: ReturnType<typeof useRecipes>["updateRecipe"];
+  updateRecipePreferences: ReturnType<typeof useRecipes>["updateRecipePreferences"];
   getImageSource: () => ImageSource | null;
 }) {
   const { t } = useTranslation();
@@ -237,7 +237,7 @@ function RecipeDetailContent({
       localMeta.servingOverride = normalizedServings;
     }
 
-    await updateRecipe(
+    await updateRecipePreferences(
       normalizeRecipe({
         ...recipe,
         localMeta: Object.keys(localMeta).length ? localMeta : undefined
@@ -369,8 +369,6 @@ function RecipeDetailContent({
         onToggle={handleToggleTimer}
       />
 
-      {healthProfile ? <HealthSection profile={healthProfile} /> : null}
-
       <RecipeSection title={t("recipes.ingredients")} items={scaledIngredients} />
       <RecipeSection
         ordered
@@ -403,6 +401,8 @@ function RecipeDetailContent({
           variant="ghost"
         />
       ) : null}
+
+      {healthProfile ? <HealthSection profile={healthProfile} /> : null}
     </Screen>
   );
 }

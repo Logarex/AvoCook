@@ -1,6 +1,9 @@
 import React from "react";
 import {
   KeyboardAvoidingView,
+  LayoutChangeEvent,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Platform,
   Pressable,
   ScrollView,
@@ -29,11 +32,27 @@ export function Screen({
   showScrollTop = scroll
 }: ScreenProps) {
   const scrollRef = React.useRef<ScrollView>(null);
+  const [contentHeight, setContentHeight] = React.useState(0);
+  const [viewportHeight, setViewportHeight] = React.useState(0);
+  const [scrolledPastTop, setScrolledPastTop] = React.useState(false);
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const content = (
     <View style={[styles.content, contentStyle]}>{children}</View>
   );
+  const canScroll = contentHeight > viewportHeight + spacing.lg;
+  const showBackToTop = showScrollTop && canScroll && scrolledPastTop;
+
+  function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
+    const nextScrolledPastTop = event.nativeEvent.contentOffset.y > 240;
+    setScrolledPastTop((current) =>
+      current === nextScrolledPastTop ? current : nextScrolledPastTop
+    );
+  }
+
+  function handleLayout(event: LayoutChangeEvent) {
+    setViewportHeight(event.nativeEvent.layout.height);
+  }
 
   return (
     <SafeAreaView
@@ -50,10 +69,14 @@ export function Screen({
               ref={scrollRef}
               contentContainerStyle={styles.scrollContent}
               keyboardShouldPersistTaps="handled"
+              onContentSizeChange={(_, height) => setContentHeight(height)}
+              onLayout={handleLayout}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
             >
               {content}
             </ScrollView>
-            {showScrollTop ? (
+            {showBackToTop ? (
               <Pressable
                 accessibilityLabel={t("common.backToTop")}
                 accessibilityRole="button"
