@@ -1,16 +1,20 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
+  ArrowUp,
   Check,
   Download,
+  ListFilter,
   ListPlus,
   Plus,
   RefreshCw,
-  Settings
+  Settings,
+  X
 } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Modal,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -29,12 +33,12 @@ import { SearchField } from "../components/SearchField";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import type { Recipe } from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Recipes">;
-const UNCATEGORIZED = "__uncategorized__";
 
 type CategoryOption = {
   count: number;
@@ -56,17 +60,21 @@ export function RecipeListScreen({ navigation }: Props) {
   } = useRecipes();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
+  const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showCategoryCreator, setShowCategoryCreator] = useState(false);
   const [newCategory, setNewCategory] = useState("");
+  const recipeListRef = useRef<FlatList<Recipe>>(null);
+  const categoryPickerLabel = safeTranslation(
+    t("recipes.chooseCategory"),
+    t("recipes.categories")
+  );
 
   const categoryOptions = useMemo<CategoryOption[]>(() => {
     const counts = new Map<string, number>();
-    let uncategorizedCount = 0;
 
     for (const recipe of recipes) {
       const recipeCategory = recipe.recipeCategory.trim();
       if (!recipeCategory) {
-        uncategorizedCount += 1;
         continue;
       }
       counts.set(recipeCategory, (counts.get(recipeCategory) ?? 0) + 1);
@@ -84,23 +92,34 @@ export function RecipeListScreen({ navigation }: Props) {
 
     return [
       { id: null, label: t("recipes.allCategories"), count: recipes.length },
-      {
-        id: UNCATEGORIZED,
-        label: t("recipes.uncategorized"),
-        count: uncategorizedCount
-      },
       ...options
     ];
   }, [customCategories, recipes, t]);
+
+  const visibleCategoryOptions = useMemo(() => {
+    const [allCategories, ...remaining] = categoryOptions;
+    const selectedCategory = categoryOptions.find((item) => item.id === category);
+    const activeCategories = remaining
+      .filter((item) => item.count > 0)
+      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+      .slice(0, 6);
+
+    const nextOptions = [allCategories, ...activeCategories];
+    if (
+      selectedCategory &&
+      !nextOptions.some((item) => item.id === selectedCategory.id)
+    ) {
+      nextOptions.push(selectedCategory);
+    }
+
+    return nextOptions.filter((item): item is CategoryOption => Boolean(item));
+  }, [category, categoryOptions]);
 
   const filteredRecipes = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     return recipes.filter((recipe) => {
       const matchesCategory =
-        !category ||
-        (category === UNCATEGORIZED
-          ? !recipe.recipeCategory.trim()
-          : recipe.recipeCategory === category);
+        !category || recipe.recipeCategory === category;
       const searchable = [
         recipe.name,
         recipe.description,
@@ -123,7 +142,12 @@ export function RecipeListScreen({ navigation }: Props) {
     ? t("recipes.syncingRecipes")
     : loading
       ? t("recipes.loadingRecipes")
-      : t("recipes.loadedRecipes", { count: recipes.length });
+      : t(
+          recipes.length <= 1
+            ? "recipes.loadedRecipes_one"
+            : "recipes.loadedRecipes_other",
+          { count: recipes.length }
+        );
 
   async function handleCreateCategory() {
     const normalized = newCategory.replace(/\s+/g, " ").trim();
@@ -132,6 +156,7 @@ export function RecipeListScreen({ navigation }: Props) {
     }
     await createCategory(normalized);
     setCategory(normalized);
+    setShowCategoryPicker(false);
     setNewCategory("");
     setShowCategoryCreator(false);
   }
@@ -166,8 +191,7 @@ export function RecipeListScreen({ navigation }: Props) {
             label={t("common.add")}
             onPress={() =>
               navigation.navigate("RecipeEditor", {
-                category:
-                  category && category !== UNCATEGORIZED ? category : undefined
+                category: category ? category : undefined
               })
             }
             tone="primary"
@@ -186,43 +210,45 @@ export function RecipeListScreen({ navigation }: Props) {
         value={query}
       />
 
-      <GlassPanel style={styles.organizer}>
-        <View style={styles.organizerHeader}>
-          <View style={styles.titleBlock}>
-            <AppText variant="label">{t("recipes.categories")}</AppText>
-            {category && category !== UNCATEGORIZED ? (
-              <AppText muted variant="caption">
-                {t("recipes.selectedCategory", { category })}
-              </AppText>
-            ) : null}
-          </View>
-          <View style={styles.organizerActions}>
-            <IconButton
-              icon={ListPlus}
-              label={t("recipes.newCategory")}
-              onPress={() => setShowCategoryCreator((visible) => !visible)}
-              tone="primary"
-            />
-          </View>
+      <View style={styles.categoryToolbar}>
+        <View style={styles.categoryToolbarText}>
+          <AppText variant="label">{t("recipes.categories")}</AppText>
+          {category ? (
+            <AppText muted variant="caption" numberOfLines={1}>
+              {category}
+            </AppText>
+          ) : null}
         </View>
+        <View style={styles.organizerActions}>
+          <IconButton
+            icon={ListFilter}
+            label={categoryPickerLabel}
+            onPress={() => setShowCategoryPicker(true)}
+          />
+          <IconButton
+            icon={ListPlus}
+            label={t("recipes.newCategory")}
+            onPress={() => setShowCategoryCreator((visible) => !visible)}
+            tone="primary"
+          />
+        </View>
+      </View>
 
-        {showCategoryCreator ? (
-          <View style={styles.inlineEditor}>
-            <TextField
-              label={t("recipes.categoryName")}
-              onChangeText={setNewCategory}
-              value={newCategory}
-            />
-            <PrimaryButton
-              disabled={!newCategory.trim()}
-              icon={Check}
-              label={t("recipes.createCategory")}
-              onPress={() => void handleCreateCategory()}
-            />
-          </View>
-        ) : null}
-
-      </GlassPanel>
+      {showCategoryCreator ? (
+        <GlassPanel style={styles.inlineEditor}>
+          <TextField
+            label={t("recipes.categoryName")}
+            onChangeText={setNewCategory}
+            value={newCategory}
+          />
+          <PrimaryButton
+            disabled={!newCategory.trim()}
+            icon={Check}
+            label={t("recipes.createCategory")}
+            onPress={() => void handleCreateCategory()}
+          />
+        </GlassPanel>
+      ) : null}
 
       <ScrollView
         horizontal
@@ -230,7 +256,7 @@ export function RecipeListScreen({ navigation }: Props) {
         style={styles.categoryScroller}
         contentContainerStyle={styles.categoryList}
       >
-        {categoryOptions.map((item) => (
+        {visibleCategoryOptions.map((item) => (
           <CategoryChip
             key={item.id ?? "all"}
             count={item.count}
@@ -239,6 +265,9 @@ export function RecipeListScreen({ navigation }: Props) {
             onPress={() => setCategory(item.id)}
           />
         ))}
+        {categoryOptions.length > visibleCategoryOptions.length ? (
+          <MoreCategoryChip onPress={() => setShowCategoryPicker(true)} />
+        ) : null}
       </ScrollView>
 
       {loading ? (
@@ -247,6 +276,7 @@ export function RecipeListScreen({ navigation }: Props) {
         </View>
       ) : (
         <FlatList
+          ref={recipeListRef}
           style={styles.recipeList}
           contentContainerStyle={styles.listContent}
           data={filteredRecipes}
@@ -268,6 +298,42 @@ export function RecipeListScreen({ navigation }: Props) {
           showsVerticalScrollIndicator={false}
         />
       )}
+
+      {!loading && filteredRecipes.length > 0 ? (
+        <Pressable
+          accessibilityLabel={t("common.backToTop")}
+          accessibilityRole="button"
+          onPress={() =>
+            recipeListRef.current?.scrollToOffset({
+              animated: true,
+              offset: 0
+            })
+          }
+          style={({ pressed }) => [
+            styles.scrollTopButton,
+            {
+              backgroundColor: colors.surfaceGlassStrong,
+              borderColor: colors.border,
+              opacity: pressed ? 0.74 : 0.92,
+              shadowColor: colors.shadow
+            }
+          ]}
+        >
+          <ArrowUp color={colors.primary} size={19} strokeWidth={2.6} />
+        </Pressable>
+      ) : null}
+
+      <CategoryPickerModal
+        category={category}
+        categoryOptions={categoryOptions}
+        onClose={() => setShowCategoryPicker(false)}
+        onSelect={(nextCategory) => {
+          setCategory(nextCategory);
+          setShowCategoryPicker(false);
+        }}
+        title={categoryPickerLabel}
+        visible={showCategoryPicker}
+      />
     </Screen>
   );
 }
@@ -322,6 +388,113 @@ function CategoryChip({
   );
 }
 
+function MoreCategoryChip({ onPress }: { onPress: () => void }) {
+  const { t } = useTranslation();
+  const { colors } = useAppTheme();
+  const label = safeTranslation(t("recipes.moreCategories"), "Plus");
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.categoryChip,
+        {
+          backgroundColor: colors.surfaceGlassStrong,
+          borderColor: colors.border,
+          opacity: pressed ? 0.78 : 1
+        }
+      ]}
+    >
+      <ListFilter color={colors.primary} size={17} strokeWidth={2.5} />
+      <AppText variant="label">{label}</AppText>
+    </Pressable>
+  );
+}
+
+function CategoryPickerModal({
+  category,
+  categoryOptions,
+  onClose,
+  onSelect,
+  title,
+  visible
+}: {
+  category: string | null;
+  categoryOptions: CategoryOption[];
+  onClose: () => void;
+  onSelect: (category: string | null) => void;
+  title: string;
+  visible: boolean;
+}) {
+  const { t } = useTranslation();
+  const { colors } = useAppTheme();
+  return (
+    <Modal
+      animationType="slide"
+      onRequestClose={onClose}
+      transparent
+      visible={visible}
+    >
+      <View style={styles.modalRoot}>
+        <Pressable style={styles.modalScrim} onPress={onClose} />
+        <GlassPanel style={styles.modalSheet}>
+          <View style={styles.modalHeader}>
+            <AppText variant="subtitle">{title}</AppText>
+            <IconButton icon={X} label={t("common.close")} onPress={onClose} />
+          </View>
+          <ScrollView
+            contentContainerStyle={styles.categoryGrid}
+            showsVerticalScrollIndicator={false}
+          >
+            {categoryOptions.map((item) => (
+              <Pressable
+                key={item.id ?? "all"}
+                accessibilityRole="button"
+                onPress={() => onSelect(item.id)}
+                style={({ pressed }) => [
+                  styles.categoryGridItem,
+                  {
+                    backgroundColor:
+                      category === item.id ? colors.primary : colors.chip,
+                    borderColor:
+                      category === item.id ? colors.primary : colors.border,
+                    opacity: pressed ? 0.78 : 1
+                  }
+                ]}
+              >
+                <AppText
+                  variant="label"
+                  style={{
+                    color:
+                      category === item.id ? colors.textInverted : colors.text
+                  }}
+                >
+                  {item.label}
+                </AppText>
+                <AppText
+                  variant="caption"
+                  style={{
+                    color:
+                      category === item.id
+                        ? colors.textInverted
+                        : colors.textMuted
+                  }}
+                >
+                  {item.count}
+                </AppText>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </GlassPanel>
+      </View>
+    </Modal>
+  );
+}
+
+function safeTranslation(value: string, fallback: string) {
+  return value.includes(".") ? fallback : value;
+}
+
 const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
@@ -332,14 +505,13 @@ const styles = StyleSheet.create({
   categoryList: {
     alignItems: "center",
     gap: spacing.xs,
-    paddingBottom: spacing.sm,
-    paddingTop: spacing.xs,
+    paddingBottom: spacing.xs,
+    paddingTop: spacing.xxs,
     paddingRight: spacing.md
   },
   categoryScroller: {
     flexGrow: 0,
-    height: 62,
-    marginBottom: spacing.xs,
+    height: 48,
     overflow: "visible"
   },
   categoryBadge: {
@@ -355,8 +527,33 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: spacing.xs,
-    minHeight: 42,
-    paddingHorizontal: spacing.md
+    minHeight: 36,
+    paddingHorizontal: spacing.sm
+  },
+  categoryGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
+    paddingBottom: spacing.md
+  },
+  categoryGridItem: {
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    gap: spacing.xxs,
+    minHeight: 58,
+    padding: spacing.sm,
+    width: "48%"
+  },
+  categoryToolbar: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.md,
+    justifyContent: "space-between",
+    minHeight: 44
+  },
+  categoryToolbarText: {
+    flex: 1,
+    minWidth: 0
   },
   header: {
     alignItems: "center",
@@ -366,7 +563,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     gap: spacing.sm,
-    paddingBottom: spacing.xxl
+    paddingBottom: 88
   },
   loading: {
     alignItems: "center",
@@ -374,24 +571,49 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   inlineEditor: {
-    gap: spacing.sm
-  },
-  organizer: {
-    gap: spacing.md,
-    padding: spacing.md
+    gap: spacing.sm,
+    padding: spacing.sm
   },
   organizerActions: {
     flexDirection: "row",
     gap: spacing.xs
   },
-  organizerHeader: {
+  modalHeader: {
     alignItems: "center",
     flexDirection: "row",
-    gap: spacing.md,
     justifyContent: "space-between"
+  },
+  modalRoot: {
+    flex: 1,
+    justifyContent: "flex-end"
+  },
+  modalScrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.24)"
+  },
+  modalSheet: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    gap: spacing.md,
+    maxHeight: "72%"
   },
   recipeList: {
     flex: 1
+  },
+  scrollTopButton: {
+    alignItems: "center",
+    borderRadius: radius.pill,
+    borderWidth: StyleSheet.hairlineWidth,
+    bottom: spacing.md,
+    height: 42,
+    justifyContent: "center",
+    position: "absolute",
+    right: spacing.md,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    width: 42,
+    elevation: 4
   },
   titleBlock: {
     flex: 1,

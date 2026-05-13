@@ -52,7 +52,6 @@ export function SettingsScreen({ navigation }: Props) {
 
   async function handleLogout() {
     await logout();
-    navigation.reset({ index: 0, routes: [{ name: "Login" }] });
   }
 
   return (
