@@ -59,12 +59,12 @@ export function ConnectionStatus({
             }
           ]}
         />
-        <AppText muted variant="caption">
+        <AppText muted variant="caption" numberOfLines={1}>
           {label}
         </AppText>
       </View>
       {detail || loading ? (
-        <AppText muted variant="caption" style={styles.detail}>
+        <AppText muted variant="caption" numberOfLines={1} style={styles.detail}>
           {detail}
         </AppText>
       ) : null}
@@ -90,6 +90,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs
   },
   wrap: {
-    gap: spacing.xxs
+    gap: spacing.xxs,
+    minWidth: 0
   }
 });

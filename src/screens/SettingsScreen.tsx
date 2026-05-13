@@ -7,7 +7,7 @@ import {
   ShieldCheck
 } from "lucide-react-native";
 import React, { useState } from "react";
-import { StyleSheet, Switch, View } from "react-native";
+import { Alert, StyleSheet, Switch, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -45,9 +45,18 @@ export function SettingsScreen({ navigation }: Props) {
       return;
     }
 
-    await client.reindex();
-    await sync();
-    setMessage(t("settings.reindexDone"));
+    Alert.alert(t("settings.reindexConfirmTitle"), t("settings.reindexConfirmBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("settings.reindex"),
+        onPress: () => {
+          void client
+            .reindex()
+            .then(sync)
+            .then(() => setMessage(t("settings.reindexDone")));
+        }
+      }
+    ]);
   }
 
   async function handleLogout() {

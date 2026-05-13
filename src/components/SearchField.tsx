@@ -1,6 +1,13 @@
 import { Search, X } from "lucide-react-native";
 import React from "react";
-import { Pressable, StyleSheet, TextInput, View } from "react-native";
+import {
+  Pressable,
+  StyleProp,
+  StyleSheet,
+  TextInput,
+  View,
+  ViewStyle
+} from "react-native";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
@@ -8,12 +15,14 @@ type SearchFieldProps = {
   placeholder: string;
   value: string;
   onChangeText: (value: string) => void;
+  style?: StyleProp<ViewStyle>;
 };
 
 export function SearchField({
   placeholder,
   value,
-  onChangeText
+  onChangeText,
+  style
 }: SearchFieldProps) {
   const { colors } = useAppTheme();
 
@@ -25,7 +34,8 @@ export function SearchField({
           backgroundColor: colors.surfaceGlassStrong,
           borderColor: colors.border,
           shadowColor: colors.shadow
-        }
+        },
+        style
       ]}
     >
       <Search color={colors.textMuted} size={19} strokeWidth={2.4} />

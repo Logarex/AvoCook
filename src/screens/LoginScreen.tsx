@@ -57,7 +57,7 @@ export function LoginScreen(_props: Props) {
     <Screen contentStyle={styles.screen} showScrollTop={false}>
       <View style={styles.hero}>
         <Image
-          source={require("../../assets/icon.png")}
+          source={require("../../assets/logo.png")}
           style={styles.logo}
           contentFit="contain"
         />

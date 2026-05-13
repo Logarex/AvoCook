@@ -15,6 +15,8 @@ import {
   ActivityIndicator,
   FlatList,
   Modal,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -62,6 +64,7 @@ export function RecipeListScreen({ navigation }: Props) {
   const [category, setCategory] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showCategoryCreator, setShowCategoryCreator] = useState(false);
+  const [showListScrollTop, setShowListScrollTop] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const recipeListRef = useRef<FlatList<Recipe>>(null);
   const categoryPickerLabel = safeTranslation(
@@ -161,11 +164,28 @@ export function RecipeListScreen({ navigation }: Props) {
     setShowCategoryCreator(false);
   }
 
+  function handleRecipeListScroll(
+    event: NativeSyntheticEvent<NativeScrollEvent>
+  ) {
+    const nextShowListScrollTop = event.nativeEvent.contentOffset.y > 260;
+    setShowListScrollTop((current) =>
+      current === nextShowListScrollTop ? current : nextShowListScrollTop
+    );
+  }
+
   return (
-    <Screen scroll={false}>
+    <Screen scroll={false} contentStyle={styles.screenContent}>
       <View style={styles.header}>
         <View style={styles.titleBlock}>
-          <AppText variant="title">{t("recipes.title")}</AppText>
+          <AppText
+            adjustsFontSizeToFit
+            minimumFontScale={0.84}
+            numberOfLines={1}
+            variant="title"
+            style={styles.listTitle}
+          >
+            {t("recipes.title")}
+          </AppText>
           <ConnectionStatus
             connected={connected}
             detail={statusDetail}
@@ -179,12 +199,14 @@ export function RecipeListScreen({ navigation }: Props) {
             label={t("common.sync")}
             onPress={() => void sync()}
             disabled={syncing || !credentials}
+            style={styles.headerIcon}
           />
           <IconButton
             icon={Download}
             label={t("common.import")}
             onPress={() => navigation.navigate("ImportRecipe")}
             tone="primary"
+            style={styles.headerIcon}
           />
           <IconButton
             icon={Plus}
@@ -195,41 +217,37 @@ export function RecipeListScreen({ navigation }: Props) {
               })
             }
             tone="primary"
+            style={styles.headerIcon}
           />
           <IconButton
             icon={Settings}
             label={t("common.settings")}
             onPress={() => navigation.navigate("Settings")}
+            style={styles.headerIcon}
           />
         </View>
       </View>
 
-      <SearchField
-        onChangeText={setQuery}
-        placeholder={t("common.search")}
-        value={query}
-      />
-
-      <View style={styles.categoryToolbar}>
-        <View style={styles.categoryToolbarText}>
-          <AppText variant="label">{t("recipes.categories")}</AppText>
-          {category ? (
-            <AppText muted variant="caption" numberOfLines={1}>
-              {category}
-            </AppText>
-          ) : null}
-        </View>
+      <View style={styles.searchRow}>
+        <SearchField
+          onChangeText={setQuery}
+          placeholder={t("common.search")}
+          value={query}
+          style={styles.searchField}
+        />
         <View style={styles.organizerActions}>
           <IconButton
             icon={ListFilter}
             label={categoryPickerLabel}
             onPress={() => setShowCategoryPicker(true)}
+            style={styles.headerIcon}
           />
           <IconButton
             icon={ListPlus}
             label={t("recipes.newCategory")}
             onPress={() => setShowCategoryCreator((visible) => !visible)}
             tone="primary"
+            style={styles.headerIcon}
           />
         </View>
       </View>
@@ -281,6 +299,8 @@ export function RecipeListScreen({ navigation }: Props) {
           contentContainerStyle={styles.listContent}
           data={filteredRecipes}
           keyExtractor={(item) => item.id ?? item.name}
+          onScroll={handleRecipeListScroll}
+          scrollEventThrottle={16}
           ListEmptyComponent={
             <EmptyState
               title={t("recipes.emptyTitle")}
@@ -299,7 +319,7 @@ export function RecipeListScreen({ navigation }: Props) {
         />
       )}
 
-      {!loading && filteredRecipes.length > 0 ? (
+      {!loading && filteredRecipes.length > 0 && showListScrollTop ? (
         <Pressable
           accessibilityLabel={t("common.backToTop")}
           accessibilityRole="button"
@@ -499,19 +519,20 @@ const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: spacing.xs,
-    justifyContent: "flex-end"
+    flexShrink: 0,
+    gap: spacing.xxs,
+    justifyContent: "flex-end",
+    maxWidth: 172
   },
   categoryList: {
     alignItems: "center",
     gap: spacing.xs,
-    paddingBottom: spacing.xs,
-    paddingTop: spacing.xxs,
+    paddingBottom: spacing.xxs,
     paddingRight: spacing.md
   },
   categoryScroller: {
     flexGrow: 0,
-    height: 48,
+    height: 40,
     overflow: "visible"
   },
   categoryBadge: {
@@ -544,26 +565,22 @@ const styles = StyleSheet.create({
     padding: spacing.sm,
     width: "48%"
   },
-  categoryToolbar: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: spacing.md,
-    justifyContent: "space-between",
-    minHeight: 44
-  },
-  categoryToolbarText: {
-    flex: 1,
-    minWidth: 0
-  },
   header: {
     alignItems: "center",
     flexDirection: "row",
-    gap: spacing.md,
+    gap: spacing.sm,
     justifyContent: "space-between"
   },
+  headerIcon: {
+    height: 40,
+    width: 40
+  },
   listContent: {
-    gap: spacing.sm,
-    paddingBottom: 88
+    gap: spacing.xs,
+    paddingBottom: spacing.sm
+  },
+  listTitle: {
+    lineHeight: 36
   },
   loading: {
     alignItems: "center",
@@ -576,7 +593,8 @@ const styles = StyleSheet.create({
   },
   organizerActions: {
     flexDirection: "row",
-    gap: spacing.xs
+    flexShrink: 0,
+    gap: spacing.xxs
   },
   modalHeader: {
     alignItems: "center",
@@ -600,6 +618,11 @@ const styles = StyleSheet.create({
   recipeList: {
     flex: 1
   },
+  screenContent: {
+    gap: spacing.sm,
+    paddingBottom: 0,
+    paddingTop: spacing.sm
+  },
   scrollTopButton: {
     alignItems: "center",
     borderRadius: radius.pill,
@@ -614,6 +637,15 @@ const styles = StyleSheet.create({
     shadowRadius: 16,
     width: 42,
     elevation: 4
+  },
+  searchField: {
+    flex: 1,
+    minHeight: 48
+  },
+  searchRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.xs
   },
   titleBlock: {
     flex: 1,

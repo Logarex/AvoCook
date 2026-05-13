@@ -63,13 +63,20 @@ export async function loadLocalRecipes() {
   return rows.map((row) => normalizeRecipe(JSON.parse(row.payload) as Recipe));
 }
 
-export async function saveLocalRecipe(recipe: Recipe, dirty = false) {
+export async function saveLocalRecipe(
+  recipe: Recipe,
+  dirty = false,
+  touchModified = true
+) {
   const db = await dbPromise;
   const id = recipe.id ?? createLocalRecipeId();
+  const dateModified = touchModified
+    ? new Date().toISOString()
+    : recipe.dateModified ?? new Date().toISOString();
   const payload = normalizeRecipe({
     ...recipe,
     id,
-    dateModified: new Date().toISOString()
+    dateModified
   });
 
   await db.runAsync(
@@ -78,7 +85,7 @@ export async function saveLocalRecipe(recipe: Recipe, dirty = false) {
     id,
     JSON.stringify(payload),
     dirty ? 1 : 0,
-    payload.dateModified ?? new Date().toISOString()
+    payload.dateModified ?? dateModified
   );
 
   return payload;
