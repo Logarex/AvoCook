@@ -7,7 +7,7 @@ import {
   ShieldCheck
 } from "lucide-react-native";
 import React, { useState } from "react";
-import { Alert, StyleSheet, Switch, View } from "react-native";
+import { Alert, Linking, StyleSheet, Switch, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -21,6 +21,13 @@ import { useRecipes } from "../features/recipes/RecipesProvider";
 import type { RootStackParamList } from "../navigation/types";
 import { spacing } from "../theme/colors";
 import { type ThemeMode, useAppTheme } from "../theme/ThemeProvider";
+import {
+  getTimerNotificationState,
+  requestTimerNotificationPermission,
+  type TimerNotificationState
+} from "../features/timers/timerNotifications";
+import { Bell } from "lucide-react-native";
+import { useFocusEffect } from "@react-navigation/native";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Settings">;
 
@@ -38,6 +45,29 @@ export function SettingsScreen({ navigation }: Props) {
     setLanguage
   } = usePreferences();
   const [message, setMessage] = useState<string | null>(null);
+  const [notificationState, setNotificationState] =
+    useState<TimerNotificationState>("unavailable");
+
+  useFocusEffect(
+    React.useCallback(() => {
+      void getTimerNotificationState().then(setNotificationState);
+    }, [])
+  );
+
+  async function handleToggleNotifications() {
+    const next = await requestTimerNotificationPermission();
+    setNotificationState(next);
+    if (next === "denied") {
+      Alert.alert(
+        t("recipes.timers.notificationsRequiredTitle"),
+        t("recipes.timers.notificationsRequiredBody"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          { text: t("common.settings"), onPress: () => void Linking.openSettings() }
+        ]
+      );
+    }
+  }
 
   async function handleReindex() {
     const client = getClient();
@@ -109,6 +139,24 @@ export function SettingsScreen({ navigation }: Props) {
           thumbColor={keepScreenAwake ? colors.primary : colors.textMuted}
           trackColor={{ false: colors.border, true: colors.chip }}
           value={keepScreenAwake}
+        />
+      </GlassPanel>
+
+      <GlassPanel style={styles.section}>
+        <View style={styles.serverHeader}>
+          <Bell color={colors.primary} size={22} />
+          <AppText variant="label">{t("settings.notifications")}</AppText>
+        </View>
+        <PrimaryButton
+          disabled={notificationState === "unavailable"}
+          label={
+            notificationState === "ready"
+              ? t("settings.notificationsEnabled")
+              : t("settings.notificationsDisabled")
+          }
+          onPress={() => void handleToggleNotifications()}
+          tone={notificationState === "ready" ? "primary" : "default"}
+          variant="ghost"
         />
       </GlassPanel>
 
