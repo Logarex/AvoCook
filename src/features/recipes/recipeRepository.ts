@@ -1,5 +1,6 @@
 import { importRecipeFromWeb } from "../import/schemaRecipeParser";
 import type { CookbookClient } from "../nextcloud/cookbookClient";
+import { withInferredCategory } from "./categories";
 import {
   deleteQueuedOperation,
   clearLocalRecipeCache,
@@ -33,7 +34,7 @@ export async function createRecipe(
   recipe: Recipe,
   client: CookbookClient | null
 ) {
-  const localRecipe = await saveLocalRecipe(recipe, true);
+  const localRecipe = await saveLocalRecipe(withInferredCategory(recipe), true);
 
   if (!client) {
     await enqueueSyncOperation("create", localRecipe.id ?? "", localRecipe);
@@ -45,7 +46,9 @@ export async function createRecipe(
     const saved = await client.getRecipe(String(serverId));
     await removeLocalRecipe(localRecipe.id ?? "");
     return saveLocalRecipe(
-      normalizeRecipe({ ...saved, localMeta: localRecipe.localMeta }),
+      withInferredCategory(
+        normalizeRecipe({ ...saved, localMeta: localRecipe.localMeta })
+      ),
       false
     );
   } catch {
@@ -58,7 +61,7 @@ export async function updateRecipe(
   recipe: Recipe,
   client: CookbookClient | null
 ) {
-  const localRecipe = await saveLocalRecipe(recipe, true);
+  const localRecipe = await saveLocalRecipe(withInferredCategory(recipe), true);
 
   if (!client || !recipe.id || recipe.id.startsWith("local-")) {
     await enqueueSyncOperation(
@@ -98,16 +101,18 @@ export async function importRecipe(url: string, client: CookbookClient | null) {
   if (client) {
     try {
       const imported = await client.importRecipe(url);
-      const withLocalPhoto = await cacheRecipePhoto(normalizeRecipe(imported));
+      const withLocalPhoto = await cacheRecipePhoto(
+        withInferredCategory(normalizeRecipe(imported))
+      );
       return saveLocalRecipe(withLocalPhoto, false);
     } catch {
-      const parsed = await importRecipeFromWeb(url);
+      const parsed = withInferredCategory(await importRecipeFromWeb(url));
       const saved = await createRecipe(parsed, client);
       return saveLocalRecipe(await cacheRecipePhoto(saved), false);
     }
   }
 
-  const parsed = await importRecipeFromWeb(url);
+  const parsed = withInferredCategory(await importRecipeFromWeb(url));
   return createRecipe(await cacheRecipePhoto(parsed), null);
 }
 
@@ -130,10 +135,12 @@ export async function syncRecipes(client: CookbookClient, persistLocal = true) {
       continue;
     }
     const recipe = await client.getRecipe(id);
-    const normalized = normalizeRecipe({
-      ...recipe,
-      localMeta: localMetaById.get(id)
-    });
+    const normalized = withInferredCategory(
+      normalizeRecipe({
+        ...recipe,
+        localMeta: localMetaById.get(id)
+      })
+    );
     if (persistLocal || hasLocalMetadata(normalized)) {
       const saved = await saveLocalRecipe(normalized, false);
       recipes.push(saved);
@@ -173,10 +180,12 @@ async function flushSyncQueue(client: CookbookClient) {
       const serverRecipe = await client.getRecipe(String(serverId));
       await removeLocalRecipe(operation.recipeId);
       await saveLocalRecipe(
-        normalizeRecipe({
-          ...serverRecipe,
-          localMeta: operation.payload.localMeta
-        }),
+        withInferredCategory(
+          normalizeRecipe({
+            ...serverRecipe,
+            localMeta: operation.payload.localMeta
+          })
+        ),
         false
       );
       await deleteQueuedOperation(operation.id);

@@ -1,5 +1,12 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { ChefHat, Eye, EyeOff, LockKeyhole, Server } from "lucide-react-native";
+import {
+  ChefHat,
+  Eye,
+  EyeOff,
+  HelpCircle,
+  LockKeyhole,
+  Server
+} from "lucide-react-native";
 import React, { useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -24,6 +31,7 @@ export function LoginScreen(_props: Props) {
   const [username, setUsername] = useState("");
   const [appPassword, setAppPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordTutorial, setShowPasswordTutorial] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,7 +54,7 @@ export function LoginScreen(_props: Props) {
   }
 
   return (
-    <Screen contentStyle={styles.screen}>
+    <Screen contentStyle={styles.screen} showScrollTop={false}>
       <View style={styles.hero}>
         <View style={[styles.iconHalo, { backgroundColor: colors.chip }]}>
           <Server color={colors.primary} size={38} strokeWidth={2.3} />
@@ -95,6 +103,38 @@ export function LoginScreen(_props: Props) {
           textContentType="password"
           value={appPassword}
         />
+        <PrimaryButton
+          icon={HelpCircle}
+          label={t("auth.appPasswordHelp")}
+          onPress={() => setShowPasswordTutorial((visible) => !visible)}
+          variant="ghost"
+        />
+        {showPasswordTutorial ? (
+          <View style={styles.tutorial}>
+            <AppText variant="label">{t("auth.tutorial.title")}</AppText>
+            {[
+              "openNextcloud",
+              "openSettings",
+              "openSecurity",
+              "createPassword",
+              "copyPassword"
+            ].map((step, index) => (
+              <View key={step} style={styles.tutorialStep}>
+                <View style={[styles.stepBadge, { backgroundColor: colors.chip }]}>
+                  <AppText variant="caption" style={{ color: colors.primary }}>
+                    {index + 1}
+                  </AppText>
+                </View>
+                <AppText style={styles.stepText}>
+                  {t(`auth.tutorial.steps.${step}`)}
+                </AppText>
+              </View>
+            ))}
+            <AppText muted variant="caption">
+              {t("auth.tutorial.versionNote")}
+            </AppText>
+          </View>
+        ) : null}
         {error ? (
           <AppText style={{ color: colors.danger }}>{error}</AppText>
         ) : null}
@@ -146,5 +186,22 @@ const styles = StyleSheet.create({
   passwordButton: {
     height: 36,
     width: 36
+  },
+  stepBadge: {
+    alignItems: "center",
+    borderRadius: 14,
+    height: 28,
+    justifyContent: "center",
+    width: 28
+  },
+  stepText: {
+    flex: 1
+  },
+  tutorial: {
+    gap: spacing.sm
+  },
+  tutorialStep: {
+    flexDirection: "row",
+    gap: spacing.sm
   }
 });
