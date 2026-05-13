@@ -133,6 +133,11 @@ export async function syncRecipes(client: CookbookClient, persistLocal = true) {
   await flushSyncQueue(client);
 
   const existingRecipes = await loadLocalRecipes();
+  const existingRecipesById = new Map(
+    existingRecipes
+      .filter((recipe) => recipe.id)
+      .map((recipe) => [recipe.id ?? "", recipe])
+  );
   const localMetaById = new Map(
     existingRecipes
       .filter((recipe) => recipe.id && hasLocalMetadata(recipe))
@@ -146,6 +151,17 @@ export async function syncRecipes(client: CookbookClient, persistLocal = true) {
     if (!id) {
       continue;
     }
+    const existingRecipe = existingRecipesById.get(id);
+    if (
+      existingRecipe &&
+      existingRecipe.dateModified &&
+      stub.dateModified &&
+      existingRecipe.dateModified === stub.dateModified
+    ) {
+      recipes.push(existingRecipe);
+      continue;
+    }
+
     const recipe = await client.getRecipe(id);
     const normalized = withInferredCategory(
       normalizeRecipe({
