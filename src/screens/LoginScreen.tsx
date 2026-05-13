@@ -4,9 +4,9 @@ import {
   Eye,
   EyeOff,
   HelpCircle,
-  LockKeyhole,
-  Server
+  LockKeyhole
 } from "lucide-react-native";
+import { Image } from "expo-image";
 import React, { useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -56,9 +56,11 @@ export function LoginScreen(_props: Props) {
   return (
     <Screen contentStyle={styles.screen} showScrollTop={false}>
       <View style={styles.hero}>
-        <View style={[styles.iconHalo, { backgroundColor: colors.chip }]}>
-          <Server color={colors.primary} size={38} strokeWidth={2.3} />
-        </View>
+        <Image
+          source={require("../../assets/icon.png")}
+          style={styles.logo}
+          contentFit="contain"
+        />
         <AppText variant="title" style={styles.center}>
           {t("auth.title")}
         </AppText>
@@ -170,12 +172,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginBottom: spacing.sm
   },
-  iconHalo: {
-    alignItems: "center",
-    borderRadius: 34,
-    height: 72,
-    justifyContent: "center",
-    width: 72
+  logo: {
+    height: 86,
+    width: 86
   },
   center: {
     textAlign: "center"

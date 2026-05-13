@@ -35,6 +35,14 @@
 - Capabilities Apple minimales pour la version actuelle : aucune Background Mode, aucune Push Notification, aucune Location, aucune Bluetooth. Ne demander iCloud/CloudKit que si une vraie synchronisation iCloud est implémentée.
 - La permission réseau local iOS sert uniquement aux utilisateurs qui connectent l'app à un serveur Nextcloud hébergé sur le LAN, ou au dev client Expo pendant le développement.
 
+## Test iPhone avec Xcode
+
+- Lancer Metro avant ou pendant le test : `npx expo start --dev-client --host lan`.
+- Dans Xcode, ouvrir `ios/NextcloudCookbook.xcworkspace`, choisir l'iPhone branché comme destination, puis lancer le schéma en `Debug`.
+- L'iPhone et le Mac doivent être sur le même réseau Wi-Fi. Si l'app tente `http://<ip-du-mac>:8081/status` puis affiche `No script URL provided`, elle ne voit pas Metro.
+- Autoriser le réseau local sur l'iPhone pour l'app de développement et autoriser les connexions entrantes pour Node/Expo dans le pare-feu macOS.
+- Pour une app qui n'a pas besoin de Metro, utiliser un build preview/production EAS ou un schéma Release avec le bundle JS embarqué.
+
 ## iCloud
 
 - Aujourd'hui, la source de synchronisation fonctionnelle est Nextcloud, pas iCloud.
@@ -51,7 +59,7 @@ npx eas build --platform all --profile production
 
 ## Android
 
-La configuration Android est déjà dans `app.json` avec le package `app.nextcloudcookbook.mobile`. Avant publication Google Play, vérifier l'icône adaptative, la fiche confidentialité Google Play et tester au moins un build `preview` sur un appareil Android réel.
+La configuration Android est déjà dans `app.json` avec le package `app.avocook.mobile`. Avant publication Google Play, vérifier l'icône adaptative, la fiche confidentialité Google Play et tester au moins un build `preview` sur un appareil Android réel.
 
 ## Soumission
 

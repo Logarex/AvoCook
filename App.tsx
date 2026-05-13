@@ -48,7 +48,7 @@ function RootNavigator() {
     return (
       <View style={[styles.loading, { backgroundColor: colors.background }]}>
         <ActivityIndicator color={colors.primary} />
-        <AppText muted>Nextcloud Cookbook</AppText>
+        <AppText muted>AvoCook</AppText>
       </View>
     );
   }
