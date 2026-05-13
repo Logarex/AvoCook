@@ -4,6 +4,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from "react";
 import { useAuth } from "../auth/AuthProvider";
@@ -50,6 +51,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
+  const syncInFlightRef = useRef(false);
 
   const reloadLocal = useCallback(async () => {
     setLoading(true);
@@ -76,7 +78,11 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     if (!client) {
       return;
     }
+    if (syncInFlightRef.current) {
+      return;
+    }
 
+    syncInFlightRef.current = true;
     setSyncing(true);
     try {
       setRecipes(await syncRecipes(client, keepRecipesLocal));
@@ -85,6 +91,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       setLastError(error instanceof Error ? error.message : String(error));
       setRecipes(await initialiseRecipeStore());
     } finally {
+      syncInFlightRef.current = false;
       setSyncing(false);
     }
   }, [getClient, keepRecipesLocal]);
