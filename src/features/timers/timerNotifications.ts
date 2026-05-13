@@ -1,5 +1,14 @@
-import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
+
+type ExpoNotificationsModule = typeof import("expo-notifications");
+type TimerStopEvent = {
+  notificationId: string;
+  recipeId: string;
+  timerId: string;
+};
+type TimerNotificationSubscription = {
+  remove: () => void;
+};
 
 export const TIMER_STOP_ACTION = "stop-timer";
 
@@ -7,13 +16,23 @@ const TIMER_NOTIFICATION_CATEGORY = "recipe-timer";
 const TIMER_NOTIFICATION_CHANNEL = "recipe-timers";
 
 let configured = false;
+let notificationsPromise: Promise<ExpoNotificationsModule | null> | null = null;
 
-export async function configureTimerNotifications() {
-  if (configured) {
-    return;
+async function getNotifications() {
+  if (!notificationsPromise) {
+    notificationsPromise = import("expo-notifications").catch(() => null);
   }
 
-  Notifications.setNotificationHandler({
+  return notificationsPromise;
+}
+
+export async function configureTimerNotifications() {
+  const notifications = await getNotifications();
+  if (!notifications || configured) {
+    return Boolean(notifications);
+  }
+
+  notifications.setNotificationHandler({
     handleNotification: async () => ({
       shouldShowBanner: true,
       shouldShowList: true,
@@ -22,7 +41,7 @@ export async function configureTimerNotifications() {
     })
   });
 
-  await Notifications.setNotificationCategoryAsync(
+  await notifications.setNotificationCategoryAsync(
     TIMER_NOTIFICATION_CATEGORY,
     [
       {
@@ -36,26 +55,34 @@ export async function configureTimerNotifications() {
   );
 
   if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync(TIMER_NOTIFICATION_CHANNEL, {
-      name: "Minuteurs",
-      importance: Notifications.AndroidImportance.MAX,
-      sound: "default",
-      vibrationPattern: [0, 500, 250, 500],
-      enableVibrate: true
-    });
+    await notifications.setNotificationChannelAsync(
+      TIMER_NOTIFICATION_CHANNEL,
+      {
+        name: "Minuteurs",
+        importance: notifications.AndroidImportance.MAX,
+        sound: "default",
+        vibrationPattern: [0, 500, 250, 500],
+        enableVibrate: true
+      }
+    );
   }
 
   configured = true;
+  return true;
 }
 
 export async function requestTimerNotificationPermission() {
-  await configureTimerNotifications();
-  const current = await Notifications.getPermissionsAsync();
+  const notifications = await getNotifications();
+  if (!notifications || !(await configureTimerNotifications())) {
+    return false;
+  }
+
+  const current = await notifications.getPermissionsAsync();
   if (current.granted) {
     return true;
   }
 
-  const requested = await Notifications.requestPermissionsAsync({
+  const requested = await notifications.requestPermissionsAsync({
     ios: {
       allowAlert: true,
       allowBadge: false,
@@ -79,12 +106,13 @@ export async function scheduleTimerNotification({
   timerId: string;
   title: string;
 }) {
+  const notifications = await getNotifications();
   const allowed = await requestTimerNotificationPermission();
-  if (!allowed) {
+  if (!notifications || !allowed) {
     return null;
   }
 
-  return Notifications.scheduleNotificationAsync({
+  return notifications.scheduleNotificationAsync({
     content: {
       title,
       body,
@@ -98,7 +126,7 @@ export async function scheduleTimerNotification({
       vibrate: [0, 500, 250, 500]
     },
     trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DATE,
+      type: notifications.SchedulableTriggerInputTypes.DATE,
       date: Date.now() + Math.max(1, seconds) * 1000,
       channelId: TIMER_NOTIFICATION_CHANNEL
     }
@@ -110,10 +138,42 @@ export async function cancelTimerNotification(notificationId?: string | null) {
     return;
   }
 
-  await Notifications.cancelScheduledNotificationAsync(notificationId).catch(
+  const notifications = await getNotifications();
+  if (!notifications) {
+    return;
+  }
+
+  await notifications.cancelScheduledNotificationAsync(notificationId).catch(
     () => undefined
   );
-  await Notifications.dismissNotificationAsync(notificationId).catch(
+  await notifications.dismissNotificationAsync(notificationId).catch(
     () => undefined
   );
 }
+
+export async function addTimerStopListener(
+  onStop: (event: TimerStopEvent) => void
+): Promise<TimerNotificationSubscription | null> {
+  const notifications = await getNotifications();
+  if (!notifications) {
+    return null;
+  }
+
+  return notifications.addNotificationResponseReceivedListener((response) => {
+    if (response.actionIdentifier !== TIMER_STOP_ACTION) {
+      return;
+    }
+
+    const data = response.notification.request.content.data;
+    if (typeof data.recipeId !== "string" || typeof data.timerId !== "string") {
+      return;
+    }
+
+    onStop({
+      notificationId: response.notification.request.identifier,
+      recipeId: data.recipeId,
+      timerId: data.timerId
+    });
+  });
+}
+

@@ -1,7 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image, type ImageSource } from "expo-image";
 import { useKeepAwake } from "expo-keep-awake";
-import * as Notifications from "expo-notifications";
 import type { LucideIcon } from "lucide-react-native";
 import {
   ArrowLeft,
@@ -34,9 +33,9 @@ import type { HealthProfile } from "../features/recipes/health";
 import { getRecipeHealthProfile } from "../features/recipes/health";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import {
+  addTimerStopListener,
   cancelTimerNotification,
-  scheduleTimerNotification,
-  TIMER_STOP_ACTION
+  scheduleTimerNotification
 } from "../features/timers/timerNotifications";
 import {
   normalizeRecipe,
@@ -215,39 +214,35 @@ function RecipeDetailContent({
   }, [hasRunningTimer]);
 
   useEffect(() => {
-    const subscription = Notifications.addNotificationResponseReceivedListener(
-      (response) => {
-        if (response.actionIdentifier !== TIMER_STOP_ACTION) {
-          return;
-        }
-
-        const data = response.notification.request.content.data;
-        if (data.recipeId !== recipeId || typeof data.timerId !== "string") {
-          return;
-        }
-
-        void cancelTimerNotification(response.notification.request.identifier);
-        setTimers((current) => {
-          const timer = current[data.timerId as string];
-          if (!timer) {
-            return current;
-          }
-
-          return {
-            ...current,
-            [data.timerId as string]: {
-              ...timer,
-              endsAt: undefined,
-              notificationId: null,
-              remainingSeconds: timer.durationSeconds,
-              running: false
-            }
-          };
-        });
+    let subscription: { remove: () => void } | null = null;
+    void addTimerStopListener((event) => {
+      if (event.recipeId !== recipeId) {
+        return;
       }
-    );
 
-    return () => subscription.remove();
+      void cancelTimerNotification(event.notificationId);
+      setTimers((current) => {
+        const timer = current[event.timerId];
+        if (!timer) {
+          return current;
+        }
+
+        return {
+          ...current,
+          [event.timerId]: {
+            ...timer,
+            endsAt: undefined,
+            notificationId: null,
+            remainingSeconds: timer.durationSeconds,
+            running: false
+          }
+        };
+      });
+    }).then((nextSubscription) => {
+      subscription = nextSubscription;
+    });
+
+    return () => subscription?.remove();
   }, [recipeId]);
 
   if (!recipe) {
