@@ -1,4 +1,4 @@
-# Nextcloud Cookbook Mobile
+# AvoCook
 
 Application mobile iOS, iPadOS et Android pour consulter, importer, créer et modifier des recettes synchronisées avec l'application Nextcloud Cookbook.
 
