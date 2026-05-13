@@ -204,6 +204,9 @@ export const resources = {
         secureStore:
           "Les identifiants restent dans le stockage sécurisé du téléphone.",
         reindex: "Réindexer Cookbook",
+        reindexConfirmTitle: "Réindexer le serveur ?",
+        reindexConfirmBody:
+          "Cette action demande à Nextcloud Cookbook de rescanner le dossier de recettes. C'est utile si des recettes ont été ajoutées ou modifiées hors de l'app, mais cela peut prendre du temps sur un gros Cookbook.",
         reindexDone: "Réindexation demandée",
         openPrivacy: "Confidentialité et données"
       },
@@ -420,6 +423,9 @@ export const resources = {
         privacy: "Privacy",
         secureStore: "Credentials stay in the phone secure storage.",
         reindex: "Reindex Cookbook",
+        reindexConfirmTitle: "Reindex the server?",
+        reindexConfirmBody:
+          "This asks Nextcloud Cookbook to rescan the recipe folder. It is useful if recipes were added or changed outside the app, but it can take a while on a large Cookbook.",
         reindexDone: "Reindex requested",
         openPrivacy: "Privacy and data"
       },

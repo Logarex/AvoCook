@@ -78,8 +78,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
-    gap: spacing.md,
-    minHeight: 112,
+    gap: spacing.sm,
+    minHeight: 96,
     overflow: "hidden",
     padding: spacing.sm
   },
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     justifyContent: "center",
     overflow: "hidden",
-    width: 88
+    width: 76
   },
   image: {
     height: "100%",
