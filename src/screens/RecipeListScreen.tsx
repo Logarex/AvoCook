@@ -2,13 +2,12 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   Check,
   Download,
-  FolderPlus,
   ListPlus,
   Plus,
   RefreshCw,
   Settings
 } from "lucide-react-native";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -46,7 +45,7 @@ type CategoryOption = {
 export function RecipeListScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
-  const { credentials, getClient, isLocalMode } = useAuth();
+  const { credentials, isLocalMode } = useAuth();
   const {
     createCategory,
     customCategories,
@@ -59,24 +58,6 @@ export function RecipeListScreen({ navigation }: Props) {
   const [category, setCategory] = useState<string | null>(null);
   const [showCategoryCreator, setShowCategoryCreator] = useState(false);
   const [newCategory, setNewCategory] = useState("");
-  const [showFolderEditor, setShowFolderEditor] = useState(false);
-  const [cookbookFolder, setCookbookFolder] = useState("/Recipes");
-  const [folderSaving, setFolderSaving] = useState(false);
-
-  useEffect(() => {
-    if (!showFolderEditor) {
-      return;
-    }
-    const client = getClient();
-    if (!client) {
-      return;
-    }
-    void client.getConfig().then((config) => {
-      if (config.folder) {
-        setCookbookFolder(config.folder);
-      }
-    });
-  }, [getClient, showFolderEditor]);
 
   const categoryOptions = useMemo<CategoryOption[]>(() => {
     const counts = new Map<string, number>();
@@ -155,23 +136,6 @@ export function RecipeListScreen({ navigation }: Props) {
     setShowCategoryCreator(false);
   }
 
-  async function handleSaveFolder() {
-    const client = getClient();
-    if (!client) {
-      return;
-    }
-    setFolderSaving(true);
-    try {
-      const normalizedFolder = normalizeFolder(cookbookFolder);
-      const config = await client.getConfig();
-      await client.setConfig({ ...config, folder: normalizedFolder });
-      setCookbookFolder(normalizedFolder);
-      setShowFolderEditor(false);
-    } finally {
-      setFolderSaving(false);
-    }
-  }
-
   return (
     <Screen scroll={false}>
       <View style={styles.header}>
@@ -233,13 +197,6 @@ export function RecipeListScreen({ navigation }: Props) {
             ) : null}
           </View>
           <View style={styles.organizerActions}>
-            {credentials ? (
-              <IconButton
-                icon={FolderPlus}
-                label={t("recipes.folderShortcut")}
-                onPress={() => setShowFolderEditor((visible) => !visible)}
-              />
-            ) : null}
             <IconButton
               icon={ListPlus}
               label={t("recipes.newCategory")}
@@ -265,29 +222,12 @@ export function RecipeListScreen({ navigation }: Props) {
           </View>
         ) : null}
 
-        {showFolderEditor && credentials ? (
-          <View style={styles.inlineEditor}>
-            <TextField
-              autoCapitalize="none"
-              autoCorrect={false}
-              label={t("settings.cookbookFolder")}
-              onChangeText={setCookbookFolder}
-              value={cookbookFolder}
-            />
-            <PrimaryButton
-              disabled={folderSaving}
-              icon={FolderPlus}
-              label={t("settings.saveFolder")}
-              onPress={() => void handleSaveFolder()}
-              variant="ghost"
-            />
-          </View>
-        ) : null}
       </GlassPanel>
 
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.categoryScroller}
         contentContainerStyle={styles.categoryList}
       >
         {categoryOptions.map((item) => (
@@ -307,6 +247,7 @@ export function RecipeListScreen({ navigation }: Props) {
         </View>
       ) : (
         <FlatList
+          style={styles.recipeList}
           contentContainerStyle={styles.listContent}
           data={filteredRecipes}
           keyExtractor={(item) => item.id ?? item.name}
@@ -381,11 +322,6 @@ function CategoryChip({
   );
 }
 
-function normalizeFolder(folder: string) {
-  const trimmed = folder.trim() || "/Recipes";
-  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
-}
-
 const styles = StyleSheet.create({
   actions: {
     flexDirection: "row",
@@ -394,8 +330,17 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end"
   },
   categoryList: {
+    alignItems: "center",
     gap: spacing.xs,
-    paddingVertical: spacing.xs
+    paddingBottom: spacing.sm,
+    paddingTop: spacing.xs,
+    paddingRight: spacing.md
+  },
+  categoryScroller: {
+    flexGrow: 0,
+    height: 62,
+    marginBottom: spacing.xs,
+    overflow: "visible"
   },
   categoryBadge: {
     alignItems: "center",
@@ -444,6 +389,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.md,
     justifyContent: "space-between"
+  },
+  recipeList: {
+    flex: 1
   },
   titleBlock: {
     flex: 1,

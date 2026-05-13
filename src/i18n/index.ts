@@ -69,12 +69,60 @@ export const resources = {
         newCategory: "Nouvelle catégorie",
         categoryName: "Nom de catégorie",
         createCategory: "Créer la catégorie",
-        folderShortcut: "Dossier Cookbook",
         loadingRecipes: "Chargement des recettes...",
         syncingRecipes: "Synchronisation en cours...",
         loadedRecipes: "{{count}} recette chargée",
         loadedRecipes_plural: "{{count}} recettes chargées",
-        selectedCategory: "Catégorie sélectionnée : {{category}}"
+        selectedCategory: "Catégorie sélectionnée : {{category}}",
+        servings: {
+          title: "Portions",
+          people: "personnes",
+          decrease: "Réduire les portions",
+          increase: "Augmenter les portions",
+          original: "Recette d'origine : {{count}} personne",
+          original_plural: "Recette d'origine : {{count}} personnes",
+          reset: "Revenir à l'origine"
+        },
+        timers: {
+          title: "Minuteurs",
+          prep: "Préparation",
+          cook: "Cuisson",
+          total: "Total",
+          start: "Lancer le minuteur",
+          pause: "Mettre en pause",
+          reset: "Réinitialiser",
+          done: "Terminé"
+        },
+        health: {
+          title: "Santé",
+          estimated: "Nutri-Score estimé",
+          missingTitle: "Informations nutritionnelles à compléter",
+          localNote:
+            "Cette analyse reste locale et n'est pas envoyée à Nextcloud.",
+          calories: "Calories",
+          sugar: "Sucres",
+          fat: "Matières grasses",
+          salt: "Sel",
+          fiber: "Fibres",
+          protein: "Protéines",
+          recommendations: {
+            balanced: "Profil équilibré pour les données disponibles.",
+            missingNutrition:
+              "Ajoutez calories, sucres, sel, fibres et protéines pour obtenir une recommandation plus précise.",
+            highCalories:
+              "Servez une portion plus petite ou accompagnez avec des légumes.",
+            highSugar:
+              "Réduisez le sucre ou ajoutez un fruit frais en accompagnement.",
+            highFat:
+              "Privilégiez une matière grasse plus légère ou diminuez la quantité.",
+            highSalt:
+              "Goûtez avant de saler et utilisez herbes, épices ou citron.",
+            addFiber:
+              "Ajoutez fibres, légumes, légumineuses ou céréales complètes.",
+            goodProtein:
+              "Bon apport en protéines pour la satiété."
+          }
+        }
       },
       editor: {
         newRecipe: "Nouvelle recette",
@@ -116,9 +164,6 @@ export const resources = {
         server: "Serveur",
         localMode: "Mode local",
         localOnly: "Utilisation sans compte Nextcloud",
-        cookbookFolder: "Dossier Cookbook",
-        folderSaved: "Dossier enregistré",
-        saveFolder: "Enregistrer le dossier",
         privacy: "Confidentialité",
         secureStore:
           "Les identifiants restent dans le stockage sécurisé du téléphone.",
@@ -208,12 +253,58 @@ export const resources = {
         newCategory: "New category",
         categoryName: "Category name",
         createCategory: "Create category",
-        folderShortcut: "Cookbook folder",
         loadingRecipes: "Loading recipes...",
         syncingRecipes: "Syncing recipes...",
         loadedRecipes: "{{count}} recipe loaded",
         loadedRecipes_plural: "{{count}} recipes loaded",
-        selectedCategory: "Selected category: {{category}}"
+        selectedCategory: "Selected category: {{category}}",
+        servings: {
+          title: "Servings",
+          people: "people",
+          decrease: "Decrease servings",
+          increase: "Increase servings",
+          original: "Original recipe: {{count}} person",
+          original_plural: "Original recipe: {{count}} people",
+          reset: "Reset to original"
+        },
+        timers: {
+          title: "Timers",
+          prep: "Prep",
+          cook: "Cook",
+          total: "Total",
+          start: "Start timer",
+          pause: "Pause",
+          reset: "Reset",
+          done: "Done"
+        },
+        health: {
+          title: "Health",
+          estimated: "Estimated Nutri-Score",
+          missingTitle: "Nutrition details missing",
+          localNote:
+            "This analysis stays local and is not sent to Nextcloud.",
+          calories: "Calories",
+          sugar: "Sugar",
+          fat: "Fat",
+          salt: "Salt",
+          fiber: "Fiber",
+          protein: "Protein",
+          recommendations: {
+            balanced: "Balanced profile for the available data.",
+            missingNutrition:
+              "Add calories, sugar, salt, fiber and protein for a more precise recommendation.",
+            highCalories:
+              "Serve a smaller portion or pair it with vegetables.",
+            highSugar: "Reduce sugar or add fresh fruit on the side.",
+            highFat:
+              "Use a lighter fat source or reduce the quantity.",
+            highSalt:
+              "Taste before salting and use herbs, spices or lemon.",
+            addFiber:
+              "Add fiber, vegetables, legumes or whole grains.",
+            goodProtein: "Good protein level for satiety."
+          }
+        }
       },
       editor: {
         newRecipe: "New recipe",
@@ -254,9 +345,6 @@ export const resources = {
         server: "Server",
         localMode: "Local mode",
         localOnly: "Using without a Nextcloud account",
-        cookbookFolder: "Cookbook folder",
-        folderSaved: "Folder saved",
-        saveFolder: "Save folder",
         privacy: "Privacy",
         secureStore: "Credentials stay in the phone secure storage.",
         reindex: "Reindex Cookbook",

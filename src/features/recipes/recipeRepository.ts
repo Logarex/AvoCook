@@ -12,7 +12,12 @@ import {
   saveLocalRecipe
 } from "./offlineDatabase";
 import { persistRecipeImage } from "./recipeImages";
-import { normalizeRecipe, type Recipe } from "./types";
+import {
+  hasLocalMetadata,
+  normalizeRecipe,
+  toCookbookRecipe,
+  type Recipe
+} from "./types";
 
 export async function initialiseRecipeStore() {
   await migrateDatabase();
@@ -36,10 +41,13 @@ export async function createRecipe(
   }
 
   try {
-    const serverId = await client.createRecipe(localRecipe);
+    const serverId = await client.createRecipe(toCookbookRecipe(localRecipe));
     const saved = await client.getRecipe(String(serverId));
     await removeLocalRecipe(localRecipe.id ?? "");
-    return saveLocalRecipe(normalizeRecipe(saved), false);
+    return saveLocalRecipe(
+      normalizeRecipe({ ...saved, localMeta: localRecipe.localMeta }),
+      false
+    );
   } catch {
     await enqueueSyncOperation("create", localRecipe.id ?? "", localRecipe);
     return localRecipe;
@@ -62,7 +70,7 @@ export async function updateRecipe(
   }
 
   try {
-    await client.updateRecipe(localRecipe);
+    await client.updateRecipe(toCookbookRecipe(localRecipe));
     return saveLocalRecipe(localRecipe, false);
   } catch {
     await enqueueSyncOperation("update", localRecipe.id ?? "", localRecipe);
@@ -107,6 +115,12 @@ export async function syncRecipes(client: CookbookClient, persistLocal = true) {
   await migrateDatabase();
   await flushSyncQueue(client);
 
+  const existingRecipes = await loadLocalRecipes();
+  const localMetaById = new Map(
+    existingRecipes
+      .filter((recipe) => recipe.id && hasLocalMetadata(recipe))
+      .map((recipe) => [recipe.id ?? "", recipe.localMeta])
+  );
   const stubs = await client.listRecipes();
   const recipes: Recipe[] = [];
 
@@ -116,8 +130,11 @@ export async function syncRecipes(client: CookbookClient, persistLocal = true) {
       continue;
     }
     const recipe = await client.getRecipe(id);
-    const normalized = normalizeRecipe(recipe);
-    if (persistLocal) {
+    const normalized = normalizeRecipe({
+      ...recipe,
+      localMeta: localMetaById.get(id)
+    });
+    if (persistLocal || hasLocalMetadata(normalized)) {
       const saved = await saveLocalRecipe(normalized, false);
       recipes.push(saved);
     } else {
@@ -150,15 +167,23 @@ async function flushSyncQueue(client: CookbookClient) {
       operation.operation === "create" ||
       operation.recipeId.startsWith("local-")
     ) {
-      const serverId = await client.createRecipe(operation.payload);
+      const serverId = await client.createRecipe(
+        toCookbookRecipe(operation.payload)
+      );
       const serverRecipe = await client.getRecipe(String(serverId));
       await removeLocalRecipe(operation.recipeId);
-      await saveLocalRecipe(normalizeRecipe(serverRecipe), false);
+      await saveLocalRecipe(
+        normalizeRecipe({
+          ...serverRecipe,
+          localMeta: operation.payload.localMeta
+        }),
+        false
+      );
       await deleteQueuedOperation(operation.id);
       continue;
     }
 
-    await client.updateRecipe(operation.payload);
+    await client.updateRecipe(toCookbookRecipe(operation.payload));
     await saveLocalRecipe(operation.payload, false);
     await deleteQueuedOperation(operation.id);
   }

@@ -14,6 +14,20 @@ export type Nutrition = {
   unsaturatedFatContent?: string;
 };
 
+export type NutriScoreGrade = "A" | "B" | "C" | "D" | "E" | "?";
+
+export type RecipeLocalTimer = {
+  id: string;
+  label: string;
+  minutes: number;
+};
+
+export type RecipeLocalMeta = {
+  nutriScoreOverride?: NutriScoreGrade;
+  servingOverride?: number;
+  timers?: RecipeLocalTimer[];
+};
+
 export type Recipe = {
   "@type"?: "Recipe";
   id: string | null;
@@ -36,6 +50,7 @@ export type Recipe = {
   recipeIngredient: string[];
   recipeInstructions: string[];
   nutrition: Nutrition | Nutrition[] | null;
+  localMeta?: RecipeLocalMeta;
 };
 
 export type RecipeStub = Pick<
@@ -83,7 +98,8 @@ export function createEmptyRecipe(): Recipe {
     recipeInstructions: [],
     nutrition: {
       "@type": "NutritionInformation"
-    }
+    },
+    localMeta: undefined
   };
 }
 
@@ -115,6 +131,67 @@ export function normalizeRecipe(input: Partial<Recipe>): Recipe {
     recipeInstructions: Array.isArray(input.recipeInstructions)
       ? input.recipeInstructions
       : [],
-    nutrition: input.nutrition ?? { "@type": "NutritionInformation" }
+    nutrition: input.nutrition ?? { "@type": "NutritionInformation" },
+    localMeta: normalizeLocalMeta(input.localMeta)
   };
+}
+
+export function toCookbookRecipe(recipe: Recipe): Recipe {
+  const { localMeta, ...cookbookRecipe } = recipe;
+  return cookbookRecipe;
+}
+
+export function hasLocalMetadata(recipe: Recipe) {
+  const meta = recipe.localMeta;
+  if (!meta) {
+    return false;
+  }
+
+  return Boolean(
+    meta.nutriScoreOverride ||
+      meta.servingOverride ||
+      (meta.timers && meta.timers.length > 0)
+  );
+}
+
+function normalizeLocalMeta(
+  localMeta?: RecipeLocalMeta
+): RecipeLocalMeta | undefined {
+  if (!localMeta) {
+    return undefined;
+  }
+
+  const normalized: RecipeLocalMeta = {};
+
+  if (localMeta.nutriScoreOverride) {
+    normalized.nutriScoreOverride = localMeta.nutriScoreOverride;
+  }
+
+  if (
+    localMeta.servingOverride &&
+    Number.isFinite(localMeta.servingOverride) &&
+    localMeta.servingOverride > 0
+  ) {
+    normalized.servingOverride = Math.round(localMeta.servingOverride);
+  }
+
+  if (Array.isArray(localMeta.timers)) {
+    normalized.timers = localMeta.timers
+      .map((timer) => ({
+        id: timer.id,
+        label: timer.label,
+        minutes: Math.max(1, Math.round(timer.minutes))
+      }))
+      .filter((timer) => timer.id && timer.label && timer.minutes > 0);
+  }
+
+  return hasMeaningfulLocalMeta(normalized) ? normalized : undefined;
+}
+
+function hasMeaningfulLocalMeta(localMeta: RecipeLocalMeta) {
+  return Boolean(
+    localMeta.nutriScoreOverride ||
+      localMeta.servingOverride ||
+      (localMeta.timers && localMeta.timers.length > 0)
+  );
 }

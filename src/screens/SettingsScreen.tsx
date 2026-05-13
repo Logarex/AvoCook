@@ -1,13 +1,12 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   ArrowLeft,
-  Folder,
   Info,
   LogOut,
   RefreshCw,
   ShieldCheck
 } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { StyleSheet, Switch, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
@@ -16,7 +15,6 @@ import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { SegmentedControl } from "../components/SegmentedControl";
-import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
@@ -40,19 +38,6 @@ export function SettingsScreen({ navigation }: Props) {
     setLanguage
   } = usePreferences();
   const [message, setMessage] = useState<string | null>(null);
-  const [cookbookFolder, setCookbookFolder] = useState("/Recipes");
-
-  useEffect(() => {
-    const client = getClient();
-    if (!client) {
-      return;
-    }
-    void client.getConfig().then((config) => {
-      if (config.folder) {
-        setCookbookFolder(config.folder);
-      }
-    });
-  }, [getClient]);
 
   async function handleReindex() {
     const client = getClient();
@@ -68,21 +53,6 @@ export function SettingsScreen({ navigation }: Props) {
   async function handleLogout() {
     await logout();
     navigation.reset({ index: 0, routes: [{ name: "Login" }] });
-  }
-
-  async function handleSaveFolder() {
-    const client = getClient();
-    if (!client) {
-      return;
-    }
-
-    const currentConfig = await client.getConfig();
-    await client.setConfig({
-      ...currentConfig,
-      folder: normalizeFolder(cookbookFolder)
-    });
-    setCookbookFolder(normalizeFolder(cookbookFolder));
-    setMessage(t("settings.folderSaved"));
   }
 
   return (
@@ -167,26 +137,6 @@ export function SettingsScreen({ navigation }: Props) {
         </AppText>
       </GlassPanel>
 
-      {credentials ? (
-        <GlassPanel style={styles.section}>
-          <View style={styles.serverHeader}>
-            <Folder color={colors.primary} size={22} />
-            <AppText variant="label">{t("settings.cookbookFolder")}</AppText>
-          </View>
-          <TextField
-            label={t("settings.cookbookFolder")}
-            onChangeText={setCookbookFolder}
-            value={cookbookFolder}
-          />
-          <PrimaryButton
-            icon={Folder}
-            label={t("settings.saveFolder")}
-            onPress={() => void handleSaveFolder()}
-            variant="ghost"
-          />
-        </GlassPanel>
-      ) : null}
-
       {message ? <AppText style={{ color: colors.success }}>{message}</AppText> : null}
 
       <View style={styles.actions}>
@@ -212,11 +162,6 @@ export function SettingsScreen({ navigation }: Props) {
       </View>
     </Screen>
   );
-}
-
-function normalizeFolder(folder: string) {
-  const trimmed = folder.trim() || "/Recipes";
-  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
 }
 
 const styles = StyleSheet.create({

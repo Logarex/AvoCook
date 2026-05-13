@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import * as SQLite from "expo-sqlite";
-import { normalizeRecipe, type Recipe } from "./types";
+import { hasLocalMetadata, normalizeRecipe, type Recipe } from "./types";
 
 export type SyncOperationType = "create" | "update" | "delete";
 
@@ -138,5 +138,14 @@ export async function deleteQueuedOperation(id: number) {
 
 export async function clearLocalRecipeCache() {
   const db = await dbPromise;
-  await db.runAsync("DELETE FROM recipes WHERE dirty = 0");
+  const rows = await db.getAllAsync<RecipeRow>(
+    "SELECT * FROM recipes WHERE dirty = 0"
+  );
+
+  for (const row of rows) {
+    const recipe = normalizeRecipe(JSON.parse(row.payload) as Recipe);
+    if (!hasLocalMetadata(recipe)) {
+      await db.runAsync("DELETE FROM recipes WHERE id = ?", row.id);
+    }
+  }
 }

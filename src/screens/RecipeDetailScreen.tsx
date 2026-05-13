@@ -1,15 +1,23 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image, type ImageSource } from "expo-image";
 import { useKeepAwake } from "expo-keep-awake";
+import type { LucideIcon } from "lucide-react-native";
 import {
   ArrowLeft,
   Clock,
   ExternalLink,
+  HeartPulse,
+  Minus,
+  Pause,
   Pencil,
+  Play,
+  Plus,
+  RotateCcw,
+  Timer,
   Trash2,
   Users
 } from "lucide-react-native";
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Alert, Linking, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
@@ -20,19 +28,48 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
+import type { HealthProfile } from "../features/recipes/health";
+import { getRecipeHealthProfile } from "../features/recipes/health";
 import { useRecipes } from "../features/recipes/RecipesProvider";
-import type { Nutrition } from "../features/recipes/types";
+import {
+  normalizeRecipe,
+  type NutriScoreGrade,
+  type Nutrition
+} from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
-import { humanDuration } from "../utils/duration";
+import { humanDuration, isoDurationToMinutes } from "../utils/duration";
+import { scaleIngredientLine } from "../utils/servings";
 
 type Props = NativeStackScreenProps<RootStackParamList, "RecipeDetail">;
+type DetailRecipe = ReturnType<typeof useRecipes>["recipes"][number];
+type TimerPreset = {
+  id: "prep" | "cook" | "total";
+  label: string;
+  minutes: number;
+};
+type TimerState = {
+  durationSeconds: number;
+  remainingSeconds: number;
+  running: boolean;
+};
+
+const nutriScoreColors: Record<NutriScoreGrade, string> = {
+  A: "#1B8F4B",
+  B: "#70B744",
+  C: "#F2C84B",
+  D: "#EE8E2F",
+  E: "#D64545",
+  "?": "#8A8177"
+};
+
+const nutriScoreGrades: NutriScoreGrade[] = ["A", "B", "C", "D", "E"];
 
 export function RecipeDetailScreen({ navigation, route }: Props) {
   const { getClient } = useAuth();
   const { keepScreenAwake } = usePreferences();
-  const { deleteRecipe, getRecipe } = useRecipes();
+  const { deleteRecipe, getRecipe, updateRecipe } = useRecipes();
   const recipe = getRecipe(route.params.id);
 
   if (keepScreenAwake) {
@@ -44,6 +81,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
           recipeId={route.params.id}
           recipe={recipe}
           deleteRecipe={deleteRecipe}
+          updateRecipe={updateRecipe}
           getImageSource={() => getImageSource(recipe, getClient())}
         />
       </>
@@ -56,6 +94,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
       recipeId={route.params.id}
       recipe={recipe}
       deleteRecipe={deleteRecipe}
+      updateRecipe={updateRecipe}
       getImageSource={() => getImageSource(recipe, getClient())}
     />
   );
@@ -71,12 +110,14 @@ function RecipeDetailContent({
   recipeId,
   recipe,
   deleteRecipe,
+  updateRecipe,
   getImageSource
 }: {
   navigation: Props["navigation"];
   recipeId: string;
   recipe: ReturnType<typeof useRecipes>["recipes"][number] | undefined;
   deleteRecipe: (id: string) => Promise<void>;
+  updateRecipe: ReturnType<typeof useRecipes>["updateRecipe"];
   getImageSource: () => ImageSource | null;
 }) {
   const { t } = useTranslation();
@@ -86,6 +127,76 @@ function RecipeDetailContent({
     () => normalizeNutrition(recipe?.nutrition),
     [recipe?.nutrition]
   );
+  const baseServings = Math.max(1, recipe?.recipeYield || 1);
+  const selectedServings = recipe?.localMeta?.servingOverride ?? baseServings;
+  const servingFactor = selectedServings / baseServings;
+  const scaledIngredients = useMemo(
+    () =>
+      recipe?.recipeIngredient.map((ingredient) =>
+        scaleIngredientLine(ingredient, servingFactor)
+      ) ?? [],
+    [recipe?.recipeIngredient, servingFactor]
+  );
+  const healthProfile = useMemo(
+    () => (recipe ? getRecipeHealthProfile(recipe) : null),
+    [recipe]
+  );
+  const timerPresets = useMemo(
+    () => (recipe ? getTimerPresets(recipe, t) : []),
+    [recipe, t]
+  );
+  const [timers, setTimers] = useState<Record<string, TimerState>>({});
+  const hasRunningTimer = useMemo(
+    () =>
+      Object.values(timers).some(
+        (timer) => timer.running && timer.remainingSeconds > 0
+      ),
+    [timers]
+  );
+
+  useEffect(() => {
+    setTimers((current) => {
+      const next: Record<string, TimerState> = {};
+      for (const preset of timerPresets) {
+        const durationSeconds = preset.minutes * 60;
+        const existing = current[preset.id];
+        next[preset.id] =
+          existing && existing.durationSeconds === durationSeconds
+            ? existing
+            : {
+                durationSeconds,
+                remainingSeconds: durationSeconds,
+                running: false
+              };
+      }
+      return next;
+    });
+  }, [timerPresets]);
+
+  useEffect(() => {
+    if (!hasRunningTimer) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      setTimers((current) => {
+        const next: Record<string, TimerState> = {};
+        for (const [id, timer] of Object.entries(current)) {
+          const remainingSeconds = timer.running
+            ? Math.max(0, timer.remainingSeconds - 1)
+            : timer.remainingSeconds;
+          next[id] = {
+            ...timer,
+            remainingSeconds,
+            running: timer.running && remainingSeconds > 0
+          };
+        }
+        return next;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [hasRunningTimer]);
 
   if (!recipe) {
     return (
@@ -111,6 +222,66 @@ function RecipeDetailContent({
         }
       }
     ]);
+  }
+
+  async function handleServingsChange(nextServings: number) {
+    if (!recipe) {
+      return;
+    }
+
+    const normalizedServings = Math.max(1, Math.round(nextServings));
+    const localMeta = { ...recipe.localMeta };
+    if (normalizedServings === baseServings) {
+      delete localMeta.servingOverride;
+    } else {
+      localMeta.servingOverride = normalizedServings;
+    }
+
+    await updateRecipe(
+      normalizeRecipe({
+        ...recipe,
+        localMeta: Object.keys(localMeta).length ? localMeta : undefined
+      })
+    );
+  }
+
+  function handleToggleTimer(timerId: string) {
+    setTimers((current) => {
+      const timer = current[timerId];
+      if (!timer) {
+        return current;
+      }
+
+      return {
+        ...current,
+        [timerId]: {
+          ...timer,
+          remainingSeconds:
+            timer.remainingSeconds > 0
+              ? timer.remainingSeconds
+              : timer.durationSeconds,
+          running: timer.remainingSeconds <= 0 ? true : !timer.running
+        }
+      };
+    });
+  }
+
+  function handleResetTimer(timerId: string) {
+    setTimers((current) => {
+      const timer = current[timerId];
+      if (!timer) {
+        return current;
+      }
+
+      return {
+        ...current,
+        [timerId]: {
+          ...timer,
+          remainingSeconds: timer.durationSeconds,
+          running: false
+        }
+      };
+    });
   }
 
   return (
@@ -155,7 +326,7 @@ function RecipeDetailContent({
       <View style={styles.pills}>
         {recipe.recipeCategory ? <Pill label={recipe.recipeCategory} /> : null}
         {recipe.recipeYield ? (
-          <Pill label={`${recipe.recipeYield} ${t("recipes.yield")}`} />
+          <Pill label={`${selectedServings} ${t("recipes.yield")}`} />
         ) : null}
         {recipe.keywords
           .split(",")
@@ -181,11 +352,26 @@ function RecipeDetailContent({
         <Metric
           icon={Users}
           label={t("recipes.yield")}
-          value={String(recipe.recipeYield || 1)}
+          value={String(selectedServings)}
         />
       </View>
 
-      <RecipeSection title={t("recipes.ingredients")} items={recipe.recipeIngredient} />
+      <ServingsControl
+        baseServings={baseServings}
+        selectedServings={selectedServings}
+        onChange={(nextServings) => void handleServingsChange(nextServings)}
+      />
+
+      <TimerSection
+        presets={timerPresets}
+        timers={timers}
+        onReset={handleResetTimer}
+        onToggle={handleToggleTimer}
+      />
+
+      {healthProfile ? <HealthSection profile={healthProfile} /> : null}
+
+      <RecipeSection title={t("recipes.ingredients")} items={scaledIngredients} />
       <RecipeSection
         ordered
         title={t("recipes.instructions")}
@@ -226,7 +412,7 @@ function Metric({
   label,
   value
 }: {
-  icon: typeof Clock;
+  icon: LucideIcon;
   label: string;
   value: string;
 }) {
@@ -238,6 +424,222 @@ function Metric({
         {label}
       </AppText>
       <AppText variant="label">{value}</AppText>
+    </GlassPanel>
+  );
+}
+
+function ServingsControl({
+  baseServings,
+  selectedServings,
+  onChange
+}: {
+  baseServings: number;
+  selectedServings: number;
+  onChange: (servings: number) => void;
+}) {
+  const { t } = useTranslation();
+  const { colors } = useAppTheme();
+  return (
+    <GlassPanel style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Users color={colors.primary} size={21} />
+        <AppText variant="subtitle">{t("recipes.servings.title")}</AppText>
+      </View>
+      <View style={styles.servingsRow}>
+        <IconButton
+          disabled={selectedServings <= 1}
+          icon={Minus}
+          label={t("recipes.servings.decrease")}
+          onPress={() => onChange(selectedServings - 1)}
+        />
+        <View style={styles.servingValue}>
+          <AppText variant="title">{selectedServings}</AppText>
+          <AppText muted variant="caption">
+            {t("recipes.servings.people")}
+          </AppText>
+        </View>
+        <IconButton
+          icon={Plus}
+          label={t("recipes.servings.increase")}
+          onPress={() => onChange(selectedServings + 1)}
+          tone="primary"
+        />
+      </View>
+      <View style={styles.servingFooter}>
+        <AppText muted variant="caption">
+          {t("recipes.servings.original", { count: baseServings })}
+        </AppText>
+        {selectedServings !== baseServings ? (
+          <PrimaryButton
+            icon={RotateCcw}
+            label={t("recipes.servings.reset")}
+            onPress={() => onChange(baseServings)}
+            variant="ghost"
+          />
+        ) : null}
+      </View>
+    </GlassPanel>
+  );
+}
+
+function TimerSection({
+  presets,
+  timers,
+  onReset,
+  onToggle
+}: {
+  presets: TimerPreset[];
+  timers: Record<string, TimerState>;
+  onReset: (timerId: string) => void;
+  onToggle: (timerId: string) => void;
+}) {
+  const { t } = useTranslation();
+  const { colors } = useAppTheme();
+  if (!presets.length) {
+    return null;
+  }
+
+  return (
+    <GlassPanel style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <Timer color={colors.primary} size={21} />
+        <AppText variant="subtitle">{t("recipes.timers.title")}</AppText>
+      </View>
+      <View style={styles.timerList}>
+        {presets.map((preset) => {
+          const timer = timers[preset.id];
+          const running = Boolean(timer?.running);
+          const finished = Boolean(timer && timer.remainingSeconds === 0);
+          return (
+            <View
+              key={preset.id}
+              style={[
+                styles.timerCard,
+                {
+                  backgroundColor: colors.chip,
+                  borderColor: colors.border
+                }
+              ]}
+            >
+              <View style={styles.timerInfo}>
+                <AppText variant="label">{preset.label}</AppText>
+                <AppText variant="subtitle">
+                  {formatTimerSeconds(
+                    timer?.remainingSeconds ?? preset.minutes * 60
+                  )}
+                </AppText>
+                {finished ? (
+                  <AppText muted variant="caption">
+                    {t("recipes.timers.done")}
+                  </AppText>
+                ) : null}
+              </View>
+              <View style={styles.timerActions}>
+                <IconButton
+                  icon={running ? Pause : Play}
+                  label={
+                    running
+                      ? t("recipes.timers.pause")
+                      : t("recipes.timers.start")
+                  }
+                  onPress={() => onToggle(preset.id)}
+                  tone="primary"
+                />
+                <IconButton
+                  icon={RotateCcw}
+                  label={t("recipes.timers.reset")}
+                  onPress={() => onReset(preset.id)}
+                />
+              </View>
+            </View>
+          );
+        })}
+      </View>
+    </GlassPanel>
+  );
+}
+
+function HealthSection({ profile }: { profile: HealthProfile }) {
+  const { t } = useTranslation();
+  const { colors } = useAppTheme();
+  return (
+    <GlassPanel style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <HeartPulse color={colors.primary} size={21} />
+        <AppText variant="subtitle">{t("recipes.health.title")}</AppText>
+      </View>
+      <View style={styles.healthHeader}>
+        <View
+          style={[
+            styles.nutriBadge,
+            { backgroundColor: profile.backgroundColor }
+          ]}
+        >
+          <AppText variant="title" style={{ color: profile.color }}>
+            {profile.grade}
+          </AppText>
+        </View>
+        <View style={styles.healthCopy}>
+          <AppText variant="label">
+            {profile.hasNutrition
+              ? t("recipes.health.estimated")
+              : t("recipes.health.missingTitle")}
+          </AppText>
+          <AppText muted variant="caption">
+            {t("recipes.health.localNote")}
+          </AppText>
+        </View>
+      </View>
+      <View style={styles.nutriScale}>
+        {nutriScoreGrades.map((grade) => (
+          <View
+            key={grade}
+            style={[
+              styles.nutriScaleItem,
+              {
+                backgroundColor: nutriScoreColors[grade],
+                opacity: profile.grade === grade ? 1 : 0.42
+              }
+            ]}
+          >
+            <AppText
+              variant="label"
+              style={{
+                color: grade === "C" || grade === "D" ? "#251A05" : "#FFFFFF"
+              }}
+            >
+              {grade}
+            </AppText>
+          </View>
+        ))}
+      </View>
+      {profile.facts.length ? (
+        <View style={styles.healthFacts}>
+          {profile.facts.map((fact) => (
+            <View key={fact.labelKey} style={styles.healthFact}>
+              <AppText muted variant="caption">
+                {t(fact.labelKey)}
+              </AppText>
+              <AppText variant="label">{fact.value}</AppText>
+            </View>
+          ))}
+        </View>
+      ) : null}
+      <View style={styles.recommendations}>
+        {profile.recommendations.map((recommendation) => (
+          <View key={recommendation} style={styles.recommendationRow}>
+            <View
+              style={[
+                styles.recommendationDot,
+                { backgroundColor: profile.backgroundColor }
+              ]}
+            />
+            <AppText style={styles.recommendationText}>
+              {t(`recipes.health.recommendations.${recommendation}`)}
+            </AppText>
+          </View>
+        ))}
+      </View>
     </GlassPanel>
   );
 }
@@ -270,6 +672,46 @@ function RecipeSection({
       </View>
     </GlassPanel>
   );
+}
+
+function getTimerPresets(
+  recipe: DetailRecipe,
+  t: (key: string) => string
+): TimerPreset[] {
+  const presets: TimerPreset[] = [
+    {
+      id: "prep",
+      label: t("recipes.timers.prep"),
+      minutes: isoDurationToMinutes(recipe.prepTime) ?? 0
+    },
+    {
+      id: "cook",
+      label: t("recipes.timers.cook"),
+      minutes: isoDurationToMinutes(recipe.cookTime) ?? 0
+    },
+    {
+      id: "total",
+      label: t("recipes.timers.total"),
+      minutes: isoDurationToMinutes(recipe.totalTime) ?? 0
+    }
+  ];
+
+  return presets.filter((preset) => preset.minutes > 0);
+}
+
+function formatTimerSeconds(seconds: number) {
+  const safeSeconds = Math.max(0, Math.floor(seconds));
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor((safeSeconds % 3600) / 60);
+  const remainingSeconds = safeSeconds % 60;
+  const paddedMinutes = String(minutes).padStart(hours > 0 ? 2 : 1, "0");
+  const paddedSeconds = String(remainingSeconds).padStart(2, "0");
+
+  if (hours > 0) {
+    return `${hours}:${paddedMinutes}:${paddedSeconds}`;
+  }
+
+  return `${paddedMinutes}:${paddedSeconds}`;
 }
 
 function normalizeNutrition(
@@ -320,6 +762,23 @@ const styles = StyleSheet.create({
     height: "100%",
     width: "100%"
   },
+  healthCopy: {
+    flex: 1,
+    gap: spacing.xxs
+  },
+  healthFact: {
+    minWidth: "30%"
+  },
+  healthFacts: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm
+  },
+  healthHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.md
+  },
   metric: {
     alignItems: "flex-start",
     flex: 1,
@@ -340,9 +799,43 @@ const styles = StyleSheet.create({
   nutritionItem: {
     minWidth: "44%"
   },
+  nutriBadge: {
+    alignItems: "center",
+    borderRadius: radius.md,
+    height: 64,
+    justifyContent: "center",
+    width: 64
+  },
+  nutriScale: {
+    flexDirection: "row",
+    gap: spacing.xxs
+  },
+  nutriScaleItem: {
+    alignItems: "center",
+    borderRadius: radius.sm,
+    flex: 1,
+    height: 28,
+    justifyContent: "center"
+  },
   pills: {
     flexDirection: "row",
     flexWrap: "wrap",
+    gap: spacing.xs
+  },
+  recommendationDot: {
+    borderRadius: radius.pill,
+    height: 8,
+    marginTop: 7,
+    width: 8
+  },
+  recommendationRow: {
+    flexDirection: "row",
+    gap: spacing.xs
+  },
+  recommendationText: {
+    flex: 1
+  },
+  recommendations: {
     gap: spacing.xs
   },
   row: {
@@ -358,7 +851,49 @@ const styles = StyleSheet.create({
   section: {
     gap: spacing.md
   },
+  sectionHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.xs
+  },
   sectionItems: {
+    gap: spacing.sm
+  },
+  servingFooter: {
+    alignItems: "center",
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
+    justifyContent: "space-between"
+  },
+  servingValue: {
+    alignItems: "center",
+    flex: 1,
+    gap: spacing.xxs
+  },
+  servingsRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.md
+  },
+  timerActions: {
+    flexDirection: "row",
+    gap: spacing.xs
+  },
+  timerCard: {
+    alignItems: "center",
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: "row",
+    gap: spacing.md,
+    justifyContent: "space-between",
+    padding: spacing.sm
+  },
+  timerInfo: {
+    flex: 1,
+    gap: spacing.xxs
+  },
+  timerList: {
     gap: spacing.sm
   },
   titleBlock: {
