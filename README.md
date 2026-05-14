@@ -77,6 +77,7 @@ npx eas build --platform android --profile production
 Pour générer un fichier `.apk` distribuable sur GitHub :
 ```bash
 npx eas build --platform android --profile preview
+```
 
 ## Tests
 
