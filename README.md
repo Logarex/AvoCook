@@ -2,7 +2,8 @@
 
 Application mobile iOS, iPadOS et Android pour consulter, importer, créer et modifier des recettes synchronisées avec l'application Nextcloud Cookbook.
 
-[Télécharger la version Android](https://github.com/Logarex/AvoCook/releases/latest)
+[Télécharger sur l'App Store](https://apps.apple.com/app/avocook/id6769012665) | [Télécharger l'APK Android](https://github.com/Logarex/AvoCook/releases/latest)
+
 
 ## Fonctionnalités
 
@@ -73,6 +74,10 @@ npx eas build --platform ios --profile production
 npx eas build --platform android --profile production
 ```
 
+Pour générer un fichier `.apk` distribuable sur GitHub :
+```bash
+npx eas build --platform android --profile preview
+
 ## Tests
 
 ```bash
@@ -88,3 +93,8 @@ Nextcloud Cookbook importe déjà les pages contenant des métadonnées schema.o
 Les sites qui changent souvent leur HTML doivent être ajoutés sous forme d'adapters dédiés dans `src/features/import/` plutôt que via du scraping fragile.
 
 Le script `npm run import:check -- <url>` vérifie rapidement qu'une page expose un objet `Recipe`, des ingrédients, des étapes et une image.
+
+
+
+## Licence
+Ce projet est sous licence MIT.
