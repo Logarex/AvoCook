@@ -4,6 +4,11 @@ Application mobile iOS, iPadOS et Android pour consulter, importer, créer et mo
 
 [Télécharger sur l'App Store](https://apps.apple.com/app/avocook/id6769012665) | [Télécharger l'APK Android](https://github.com/Logarex/AvoCook/releases/latest)
 
+<p align="center">
+  <img src="assets/screenshots/list.jpeg" width="300" alt="Liste des recettes" />
+  <img src="assets/screenshots/recipe.jpeg" width="300" alt="Détail d'une recette" />
+</p>
+
 
 ## Fonctionnalités
 
