@@ -1,11 +1,46 @@
+# Dependencies
 node_modules/
+
+# Expo
 .expo/
 dist/
-coverage/
+web-build/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+
+# Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment
 .env
 .env.*
 !.env.example
+
+# Testing
+coverage/
+
+# Native
 android/
 ios/
-web-build/
+
+# IDEs
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+Network Trash Folder
+Temporary Items
+.Trashes
