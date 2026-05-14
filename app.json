@@ -37,7 +37,6 @@
     },
     "android": {
       "package": "app.avocook.mobile",
-      "versionCode": 1,
       "permissions": [],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO"
@@ -81,8 +80,9 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "replace-with-eas-project-id"
+        "projectId": "71346d2a-c2f5-4f0e-a01e-544bfc1f66ca"
       }
-    }
+    },
+    "owner": "logarex"
   }
 }
