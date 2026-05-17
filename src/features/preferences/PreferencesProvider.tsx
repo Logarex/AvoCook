@@ -12,10 +12,10 @@ import i18n from "../../i18n";
 type PreferencesContextValue = {
   keepScreenAwake: boolean;
   keepRecipesLocal: boolean;
-  language: "fr" | "en";
+  language: "fr" | "en" | "de";
   setKeepScreenAwake: (enabled: boolean) => Promise<void>;
   setKeepRecipesLocal: (enabled: boolean) => Promise<void>;
-  setLanguage: (language: "fr" | "en") => Promise<void>;
+  setLanguage: (language: "fr" | "en" | "de") => Promise<void>;
 };
 
 const KEEP_AWAKE_KEY = "preferences.keepScreenAwake";
@@ -33,8 +33,8 @@ export function PreferencesProvider({
 }) {
   const [keepScreenAwake, setKeepScreenAwakeState] = useState(false);
   const [keepRecipesLocal, setKeepRecipesLocalState] = useState(true);
-  const [language, setLanguageState] = useState<"fr" | "en">(
-    i18n.language === "en" ? "en" : "fr"
+  const [language, setLanguageState] = useState<"fr" | "en" | "de">(
+    i18n.language === "en" ? "en" : i18n.language === "de" ? "de" : "fr"
   );
 
   useEffect(() => {
@@ -52,7 +52,7 @@ export function PreferencesProvider({
       ) {
         setKeepRecipesLocalState(storedKeepRecipesLocal === "true");
       }
-      if (storedLanguage === "fr" || storedLanguage === "en") {
+      if (storedLanguage === "fr" || storedLanguage === "en" || storedLanguage === "de") {
         setLanguageState(storedLanguage);
         void i18n.changeLanguage(storedLanguage);
       }
@@ -69,7 +69,7 @@ export function PreferencesProvider({
     await AsyncStorage.setItem(KEEP_RECIPES_LOCAL_KEY, String(enabled));
   }, []);
 
-  const setLanguage = useCallback(async (nextLanguage: "fr" | "en") => {
+  const setLanguage = useCallback(async (nextLanguage: "fr" | "en" | "de") => {
     setLanguageState(nextLanguage);
     await AsyncStorage.setItem(LANGUAGE_KEY, nextLanguage);
     await i18n.changeLanguage(nextLanguage);
