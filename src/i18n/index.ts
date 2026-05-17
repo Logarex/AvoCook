@@ -208,6 +208,7 @@ export const resources = {
         dark: "Sombre",
         french: "Français",
         english: "English",
+        german: "Deutsch",
         keepAwake: "Garder l'écran allumé sur une recette",
         keepRecipesLocal:
           "Conserver une copie locale des recettes pour le hors ligne",
@@ -445,6 +446,7 @@ export const resources = {
         dark: "Dark",
         french: "Français",
         english: "English",
+        german: "Deutsch",
         keepAwake: "Keep screen awake on a recipe",
         keepRecipesLocal: "Keep a local copy of recipes for offline use",
         server: "Server",
@@ -478,6 +480,248 @@ export const resources = {
           "Photos added manually are copied into app storage so they remain available offline."
       }
     }
+  },
+  de: {
+    translation: {
+      common: {
+        add: "Hinzufügen",
+        cancel: "Abbrechen",
+        delete: "Löschen",
+        edit: "Bearbeiten",
+        save: "Speichern",
+        search: "Suchen",
+        clear: "Löschen",
+        settings: "Einstellungen",
+        import: "Importieren",
+        sync: "Synchronisieren",
+        logout: "Abmelden",
+        loading: "Laden",
+        offline: "Offline",
+        online: "Verbunden",
+        retry: "Wiederholen",
+        close: "Schließen",
+        continue: "Weiter"
+      },
+      auth: {
+        title: "AvoCook",
+        subtitle: "Deine Cloud-Rezepte, küchenfertig.",
+        server: "Nextcloud-Adresse",
+        username: "Benutzername",
+        appPassword: "App-Passwort",
+        login: "Anmelden",
+        secure: "Anmeldedaten verschlüsselt im Geräteschlüsselbund",
+        invalidUrl: "Ungültige Nextcloud-Adresse.",
+        insecureUrl:
+          "Verwende HTTPS, außer für localhost während der Entwicklung.",
+        failed:
+          "Anmeldung fehlgeschlagen. Prüfe Server und App-Passwort.",
+        useLocal: "Ohne Nextcloud verwenden",
+        showPassword: "Passwort anzeigen",
+        hidePassword: "Passwort verbergen",
+        appPasswordHelp: "Wie erstelle ich ein App-Passwort?",
+        localSubtitle:
+          "Kostenloser lokaler Modus: Rezepte bleiben nur auf diesem Gerät.",
+        badCredentials:
+          "Falscher Benutzername oder App-Passwort. Erstelle ein dediziertes Nextcloud-App-Passwort.",
+        tutorial: {
+          title: "Nextcloud-App-Passwort erstellen",
+          steps: {
+            openNextcloud:
+              "Öffne Nextcloud im Browser und melde dich an.",
+            openSettings:
+              "Klicke auf deinen Avatar oder Namen, dann öffne Einstellungen oder Persönliche Einstellungen.",
+            openSecurity:
+              "Öffne Sicherheit. In manchen Versionen heißt die Sektion Geräte & Sitzungen oder App-Passwörter.",
+            createPassword:
+              "Erstelle ein neues App-Passwort, z. B. mit dem Namen Cookbook Mobile.",
+            copyPassword:
+              "Kopiere das einmalig angezeigte Passwort und füge es hier zusammen mit deinem Nextcloud-Benutzernamen ein."
+          },
+          versionNote:
+            "Die genauen Bezeichnungen variieren je nach Nextcloud-Version und Theme, aber der Pfad liegt immer in den persönlichen Kontoeinstellungen unter Sicherheit oder Sitzungen."
+        }
+      },
+      recipes: {
+        title: "Rezepte",
+        emptyTitle: "Keine Rezepte",
+        emptyBody: "Füge ein Rezept hinzu oder synchronisiere dein Cookbook.",
+        ingredients: "Zutaten",
+        instructions: "Schritte",
+        tools: "Werkzeuge",
+        nutrition: "Nährwerte",
+        category: "Kategorie",
+        yield: "Portionen",
+        prepTime: "Vorbereitung",
+        cookTime: "Kochen",
+        totalTime: "Gesamt",
+        minutes: "Min.",
+        source: "Quelle",
+        noCategory: "Keine Kategorie",
+        deleteConfirm: "Dieses Rezept löschen?",
+        allCategories: "Alle",
+        uncategorized: "Keine Kategorie",
+        categories: "Kategorien",
+        categoryCount: "{{count}} Rezept",
+        categoryCount_one: "{{count}} Rezept",
+        categoryCount_other: "{{count}} Rezepte",
+        newCategory: "Neue Kategorie",
+        categoryName: "Kategoriename",
+        createCategory: "Kategorie erstellen",
+        chooseCategory: "Kategorie wählen",
+        moreCategories: "Mehr",
+        loadingRecipes: "Rezepte werden geladen...",
+        syncingRecipes: "Synchronisierung läuft...",
+        syncingRecipesShort: "Synchronisieren...",
+        loadedRecipes: "{{count}} Rezept geladen",
+        loadedRecipes_one: "{{count}} Rezept geladen",
+        loadedRecipes_other: "{{count}} Rezepte geladen",
+        selectedCategory: "Ausgewählte Kategorie: {{category}}",
+        servings: {
+          title: "Portionen",
+          people: "Personen",
+          decrease: "Portionen verringern",
+          increase: "Portionen erhöhen",
+          original: "Originalrezept: {{count}} Person",
+          original_one: "Originalrezept: {{count}} Person",
+          original_other: "Originalrezept: {{count}} Personen",
+          reset: "Zum Original zurücksetzen"
+        },
+        timers: {
+          title: "Timer",
+          prep: "Vorbereitung",
+          cook: "Kochen",
+          total: "Gesamt",
+          start: "Timer starten",
+          pause: "Pausieren",
+          reset: "Zurücksetzen",
+          stop: "Stoppen",
+          done: "Fertig",
+          notificationTitle: "{{timer}} abgeschlossen",
+          notificationHint:
+            "Timer klingeln über Benachrichtigungen. Diese müssen erlaubt sein.",
+          notificationsOff:
+            "Benachrichtigungen deaktiviert: Timer können nicht klingeln.",
+          notificationsUnavailable:
+            "Benachrichtigungen in dieser Laufzeitumgebung nicht verfügbar. Installiere einen echten Build für Timer.",
+          notificationsRequiredTitle: "Benachrichtigungen erforderlich",
+          notificationsRequiredBody:
+            "Aktiviere Benachrichtigungen für AvoCook in den Telefoneinstellungen. Ohne sie kann der Timer nicht klingeln, wenn das iPhone gesperrt ist.",
+          notificationsUnavailableBody:
+            "Dieser Build enthält noch kein natives Benachrichtigungsmodul. Installiere einen neu erstellten iOS-Build für Timer."
+        },
+        health: {
+          title: "Gesundheit",
+          estimated: "Geschätzter Gesundheitsscore",
+          missingTitle: "Nährwertangaben fehlen",
+          localNote:
+            "Inoffizielle lokale Schätzung basierend auf Nährwerten pro Portion/Person.",
+          calculation:
+            "Der Score bewertet Kalorien, Zucker, gesättigte Fettsäuren und Natrium negativ, Ballaststoffe und Eiweiß positiv. Er ist nur verlässlich, wenn Nährwerte angegeben sind.",
+          calories: "Kalorien",
+          sugar: "Zucker",
+          fat: "Fett",
+          salt: "Salz",
+          fiber: "Ballaststoffe",
+          protein: "Eiweiß",
+          recommendations: {
+            balanced: "Ausgewogenes Profil für die verfügbaren Daten.",
+            missingNutrition:
+              "Füge Kalorien, Zucker, Salz, Ballaststoffe und Eiweiß für eine genauere Empfehlung hinzu.",
+            highCalories:
+              "Serviere eine kleinere Portion oder ergänze mit Gemüse.",
+            highSugar:
+              "Reduziere Zucker oder füge frisches Obst als Beilage hinzu.",
+            highFat:
+              "Verwende ein leichteres Fett oder reduziere die Menge.",
+            highSalt:
+              "Koste vor dem Salzen und verwende Kräuter, Gewürze oder Zitrone.",
+            addFiber:
+              "Füge Ballaststoffe, Gemüse, Hülsenfrüchte oder Vollkorngetreide hinzu.",
+            goodProtein: "Guter Eiweißgehalt für die Sättigung."
+          }
+        }
+      },
+      editor: {
+        newRecipe: "Neues Rezept",
+        editRecipe: "Rezept bearbeiten",
+        name: "Name",
+        description: "Beschreibung",
+        ingredients: "Zutaten, eine pro Zeile",
+        instructions: "Schritte, einer pro Zeile",
+        tools: "Werkzeuge, eines pro Zeile",
+        photoUrl: "Foto-URL",
+        choosePhoto: "Foto auswählen",
+        removePhoto: "Foto entfernen",
+        keywords: "Kommagetrennte Schlagwörter",
+        category: "Kategorie",
+        prepMinutes: "Vorbereitungszeit in Minuten",
+        cookMinutes: "Kochzeit in Minuten",
+        totalMinutes: "Gesamtzeit in Minuten",
+        nutrition: "Nährwerte pro Portion",
+        nutritionHelp:
+          "Diese Werte fließen in den Gesundheitsscore ein. Lass sie leer, wenn du sie nicht kennst.",
+        caloriesKcal: "Kalorien (kcal)",
+        carbsGrams: "Kohlenhydrate (g)",
+        sugarGrams: "Zucker (g)",
+        fatGrams: "Fett (g)",
+        saturatedFatGrams: "Gesättigte Fettsäuren (g)",
+        sodiumMg: "Natrium / Salz (mg)",
+        fiberGrams: "Ballaststoffe (g)",
+        proteinGrams: "Eiweiß (g)",
+        requiredName: "Rezeptname ist erforderlich."
+      },
+      importRecipe: {
+        title: "Importieren",
+        url: "Rezept-URL",
+        action: "Von URL importieren",
+        failed: "Diese Seite konnte nicht importiert werden.",
+        success: "Rezept importiert"
+      },
+      settings: {
+        title: "Einstellungen",
+        appearance: "Darstellung",
+        language: "Sprache",
+        system: "System",
+        light: "Hell",
+        dark: "Dunkel",
+        french: "Français",
+        english: "English",
+        german: "Deutsch",
+        keepAwake: "Bildschirm bei einem Rezept wach halten",
+        keepRecipesLocal:
+          "Lokale Kopie der Rezepte für die Offline-Nutzung speichern",
+        server: "Server",
+        localMode: "Lokaler Modus",
+        localOnly: "Ohne Nextcloud-Konto",
+        privacy: "Datenschutz",
+        secureStore:
+          "Anmeldedaten bleiben im sicheren Speicher des Telefons.",
+        reindex: "Cookbook neu indizieren",
+        reindexConfirmTitle: "Server neu indizieren?",
+        reindexConfirmBody:
+          "Damit wird Nextcloud Cookbook aufgefordert, den Rezeptordner erneut zu scannen. Nützlich, wenn Rezepte außerhalb der App hinzugefügt oder geändert wurden, kann aber bei einem großen Cookbook dauern.",
+        reindexDone: "Neuindizierung angefordert",
+        openPrivacy: "Datenschutz und Daten",
+        notifications: "Benachrichtigungen",
+        notificationsEnabled: "Aktiviert",
+        notificationsDisabled: "Deaktiviert (zum Aktivieren tippen)"
+      },
+      privacy: {
+        title: "Datenschutz",
+        free:
+          "Diese App ist kostenlos und wurde von einem unabhängigen Entwickler erstellt.",
+        independent:
+          "Sie ist keine offizielle Nextcloud-App und verkauft keine Daten.",
+        local:
+          "Im lokalen Modus bleiben Rezepte auf diesem Gerät. Mit Nextcloud werden sie nur mit dem von dir gewählten Server synchronisiert.",
+        credentials:
+          "Serveradresse, Benutzername und App-Passwort werden im sicheren Speicher des Geräts gespeichert.",
+        tracking:
+          "Keine Werbung, kein Marketing-Tracking und kein Datenverkauf sind geplant.",
+        photos:
+          "Manuell hinzugefügte Fotos werden in den App-Speicher kopiert, damit sie offline verfügbar bleiben."
+      }
+    }
   }
 } as const;
 
@@ -486,7 +730,7 @@ const i18n = createInstance();
 
 void i18n.use(initReactI18next).init({
   resources,
-  lng: deviceLanguage === "en" ? "en" : "fr",
+  lng: deviceLanguage === "en" ? "en" : deviceLanguage === "de" ? "de" : "fr",
   fallbackLng: "fr",
   interpolation: {
     escapeValue: false
