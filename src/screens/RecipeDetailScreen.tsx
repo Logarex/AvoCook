@@ -27,6 +27,7 @@ import { IconButton } from "../components/IconButton";
 import { Pill } from "../components/Pill";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
+import { ScreenErrorBoundary } from "../components/ScreenErrorBoundary";
 import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import type { HealthProfile } from "../features/recipes/health";
@@ -76,27 +77,60 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
     return (
       <>
         <KeepAwake />
-        <RecipeDetailContent
-          navigation={navigation}
-          recipeId={route.params.id}
-          recipe={recipe}
-          deleteRecipe={deleteRecipe}
-          updateRecipePreferences={updateRecipePreferences}
-          getImageSource={() => getImageSource(recipe, getClient())}
-        />
+        <ScreenErrorBoundary
+          resetKey={route.params.id}
+          fallback={<RecipeDetailFallback navigation={navigation} />}
+        >
+          <RecipeDetailContent
+            navigation={navigation}
+            recipeId={route.params.id}
+            recipe={recipe}
+            deleteRecipe={deleteRecipe}
+            updateRecipePreferences={updateRecipePreferences}
+            getImageSource={() => getImageSource(recipe, getClient())}
+          />
+        </ScreenErrorBoundary>
       </>
     );
   }
 
   return (
-    <RecipeDetailContent
-      navigation={navigation}
-      recipeId={route.params.id}
-      recipe={recipe}
-      deleteRecipe={deleteRecipe}
-      updateRecipePreferences={updateRecipePreferences}
-      getImageSource={() => getImageSource(recipe, getClient())}
-    />
+    <ScreenErrorBoundary
+      resetKey={route.params.id}
+      fallback={<RecipeDetailFallback navigation={navigation} />}
+    >
+      <RecipeDetailContent
+        navigation={navigation}
+        recipeId={route.params.id}
+        recipe={recipe}
+        deleteRecipe={deleteRecipe}
+        updateRecipePreferences={updateRecipePreferences}
+        getImageSource={() => getImageSource(recipe, getClient())}
+      />
+    </ScreenErrorBoundary>
+  );
+}
+
+function RecipeDetailFallback({ navigation }: { navigation: Props["navigation"] }) {
+  const { t } = useTranslation();
+  return (
+    <Screen>
+      <IconButton
+        icon={ArrowLeft}
+        label="Back"
+        onPress={() => {
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          } else {
+            navigation.navigate("Recipes");
+          }
+        }}
+      />
+      <GlassPanel style={styles.section}>
+        <AppText variant="subtitle">{t("recipes.openFailedTitle")}</AppText>
+        <AppText muted>{t("recipes.openFailedBody")}</AppText>
+      </GlassPanel>
+    </Screen>
   );
 }
 
