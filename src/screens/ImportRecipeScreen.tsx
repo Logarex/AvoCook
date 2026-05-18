@@ -46,7 +46,7 @@ export function ImportRecipeScreen({ navigation }: Props) {
       <View style={styles.toolbar}>
         <IconButton
           icon={ArrowLeft}
-          label="Back"
+          label={t("common.back")}
           onPress={() => navigation.goBack()}
         />
         <AppText variant="subtitle">{t("importRecipe.title")}</AppText>
@@ -64,7 +64,11 @@ export function ImportRecipeScreen({ navigation }: Props) {
           textContentType="URL"
           value={url}
         />
-        {error ? <AppText style={{ color: colors.danger }}>{error}</AppText> : null}
+        {error ? (
+          <AppText accessibilityRole="alert" style={{ color: colors.danger }}>
+            {error}
+          </AppText>
+        ) : null}
         <PrimaryButton
           disabled={!url.trim() || submitting}
           icon={Download}

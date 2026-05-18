@@ -63,6 +63,7 @@ export function LoginScreen(_props: Props) {
     <Screen contentStyle={styles.screen} showScrollTop={false}>
       <View style={styles.hero}>
         <Image
+          accessible={false}
           source={require("../../assets/logo.png")}
           style={styles.logo}
           contentFit="contain"
@@ -144,7 +145,12 @@ export function LoginScreen(_props: Props) {
           </View>
         ) : null}
         {error ? (
-          <AppText style={{ color: colors.danger }}>{error}</AppText>
+          <AppText
+            accessibilityRole="alert"
+            style={{ color: colors.danger }}
+          >
+            {error}
+          </AppText>
         ) : null}
         <PrimaryButton
           disabled={!serverUrl || !username || !appPassword || submitting}
