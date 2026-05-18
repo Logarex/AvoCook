@@ -141,6 +141,13 @@ export function toCookbookRecipe(recipe: Recipe): Recipe {
   return cookbookRecipe;
 }
 
+export function toCookbookCreateRecipe(recipe: Recipe): Recipe {
+  return {
+    ...toCookbookRecipe(recipe),
+    id: null
+  };
+}
+
 export function hasLocalMetadata(recipe: Recipe) {
   const meta = recipe.localMeta;
   if (!meta) {

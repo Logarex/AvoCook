@@ -51,7 +51,7 @@ type CategoryOption = {
 export function RecipeListScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
-  const { credentials, isLocalMode } = useAuth();
+  const { credentials, getClient, isLocalMode } = useAuth();
   const {
     createCategory,
     customCategories,
@@ -142,6 +142,7 @@ export function RecipeListScreen({ navigation }: Props) {
   }, [category, query, recipes]);
 
   const connected = Boolean(credentials || isLocalMode);
+  const imageHeaders = credentials ? getClient()?.getImageHeaders() : undefined;
   const statusLabel = isLocalMode
     ? t("settings.localMode")
     : credentials
@@ -310,6 +311,7 @@ export function RecipeListScreen({ navigation }: Props) {
           }
           renderItem={({ item }) => (
             <RecipeCard
+              imageHeaders={imageHeaders}
               recipe={item}
               onPress={() =>
                 item.id && navigation.navigate("RecipeDetail", { id: item.id })

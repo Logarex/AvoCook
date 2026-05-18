@@ -161,11 +161,11 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
 
   const importRecipe = useCallback(
     async (url: string) => {
-      const saved = await importRecipeInRepository(url, getClient());
+      const saved = await importRecipeInRepository(url, getClient(), recipes);
       setRecipes(await initialiseRecipeStore());
       return saved;
     },
-    [getClient]
+    [getClient, recipes]
   );
 
   const exportBackup = useCallback(async () => {
