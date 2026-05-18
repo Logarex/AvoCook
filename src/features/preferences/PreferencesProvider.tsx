@@ -9,13 +9,20 @@ import React, {
 } from "react";
 import i18n from "../../i18n";
 
+export type AppLanguage = "fr" | "en" | "de" | "es" | "it";
+
+function resolveInitialLanguage(lang: string): AppLanguage {
+  if (lang === "en" || lang === "de" || lang === "es" || lang === "it") return lang;
+  return "fr";
+}
+
 type PreferencesContextValue = {
   keepScreenAwake: boolean;
   keepRecipesLocal: boolean;
-  language: "fr" | "en" | "de";
+  language: AppLanguage;
   setKeepScreenAwake: (enabled: boolean) => Promise<void>;
   setKeepRecipesLocal: (enabled: boolean) => Promise<void>;
-  setLanguage: (language: "fr" | "en" | "de") => Promise<void>;
+  setLanguage: (language: AppLanguage) => Promise<void>;
 };
 
 const KEEP_AWAKE_KEY = "preferences.keepScreenAwake";
@@ -34,8 +41,8 @@ export function PreferencesProvider({
 }) {
   const [keepScreenAwake, setKeepScreenAwakeState] = useState(false);
   const [keepRecipesLocal, setKeepRecipesLocalState] = useState(true);
-  const [language, setLanguageState] = useState<"fr" | "en" | "de">(
-    i18n.language === "en" ? "en" : i18n.language === "de" ? "de" : "fr"
+  const [language, setLanguageState] = useState<AppLanguage>(
+    resolveInitialLanguage(i18n.language)
   );
 
   useEffect(() => {
@@ -54,7 +61,11 @@ export function PreferencesProvider({
       ) {
         setKeepRecipesLocalState(storedKeepRecipesLocal === "true");
       }
-      if (storedUserSet === "true" && (storedLanguage === "fr" || storedLanguage === "en" || storedLanguage === "de")) {
+      if (
+        storedUserSet === "true" &&
+        (storedLanguage === "fr" || storedLanguage === "en" || storedLanguage === "de" ||
+          storedLanguage === "es" || storedLanguage === "it")
+      ) {
         setLanguageState(storedLanguage);
         void i18n.changeLanguage(storedLanguage);
       }
@@ -71,7 +82,7 @@ export function PreferencesProvider({
     await AsyncStorage.setItem(KEEP_RECIPES_LOCAL_KEY, String(enabled));
   }, []);
 
-  const setLanguage = useCallback(async (nextLanguage: "fr" | "en" | "de") => {
+  const setLanguage = useCallback(async (nextLanguage: AppLanguage) => {
     setLanguageState(nextLanguage);
     await AsyncStorage.setItem(LANGUAGE_KEY, nextLanguage);
     await AsyncStorage.setItem(LANGUAGE_USER_SET_KEY, "true");

@@ -16,6 +16,7 @@ import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
+import { LanguagePicker } from "../components/LanguagePicker";
 import { SegmentedControl } from "../components/SegmentedControl";
 import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
@@ -120,13 +121,15 @@ export function SettingsScreen({ navigation }: Props) {
 
       <GlassPanel style={styles.section}>
         <AppText variant="label">{t("settings.language")}</AppText>
-        <SegmentedControl<"fr" | "en" | "de">
+        <LanguagePicker
           value={language}
           onChange={(value) => void setLanguage(value)}
           options={[
             { label: t("settings.french"), value: "fr" },
             { label: t("settings.english"), value: "en" },
-            { label: t("settings.german"), value: "de" }
+            { label: t("settings.german"), value: "de" },
+            { label: t("settings.spanish"), value: "es" },
+            { label: t("settings.italian"), value: "it" }
           ]}
         />
       </GlassPanel>
