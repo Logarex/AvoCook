@@ -164,12 +164,13 @@ export function LoginScreen(_props: Props) {
       </AppText>
 
       <View style={styles.languagePicker}>
-        <SegmentedControl<"fr" | "en">
+        <SegmentedControl<"fr" | "en" | "de">
           value={language}
           onChange={(value) => void setLanguage(value)}
           options={[
             { label: t("settings.french"), value: "fr" },
-            { label: t("settings.english"), value: "en" }
+            { label: t("settings.english"), value: "en" },
+            { label: t("settings.german"), value: "de" }
           ]}
         />
       </View>
