@@ -13,6 +13,7 @@ import {
   clearLocalRecipeCache,
   enqueueSyncOperation,
   listQueuedOperations,
+  loadDirtyLocalRecipes,
   loadLocalRecipes,
   markLocalRecipeDeleted,
   migrateDatabase,
@@ -469,9 +470,17 @@ export async function syncRecipes(
   }
 
   rawExistingRecipes = await loadLocalRecipes();
-  existingRecipes = rawExistingRecipes.map((recipe) =>
+  const dirtyLocalRecipes = (await loadDirtyLocalRecipes()).map((recipe) =>
     client.normalizeRecipeImageUrls(recipe)
   );
+  const staleCleanup = await removeServerDeletedLocalRecipes(
+    rawExistingRecipes,
+    recipes,
+    dirtyLocalRecipes
+  );
+  recipes = staleCleanup.recipes;
+
+  existingRecipes = dirtyLocalRecipes;
   const missingLocalSync = await syncMissingLocalRecipes(
     client,
     existingRecipes,
@@ -486,6 +495,44 @@ export async function syncRecipes(
   await pruneRecipeImageCache(await loadLocalRecipes());
 
   return recipes;
+}
+
+async function removeServerDeletedLocalRecipes(
+  localRecipes: Recipe[],
+  syncedRecipes: Recipe[],
+  pendingLocalRecipes: Recipe[]
+) {
+  const syncedRecipeIds = new Set(
+    syncedRecipes.map((recipe) => recipe.id).filter((id): id is string => Boolean(id))
+  );
+  const pendingRecipeIds = new Set(
+    pendingLocalRecipes
+      .map((recipe) => recipe.id)
+      .filter((id): id is string => Boolean(id))
+  );
+  const removedRecipeIds: string[] = [];
+
+  for (const localRecipe of localRecipes) {
+    if (
+      !localRecipe.id ||
+      localRecipe.id.startsWith("local-") ||
+      syncedRecipeIds.has(localRecipe.id) ||
+      pendingRecipeIds.has(localRecipe.id)
+    ) {
+      continue;
+    }
+
+    await deleteQueuedOperationsForRecipe(localRecipe.id);
+    await removeLocalRecipe(localRecipe.id);
+    removedRecipeIds.push(localRecipe.id);
+  }
+
+  return {
+    recipes: syncedRecipes.filter(
+      (recipe) => !recipe.id || !removedRecipeIds.includes(recipe.id)
+    ),
+    removedRecipeIds
+  };
 }
 
 async function syncServerRecipesFromStubs(
@@ -841,16 +888,11 @@ async function flushSyncQueue(
         throw error;
       }
 
-      const result = await pushQueuedRecipeAsCreateOrMerge(
-        client,
-        operation.recipeId,
-        operation.payload,
-        recipes,
-        options
-      );
-      recipes = result.recipes;
-      flushedRecipes.push(result.recipe);
-      pushed = pushed || result.pushed;
+      await removeLocalRecipe(operation.recipeId);
+      await deleteQueuedOperation(operation.id);
+      deletedRecipeIds.push(operation.recipeId);
+      recipes = recipes.filter((recipe) => recipe.id !== operation.recipeId);
+      continue;
     }
     await deleteQueuedOperation(operation.id);
   }

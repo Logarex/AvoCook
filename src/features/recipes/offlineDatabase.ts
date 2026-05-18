@@ -63,6 +63,14 @@ export async function loadLocalRecipes() {
   return rows.map((row) => normalizeRecipe(JSON.parse(row.payload) as Recipe));
 }
 
+export async function loadDirtyLocalRecipes() {
+  const db = await dbPromise;
+  const rows = await db.getAllAsync<RecipeRow>(
+    "SELECT * FROM recipes WHERE deleted = 0 AND dirty = 1 ORDER BY updated_at DESC"
+  );
+  return rows.map((row) => normalizeRecipe(JSON.parse(row.payload) as Recipe));
+}
+
 export async function saveLocalRecipe(
   recipe: Recipe,
   dirty = false,
