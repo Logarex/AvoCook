@@ -1,3 +1,4 @@
+import { Check } from "lucide-react-native";
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { radius, spacing } from "../theme/colors";
@@ -32,7 +33,9 @@ export function SegmentedControl<T extends string>({
         const selected = option.value === value;
         return (
           <Pressable
+            accessibilityLabel={option.label}
             accessibilityRole="button"
+            accessibilityState={{ selected }}
             key={option.value}
             onPress={() => onChange(option.value)}
             style={[
@@ -40,9 +43,15 @@ export function SegmentedControl<T extends string>({
               selected ? { backgroundColor: colors.primary } : null
             ]}
           >
+            {selected ? (
+              <Check color={colors.textInverted} size={15} strokeWidth={3} />
+            ) : null}
             <AppText
               variant="label"
-              style={{ color: selected ? colors.textInverted : colors.text }}
+              style={[
+                styles.optionLabel,
+                { color: selected ? colors.textInverted : colors.text }
+              ]}
             >
               {option.label}
             </AppText>
@@ -65,8 +74,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: radius.pill,
     flex: 1,
+    flexDirection: "row",
+    gap: spacing.xxs,
     minHeight: 40,
     justifyContent: "center",
     paddingHorizontal: spacing.sm
+  },
+  optionLabel: {
+    flexShrink: 1,
+    textAlign: "center"
   }
 });

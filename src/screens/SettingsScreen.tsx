@@ -185,7 +185,7 @@ export function SettingsScreen({ navigation }: Props) {
       <View style={styles.toolbar}>
         <IconButton
           icon={ArrowLeft}
-          label="Back"
+          label={t("common.back")}
           onPress={() => navigation.goBack()}
         />
         <AppText variant="subtitle">{t("settings.title")}</AppText>
@@ -223,6 +223,9 @@ export function SettingsScreen({ navigation }: Props) {
           <AppText variant="label">{t("settings.keepAwake")}</AppText>
         </View>
         <Switch
+          accessibilityLabel={t("settings.keepAwake")}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: keepScreenAwake }}
           onValueChange={(value) => void setKeepScreenAwake(value)}
           thumbColor={keepScreenAwake ? colors.primary : colors.textMuted}
           trackColor={{ false: colors.border, true: colors.chip }}
@@ -252,6 +255,12 @@ export function SettingsScreen({ navigation }: Props) {
           <AppText variant="label">{t("settings.keepRecipesLocal")}</AppText>
         </View>
         <Switch
+          accessibilityLabel={t("settings.keepRecipesLocal")}
+          accessibilityRole="switch"
+          accessibilityState={{
+            checked: keepRecipesLocal || isLocalMode,
+            disabled: isLocalMode
+          }}
           disabled={isLocalMode}
           onValueChange={(value) => void setKeepRecipesLocal(value)}
           thumbColor={keepRecipesLocal || isLocalMode ? colors.primary : colors.textMuted}
@@ -417,7 +426,11 @@ export function SettingsScreen({ navigation }: Props) {
         </View>
       </GlassPanel>
 
-      {message ? <AppText style={{ color: colors.success }}>{message}</AppText> : null}
+      {message ? (
+        <AppText accessibilityLiveRegion="polite" style={{ color: colors.success }}>
+          {message}
+        </AppText>
+      ) : null}
 
       <View style={styles.actions}>
         <PrimaryButton
@@ -459,6 +472,7 @@ const styles = StyleSheet.create({
   },
   rowSection: {
     alignItems: "center",
+    flexWrap: "wrap",
     flexDirection: "row",
     gap: spacing.md,
     justifyContent: "space-between"

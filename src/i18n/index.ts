@@ -7,7 +7,10 @@ export const resources = {
     translation: {
       common: {
         add: "Ajouter",
+        back: "Retour",
+        backToTop: "Revenir en haut",
         cancel: "Annuler",
+        clearSearch: "Effacer la recherche",
         delete: "Supprimer",
         edit: "Modifier",
         save: "Enregistrer",
@@ -287,7 +290,10 @@ export const resources = {
     translation: {
       common: {
         add: "Add",
+        back: "Back",
+        backToTop: "Back to top",
         cancel: "Cancel",
+        clearSearch: "Clear search",
         delete: "Delete",
         edit: "Edit",
         save: "Save",
@@ -560,7 +566,10 @@ export const resources = {
     translation: {
       common: {
         add: "Hinzufügen",
+        back: "Zurück",
+        backToTop: "Nach oben",
         cancel: "Abbrechen",
+        clearSearch: "Suche löschen",
         delete: "Löschen",
         edit: "Bearbeiten",
         save: "Speichern",

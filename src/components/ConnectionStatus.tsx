@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, StyleSheet, View } from "react-native";
+import { useReducedMotion } from "../features/accessibility/useReducedMotion";
 import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { AppText } from "./AppText";
@@ -18,11 +19,12 @@ export function ConnectionStatus({
   loading = false
 }: ConnectionStatusProps) {
   const { colors } = useAppTheme();
+  const reducedMotion = useReducedMotion();
   const opacity = useRef(new Animated.Value(connected ? 0.45 : 1)).current;
   const dotColor = connected ? colors.success : colors.danger;
 
   useEffect(() => {
-    if (!connected) {
+    if (!connected || reducedMotion) {
       opacity.stopAnimation();
       opacity.setValue(1);
       return;
@@ -44,10 +46,14 @@ export function ConnectionStatus({
     );
     animation.start();
     return () => animation.stop();
-  }, [connected, opacity]);
+  }, [connected, opacity, reducedMotion]);
 
   return (
-    <View style={styles.wrap}>
+    <View
+      accessibilityLabel={[label, detail].filter(Boolean).join(", ")}
+      accessibilityLiveRegion={loading ? "polite" : "none"}
+      style={styles.wrap}
+    >
       <View style={styles.line}>
         <Animated.View
           style={[
