@@ -1,12 +1,26 @@
 # AvoCook
 
-[Français](#français) | [English](#english)
+<p align="center">
+  <img src="https://img.shields.io/github/license/Logarex/AvoCook?color=blue&style=flat-square" alt="License" />
+  <img src="https://img.shields.io/badge/Expo-SDK%2054-00020d?logo=expo&logoColor=white&style=flat-square" alt="Expo" />
+  <img src="https://img.shields.io/badge/React%20Native-0.81-61dafb?logo=react&logoColor=black&style=flat-square" alt="React Native" />
+  <img src="https://img.shields.io/badge/platforms-iOS%20%7C%20iPadOS%20%7C%20Android-green?style=flat-square" alt="Platforms" />
+  <img src="https://img.shields.io/badge/i18n-FR%20%7C%20EN%20%7C%20DE-orange?style=flat-square" alt="Languages" />
+</p>
+
+---
+
+<p align="center">
+  <b><a href="#français">Français</a></b> | 
+  <b><a href="#english">English</a></b> | 
+  <b><a href="#deutsch">Deutsch</a></b>
+</p>
 
 ---
 
 ## Français
 
-Application mobile iOS, iPadOS et Android pour consulter, importer, créer et modifier des recettes synchronisées avec l'application Nextcloud Cookbook.
+**Application de cuisine moderne (iOS & Android) utilisable en local ou synchronisée avec Nextcloud Cookbook.**
 
 [Télécharger sur l'App Store](https://apps.apple.com/app/avocook/id6769012665) | [Télécharger l'APK Android](https://github.com/Logarex/AvoCook/releases/latest)
 
@@ -17,199 +31,204 @@ Application mobile iOS, iPadOS et Android pour consulter, importer, créer et mo
 
 ### Fonctionnalités
 
-- Connexion directe à un serveur Nextcloud via app password.
-- Mode local gratuit sans compte Nextcloud.
-- Synchronisation avec l'API publique Nextcloud Cookbook `0.1.3`.
-- Option pour conserver une copie locale des recettes et les consulter hors ligne.
-- File de synchronisation pour créations, modifications et suppressions hors connexion.
-- Import depuis une URL via JSON-LD schema.org côté mobile, puis fallback via l'endpoint Cookbook.
-- Import pensé pour les grands sites de recettes français et internationaux exposant schema.org Recipe, dont Marmiton, CuisineAZ, 750g, Chefkoch, BBC Good Food, Allrecipes, GialloZafferano et Cookpad.
-- Photos de recettes récupérées depuis les sites importés ou ajoutées manuellement depuis la galerie.
-- Ajout et modification manuels avec champs clairs.
-- Thèmes clair/sombre/système et langues français/anglais.
-- Interface adaptative avec surfaces glass sur iOS et rendu sobre sur Android.
-- Option pour garder l'écran allumé pendant la consultation d'une recette.
-- Minuteurs de recette avec notifications locales pour sonner quand le téléphone est verrouillé.
+*   **Mode Local & Hors-ligne (100% Autonome)** : Utilisez l'application de manière entièrement autonome, sans compte ni serveur. Les recettes et photos restent stockées localement et en toute sécurité dans la base de données de votre appareil.
+*   **Synchronisation Nextcloud Cookbook** : Connectez-vous à votre serveur Nextcloud via un mot de passe d'application. Synchronisation bidirectionnelle fluide avec l'API Cookbook. Gestion d'une file d'attente hors-ligne (`sync_queue`) pour pousser vos ajouts et modifications dès le retour de la connexion.
+*   **Importation Web Intelligente** : Importez des recettes depuis une simple URL. L'application extrait les métadonnées `schema.org/Recipe` (JSON-LD) directement sur le mobile (compatible avec Marmiton, CuisineAZ, 750g, Chefkoch, BBC Good Food, Allrecipes, GialloZafferano, etc.), avec un repli (fallback) sur l'import serveur Cookbook.
+*   **Outils Interactifs en Cuisine** :
+    *   Ajustez dynamiquement le nombre de portions et recalculez automatiquement les proportions d'ingrédients.
+    *   Minuteurs intégrés (préparation, cuisson, total) qui sonnent via des notifications locales, même si l'écran est verrouillé.
+    *   Option pour garder l'écran allumé (anti-verrouillage) pendant la préparation d'une recette.
+    *   Calculateur local de score santé estimé en fonction des apports nutritionnels.
+*   **Partage & Sauvegarde de Données** :
+    *   Imprimez vos recettes directement depuis l'appareil sur vos imprimantes physiques ou réseau.
+    *   Exportez et partagez des recettes au format PDF stylisé.
+    *   Sauvegardez l'ensemble de votre carnet de recettes locale (recettes, catégories et photos encodées) dans un fichier `.json` compatible AvoCook pour transfert ou restauration.
 
-### Stack
+### Stack Technique
 
-- Expo React Native + TypeScript
-- React Navigation
-- Expo SecureStore pour les identifiants
-- Expo SQLite pour le mode hors ligne
-- Expo Blur/Image/ImagePicker/FileSystem/KeepAwake pour l'expérience mobile
-- i18next pour l'internationalisation
-- Vitest pour les tests unitaires purs
+*   **Core** : Expo React Native, TypeScript, React Navigation
+*   **Données locales** : SQLite (`expo-sqlite`) pour le cache et le stockage hors ligne, SecureStore (`expo-secure-store`) pour le chiffrement des identifiants
+*   **UI & Expérience** : Blur (iOS glassmorphism), Fast Image, System Image Picker
+*   **Qualité & Internationalisation** : i18next (Français, Anglais, Allemand), Vitest pour les tests unitaires
 
-### Installation
+### Installation et Lancement
 
 ```bash
+# 1. Installer les dépendances
 npm install
+
+# 2. Lancer le serveur Metro
 npm run start
 ```
-
-Puis lancer l'app dans Expo Go, un simulateur iOS, un émulateur Android ou un development build.
+Scanner ensuite le code QR avec l'application **Expo Go** sur iOS ou Android, ou lancez un simulateur via la console Metro.
 
 ### Connexion Nextcloud
 
-1. Installer et activer l'application Cookbook sur le serveur Nextcloud.
-2. Créer un mot de passe d'application dans Nextcloud.
-3. Se connecter dans l'app avec l'URL du serveur, l'identifiant et l'app password.
-
-L'app refuse les URL HTTP sauf `localhost` pendant le développement.
-
-La validation de connexion utilise `/ocs/v2.php/cloud/user?format=json` avec l'en-tête `OCS-APIRequest: true`, ce qui force Nextcloud à vérifier réellement l'identifiant et l'app password. L'appel aux capacités sert ensuite à détecter l'environnement serveur.
-
-### Mode local
-
-Le bouton `Utiliser sans Nextcloud` permet d'utiliser l'app gratuitement sans compte ni serveur. Les recettes et photos restent dans le stockage de l'application sur l'appareil.
-
-### Dossier Cookbook
-
-Dans les réglages, le champ `Dossier Cookbook` modifie la configuration utilisateur de Cookbook via l'API `/apps/cookbook/api/v1/config`. Le dossier est normalisé avec un `/` initial.
+1.  Activez l'application **Cookbook** sur votre instance Nextcloud.
+2.  Dans Nextcloud, allez dans *Paramètres personnels > Sécurité > Appareils & sessions* et créez un mot de passe d'application (ex: `AvoCook`).
+3.  Connectez-vous dans l'application mobile en renseignant l'adresse de votre serveur (HTTPS obligatoire, sauf pour `localhost`), votre identifiant et le mot de passe d'application généré.
 
 ### Publication
 
-La configuration `eas.json` prépare trois profils :
-
-- `development` pour les builds internes avec dev client.
-- `preview` pour TestFlight ou distribution Android interne.
-- `production` pour App Store Connect et Google Play.
-
-Avant publication, remplacer les assets dans `assets/`, créer le projet EAS, puis mettre à jour `extra.eas.projectId` dans `app.json`.
-
+Les builds sont configurés via **EAS** (`eas.json`) :
 ```bash
-npx eas init
-npx eas build --platform ios --profile production
-npx eas build --platform android --profile production
-```
-
-Pour générer un fichier `.apk` distribuable sur GitHub :
-```bash
+# Build de développement ou aperçu
+npx eas build --platform ios --profile preview
 npx eas build --platform android --profile preview
+
+# Build de production
+npx eas build --platform all --profile production
 ```
 
-### Tests
+### Tests et Qualité
 
+Pour vérifier la robustesse et la compatibilité des imports de sites :
 ```bash
-npm run typecheck
-npm test
-npm run import:check -- https://www.marmiton.org/recettes/recette_gateau-leger-au-chocolat_15680.aspx
+npm run typecheck                     # Vérification TypeScript
+npm test                              # Exécuter les tests unitaires (Vitest)
+npm run import:check -- <URL-recette> # Tester le parser de recette sur une URL
 ```
-
-### Notes sur l'import de recettes
-
-L'app tente d'abord une extraction JSON-LD locale afin de détecter les doublons avant toute création. Si la page ne peut pas être lue côté mobile, l'app utilise l'import Nextcloud Cookbook puis réconcilie le résultat avec les recettes existantes.
-
-Les sites qui changent souvent leur HTML doivent être ajoutés sous forme d'adapters dédiés dans `src/features/import/` plutôt que via du scraping fragile.
-
-Le script `npm run import:check -- <url>` vérifie rapidement qu'une page expose un objet `Recipe`, des ingrédients, des étapes et une image.
-
-### Licence
-Ce projet est sous licence MIT.
 
 ---
 
 ## English
 
-iOS, iPadOS, and Android mobile application to view, import, create, and edit recipes synchronized with the Nextcloud Cookbook app.
+**Modern cooking application (iOS & Android) usable locally or synchronized with Nextcloud Cookbook.**
 
 [Download on the App Store](https://apps.apple.com/app/avocook/id6769012665) | [Download Android APK](https://github.com/Logarex/AvoCook/releases/latest)
 
 <p align="center">
-  <img src="assets/screenshots/list.jpeg" width="300" alt="Recipe list" />
-  <img src="assets/screenshots/recipe.jpeg" width="300" alt="Recipe details" />
+  <img src="assets/screenshots/list.jpeg" width="300" alt="Recipe List" />
+  <img src="assets/screenshots/recipe.jpeg" width="300" alt="Recipe Details" />
 </p>
 
 ### Features
 
-- Direct connection to a Nextcloud server via app password.
-- Free local mode without a Nextcloud account.
-- Synchronization with Nextcloud Cookbook public API `0.1.3`.
-- Option to keep a local copy of recipes and view them offline.
-- Sync queue for offline creations, modifications, and deletions.
-- Import from URL via mobile-side schema.org JSON-LD, then fallback through the Cookbook endpoint.
-- Import designed for major French and international recipe sites exposing schema.org Recipe, including Marmiton, CuisineAZ, 750g, Chefkoch, BBC Good Food, Allrecipes, GialloZafferano, and Cookpad.
-- Recipe photos retrieved from imported sites or added manually from the gallery.
-- Manual addition and modification with clear fields.
-- Light/dark/system themes and French/English languages.
-- Adaptive interface with glass surfaces on iOS and a sober design on Android.
-- Option to keep the screen on while viewing a recipe.
-- Recipe timers with local notifications to ring when the phone is locked.
+*   **Local & Offline Mode (100% Standalone)**: Use the app completely server-free. All recipes, photos, and categories are saved locally and securely in your device's persistent database.
+*   **Nextcloud Cookbook Sync**: Pair directly with a Nextcloud server using an app password. Smooth two-way synchronization via the Cookbook API. Features an offline queue (`sync_queue`) to automatically upload local changes when connection is restored.
+*   **Intelligent Web Import**: Extract recipes from any compatible web page. The mobile-side parser reads `schema.org/Recipe` (JSON-LD) metadata instantly (optimized for major French and international culinary platforms including Marmiton, CuisineAZ, 750g, Chefkoch, BBC Good Food, Allrecipes, GialloZafferano, etc.), with automatic Cookbook server fallback.
+*   **Interactive Kitchen Tools**:
+    *   Scale recipe servings dynamically and recalculate ingredients automatically.
+    *   Built-in timers (prep, cook, total) with local notifications that ring even when the device is locked.
+    *   Anti-lock screen option to keep the display active while cooking.
+    *   Local nutritional health score calculator.
+*   **Sharing & Data Backups**:
+    *   Print recipes directly from your phone to physical or network printers.
+    *   Export and share beautifully rendered recipes in PDF format.
+    *   Backup your entire local cookbook (recipes, folders, and embedded photos) into a universal `.json` file for quick transfer or recovery.
 
-### Stack
+### Technical Stack
 
-- Expo React Native + TypeScript
-- React Navigation
-- Expo SecureStore for credentials
-- Expo SQLite for offline mode
-- Expo Blur/Image/ImagePicker/FileSystem/KeepAwake for mobile experience
-- i18next for internationalization
-- Vitest for pure unit tests
+*   **Core**: Expo React Native, TypeScript, React Navigation
+*   **Data & Security**: SQLite (`expo-sqlite`) for offline-first caching, SecureStore (`expo-secure-store`) for encrypted keychain credentials
+*   **UI & Native**: Expo Blur (glassmorphism layouts on iOS), Fast Image, System Image Picker
+*   **Testing & i18n**: i18next (French, English, German), Vitest for unit testing
 
-### Installation
+### Setup & Getting Started
 
 ```bash
+# 1. Install dependencies
 npm install
+
+# 2. Run the Metro bundler
 npm run start
 ```
+Scan the QR code with **Expo Go** on iOS or Android, or boot a native simulator/emulator.
 
-Then launch the app in Expo Go, an iOS simulator, an Android emulator, or a development build.
+### Nextcloud Integration
 
-### Nextcloud Connection
+1.  Enable the **Cookbook** app on your Nextcloud instance.
+2.  Go to Nextcloud *Personal Settings > Security > Devices & sessions* and generate a new app-specific password (e.g., `AvoCook`).
+3.  Log in using your secure server URL (HTTPS required), username, and the generated app password.
 
-1. Install and enable the Cookbook app on the Nextcloud server.
-2. Create an app password in Nextcloud.
-3. Log in to the app with the server URL, username, and app password.
+### Publishing
 
-The app refuses HTTP URLs except `localhost` during development.
-
-Connection validation uses `/ocs/v2.php/cloud/user?format=json` with the `OCS-APIRequest: true` header, which forces Nextcloud to actually check the username and app password. The capabilities call is then used to detect the server environment.
-
-### Local Mode
-
-The `Use without Nextcloud` button allows you to use the app for free without an account or server. Recipes and photos remain in the app's storage on the device.
-
-### Cookbook Folder
-
-In settings, the `Cookbook Folder` field modifies the user configuration of Cookbook via the API `/apps/cookbook/api/v1/config`. The folder is normalized with a leading `/`.
-
-### Publication
-
-The `eas.json` configuration prepares three profiles:
-
-- `development` for internal builds with dev client.
-- `preview` for TestFlight or internal Android distribution.
-- `production` for App Store Connect and Google Play.
-
-Before publishing, replace assets in `assets/`, create the EAS project, then update `extra.eas.projectId` in `app.json`.
-
+App Store & Google Play distribution profiles are handled via **EAS**:
 ```bash
-npx eas init
-npx eas build --platform ios --profile production
-npx eas build --platform android --profile production
-```
-
-To generate a distributable `.apk` file on GitHub:
-```bash
+# Development or testing preview builds
+npx eas build --platform ios --profile preview
 npx eas build --platform android --profile preview
+
+# Store production builds
+npx eas build --platform all --profile production
 ```
 
-### Tests
+### Quality Assurance & Testing
 
 ```bash
-npm run typecheck
-npm test
-npm run import:check -- https://www.marmiton.org/recettes/recette_gateau-leger-au-chocolat_15680.aspx
+npm run typecheck                     # TypeScript check
+npm test                              # Run unit tests (Vitest)
+npm run import:check -- <Recipe-URL>  # Validate site parser compatibility
 ```
 
-### Notes on Recipe Import
+---
 
-The app first attempts local JSON-LD extraction so duplicates can be detected before anything is created. If the page cannot be read on the mobile side, the app uses Nextcloud Cookbook import and reconciles the result with existing recipes.
+## Deutsch
 
-Sites that often change their HTML should be added as dedicated adapters in `src/features/import/` rather than via fragile scraping.
+**Moderne Koch-App (iOS & Android) zur lokalen Nutzung oder synchronisiert mit Nextcloud Cookbook.**
 
-The `npm run import:check -- <url>` script quickly checks that a page exposes a `Recipe` object, ingredients, steps, and an image.
+[Im App Store herunterladen](https://apps.apple.com/app/avocook/id6769012665) | [Android APK herunterladen](https://github.com/Logarex/AvoCook/releases/latest)
 
-### License
-This project is licensed under the MIT License.
+<p align="center">
+  <img src="assets/screenshots/list.jpeg" width="300" alt="Rezeptliste" />
+  <img src="assets/screenshots/recipe.jpeg" width="300" alt="Rezeptdetails" />
+</p>
+
+### Funktionen
+
+*   **Lokaler- & Offline-Modus (100% Autonom)**: Nutzen Sie die App komplett ohne Account oder Server. Alle Rezepte und Fotos verbleiben sicher verschlüsselt in der lokalen SQLite-Datenbank Ihres Geräts.
+*   **Nextcloud Cookbook Synchronisation**: Verbinden Sie die App über ein sicheres App-Passwort mit Ihrem Nextcloud-Server. Bidirektionale Synchronisierung mit der Cookbook API. Beinhaltet eine Offline-Warteschlange (`sync_queue`), um lokale Änderungen bei bestehender Internetverbindung hochzuladen.
+*   **Intelligenter Web-Import**: Rezept-Import per Knopfdruck über eine einfache URL. Der lokale Parser analysiert `schema.org/Recipe` (JSON-LD) Metadaten direkt auf dem Mobiltelefon (unterstützt Marmiton, CuisineAZ, 750g, Chefkoch, BBC Good Food, Allrecipes, GialloZafferano und viele andere), mit automatischem Fallback auf den Nextcloud-Import.
+*   **Interaktive Küchenhelfer**:
+    *   Portionsgrößen dynamisch anpassen und Zutatenmengen automatisch umrechnen lassen.
+    *   Integrierte Timer (Vorbereitung, Kochen, Gesamtzeit), die per lokaler Benachrichtigung auch bei gesperrtem Bildschirm klingeln.
+    *   Anti-Standby-Option (Display dauerhaft eingeschaltet lassen) beim Kochen.
+    *   Lokaler Nährwert- und Gesundheitsscore-Rechner.
+*   **Teilen & Sichern**:
+    *   Rezepte direkt kabellos auf Netzwerkdruckern ausdrucken.
+    *   Rezepte als ansprechend gestaltete PDFs exportieren und teilen.
+    *   Sicherung des kompletten lokalen Kochbuchs (Rezepte, Kategorien und Fotos) in einer `.json`-Datei zur einfachen Migration oder Wiederherstellung.
+
+### Technischer Stack
+
+*   **Kern**: Expo React Native, TypeScript, React Navigation
+*   **Daten & Sicherheit**: SQLite (`expo-sqlite`) für den Offline-Cache, SecureStore (`expo-secure-store`) für verschlüsselte Passwörter
+*   **Design & UI**: Blur-Effekte (Glassmorphismus auf iOS), Fast Image, nativer Image Picker
+*   **Qualitätssicherung & i18n**: i18next (Deutsch, Französisch, Englisch), Vitest für Unit-Tests
+
+### Installation & Start
+
+```bash
+# 1. Abhängigkeiten installieren
+npm install
+
+# 2. Metro Bundler starten
+npm run start
+```
+Scannen Sie anschließend den QR-Code mit der App **Expo Go** auf iOS oder Android, oder starten Sie einen Simulator.
+
+### Nextcloud Verbindung
+
+1.  Aktivieren Sie die **Cookbook**-App auf Ihrem Nextcloud-Server.
+2.  Navigieren Sie zu *Persönliche Einstellungen > Sicherheit > Geräte & Sitzungen* und generieren Sie ein neues App-Passwort (z. B. `AvoCook`).
+3.  Melden Sie sich in der mobilen App mit Ihrer Server-Adresse (nur HTTPS), Ihrem Benutzernamen und dem erstellten App-Passwort an.
+
+### Qualitätssicherung & Qualitätstests
+
+```bash
+npm run typecheck                     # TypeScript Validierung
+npm test                              # Unittests ausführen (Vitest)
+npm run import:check -- <Rezept-URL>  # Website-Importkompatibilität testen
+```
+
+---
+
+### Contributions
+*   **Français** : Les contributions sont les bienvenues ! Si vous trouvez un bug, avez une idée d'amélioration ou souhaitez ajouter le support d'un nouveau site de recettes, n'hésitez pas à ouvrir une Pull Request ou une simple Issue de manière détendue.
+*   **English**: Contributions are welcome! If you find a bug, have a feature idea, or want to add support for a new recipe website, feel free to open a Pull Request or a simple Issue.
+*   **Deutsch**: Beiträge sind herzlich willkommen! Wenn Sie einen Fehler finden, eine Idee haben oder eine neue Kochseite unterstützen möchten, können Sie gerne einen Pull Request oder ein Issue erstellen.
+
+---
+
+### Lizenz / License
+Dieses Projekt ist lizenziert unter / This project is licensed under the [MIT License](LICENSE).
