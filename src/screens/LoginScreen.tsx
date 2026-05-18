@@ -48,6 +48,8 @@ export function LoginScreen(_props: Props) {
       const message =
         caught instanceof Error && caught.message === "INSECURE_URL"
           ? t("auth.insecureUrl")
+          : isLikelyTlsError(caught)
+            ? t("auth.certificateError")
           : caught instanceof Error && /401|997|credentials/i.test(caught.message)
             ? t("auth.badCredentials")
             : t("auth.failed");
@@ -182,6 +184,13 @@ export function LoginScreen(_props: Props) {
         />
       </View>
     </Screen>
+  );
+}
+
+function isLikelyTlsError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /certificate|cert|ssl|tls|network request failed|trust anchor/i.test(
+    message
   );
 }
 

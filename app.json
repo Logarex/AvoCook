@@ -76,6 +76,7 @@
           "microphonePermission": false
         }
       ],
+      "./plugins/withAndroidNetworkSecurity",
       "expo-font"
     ],
     "extra": {
