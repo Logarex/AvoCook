@@ -48,6 +48,33 @@ export async function saveCustomCategory(category: string) {
   return nextCategories;
 }
 
+export async function saveCustomCategories(categories: string[]) {
+  const storedCategories = (await loadCustomCategories()).filter(
+    (categoryName) => !DEFAULT_RECIPE_CATEGORIES.includes(categoryName)
+  );
+  const importedCategories = categories
+    .filter((item): item is string => typeof item === "string")
+    .map(normalizeCategoryName)
+    .filter(Boolean)
+    .filter((categoryName) => !DEFAULT_RECIPE_CATEGORIES.includes(categoryName));
+  const nextCategories = sortCategories([
+    ...DEFAULT_RECIPE_CATEGORIES,
+    ...storedCategories,
+    ...importedCategories
+  ]);
+
+  await AsyncStorage.setItem(
+    CUSTOM_CATEGORIES_KEY,
+    JSON.stringify(
+      nextCategories.filter(
+        (categoryName) => !DEFAULT_RECIPE_CATEGORIES.includes(categoryName)
+      )
+    )
+  );
+
+  return nextCategories;
+}
+
 export function normalizeCategoryName(category: string) {
   return category.replace(/\s+/g, " ").trim();
 }

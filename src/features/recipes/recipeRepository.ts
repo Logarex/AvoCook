@@ -1,5 +1,10 @@
 import { importRecipeFromWeb } from "../import/schemaRecipeParser";
-import type { CookbookClient } from "../nextcloud/cookbookClient";
+import { CookbookApiError, type CookbookClient } from "../nextcloud/cookbookClient";
+import { saveCustomCategories } from "./categoryStore";
+import {
+  resolveRecipeImport,
+  upsertRecipeInList
+} from "./backupDuplicates";
 import { withInferredCategory } from "./categories";
 import {
   deleteQueuedOperation,
@@ -12,13 +17,22 @@ import {
   removeLocalRecipe,
   saveLocalRecipe
 } from "./offlineDatabase";
-import { persistRecipeImage, pruneRecipeImageCache } from "./recipeImages";
+import {
+  persistRecipeImage,
+  pruneRecipeImageCache,
+  restoreRecipeImageFromBackup
+} from "./recipeImages";
 import {
   hasLocalMetadata,
   normalizeRecipe,
   toCookbookRecipe,
   type Recipe
 } from "./types";
+import {
+  createRecipeBackup,
+  type RecipeBackup,
+  type RecipeBackupExportResult
+} from "./recipeBackup";
 
 export async function initialiseRecipeStore() {
   await migrateDatabase();
@@ -182,6 +196,102 @@ export async function syncRecipes(client: CookbookClient, persistLocal = true) {
   return recipes;
 }
 
+export async function exportRecipeBackup({
+  client,
+  customCategories,
+  isLocalMode
+}: {
+  client: CookbookClient | null;
+  customCategories: string[];
+  isLocalMode: boolean;
+}): Promise<RecipeBackupExportResult> {
+  await migrateDatabase();
+  const recipes = client ? await syncRecipes(client, true) : await loadLocalRecipes();
+  return createRecipeBackup({
+    recipes,
+    customCategories,
+    source: client ? "nextcloud" : isLocalMode ? "local" : "mixed",
+    client
+  });
+}
+
+export type RecipeBackupImportResult = {
+  created: number;
+  updated: number;
+  skipped: number;
+  renamed: number;
+  categories: number;
+  recipes: Recipe[];
+};
+
+export async function importRecipeBackup(
+  backup: RecipeBackup,
+  client: CookbookClient | null
+): Promise<RecipeBackupImportResult> {
+  await migrateDatabase();
+  const categories = await saveCustomCategories(backup.customCategories);
+  let existingRecipes = await loadLocalRecipes();
+  const summary = {
+    created: 0,
+    updated: 0,
+    skipped: 0,
+    renamed: 0
+  };
+
+  for (const entry of backup.recipes) {
+    const originalRecipe = withInferredCategory(normalizeRecipe(entry.recipe));
+    const imageAsset = entry.imageAssetId
+      ? backup.assets[entry.imageAssetId]
+      : undefined;
+    const restoredImageUri = imageAsset
+      ? await restoreRecipeImageFromBackup({
+          base64: imageAsset.data,
+          extension: imageAsset.extension
+        })
+      : "";
+    const localRecipe = restoredImageUri
+      ? normalizeRecipe({
+          ...originalRecipe,
+          image: restoredImageUri,
+          imageUrl: restoredImageUri,
+          imagePlaceholderUrl: restoredImageUri
+        })
+      : originalRecipe;
+    const decision = resolveRecipeImport(localRecipe, existingRecipes);
+
+    if (decision.action === "skip") {
+      summary.skipped += 1;
+      continue;
+    }
+
+    const saved = await saveImportedRecipe(
+      decision.recipe,
+      originalRecipe,
+      client,
+      decision.action
+    );
+
+    existingRecipes = upsertRecipeInList(existingRecipes, saved);
+    if (decision.action === "update") {
+      summary.updated += 1;
+    } else {
+      summary.created += 1;
+    }
+    if (decision.renamed) {
+      summary.renamed += 1;
+    }
+  }
+
+  const recipes = await loadLocalRecipes();
+  await pruneRecipeImageCache(recipes);
+
+  return {
+    ...summary,
+    categories: categories.length,
+    recipes
+  };
+}
+
 async function flushSyncQueue(client: CookbookClient) {
   const operations = await listQueuedOperations();
 
@@ -226,6 +336,74 @@ async function flushSyncQueue(client: CookbookClient) {
     await saveLocalRecipe(operation.payload, false);
     await deleteQueuedOperation(operation.id);
   }
+}
+
+async function saveImportedRecipe(
+  localRecipe: Recipe,
+  originalRecipe: Recipe,
+  client: CookbookClient | null,
+  action: "create" | "update"
+) {
+  if (!client) {
+    return saveLocalRecipe(localRecipe, false);
+  }
+
+  if (action === "update" && localRecipe.id && !localRecipe.id.startsWith("local-")) {
+    try {
+      await client.updateRecipe(
+        toCookbookRecipe(
+          sanitizeRecipeForNextcloud(getNextcloudImportRecipe(localRecipe, originalRecipe))
+        )
+      );
+      return saveLocalRecipe(localRecipe, false);
+    } catch (error) {
+      if (!(error instanceof CookbookApiError) || error.status !== 404) {
+        throw error;
+      }
+    }
+  }
+
+  const serverId = await client.createRecipe(
+    toCookbookRecipe(
+      sanitizeRecipeForNextcloud({
+        ...getNextcloudImportRecipe(localRecipe, originalRecipe),
+        id: null
+      })
+    )
+  );
+  const serverRecipe = await client.getRecipe(String(serverId));
+  return saveLocalRecipe(
+    normalizeRecipe({
+      ...serverRecipe,
+      image: localRecipe.image,
+      imageUrl: localRecipe.imageUrl,
+      imagePlaceholderUrl: localRecipe.imagePlaceholderUrl,
+      localMeta: localRecipe.localMeta
+    }),
+    false
+  );
+}
+
+function getNextcloudImportRecipe(localRecipe: Recipe, originalRecipe: Recipe) {
+  return normalizeRecipe({
+    ...localRecipe,
+    image: originalRecipe.image,
+    imageUrl: originalRecipe.imageUrl,
+    imagePlaceholderUrl: originalRecipe.imagePlaceholderUrl
+  });
+}
+
+function sanitizeRecipeForNextcloud(recipe: Recipe) {
+  return normalizeRecipe({
+    ...recipe,
+    image: getRemoteImageValue(recipe.image),
+    imageUrl: getRemoteImageValue(recipe.imageUrl),
+    imagePlaceholderUrl: getRemoteImageValue(recipe.imagePlaceholderUrl)
+  });
+}
+
+function getRemoteImageValue(value: string) {
+  return /^https?:\/\//i.test(value) ? value : "";
 }
 
 export async function cacheRecipePhoto(recipe: Recipe) {
