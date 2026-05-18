@@ -6,19 +6,22 @@ import {
   ArrowLeft,
   Clock,
   ExternalLink,
+  FileUp,
   HeartPulse,
   Minus,
   Pause,
   Pencil,
   Play,
   Plus,
+  Printer,
   RotateCcw,
+  Share2,
   Square,
   Timer,
   Trash2,
   Users
 } from "lucide-react-native";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Alert, Linking, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
@@ -36,6 +39,12 @@ import {
   isCookbookImageEndpoint,
   isDisplayableRecipeImage
 } from "../features/recipes/recipeImageReferences";
+import {
+  printRecipe,
+  shareRecipeFile,
+  shareRecipePdf,
+  type RecipePrintLabels
+} from "../features/recipes/recipeSharing";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import {
   useRecipeTimers,
@@ -87,6 +96,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
             recipe={recipe}
             deleteRecipe={deleteRecipe}
             updateRecipePreferences={updateRecipePreferences}
+            getClient={getClient}
             getImageSource={() => getImageSource(recipe, getClient())}
           />
         </ScreenErrorBoundary>
@@ -105,6 +115,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
         recipe={recipe}
         deleteRecipe={deleteRecipe}
         updateRecipePreferences={updateRecipePreferences}
+        getClient={getClient}
         getImageSource={() => getImageSource(recipe, getClient())}
       />
     </ScreenErrorBoundary>
@@ -145,6 +156,7 @@ function RecipeDetailContent({
   recipe,
   deleteRecipe,
   updateRecipePreferences,
+  getClient,
   getImageSource
 }: {
   navigation: Props["navigation"];
@@ -152,10 +164,14 @@ function RecipeDetailContent({
   recipe: ReturnType<typeof useRecipes>["recipes"][number] | undefined;
   deleteRecipe: (id: string) => Promise<void>;
   updateRecipePreferences: ReturnType<typeof useRecipes>["updateRecipePreferences"];
+  getClient: ReturnType<typeof useAuth>["getClient"];
   getImageSource: () => ImageSource | null;
 }) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const [shareAction, setShareAction] = useState<
+    "print" | "pdf" | "file" | null
+  >(null);
   const source = getImageSource();
   const nutrition = useMemo(
     () => normalizeNutrition(recipe?.nutrition),
@@ -279,6 +295,69 @@ function RecipeDetailContent({
     resetTimer(timerId);
   }
 
+  async function handlePrint() {
+    if (!recipe) {
+      return;
+    }
+    setShareAction("print");
+    try {
+      const result = await printRecipe(recipe, getPrintLabels(t), getClient());
+      showShareWarning(result.skippedImageCount);
+    } catch (error) {
+      if (isUserDismissedShareOrPrint(error)) {
+        return;
+      }
+      Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
+    } finally {
+      setShareAction(null);
+    }
+  }
+
+  async function handleSharePdf() {
+    if (!recipe) {
+      return;
+    }
+    setShareAction("pdf");
+    try {
+      const result = await shareRecipePdf(recipe, getPrintLabels(t), getClient());
+      showShareWarning(result.skippedImageCount);
+    } catch (error) {
+      if (isUserDismissedShareOrPrint(error)) {
+        return;
+      }
+      Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
+    } finally {
+      setShareAction(null);
+    }
+  }
+
+  async function handleShareFile() {
+    if (!recipe) {
+      return;
+    }
+    setShareAction("file");
+    try {
+      const result = await shareRecipeFile(recipe, getClient());
+      showShareWarning(result.skippedImageCount);
+    } catch (error) {
+      if (isUserDismissedShareOrPrint(error)) {
+        return;
+      }
+      Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
+    } finally {
+      setShareAction(null);
+    }
+  }
+
+  function showShareWarning(skippedImageCount: number) {
+    if (skippedImageCount > 0) {
+      Alert.alert(
+        t("recipes.share.partialTitle"),
+        t("recipes.share.partialBody", { count: skippedImageCount })
+      );
+    }
+  }
+
   return (
     <Screen showScrollTop={false}>
       <View style={styles.toolbar}>
@@ -288,6 +367,25 @@ function RecipeDetailContent({
           onPress={() => navigation.goBack()}
         />
         <View style={styles.toolbarActions}>
+          <IconButton
+            icon={Printer}
+            label={t("recipes.share.print")}
+            onPress={() => void handlePrint()}
+            disabled={shareAction !== null}
+          />
+          <IconButton
+            icon={Share2}
+            label={t("recipes.share.sharePdf")}
+            onPress={() => void handleSharePdf()}
+            disabled={shareAction !== null}
+            tone="primary"
+          />
+          <IconButton
+            icon={FileUp}
+            label={t("recipes.share.shareFile")}
+            onPress={() => void handleShareFile()}
+            disabled={shareAction !== null}
+          />
           <IconButton
             icon={Pencil}
             label={t("common.edit")}
@@ -746,6 +844,32 @@ function formatTimerSeconds(seconds: number) {
   return `${paddedMinutes}:${paddedSeconds}`;
 }
 
+function getPrintLabels(t: (key: string) => string): RecipePrintLabels {
+  return {
+    appName: "AvoCook",
+    calories: t("editor.caloriesKcal"),
+    category: t("recipes.category"),
+    cookTime: t("recipes.cookTime"),
+    carbs: t("editor.carbsGrams"),
+    fat: t("editor.fatGrams"),
+    fiber: t("editor.fiberGrams"),
+    ingredients: t("recipes.ingredients"),
+    instructions: t("recipes.instructions"),
+    keywords: t("recipes.share.keywords"),
+    nutrition: t("recipes.nutrition"),
+    prepTime: t("recipes.prepTime"),
+    protein: t("editor.proteinGrams"),
+    saturatedFat: t("editor.saturatedFatGrams"),
+    servingSize: t("recipes.share.servingSize"),
+    source: t("recipes.source"),
+    sodium: t("editor.sodiumMg"),
+    sugar: t("editor.sugarGrams"),
+    tools: t("recipes.tools"),
+    totalTime: t("recipes.totalTime"),
+    yield: t("recipes.yield")
+  };
+}
+
 function normalizeNutrition(
   nutrition?: Nutrition | Nutrition[] | null
 ): [string, string][] {
@@ -757,6 +881,14 @@ function normalizeNutrition(
   return Object.entries(node)
     .filter(([key, value]) => key !== "@type" && Boolean(value))
     .map(([key, value]) => [key.replace(/Content$/, ""), String(value)]);
+}
+
+function isUserDismissedShareOrPrint(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return /printing did not complete|cancel|dismiss|abort/i.test(error.message);
 }
 
 function getImageSource(
@@ -944,12 +1076,17 @@ const styles = StyleSheet.create({
     gap: spacing.xs
   },
   toolbar: {
-    alignItems: "center",
+    alignItems: "flex-start",
+    flexWrap: "wrap",
+    gap: spacing.sm,
     flexDirection: "row",
     justifyContent: "space-between"
   },
   toolbarActions: {
     flexDirection: "row",
-    gap: spacing.xs
+    flexWrap: "wrap",
+    gap: spacing.xs,
+    justifyContent: "flex-end",
+    maxWidth: "80%"
   }
 });
