@@ -43,6 +43,7 @@ import {
 } from "./types";
 import {
   createRecipeBackup,
+  readRecipeBackupFile,
   type RecipeBackup,
   type RecipeBackupExportResult
 } from "./recipeBackup";
@@ -822,6 +823,14 @@ export async function importRecipeBackup(
   };
 }
 
+export async function importRecipeBackupFile(
+  uri: string,
+  client: CookbookClient | null,
+  options: RecipeRepositoryOptions = {}
+) {
+  return importRecipeBackup(await readRecipeBackupFile(uri), client, options);
+}
+
 async function flushSyncQueue(
   client: CookbookClient,
   syncedRecipes: Recipe[],
@@ -1019,11 +1028,16 @@ async function saveImportedRecipe(
 }
 
 function getNextcloudImportRecipe(localRecipe: Recipe, originalRecipe: Recipe) {
+  const originalExternalImage = getExternalRecipeImageSource(originalRecipe);
+  if (!originalExternalImage) {
+    return localRecipe;
+  }
+
   return normalizeRecipe({
     ...localRecipe,
-    image: originalRecipe.image,
-    imageUrl: originalRecipe.imageUrl,
-    imagePlaceholderUrl: originalRecipe.imagePlaceholderUrl
+    image: originalExternalImage,
+    imageUrl: originalExternalImage,
+    imagePlaceholderUrl: originalExternalImage
   });
 }
 
