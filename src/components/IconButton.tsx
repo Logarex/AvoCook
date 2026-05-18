@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react-native";
-import React from "react";
-import { Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Animated, Easing, Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
 import { radius } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
@@ -10,6 +10,7 @@ type IconButtonProps = {
   onPress: () => void;
   tone?: "default" | "primary" | "danger";
   disabled?: boolean;
+  spinning?: boolean;
   style?: StyleProp<ViewStyle>;
 };
 
@@ -19,9 +20,39 @@ export function IconButton({
   onPress,
   tone = "default",
   disabled = false,
+  spinning = false,
   style
 }: IconButtonProps) {
   const { colors } = useAppTheme();
+  
+  const spinValue = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    let animation: Animated.CompositeAnimation | null = null;
+    if (spinning) {
+      spinValue.setValue(0);
+      animation = Animated.loop(
+        Animated.timing(spinValue, {
+          toValue: 1,
+          duration: 1200,
+          easing: Easing.linear,
+          useNativeDriver: true
+        })
+      );
+      animation.start();
+    } else {
+      spinValue.setValue(0);
+    }
+    return () => {
+      animation?.stop();
+    };
+  }, [spinning, spinValue]);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"]
+  });
+
   const iconColor =
     tone === "primary"
       ? colors.primaryStrong
@@ -29,23 +60,27 @@ export function IconButton({
         ? colors.danger
         : colors.text;
 
+  const isButtonDisabled = disabled || spinning;
+
   return (
     <Pressable
       accessibilityLabel={label}
       accessibilityRole="button"
-      disabled={disabled}
+      disabled={isButtonDisabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
         {
           backgroundColor: colors.surfaceGlassStrong,
           borderColor: colors.border,
-          opacity: disabled ? 0.45 : pressed ? 0.72 : 1
+          opacity: disabled ? 0.45 : spinning ? 0.8 : pressed ? 0.72 : 1
         },
         style
       ]}
     >
-      <Icon color={iconColor} size={21} strokeWidth={2.4} />
+      <Animated.View style={{ transform: [{ rotate: spin }] }}>
+        <Icon color={iconColor} size={21} strokeWidth={2.4} />
+      </Animated.View>
     </Pressable>
   );
 }

@@ -63,7 +63,7 @@ export function ConnectionStatus({
           {label}
         </AppText>
       </View>
-      {detail || loading ? (
+      {detail ? (
         <AppText muted variant="caption" numberOfLines={1} style={styles.detail}>
           {detail}
         </AppText>
