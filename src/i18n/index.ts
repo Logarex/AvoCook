@@ -145,6 +145,19 @@ export const resources = {
           notificationsUnavailableBody:
             "Ce build ne contient pas encore le module natif de notifications. Installez un vrai build iOS reconstruit pour utiliser les minuteurs."
         },
+        share: {
+          print: "Imprimer la recette",
+          sharePdf: "Partager en PDF",
+          shareFile: "Partager pour AvoCook",
+          keywords: "Mots-clés",
+          servingSize: "Portion",
+          failedTitle: "Partage impossible",
+          failedBody:
+            "La recette n'a pas pu être préparée. Vérifiez l'accès à la photo ou réessayez plus tard.",
+          partialTitle: "Photo non intégrée",
+          partialBody:
+            "{{count}} image(s) n'ont pas pu être ajoutée(s), mais les autres informations de la recette sont prêtes."
+        },
         health: {
           title: "Santé",
           estimated: "Score santé estimé",
@@ -211,6 +224,14 @@ export const resources = {
         title: "Importer",
         url: "URL de la recette",
         action: "Importer depuis l'URL",
+        fileAction: "Importer un fichier AvoCook",
+        sharedFileHint:
+          "Vous pouvez aussi choisir un fichier de recette partagé depuis Messages, WhatsApp, Mail ou un autre appareil.",
+        fileFailed: "Ce fichier n'a pas pu être importé.",
+        invalidFile: "Ce fichier n'est pas une recette AvoCook valide.",
+        fileImportedTitle: "Fichier importé",
+        fileImportedBody:
+          "Import terminé : {{created}} ajoutée(s), {{updated}} mise(s) à jour, {{skipped}} doublon(s) ignoré(s), {{renamed}} renommée(s).",
         failed: "Import impossible pour cette page.",
         success: "Recette importée"
       },
@@ -426,6 +447,19 @@ export const resources = {
           notificationsUnavailableBody:
             "This build does not include the native notifications module yet. Install a rebuilt real iOS build to use timers."
         },
+        share: {
+          print: "Print recipe",
+          sharePdf: "Share as PDF",
+          shareFile: "Share for AvoCook",
+          keywords: "Keywords",
+          servingSize: "Serving size",
+          failedTitle: "Sharing failed",
+          failedBody:
+            "The recipe could not be prepared. Check photo access or try again later.",
+          partialTitle: "Photo not included",
+          partialBody:
+            "{{count}} image(s) could not be added, but the rest of the recipe is ready."
+        },
         health: {
           title: "Health",
           estimated: "Estimated health score",
@@ -490,6 +524,14 @@ export const resources = {
         title: "Import",
         url: "Recipe URL",
         action: "Import from URL",
+        fileAction: "Import AvoCook file",
+        sharedFileHint:
+          "You can also choose a recipe file shared through Messages, WhatsApp, Mail or another device.",
+        fileFailed: "This file could not be imported.",
+        invalidFile: "This file is not a valid AvoCook recipe.",
+        fileImportedTitle: "File imported",
+        fileImportedBody:
+          "Import complete: {{created}} added, {{updated}} updated, {{skipped}} duplicate(s) skipped, {{renamed}} renamed.",
         failed: "This page could not be imported.",
         success: "Recipe imported"
       },
@@ -705,6 +747,19 @@ export const resources = {
           notificationsUnavailableBody:
             "Dieser Build enthält noch kein natives Benachrichtigungsmodul. Installiere einen neu erstellten iOS-Build für Timer."
         },
+        share: {
+          print: "Rezept drucken",
+          sharePdf: "Als PDF teilen",
+          shareFile: "Für AvoCook teilen",
+          keywords: "Schlagwörter",
+          servingSize: "Portion",
+          failedTitle: "Teilen fehlgeschlagen",
+          failedBody:
+            "Das Rezept konnte nicht vorbereitet werden. Prüfe den Fotozugriff oder versuche es später erneut.",
+          partialTitle: "Foto nicht enthalten",
+          partialBody:
+            "{{count}} Bild(er) konnten nicht hinzugefügt werden, aber die übrigen Rezeptdaten sind bereit."
+        },
         health: {
           title: "Gesundheit",
           estimated: "Geschätzter Gesundheitsscore",
@@ -770,6 +825,14 @@ export const resources = {
         title: "Importieren",
         url: "Rezept-URL",
         action: "Von URL importieren",
+        fileAction: "AvoCook-Datei importieren",
+        sharedFileHint:
+          "Du kannst auch eine Rezeptdatei auswählen, die über Nachrichten, WhatsApp, Mail oder ein anderes Gerät geteilt wurde.",
+        fileFailed: "Diese Datei konnte nicht importiert werden.",
+        invalidFile: "Diese Datei ist kein gültiges AvoCook-Rezept.",
+        fileImportedTitle: "Datei importiert",
+        fileImportedBody:
+          "Import abgeschlossen: {{created}} hinzugefügt, {{updated}} aktualisiert, {{skipped}} Duplikat(e) übersprungen, {{renamed}} umbenannt.",
         failed: "Diese Seite konnte nicht importiert werden.",
         success: "Rezept importiert"
       },

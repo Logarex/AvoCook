@@ -18,6 +18,7 @@ import {
   deleteRecipe as deleteRecipeInRepository,
   exportRecipeBackup,
   importRecipeBackup,
+  importRecipeBackupFile,
   importRecipe as importRecipeInRepository,
   initialiseRecipeStore,
   syncRecipes,
@@ -51,6 +52,7 @@ type RecipesContextValue = {
   importRecipe: (url: string) => Promise<Recipe>;
   exportBackup: () => Promise<RecipeBackupExportResult & { fileUri: string }>;
   importBackup: () => Promise<RecipeBackupImportResult>;
+  importBackupFile: (uri: string) => Promise<RecipeBackupImportResult>;
   createCategory: (category: string) => Promise<string[]>;
 };
 
@@ -242,6 +244,20 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     return result;
   }, [getClient, repositoryOptions]);
 
+  const importBackupFile = useCallback(
+    async (uri: string) => {
+      const result = await importRecipeBackupFile(
+        uri,
+        getClient(),
+        repositoryOptions
+      );
+      setRecipes(result.recipes);
+      setCustomCategories(await loadCustomCategories());
+      return result;
+    },
+    [getClient, repositoryOptions]
+  );
+
   const createCategory = useCallback(async (category: string) => {
     const nextCategories = await saveCustomCategory(category);
     setCustomCategories(nextCategories);
@@ -270,6 +286,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       importRecipe,
       exportBackup,
       importBackup,
+      importBackupFile,
       createCategory
     }),
     [
@@ -288,6 +305,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       importRecipe,
       exportBackup,
       importBackup,
+      importBackupFile,
       createCategory
     ]
   );
