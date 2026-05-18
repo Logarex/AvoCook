@@ -4,13 +4,17 @@ import {
   AlertTriangle,
   ArrowLeft,
   Bell,
+  BookOpen,
   Database,
   Download,
+  Globe,
   Info,
+  Lock,
   LogOut,
   RefreshCw,
   ShieldCheck,
-  Upload
+  Upload,
+  User
 } from "lucide-react-native";
 import React, { useState } from "react";
 import { Alert, Linking, StyleSheet, Switch, View } from "react-native";
@@ -25,7 +29,7 @@ import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import type { RootStackParamList } from "../navigation/types";
-import { spacing } from "../theme/colors";
+import { radius, spacing } from "../theme/colors";
 import { type ThemeMode, useAppTheme } from "../theme/ThemeProvider";
 import {
   getTimerNotificationState,
@@ -304,32 +308,113 @@ export function SettingsScreen({ navigation }: Props) {
         </View>
       </GlassPanel>
 
-      <GlassPanel style={styles.section}>
-        <View style={styles.serverHeader}>
-          <ShieldCheck color={colors.primary} size={22} />
-          <AppText variant="label">
-            {isLocalMode ? t("settings.localMode") : t("settings.server")}
+      <GlassPanel style={styles.connectionCard}>
+        <View style={styles.connectionHeader}>
+          <View style={styles.connectionTitleGroup}>
+            <ShieldCheck color={colors.primary} size={22} />
+            <AppText variant="label">
+              {isLocalMode ? t("settings.localMode") : t("settings.server")}
+            </AppText>
+          </View>
+          
+          <View
+            style={[
+              styles.statusBadge,
+              { backgroundColor: isLocalMode ? colors.border : colors.chip }
+            ]}
+          >
+            <View
+              style={[
+                styles.statusDot,
+                { backgroundColor: isLocalMode ? colors.warning : colors.success }
+              ]}
+            />
+            <AppText
+              variant="caption"
+              style={[
+                styles.statusText,
+                { color: isLocalMode ? colors.warning : colors.primary }
+              ]}
+            >
+              {isLocalMode ? t("common.offline") : t("common.online")}
+            </AppText>
+          </View>
+        </View>
+
+        <View style={styles.detailsContainer}>
+          {!isLocalMode && credentials?.serverUrl ? (
+            <>
+              <View style={styles.detailRow}>
+                <View style={[styles.detailIconWrapper, { backgroundColor: colors.chip }]}>
+                  <Globe color={colors.primary} size={16} />
+                </View>
+                <View style={styles.detailContent}>
+                  <AppText muted variant="caption">
+                    {t("auth.server")}
+                  </AppText>
+                  <AppText style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">
+                    {credentials.serverUrl}
+                  </AppText>
+                </View>
+              </View>
+              <View style={[styles.detailDivider, { backgroundColor: colors.border }]} />
+            </>
+          ) : null}
+
+          {!isLocalMode && credentials?.username ? (
+            <>
+              <View style={styles.detailRow}>
+                <View style={[styles.detailIconWrapper, { backgroundColor: colors.chip }]}>
+                  <User color={colors.primary} size={16} />
+                </View>
+                <View style={styles.detailContent}>
+                  <AppText muted variant="caption">
+                    {t("auth.username")}
+                  </AppText>
+                  <AppText style={styles.detailValue} numberOfLines={1}>
+                    {credentials.username}
+                  </AppText>
+                </View>
+              </View>
+              <View style={[styles.detailDivider, { backgroundColor: colors.border }]} />
+            </>
+          ) : null}
+
+          <View style={styles.detailRow}>
+            <View style={[styles.detailIconWrapper, { backgroundColor: colors.chip }]}>
+              <BookOpen color={colors.primary} size={16} />
+            </View>
+            <View style={styles.detailContent}>
+              <AppText muted variant="caption">
+                {t("recipes.title")}
+              </AppText>
+              <AppText style={styles.detailValue}>
+                {t(
+                  recipes.length <= 1
+                    ? "recipes.loadedRecipes_one"
+                    : "recipes.loadedRecipes_other",
+                  { count: recipes.length }
+                )}
+              </AppText>
+            </View>
+          </View>
+        </View>
+
+        <View
+          style={[
+            styles.noticeBanner,
+            { backgroundColor: isLocalMode ? "rgba(184, 106, 29, 0.08)" : colors.chip }
+          ]}
+        >
+          {isLocalMode ? (
+            <Info color={colors.warning} size={16} />
+          ) : (
+            <Lock color={colors.primary} size={16} />
+          )}
+          <AppText muted variant="caption" style={styles.noticeText}>
+            {isLocalMode ? t("settings.localNotice") : t("settings.secureStore")}
           </AppText>
         </View>
-        <AppText>
-          {isLocalMode
-            ? t("settings.localOnly")
-            : credentials?.serverUrl ?? t("common.offline")}
-        </AppText>
-        <AppText muted variant="caption">
-          {credentials?.username}
-        </AppText>
-        <AppText muted variant="caption">
-          {t(
-            recipes.length <= 1
-              ? "recipes.loadedRecipes_one"
-              : "recipes.loadedRecipes_other",
-            { count: recipes.length }
-          )}
-        </AppText>
-        <AppText muted variant="caption">
-          {t("settings.secureStore")}
-        </AppText>
       </GlassPanel>
 
       {message ? <AppText style={{ color: colors.success }}>{message}</AppText> : null}
@@ -404,6 +489,73 @@ const styles = StyleSheet.create({
   },
   warningText: {
     flex: 1
+  },
+  connectionCard: {
+    gap: spacing.md,
+    padding: spacing.md
+  },
+  connectionHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between"
+  },
+  connectionTitleGroup: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.xs
+  },
+  statusBadge: {
+    alignItems: "center",
+    borderRadius: radius.pill,
+    flexDirection: "row",
+    gap: spacing.xxs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs
+  },
+  statusDot: {
+    borderRadius: 4,
+    height: 8,
+    width: 8
+  },
+  statusText: {
+    fontWeight: "600"
+  },
+  detailsContainer: {
+    gap: spacing.sm
+  },
+  detailRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.sm
+  },
+  detailIconWrapper: {
+    alignItems: "center",
+    borderRadius: radius.sm,
+    height: 32,
+    justifyContent: "center",
+    width: 32
+  },
+  detailContent: {
+    flex: 1
+  },
+  detailValue: {
+    fontSize: 15,
+    fontWeight: "500",
+    marginTop: 1
+  },
+  detailDivider: {
+    height: StyleSheet.hairlineWidth
+  },
+  noticeBanner: {
+    alignItems: "flex-start",
+    borderRadius: radius.sm,
+    flexDirection: "row",
+    gap: spacing.xs,
+    padding: spacing.sm
+  },
+  noticeText: {
+    flex: 1,
+    lineHeight: 18
   }
 });
 
