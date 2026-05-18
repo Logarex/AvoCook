@@ -32,7 +32,7 @@ export function PreferencesProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [keepScreenAwake, setKeepScreenAwakeState] = useState(false);
+  const [keepScreenAwake, setKeepScreenAwakeState] = useState(true);
   const [keepRecipesLocal, setKeepRecipesLocalState] = useState(true);
   const [language, setLanguageState] = useState<"fr" | "en" | "de">(
     i18n.language === "en" ? "en" : i18n.language === "de" ? "de" : "fr"
