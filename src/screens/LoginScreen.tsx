@@ -15,8 +15,10 @@ import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
+import { SegmentedControl } from "../components/SegmentedControl";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
+import { usePreferences } from "../features/preferences/PreferencesProvider";
 import type { RootStackParamList } from "../navigation/types";
 import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -27,6 +29,7 @@ export function LoginScreen(_props: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const { login, startLocalMode } = useAuth();
+  const { language, setLanguage } = usePreferences();
   const [serverUrl, setServerUrl] = useState("");
   const [username, setUsername] = useState("");
   const [appPassword, setAppPassword] = useState("");
@@ -159,6 +162,17 @@ export function LoginScreen(_props: Props) {
       <AppText muted variant="caption" style={styles.center}>
         {t("auth.secure")}{"\n"}{t("auth.localSubtitle")}
       </AppText>
+
+      <View style={styles.languagePicker}>
+        <SegmentedControl<"fr" | "en">
+          value={language}
+          onChange={(value) => void setLanguage(value)}
+          options={[
+            { label: t("settings.french"), value: "fr" },
+            { label: t("settings.english"), value: "en" }
+          ]}
+        />
+      </View>
     </Screen>
   );
 }
@@ -202,5 +216,8 @@ const styles = StyleSheet.create({
   tutorialStep: {
     flexDirection: "row",
     gap: spacing.sm
+  },
+  languagePicker: {
+    marginTop: spacing.md
   }
 });
