@@ -1,4 +1,5 @@
 import { normalizeRecipe, type Recipe } from "./types";
+import { hasExternalRecipeImageSource } from "./recipeImageReferences";
 
 export type RecipeImportDecision = {
   action: "create" | "update" | "skip";
@@ -96,7 +97,8 @@ function resolveMatchedRecipe(
 
   if (
     isSameRecipeContent(recipeWithExistingId, existingRecipe) &&
-    (!hasRecipeImage(recipeWithExistingId) || hasRecipeImage(existingRecipe))
+    (!hasRecipeImage(recipeWithExistingId) || hasRecipeImage(existingRecipe)) &&
+    !shouldPromoteImportedImage(recipeWithExistingId, existingRecipe)
   ) {
     return {
       action: "skip",
@@ -114,6 +116,13 @@ function resolveMatchedRecipe(
     existingRecipe,
     renamed: false
   };
+}
+
+function shouldPromoteImportedImage(recipe: Recipe, existingRecipe: Recipe) {
+  return (
+    hasExternalRecipeImageSource(recipe) &&
+    !hasExternalRecipeImageSource(existingRecipe)
+  );
 }
 
 function makeImportedCopyName(name: string, existingRecipes: Recipe[]) {

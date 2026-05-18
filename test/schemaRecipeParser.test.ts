@@ -58,4 +58,20 @@ describe("schemaRecipeParser", () => {
     const jsonLd = findRecipeJsonLd(html);
     expect(jsonLd?.name).toBe("Crêpes");
   });
+
+  it("resolves relative source and image URLs against the imported page", () => {
+    const recipe = jsonLdToRecipe(
+      {
+        "@type": "Recipe",
+        name: "Cake citron",
+        url: "/recettes/cake-citron",
+        image: { url: "../images/cake.jpg" }
+      },
+      "https://example.com/blog/page"
+    );
+
+    expect(recipe.url).toBe("https://example.com/recettes/cake-citron");
+    expect(recipe.image).toBe("https://example.com/images/cake.jpg");
+    expect(recipe.imageUrl).toBe("https://example.com/images/cake.jpg");
+  });
 });

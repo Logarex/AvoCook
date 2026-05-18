@@ -22,7 +22,7 @@ Application mobile iOS, iPadOS et Android pour consulter, importer, créer et mo
 - Synchronisation avec l'API publique Nextcloud Cookbook `0.1.3`.
 - Option pour conserver une copie locale des recettes et les consulter hors ligne.
 - File de synchronisation pour créations, modifications et suppressions hors connexion.
-- Import depuis une URL via l'endpoint Cookbook, puis fallback JSON-LD schema.org côté mobile.
+- Import depuis une URL via JSON-LD schema.org côté mobile, puis fallback via l'endpoint Cookbook.
 - Import pensé pour les grands sites de recettes français et internationaux exposant schema.org Recipe, dont Marmiton, CuisineAZ, 750g, Chefkoch, BBC Good Food, Allrecipes, GialloZafferano et Cookpad.
 - Photos de recettes récupérées depuis les sites importés ou ajoutées manuellement depuis la galerie.
 - Ajout et modification manuels avec champs clairs.
@@ -99,7 +99,7 @@ npm run import:check -- https://www.marmiton.org/recettes/recette_gateau-leger-a
 
 ### Notes sur l'import de recettes
 
-Nextcloud Cookbook importe déjà les pages contenant des métadonnées schema.org Recipe. L'app utilise ce mécanisme en priorité pour que la recette arrive directement dans le serveur de l'utilisateur. Si le serveur ne peut pas importer la page, l'app tente une extraction JSON-LD locale puis crée la recette dans Cookbook.
+L'app tente d'abord une extraction JSON-LD locale afin de détecter les doublons avant toute création. Si la page ne peut pas être lue côté mobile, l'app utilise l'import Nextcloud Cookbook puis réconcilie le résultat avec les recettes existantes.
 
 Les sites qui changent souvent leur HTML doivent être ajoutés sous forme d'adapters dédiés dans `src/features/import/` plutôt que via du scraping fragile.
 
@@ -128,7 +128,7 @@ iOS, iPadOS, and Android mobile application to view, import, create, and edit re
 - Synchronization with Nextcloud Cookbook public API `0.1.3`.
 - Option to keep a local copy of recipes and view them offline.
 - Sync queue for offline creations, modifications, and deletions.
-- Import from URL via Cookbook endpoint, then fallback to JSON-LD schema.org on the mobile side.
+- Import from URL via mobile-side schema.org JSON-LD, then fallback through the Cookbook endpoint.
 - Import designed for major French and international recipe sites exposing schema.org Recipe, including Marmiton, CuisineAZ, 750g, Chefkoch, BBC Good Food, Allrecipes, GialloZafferano, and Cookpad.
 - Recipe photos retrieved from imported sites or added manually from the gallery.
 - Manual addition and modification with clear fields.
@@ -205,7 +205,7 @@ npm run import:check -- https://www.marmiton.org/recettes/recette_gateau-leger-a
 
 ### Notes on Recipe Import
 
-Nextcloud Cookbook already imports pages containing schema.org Recipe metadata. The app uses this mechanism as a priority so that the recipe arrives directly in the user's server. If the server cannot import the page, the app attempts local JSON-LD extraction and then creates the recipe in Cookbook.
+The app first attempts local JSON-LD extraction so duplicates can be detected before anything is created. If the page cannot be read on the mobile side, the app uses Nextcloud Cookbook import and reconciles the result with existing recipes.
 
 Sites that often change their HTML should be added as dedicated adapters in `src/features/import/` rather than via fragile scraping.
 

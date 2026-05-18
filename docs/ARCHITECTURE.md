@@ -32,7 +32,7 @@ Les créations et modifications sont sauvegardées immédiatement en local. Si l
 
 ### Import
 
-L'import utilise d'abord `POST /apps/cookbook/api/v1/import` côté Nextcloud. Ce choix garde le serveur comme source de vérité et respecte le comportement officiel Cookbook. Le fallback mobile parse les blocs JSON-LD `application/ld+json`, cherche un objet `@type: Recipe`, puis normalise les ingrédients, étapes, temps, portions, image et nutrition.
+L'import parse d'abord les blocs JSON-LD `application/ld+json` côté mobile, cherche un objet `@type: Recipe`, puis normalise les ingrédients, étapes, temps, portions, image et nutrition. Cette étape permet de détecter les doublons avant toute création. Si le parser mobile échoue en mode connecté, l'app utilise `POST /apps/cookbook/api/v1/import`, puis réconcilie la recette créée avec les recettes existantes.
 
 Les images importées depuis des sites peuvent être copiées dans le stockage de l'app pour rester disponibles hors ligne.
 
@@ -66,6 +66,6 @@ Creations and modifications are saved immediately locally. If the server call fa
 
 ### Import
 
-Import first uses `POST /apps/cookbook/api/v1/import` on the Nextcloud side. This choice keeps the server as the source of truth and respects the official Cookbook behavior. The mobile fallback parses `application/ld+json` JSON-LD blocks, looks for a `@type: Recipe` object, then normalizes ingredients, steps, times, servings, image, and nutrition.
+Import first parses `application/ld+json` JSON-LD blocks on the mobile side, looks for a `@type: Recipe` object, then normalizes ingredients, steps, times, servings, image, and nutrition. This lets the app detect duplicates before creating anything. If the mobile parser fails while connected, the app uses `POST /apps/cookbook/api/v1/import`, then reconciles the created recipe with existing recipes.
 
 Images imported from sites can be copied to the app's storage to remain available offline.

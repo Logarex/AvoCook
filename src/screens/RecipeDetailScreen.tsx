@@ -31,6 +31,10 @@ import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import type { HealthProfile } from "../features/recipes/health";
 import { getRecipeHealthProfile } from "../features/recipes/health";
+import {
+  isCookbookImageEndpoint,
+  isDisplayableRecipeImage
+} from "../features/recipes/recipeImageReferences";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import {
   useRecipeTimers,
@@ -707,9 +711,18 @@ function getImageSource(
     return null;
   }
 
-  const publicImage = recipe.image || recipe.imageUrl || recipe.imagePlaceholderUrl;
+  const publicImage =
+    [recipe.image, recipe.imageUrl, recipe.imagePlaceholderUrl].find(
+      isDisplayableRecipeImage
+    ) ?? "";
   if (publicImage) {
-    return { uri: publicImage };
+    return {
+      uri: publicImage,
+      headers:
+        client && isCookbookImageEndpoint(publicImage)
+          ? client.getImageHeaders()
+          : undefined
+    };
   }
 
   if (recipe.id && client) {

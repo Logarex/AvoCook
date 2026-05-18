@@ -4,7 +4,10 @@ import type { Recipe } from "./types";
 
 const IMAGE_DIR = new Directory(Paths.document, "recipe-images");
 
-export async function persistRecipeImage(uri: string): Promise<string> {
+export async function persistRecipeImage(
+  uri: string,
+  options?: { headers?: Record<string, string> }
+): Promise<string> {
   if (!uri) {
     return uri;
   }
@@ -27,6 +30,7 @@ export async function persistRecipeImage(uri: string): Promise<string> {
 
   if (/^https?:\/\//i.test(uri)) {
     const file = await File.downloadFileAsync(uri, destination, {
+      headers: options?.headers,
       idempotent: true
     });
     return file.uri;
