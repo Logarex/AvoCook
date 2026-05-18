@@ -55,12 +55,14 @@ export class CookbookApiError extends Error {
 
 export class CookbookClient {
   private readonly serverUrl: string;
+  private readonly username: string;
   private readonly authorization: string;
 
   constructor(credentials: NextcloudCredentials) {
     this.serverUrl = normalizeNextcloudUrl(credentials.serverUrl);
+    this.username = credentials.username.trim();
     this.authorization = `Basic ${base64Encode(
-      `${credentials.username}:${credentials.appPassword.replace(/\s+/g, "")}`
+      `${this.username}:${credentials.appPassword.replace(/\s+/g, "")}`
     )}`;
   }
 
@@ -126,13 +128,17 @@ export class CookbookClient {
   }
 
   async listRecipes() {
-    return this.request<RecipeStub[]>("/apps/cookbook/api/v1/recipes");
+    const recipes = await this.request<RecipeStub[]>(
+      "/apps/cookbook/api/v1/recipes"
+    );
+    return recipes.map((recipe) => this.normalizeRecipeImageUrls(recipe));
   }
 
   async getRecipe(id: string) {
-    return this.request<Recipe>(
+    const recipe = await this.request<Recipe>(
       `/apps/cookbook/api/v1/recipes/${encodeURIComponent(id)}`
     );
+    return this.normalizeRecipeImageUrls(recipe);
   }
 
   async createRecipe(recipe: Recipe) {
@@ -165,10 +171,20 @@ export class CookbookClient {
   }
 
   async importRecipe(url: string) {
-    return this.request<Recipe>("/apps/cookbook/api/v1/import", {
+    const recipe = await this.request<Recipe>("/apps/cookbook/api/v1/import", {
       method: "POST",
       body: JSON.stringify({ url })
     });
+    return this.normalizeRecipeImageUrls(recipe);
+  }
+
+  normalizeRecipeImageUrls<T extends Partial<Recipe>>(recipe: T): T {
+    return {
+      ...recipe,
+      image: this.resolveServerUrl(recipe.image),
+      imageUrl: this.resolveServerUrl(recipe.imageUrl),
+      imagePlaceholderUrl: this.resolveServerUrl(recipe.imagePlaceholderUrl)
+    };
   }
 
   async listCategories() {
@@ -194,6 +210,21 @@ export class CookbookClient {
       method: "POST",
       body: JSON.stringify(config)
     });
+  }
+
+  async uploadRecipeImage(localUri: string) {
+    const { File } = await import("expo-file-system");
+    const localFile = new File(localUri);
+    const remotePath = `/AvoCook Images/${getSafeRemoteImageFilename(localUri)}`;
+    await this.ensureWebDavDirectory("/AvoCook Images");
+    await this.rawRequest(this.getWebDavPath(remotePath), {
+      method: "PUT",
+      body: await localFile.arrayBuffer(),
+      headers: {
+        "Content-Type": getImageMimeType(remotePath)
+      }
+    });
+    return remotePath;
   }
 
   private async request<T>(path: string, options: RequestOptions = {}) {
@@ -228,6 +259,93 @@ export class CookbookClient {
     }
 
     return payload as T;
+  }
+
+  private async rawRequest(path: string, options: RequestOptions = {}) {
+    const headers = new Headers(options.headers);
+    headers.set("Authorization", this.authorization);
+
+    const response = await fetch(`${this.serverUrl}${path}`, {
+      ...options,
+      headers
+    });
+
+    if (!response.ok) {
+      throw new CookbookApiError(
+        `Nextcloud returned ${response.status}`,
+        response.status,
+        await response.text().catch(() => "")
+      );
+    }
+
+    return response;
+  }
+
+  private async ensureWebDavDirectory(path: string) {
+    try {
+      await this.rawRequest(this.getWebDavPath(path), { method: "MKCOL" });
+    } catch (error) {
+      if (!(error instanceof CookbookApiError) || error.status !== 405) {
+        throw error;
+      }
+    }
+  }
+
+  private getWebDavPath(path: string) {
+    const encodedPath = path
+      .split("/")
+      .filter(Boolean)
+      .map(encodeURIComponent)
+      .join("/");
+    return `/remote.php/dav/files/${encodeURIComponent(this.username)}/${encodedPath}`;
+  }
+
+  private resolveServerUrl(value: unknown) {
+    if (typeof value !== "string" || !value) {
+      return value;
+    }
+
+    if (/^(?:https?:|file:|data:)/i.test(value)) {
+      return value;
+    }
+
+    if (value.startsWith("/apps/cookbook/")) {
+      return `${this.serverUrl}${value}`;
+    }
+
+    return value;
+  }
+}
+
+function getSafeRemoteImageFilename(uri: string) {
+  const withoutQuery = uri.split("?")[0] ?? uri;
+  const rawName = decodeURIComponent(withoutQuery.split("/").pop() || "image.jpg");
+  const safeName = rawName
+    .replace(/[^a-z0-9._-]+/gi, "-")
+    .replace(/^-+|-+$/g, "");
+  const extension = getImageExtension(safeName);
+  const baseName = safeName.replace(/\.[^.]+$/, "") || "image";
+  return `${baseName}.${extension}`;
+}
+
+function getImageExtension(value: string) {
+  const extension = value.split(".").pop()?.toLowerCase();
+  if (extension && ["jpg", "jpeg", "png", "webp", "heic"].includes(extension)) {
+    return extension === "jpeg" ? "jpg" : extension;
+  }
+  return "jpg";
+}
+
+function getImageMimeType(value: string) {
+  switch (getImageExtension(value)) {
+    case "png":
+      return "image/png";
+    case "webp":
+      return "image/webp";
+    case "heic":
+      return "image/heic";
+    default:
+      return "image/jpeg";
   }
 }
 

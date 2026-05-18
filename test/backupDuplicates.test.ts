@@ -62,4 +62,28 @@ describe("resolveRecipeImport", () => {
       recipe: { name: "Soupe (import)" }
     });
   });
+
+  it("updates an exact duplicate when the imported recipe has a remote image URL", () => {
+    const existing = normalizeRecipe({
+      id: "1",
+      name: "Baguette",
+      image: "file:///documents/recipe-images/baguette.jpg",
+      imageUrl: "file:///documents/recipe-images/baguette.jpg",
+      recipeIngredient: ["farine"],
+      recipeInstructions: ["cuire"]
+    });
+    const imported = normalizeRecipe({
+      name: "Baguette",
+      image: "https://example.com/baguette.jpg",
+      imageUrl: "https://example.com/baguette.jpg",
+      recipeIngredient: ["farine"],
+      recipeInstructions: ["cuire"]
+    });
+
+    expect(resolveRecipeImport(imported, [existing])).toMatchObject({
+      action: "update",
+      reason: "signature",
+      recipe: { id: "1" }
+    });
+  });
 });

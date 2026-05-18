@@ -3,7 +3,8 @@ import { CookbookApiError, type CookbookClient } from "../nextcloud/cookbookClie
 import { saveCustomCategories } from "./categoryStore";
 import {
   resolveRecipeImport,
-  upsertRecipeInList
+  upsertRecipeInList,
+  type RecipeImportDecision
 } from "./backupDuplicates";
 import { withInferredCategory } from "./categories";
 import {
@@ -22,6 +23,15 @@ import {
   pruneRecipeImageCache,
   restoreRecipeImageFromBackup
 } from "./recipeImages";
+import {
+  getExternalRecipeImageSource,
+  getLocalRecipeImage,
+  getRemoteRecipeImage,
+  isRemoteImageReference,
+  preferRecipeImageUrls,
+  sanitizeRecipeImagesForNextcloud,
+  withCachedRecipeImage
+} from "./recipeImageReferences";
 import {
   hasLocalMetadata,
   normalizeRecipe,
@@ -64,14 +74,12 @@ export async function createRecipe(
 
   try {
     const serverId = await client.createRecipe(
-      toCookbookCreateRecipe(localRecipe)
+      toCookbookCreateRecipe(await prepareRecipeForNextcloud(localRecipe, client))
     );
     const saved = await client.getRecipe(String(serverId));
     await removeLocalRecipe(localRecipe.id ?? "");
     return saveLocalRecipe(
-      withInferredCategory(
-        normalizeRecipe({ ...saved, localMeta: localRecipe.localMeta })
-      ),
+      withInferredCategory(mergeServerRecipeWithLocalImages(saved, localRecipe)),
       false
     );
   } catch {
@@ -97,7 +105,9 @@ export async function updateRecipe(
   }
 
   try {
-    await client.updateRecipe(toCookbookRecipe(localRecipe));
+    await client.updateRecipe(
+      toCookbookRecipe(await prepareRecipeForNextcloud(localRecipe, client))
+    );
     const saved = await saveLocalRecipe(localRecipe, false);
     await pruneRecipeImageCache(await loadLocalRecipes());
     return saved;
@@ -126,30 +136,161 @@ export async function deleteRecipe(id: string, client: CookbookClient | null) {
   }
 }
 
-export async function importRecipe(url: string, client: CookbookClient | null) {
-  if (client) {
-    try {
-      const imported = await client.importRecipe(url);
-      const withLocalPhoto = await cacheRecipePhoto(
-        withInferredCategory(normalizeRecipe(imported))
-      );
-      return saveLocalRecipe(withLocalPhoto, false);
-    } catch {
-      const parsed = withInferredCategory(await importRecipeFromWeb(url));
-      const saved = await createRecipe(parsed, client);
-      return saveLocalRecipe(await cacheRecipePhoto(saved), false);
+export async function importRecipe(
+  url: string,
+  client: CookbookClient | null,
+  knownRecipes: Recipe[] = []
+) {
+  await migrateDatabase();
+  const existingRecipes = await getExistingRecipesForImport(knownRecipes);
+
+  try {
+    const parsed = withInferredCategory(await importRecipeFromWeb(url));
+    return saveWebImportedRecipe(parsed, client, existingRecipes);
+  } catch (localImportError) {
+    if (!client) {
+      throw localImportError;
     }
+
+    const imported = withInferredCategory(
+      normalizeRecipe(await client.importRecipe(url))
+    );
+    return reconcileNextcloudImportedRecipe(imported, client, existingRecipes);
+  }
+}
+
+async function getExistingRecipesForImport(knownRecipes: Recipe[]) {
+  const localRecipes = await loadLocalRecipes();
+  return mergeRecipeLists([...knownRecipes, ...localRecipes]);
+}
+
+async function saveWebImportedRecipe(
+  importedRecipe: Recipe,
+  client: CookbookClient | null,
+  existingRecipes: Recipe[]
+) {
+  const decision = resolveRecipeImport(importedRecipe, existingRecipes);
+
+  if (decision.action === "skip") {
+    return saveLocalRecipe(
+      decision.existingRecipe ?? decision.recipe,
+      false,
+      false
+    );
   }
 
-  const parsed = withInferredCategory(await importRecipeFromWeb(url));
-  return createRecipe(await cacheRecipePhoto(parsed), null);
+  const recipe = getResolvedImportRecipe(decision);
+  return decision.action === "update"
+    ? updateRecipe(recipe, client)
+    : createRecipe(recipe, client);
+}
+
+async function reconcileNextcloudImportedRecipe(
+  importedRecipe: Recipe,
+  client: CookbookClient,
+  existingRecipes: Recipe[]
+) {
+  const decision = resolveRecipeImport(importedRecipe, existingRecipes);
+  const recipe = getResolvedImportRecipe(decision);
+
+  if (decision.action === "skip") {
+    await deleteNextcloudImportedDuplicate(
+      client,
+      importedRecipe.id,
+      decision.existingRecipe?.id ?? recipe.id
+    );
+    return saveLocalRecipe(decision.existingRecipe ?? recipe, false, false);
+  }
+
+  if (decision.action === "update") {
+    const saved = await updateRecipe(recipe, client);
+    await deleteNextcloudImportedDuplicate(client, importedRecipe.id, saved.id);
+    return saved;
+  }
+
+  if (recipe.id && !recipe.id.startsWith("local-")) {
+    if (decision.renamed) {
+      await client.updateRecipe(
+        toCookbookRecipe(await prepareRecipeForNextcloud(recipe, client))
+      );
+      const serverRecipe = await client.getRecipe(recipe.id);
+      return saveLocalRecipe(
+        mergeServerRecipeWithLocalImages(serverRecipe, recipe),
+        false
+      );
+    }
+
+    return saveLocalRecipe(recipe, false);
+  }
+
+  return createRecipe(recipe, client);
+}
+
+async function deleteNextcloudImportedDuplicate(
+  client: CookbookClient,
+  importedId: string | null,
+  retainedId: string | null
+) {
+  if (!importedId || importedId === retainedId || importedId.startsWith("local-")) {
+    return;
+  }
+
+  try {
+    await client.deleteRecipe(importedId);
+  } catch (error) {
+    if (!(error instanceof CookbookApiError) || error.status !== 404) {
+      throw error;
+    }
+  }
+  await removeLocalRecipe(importedId);
+}
+
+function getResolvedImportRecipe(decision: RecipeImportDecision) {
+  const existingRecipe = decision.existingRecipe;
+  if (!existingRecipe) {
+    return withInferredCategory(decision.recipe);
+  }
+
+  return withInferredCategory(
+    preferRecipeImageUrls(
+      normalizeRecipe({
+        ...decision.recipe,
+        image: decision.recipe.image || existingRecipe.image,
+        imageUrl: decision.recipe.imageUrl || existingRecipe.imageUrl,
+        imagePlaceholderUrl:
+          decision.recipe.imagePlaceholderUrl ||
+          existingRecipe.imagePlaceholderUrl,
+        localMeta: existingRecipe.localMeta
+      }),
+      existingRecipe
+    )
+  );
+}
+
+function mergeRecipeLists(recipes: Recipe[]) {
+  const recipesWithoutId: Recipe[] = [];
+  const recipesById = new Map<string, Recipe>();
+
+  for (const recipe of recipes) {
+    const normalized = normalizeRecipe(recipe);
+    if (!normalized.id) {
+      recipesWithoutId.push(normalized);
+      continue;
+    }
+    recipesById.set(normalized.id, normalized);
+  }
+
+  return [...recipesById.values(), ...recipesWithoutId];
 }
 
 export async function syncRecipes(client: CookbookClient, persistLocal = true) {
   await migrateDatabase();
-  await flushSyncQueue(client);
+  const flushedRecipes = await flushSyncQueue(client);
 
-  const existingRecipes = await loadLocalRecipes();
+  const rawExistingRecipes = await loadLocalRecipes();
+  const existingRecipes = rawExistingRecipes.map((recipe) =>
+    client.normalizeRecipeImageUrls(recipe)
+  );
   const existingRecipesById = new Map(
     existingRecipes
       .filter((recipe) => recipe.id)
@@ -160,11 +301,26 @@ export async function syncRecipes(client: CookbookClient, persistLocal = true) {
       .filter((recipe) => recipe.id && hasLocalMetadata(recipe))
       .map((recipe) => [recipe.id ?? "", recipe.localMeta])
   );
-  const stubs = await client.listRecipes();
-  const recipes: Recipe[] = [];
+  let stubs = await client.listRecipes();
+  const flushedRecipeIds = new Set(
+    flushedRecipes
+      .map((recipe) => recipe.id)
+      .filter((id): id is string => Boolean(id))
+  );
+  const missingFlushedRecipe = Array.from(flushedRecipeIds).some(
+    (id) => !stubs.some((stub) => getRecipeStubId(stub) === id)
+  );
+  if (
+    missingFlushedRecipe ||
+    (persistLocal && hasLegacyRelativeCookbookImage(rawExistingRecipes))
+  ) {
+    await reindexRecipes(client);
+    stubs = await client.listRecipes().catch(() => stubs);
+  }
+  let recipes: Recipe[] = [];
 
   for (const stub of stubs) {
-    const id = stub.id || String(stub.recipe_id);
+    const id = getRecipeStubId(stub);
     if (!id) {
       continue;
     }
@@ -175,16 +331,28 @@ export async function syncRecipes(client: CookbookClient, persistLocal = true) {
       stub.dateModified &&
       existingRecipe.dateModified === stub.dateModified
     ) {
-      recipes.push(existingRecipe);
+      recipes.push(
+        persistLocal
+          ? await saveLocalRecipe(existingRecipe, false, false)
+          : existingRecipe
+      );
       continue;
     }
 
     const recipe = await client.getRecipe(id);
     const normalized = withInferredCategory(
-      normalizeRecipe({
-        ...recipe,
-        localMeta: localMetaById.get(id)
-      })
+      existingRecipe
+        ? mergeServerRecipeWithLocalImages(
+            recipe,
+            normalizeRecipe({
+              ...existingRecipe,
+              localMeta: localMetaById.get(id)
+            })
+          )
+        : normalizeRecipe({
+            ...recipe,
+            localMeta: localMetaById.get(id)
+          })
     );
     if (persistLocal || hasLocalMetadata(normalized)) {
       const saved = await saveLocalRecipe(normalized, false);
@@ -194,9 +362,118 @@ export async function syncRecipes(client: CookbookClient, persistLocal = true) {
     }
   }
 
+  for (const flushedRecipe of flushedRecipes) {
+    appendRecipeIfMissing(recipes, flushedRecipe);
+  }
+
+  const missingLocalSync = await syncMissingLocalRecipes(
+    client,
+    existingRecipes,
+    recipes
+  );
+  recipes = missingLocalSync.recipes;
+  if (missingLocalSync.pushed) {
+    await reindexRecipes(client);
+  }
+
   await pruneRecipeImageCache(await loadLocalRecipes());
 
   return recipes;
+}
+
+function appendRecipeIfMissing(recipes: Recipe[], recipe: Recipe) {
+  if (
+    recipe.id &&
+    !recipes.some((currentRecipe) => currentRecipe.id === recipe.id)
+  ) {
+    recipes.push(recipe);
+  }
+}
+
+async function syncMissingLocalRecipes(
+  client: CookbookClient,
+  localRecipes: Recipe[],
+  syncedRecipes: Recipe[]
+) {
+  let recipes = syncedRecipes;
+  let pushed = false;
+
+  for (const localRecipe of localRecipes) {
+    if (!localRecipe.id || recipes.some((recipe) => recipe.id === localRecipe.id)) {
+      continue;
+    }
+
+    const decision = resolveRecipeImport(localRecipe, recipes);
+    const recipe = getResolvedImportRecipe(decision);
+
+    if (decision.action === "skip") {
+      const existingRecipe = decision.existingRecipe ?? recipe;
+      if (existingRecipe.id && localRecipe.id !== existingRecipe.id) {
+        await removeLocalRecipe(localRecipe.id);
+      }
+      const saved = await saveLocalRecipe(
+        mergeServerRecipeWithLocalImages(existingRecipe, localRecipe),
+        false,
+        false
+      );
+      recipes = upsertRecipeInList(recipes, saved);
+      continue;
+    }
+
+    if (decision.action === "update" && recipe.id && !recipe.id.startsWith("local-")) {
+      await client.updateRecipe(
+        toCookbookRecipe(await prepareRecipeForNextcloud(recipe, client))
+      );
+      const serverRecipe = await client.getRecipe(recipe.id);
+      if (localRecipe.id !== recipe.id) {
+        await removeLocalRecipe(localRecipe.id);
+      }
+      const saved = await saveLocalRecipe(
+        withInferredCategory(mergeServerRecipeWithLocalImages(serverRecipe, recipe)),
+        false
+      );
+      recipes = upsertRecipeInList(recipes, saved);
+      pushed = true;
+      continue;
+    }
+
+    const serverId = await client.createRecipe(
+      toCookbookCreateRecipe(await prepareRecipeForNextcloud(recipe, client))
+    );
+    const serverRecipe = await client.getRecipe(String(serverId));
+    await removeLocalRecipe(localRecipe.id);
+    const saved = await saveLocalRecipe(
+      withInferredCategory(mergeServerRecipeWithLocalImages(serverRecipe, recipe)),
+      false
+    );
+    recipes = upsertRecipeInList(recipes, saved);
+    pushed = true;
+  }
+
+  return { pushed, recipes };
+}
+
+function hasLegacyRelativeCookbookImage(recipes: Recipe[]) {
+  return recipes.some((recipe) =>
+    [recipe.image, recipe.imageUrl, recipe.imagePlaceholderUrl].some(
+      (value) =>
+        value.startsWith("/apps/cookbook/") &&
+        value.includes("/recipes/") &&
+        value.includes("/image")
+    )
+  );
+}
+
+function getRecipeStubId(stub: Pick<Recipe, "id" | "recipe_id">) {
+  return stub.id || (stub.recipe_id ? String(stub.recipe_id) : "");
+}
+
+async function reindexRecipes(client: CookbookClient) {
+  try {
+    await client.reindex();
+  } catch {
+    // The pushed recipe is still kept locally; reindex is only a visibility nudge.
+  }
 }
 
 export async function exportRecipeBackup({
@@ -253,12 +530,7 @@ export async function importRecipeBackup(
         })
       : "";
     const localRecipe = restoredImageUri
-      ? normalizeRecipe({
-          ...originalRecipe,
-          image: restoredImageUri,
-          imageUrl: restoredImageUri,
-          imagePlaceholderUrl: restoredImageUri
-        })
+      ? withCachedRecipeImage(originalRecipe, restoredImageUri)
       : originalRecipe;
     const decision = resolveRecipeImport(localRecipe, existingRecipes);
 
@@ -297,6 +569,7 @@ export async function importRecipeBackup(
 
 async function flushSyncQueue(client: CookbookClient) {
   const operations = await listQueuedOperations();
+  const flushedRecipes: Recipe[] = [];
 
   for (const operation of operations) {
     if (operation.operation === "delete") {
@@ -317,28 +590,34 @@ async function flushSyncQueue(client: CookbookClient) {
       operation.operation === "create" ||
       operation.recipeId.startsWith("local-")
     ) {
+      const remoteRecipe = await prepareRecipeForNextcloud(
+        operation.payload,
+        client
+      );
       const serverId = await client.createRecipe(
-        toCookbookCreateRecipe(operation.payload)
+        toCookbookCreateRecipe(remoteRecipe)
       );
       const serverRecipe = await client.getRecipe(String(serverId));
       await removeLocalRecipe(operation.recipeId);
-      await saveLocalRecipe(
+      const saved = await saveLocalRecipe(
         withInferredCategory(
-          normalizeRecipe({
-            ...serverRecipe,
-            localMeta: operation.payload.localMeta
-          })
+          mergeServerRecipeWithLocalImages(serverRecipe, operation.payload)
         ),
         false
       );
+      flushedRecipes.push(saved);
       await deleteQueuedOperation(operation.id);
       continue;
     }
 
-    await client.updateRecipe(toCookbookRecipe(operation.payload));
-    await saveLocalRecipe(operation.payload, false);
+    await client.updateRecipe(
+      toCookbookRecipe(await prepareRecipeForNextcloud(operation.payload, client))
+    );
+    flushedRecipes.push(await saveLocalRecipe(operation.payload, false));
     await deleteQueuedOperation(operation.id);
   }
+
+  return flushedRecipes;
 }
 
 async function saveImportedRecipe(
@@ -348,14 +627,23 @@ async function saveImportedRecipe(
   action: "create" | "update"
 ) {
   if (!client) {
-    return saveLocalRecipe(localRecipe, false);
+    return action === "update"
+      ? updateRecipe(localRecipe, null)
+      : createRecipe(localRecipe, null);
   }
 
-  if (action === "update" && localRecipe.id && !localRecipe.id.startsWith("local-")) {
+  if (
+    action === "update" &&
+    localRecipe.id &&
+    !localRecipe.id.startsWith("local-")
+  ) {
     try {
       await client.updateRecipe(
         toCookbookRecipe(
-          sanitizeRecipeForNextcloud(getNextcloudImportRecipe(localRecipe, originalRecipe))
+          await prepareRecipeForNextcloud(
+            getNextcloudImportRecipe(localRecipe, originalRecipe),
+            client
+          )
         )
       );
       return saveLocalRecipe(localRecipe, false);
@@ -368,20 +656,15 @@ async function saveImportedRecipe(
 
   const serverId = await client.createRecipe(
     toCookbookCreateRecipe(
-      sanitizeRecipeForNextcloud(
-        getNextcloudImportRecipe(localRecipe, originalRecipe)
+      await prepareRecipeForNextcloud(
+        getNextcloudImportRecipe(localRecipe, originalRecipe),
+        client
       )
     )
   );
   const serverRecipe = await client.getRecipe(String(serverId));
   return saveLocalRecipe(
-    normalizeRecipe({
-      ...serverRecipe,
-      image: localRecipe.image,
-      imageUrl: localRecipe.imageUrl,
-      imagePlaceholderUrl: localRecipe.imagePlaceholderUrl,
-      localMeta: localRecipe.localMeta
-    }),
+    mergeServerRecipeWithLocalImages(serverRecipe, localRecipe),
     false
   );
 }
@@ -395,30 +678,79 @@ function getNextcloudImportRecipe(localRecipe: Recipe, originalRecipe: Recipe) {
   });
 }
 
-function sanitizeRecipeForNextcloud(recipe: Recipe) {
+async function prepareRecipeForNextcloud(
+  recipe: Recipe,
+  client?: CookbookClient | null
+) {
+  if (getExternalRecipeImageSource(recipe)) {
+    return sanitizeRecipeImagesForNextcloud(recipe);
+  }
+
+  const localImage = getLocalRecipeImage(recipe);
+  if (localImage && client) {
+    const remotePath = await client.uploadRecipeImage(localImage);
+    return normalizeRecipe({
+      ...recipe,
+      image: remotePath,
+      imageUrl: remotePath,
+      imagePlaceholderUrl: remotePath
+    });
+  }
+
+  if (!isRemoteImageReference(recipe.url)) {
+    return sanitizeRecipeImagesForNextcloud(recipe);
+  }
+
+  try {
+    const sourceRecipe = await importRecipeFromWeb(recipe.url);
+    const remoteImage = getExternalRecipeImageSource(sourceRecipe);
+    if (!remoteImage) {
+      return sanitizeRecipeImagesForNextcloud(recipe);
+    }
+
+    return sanitizeRecipeImagesForNextcloud(
+      normalizeRecipe({
+        ...recipe,
+        imageUrl: remoteImage,
+        imagePlaceholderUrl: remoteImage
+      })
+    );
+  } catch {
+    return sanitizeRecipeImagesForNextcloud(recipe);
+  }
+}
+
+function mergeServerRecipeWithLocalImages(
+  serverRecipe: Recipe,
+  localRecipe: Recipe
+) {
+  const localImage = getLocalRecipeImage(localRecipe);
+  const localRemoteImage = getRemoteRecipeImage(localRecipe);
+  const serverRemoteImage = getRemoteRecipeImage(serverRecipe);
+  const referenceImage = localRemoteImage || serverRemoteImage;
+
   return normalizeRecipe({
-    ...recipe,
-    image: getRemoteImageValue(recipe.image),
-    imageUrl: getRemoteImageValue(recipe.imageUrl),
-    imagePlaceholderUrl: getRemoteImageValue(recipe.imagePlaceholderUrl)
+    ...serverRecipe,
+    image: localImage || serverRecipe.image,
+    imageUrl: referenceImage || serverRecipe.imageUrl,
+    imagePlaceholderUrl: referenceImage || serverRecipe.imagePlaceholderUrl,
+    localMeta: localRecipe.localMeta
   });
 }
 
-function getRemoteImageValue(value: string) {
-  return /^https?:\/\//i.test(value) ? value : "";
-}
-
-export async function cacheRecipePhoto(recipe: Recipe) {
-  const image = recipe.image || recipe.imageUrl;
+export async function cacheRecipePhoto(
+  recipe: Recipe,
+  options?: { headers?: Record<string, string> }
+) {
+  const image = recipe.image || recipe.imageUrl || recipe.imagePlaceholderUrl;
   if (!image) {
     return recipe;
   }
 
-  const localImage = await persistRecipeImage(image);
-  return normalizeRecipe({
-    ...recipe,
-    image: localImage,
-    imageUrl: localImage,
-    imagePlaceholderUrl: localImage
-  });
+  try {
+    const localImage = await persistRecipeImage(image, options);
+    return withCachedRecipeImage(recipe, localImage);
+  } catch {
+    return recipe;
+  }
 }
