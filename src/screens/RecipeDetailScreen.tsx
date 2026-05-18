@@ -158,7 +158,13 @@ function RecipeDetailContent({
         <IconButton
           icon={ArrowLeft}
           label="Back"
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate("Recipes");
+            }
+          }}
         />
         <AppText variant="subtitle">{t("recipes.emptyTitle")}</AppText>
       </Screen>
@@ -172,7 +178,12 @@ function RecipeDetailContent({
         text: t("common.delete"),
         style: "destructive",
         onPress: () => {
-          void deleteRecipe(recipeId).then(() => navigation.goBack());
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          } else {
+            navigation.navigate("Recipes");
+          }
+          void deleteRecipe(recipeId);
         }
       }
     ]);
