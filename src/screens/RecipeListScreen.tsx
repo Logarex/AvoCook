@@ -148,11 +148,9 @@ export function RecipeListScreen({ navigation }: Props) {
     : credentials
       ? t("common.online")
       : t("common.offline");
-  const statusDetail = syncing
-    ? t("recipes.syncingRecipesShort")
-    : loading
-      ? t("recipes.loadingRecipes")
-      : undefined;
+  const statusDetail = loading
+    ? t("recipes.loadingRecipes")
+    : undefined;
 
   async function handleCreateCategory() {
     const normalized = newCategory.replace(/\s+/g, " ").trim();
@@ -200,7 +198,8 @@ export function RecipeListScreen({ navigation }: Props) {
             icon={RefreshCw}
             label={t("common.sync")}
             onPress={() => void sync()}
-            disabled={syncing || !credentials}
+            spinning={syncing}
+            disabled={!credentials}
             style={styles.headerIcon}
           />
           <IconButton
