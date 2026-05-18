@@ -230,6 +230,8 @@ export const resources = {
         privacy: "Confidentialité",
         secureStore:
           "Les identifiants restent dans le stockage sécurisé du téléphone.",
+        localNotice:
+          "Vos recettes restent stockées exclusivement sur cet appareil et ne sont envoyées à aucun serveur.",
         reindex: "Réindexer Cookbook",
         reindexConfirmTitle: "Réindexer le serveur ?",
         reindexConfirmBody:
@@ -502,6 +504,7 @@ export const resources = {
         localOnly: "Using without a Nextcloud account",
         privacy: "Privacy",
         secureStore: "Credentials stay in the phone secure storage.",
+        localNotice: "Your recipes are stored exclusively on this device and are not sent to any server.",
         reindex: "Reindex Cookbook",
         reindexConfirmTitle: "Reindex the server?",
         reindexConfirmBody:
@@ -780,6 +783,8 @@ export const resources = {
         privacy: "Datenschutz",
         secureStore:
           "Anmeldedaten bleiben im sicheren Speicher des Telefons.",
+        localNotice:
+          "Deine Rezepte werden ausschließlich auf diesem Gerät gespeichert und an keinen Server gesendet.",
         reindex: "Cookbook neu indizieren",
         reindexConfirmTitle: "Server neu indizieren?",
         reindexConfirmBody:
