@@ -36,8 +36,11 @@ export function PrimaryButton({
 
   return (
     <Pressable
+      accessibilityLabel={label}
       accessibilityRole="button"
+      accessibilityState={{ disabled }}
       disabled={disabled}
+      hitSlop={4}
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
@@ -73,7 +76,9 @@ const styles = StyleSheet.create({
   },
   content: {
     alignItems: "center",
+    flexShrink: 1,
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.xs,
     justifyContent: "center"
   },

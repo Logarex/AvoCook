@@ -32,6 +32,7 @@ export function TextField({
       <View style={styles.inputWrap}>
         <TextInput
           {...props}
+          accessibilityLabel={props.accessibilityLabel ?? label}
           multiline={multiline}
           placeholderTextColor={colors.textMuted}
           selectionColor={colors.primary}

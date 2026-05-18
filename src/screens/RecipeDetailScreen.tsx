@@ -117,7 +117,7 @@ function RecipeDetailFallback({ navigation }: { navigation: Props["navigation"] 
     <Screen>
       <IconButton
         icon={ArrowLeft}
-        label="Back"
+        label={t("common.back")}
         onPress={() => {
           if (navigation.canGoBack()) {
             navigation.goBack();
@@ -191,7 +191,7 @@ function RecipeDetailContent({
       <Screen>
         <IconButton
           icon={ArrowLeft}
-          label="Back"
+          label={t("common.back")}
           onPress={() => {
             if (navigation.canGoBack()) {
               navigation.goBack();
@@ -284,7 +284,7 @@ function RecipeDetailContent({
       <View style={styles.toolbar}>
         <IconButton
           icon={ArrowLeft}
-          label="Back"
+          label={t("common.back")}
           onPress={() => navigation.goBack()}
         />
         <View style={styles.toolbarActions}>
@@ -305,9 +305,20 @@ function RecipeDetailContent({
 
       <View style={[styles.heroImage, { backgroundColor: colors.chip }]}>
         {source ? (
-          <Image source={source} style={styles.image} contentFit="cover" />
+          <Image
+            accessibilityLabel={recipe.name}
+            accessibilityRole="image"
+            source={source}
+            style={styles.image}
+            contentFit="cover"
+          />
         ) : (
-          <AppText variant="title" style={{ color: colors.primary }}>
+          <AppText
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            variant="title"
+            style={{ color: colors.primary }}
+          >
             {recipe.name.slice(0, 1).toUpperCase()}
           </AppText>
         )}
@@ -553,8 +564,8 @@ function TimerSection({
                   icon={running ? Pause : Play}
                   label={
                     running
-                      ? t("recipes.timers.pause")
-                      : t("recipes.timers.start")
+                      ? `${preset.label}, ${t("recipes.timers.pause")}`
+                      : `${preset.label}, ${t("recipes.timers.start")}`
                   }
                   onPress={() => onToggle(preset.id)}
                   tone="primary"
@@ -563,8 +574,8 @@ function TimerSection({
                   icon={running || finished ? Square : RotateCcw}
                   label={
                     running || finished
-                      ? t("recipes.timers.stop")
-                      : t("recipes.timers.reset")
+                      ? `${preset.label}, ${t("recipes.timers.stop")}`
+                      : `${preset.label}, ${t("recipes.timers.reset")}`
                   }
                   onPress={() => onReset(preset.id)}
                 />
@@ -807,6 +818,7 @@ const styles = StyleSheet.create({
   healthHeader: {
     alignItems: "center",
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.md
   },
   metric: {
@@ -870,6 +882,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.sm
   },
   rowIndex: {
@@ -915,6 +928,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.md,
     justifyContent: "space-between",
     padding: spacing.sm
