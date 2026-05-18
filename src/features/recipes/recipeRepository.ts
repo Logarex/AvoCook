@@ -25,6 +25,7 @@ import {
 import {
   hasLocalMetadata,
   normalizeRecipe,
+  toCookbookCreateRecipe,
   toCookbookRecipe,
   type Recipe
 } from "./types";
@@ -62,7 +63,9 @@ export async function createRecipe(
   }
 
   try {
-    const serverId = await client.createRecipe(toCookbookRecipe(localRecipe));
+    const serverId = await client.createRecipe(
+      toCookbookCreateRecipe(localRecipe)
+    );
     const saved = await client.getRecipe(String(serverId));
     await removeLocalRecipe(localRecipe.id ?? "");
     return saveLocalRecipe(
@@ -315,7 +318,7 @@ async function flushSyncQueue(client: CookbookClient) {
       operation.recipeId.startsWith("local-")
     ) {
       const serverId = await client.createRecipe(
-        toCookbookRecipe(operation.payload)
+        toCookbookCreateRecipe(operation.payload)
       );
       const serverRecipe = await client.getRecipe(String(serverId));
       await removeLocalRecipe(operation.recipeId);
@@ -364,11 +367,10 @@ async function saveImportedRecipe(
   }
 
   const serverId = await client.createRecipe(
-    toCookbookRecipe(
-      sanitizeRecipeForNextcloud({
-        ...getNextcloudImportRecipe(localRecipe, originalRecipe),
-        id: null
-      })
+    toCookbookCreateRecipe(
+      sanitizeRecipeForNextcloud(
+        getNextcloudImportRecipe(localRecipe, originalRecipe)
+      )
     )
   );
   const serverRecipe = await client.getRecipe(String(serverId));
