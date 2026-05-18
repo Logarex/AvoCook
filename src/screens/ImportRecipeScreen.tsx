@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { ArrowLeft, Download } from "lucide-react-native";
-import React, { useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ArrowLeft, Download, Upload } from "lucide-react-native";
+import React, { useCallback, useState } from "react";
+import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -19,13 +19,13 @@ type Props = NativeStackScreenProps<RootStackParamList, "ImportRecipe">;
 export function ImportRecipeScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
-  const { importRecipe } = useRecipes();
+  const { importBackup, importRecipe } = useRecipes();
   const [url, setUrl] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, setSubmitting] = useState<"url" | "file" | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   async function handleImport() {
-    setSubmitting(true);
+    setSubmitting("url");
     setError(null);
     try {
       const recipe = await importRecipe(url);
@@ -37,9 +37,46 @@ export function ImportRecipeScreen({ navigation }: Props) {
     } catch {
       setError(t("importRecipe.failed"));
     } finally {
-      setSubmitting(false);
+      setSubmitting(null);
     }
   }
+
+  async function handlePickSharedFile() {
+    setSubmitting("file");
+    setError(null);
+    try {
+      const result = await importBackup();
+      showImportSuccess(result);
+      navigation.replace("Recipes");
+    } catch (error) {
+      if (!isPickerCancel(error)) {
+        setError(
+          error instanceof Error && error.message === "INVALID_RECIPE_BACKUP"
+            ? t("importRecipe.invalidFile")
+            : t("importRecipe.fileFailed")
+        );
+      }
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
+  const showImportSuccess = useCallback((result: {
+    created: number;
+    updated: number;
+    skipped: number;
+    renamed: number;
+  }) => {
+    Alert.alert(
+      t("importRecipe.fileImportedTitle"),
+      t("importRecipe.fileImportedBody", {
+        created: result.created,
+        updated: result.updated,
+        skipped: result.skipped,
+        renamed: result.renamed
+      })
+    );
+  }, [t]);
 
   return (
     <Screen contentStyle={styles.screen}>
@@ -70,10 +107,25 @@ export function ImportRecipeScreen({ navigation }: Props) {
           </AppText>
         ) : null}
         <PrimaryButton
-          disabled={!url.trim() || submitting}
+          disabled={!url.trim() || submitting !== null}
           icon={Download}
-          label={submitting ? t("common.loading") : t("importRecipe.action")}
+          label={submitting === "url" ? t("common.loading") : t("importRecipe.action")}
           onPress={() => void handleImport()}
+        />
+        <View style={styles.divider} />
+        <AppText muted variant="caption">
+          {t("importRecipe.sharedFileHint")}
+        </AppText>
+        <PrimaryButton
+          disabled={submitting !== null}
+          icon={Upload}
+          label={
+            submitting === "file"
+              ? t("common.loading")
+              : t("importRecipe.fileAction")
+          }
+          onPress={() => void handlePickSharedFile()}
+          variant="ghost"
         />
         {submitting ? <ActivityIndicator color={colors.primary} /> : null}
       </GlassPanel>
@@ -84,6 +136,10 @@ export function ImportRecipeScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   form: {
     gap: spacing.md
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    opacity: 0.5
   },
   screen: {
     justifyContent: "center"
@@ -97,3 +153,10 @@ const styles = StyleSheet.create({
     width: 44
   }
 });
+
+function isPickerCancel(error: unknown) {
+  return (
+    error instanceof Error &&
+    /cancel|aborted|dismiss/i.test(error.message)
+  );
+}

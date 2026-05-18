@@ -46,6 +46,27 @@ type CreateRecipeBackupOptions = {
   client?: CookbookClient | null;
 };
 
+async function mapWithConcurrency<T, R>(
+  items: T[],
+  concurrency: number,
+  mapper: (item: T, index: number) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R>(items.length);
+  let nextIndex = 0;
+  const workers = Array.from(
+    { length: Math.min(concurrency, items.length) },
+    async () => {
+      while (nextIndex < items.length) {
+        const currentIndex = nextIndex;
+        nextIndex += 1;
+        results[currentIndex] = await mapper(items[currentIndex], currentIndex);
+      }
+    }
+  );
+  await Promise.all(workers);
+  return results;
+}
+
 export async function createRecipeBackup({
   recipes,
   customCategories,
@@ -54,21 +75,28 @@ export async function createRecipeBackup({
 }: CreateRecipeBackupOptions): Promise<RecipeBackupExportResult> {
   const assets: Record<string, RecipeBackupImageAsset> = {};
   let skippedImageCount = 0;
-  const entries: RecipeBackupEntry[] = [];
 
-  for (const recipe of recipes) {
+  // Process recipe assets concurrently with a limit of 4
+  const entries = await mapWithConcurrency(recipes, 4, async (recipe) => {
     const normalizedRecipe = normalizeRecipe(recipe);
     const imageAsset = await collectRecipeImageAsset(normalizedRecipe, client);
+    return {
+      recipe: normalizedRecipe,
+      imageAsset
+    };
+  });
 
-    if (imageAsset) {
-      assets[imageAsset.id] = imageAsset;
-    } else if (hasImageReference(normalizedRecipe)) {
+  const finalEntries: RecipeBackupEntry[] = [];
+  for (const entry of entries) {
+    if (entry.imageAsset) {
+      assets[entry.imageAsset.id] = entry.imageAsset;
+    } else if (hasImageReference(entry.recipe)) {
       skippedImageCount += 1;
     }
 
-    entries.push({
-      recipe: normalizedRecipe,
-      imageAssetId: imageAsset?.id
+    finalEntries.push({
+      recipe: entry.recipe,
+      imageAssetId: entry.imageAsset?.id
     });
   }
 
@@ -77,7 +105,7 @@ export async function createRecipeBackup({
     schemaVersion: RECIPE_BACKUP_SCHEMA_VERSION,
     createdAt: new Date().toISOString(),
     source,
-    recipes: entries,
+    recipes: finalEntries,
     customCategories: Array.from(new Set(customCategories.map((item) => item.trim()).filter(Boolean))).sort((left, right) =>
       left.localeCompare(right)
     ),
@@ -159,7 +187,11 @@ export async function pickRecipeBackupFile() {
     throw new Error("NO_RECIPE_BACKUP_FILE");
   }
 
-  return parseRecipeBackup(await file.text());
+  return readRecipeBackupFile(file.uri);
+}
+
+export async function readRecipeBackupFile(uri: string) {
+  return parseRecipeBackup(await new File(uri).text());
 }
 
 function getRecipeBackupFilename(createdAt: string) {
