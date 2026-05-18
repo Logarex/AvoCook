@@ -1,6 +1,12 @@
 import { base64Encode } from "../../utils/base64";
 import { normalizeNextcloudUrl } from "../../utils/url";
-import type { Category, Keyword, Recipe, RecipeStub } from "../recipes/types";
+import {
+  toCookbookCreateRecipe,
+  type Category,
+  type Keyword,
+  type Recipe,
+  type RecipeStub
+} from "../recipes/types";
 
 export type NextcloudCredentials = {
   serverUrl: string;
@@ -132,7 +138,7 @@ export class CookbookClient {
   async createRecipe(recipe: Recipe) {
     return this.request<number | string>("/apps/cookbook/api/v1/recipes", {
       method: "POST",
-      body: JSON.stringify(recipe)
+      body: JSON.stringify(toCookbookCreateRecipe(recipe))
     });
   }
 
