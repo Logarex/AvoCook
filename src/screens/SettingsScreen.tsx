@@ -1,12 +1,16 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import {
+  AlertTriangle,
   ArrowLeft,
   Bell,
+  Database,
+  Download,
   Info,
   LogOut,
   RefreshCw,
-  ShieldCheck
+  ShieldCheck,
+  Upload
 } from "lucide-react-native";
 import React, { useState } from "react";
 import { Alert, Linking, StyleSheet, Switch, View } from "react-native";
@@ -35,7 +39,7 @@ export function SettingsScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors, mode, setMode } = useAppTheme();
   const { credentials, getClient, isLocalMode, logout } = useAuth();
-  const { recipes, sync } = useRecipes();
+  const { exportBackup, importBackup, recipes, sync } = useRecipes();
   const {
     keepRecipesLocal,
     keepScreenAwake,
@@ -45,6 +49,9 @@ export function SettingsScreen({ navigation }: Props) {
     setLanguage
   } = usePreferences();
   const [message, setMessage] = useState<string | null>(null);
+  const [backupAction, setBackupAction] = useState<"export" | "import" | null>(
+    null
+  );
   const [notificationState, setNotificationState] =
     useState<TimerNotificationState>("unavailable");
 
@@ -91,6 +98,82 @@ export function SettingsScreen({ navigation }: Props) {
 
   async function handleLogout() {
     await logout();
+  }
+
+  async function handleExportBackup() {
+    setBackupAction("export");
+    setMessage(null);
+    try {
+      const result = await exportBackup();
+      const successMessage = t("settings.backupExportDone", {
+        count: result.recipeCount,
+        images: result.imageCount
+      });
+      const skippedMessage =
+        result.skippedImageCount > 0
+          ? `\n${t("settings.backupExportPartial", {
+              count: result.skippedImageCount
+            })}`
+          : "";
+      setMessage(successMessage);
+      Alert.alert(t("settings.backupExportTitle"), `${successMessage}${skippedMessage}`);
+    } catch (error) {
+      if (isPickerCancel(error)) {
+        return;
+      }
+      Alert.alert(
+        t("settings.backupFailedTitle"),
+        error instanceof Error && error.message === "INVALID_RECIPE_BACKUP"
+          ? t("settings.backupInvalid")
+          : t("settings.backupFailed")
+      );
+    } finally {
+      setBackupAction(null);
+    }
+  }
+
+  function handleImportBackup() {
+    Alert.alert(
+      t("settings.backupImportConfirmTitle"),
+      t("settings.backupImportConfirmBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("settings.importBackup"),
+          onPress: () => {
+            void runImportBackup();
+          }
+        }
+      ]
+    );
+  }
+
+  async function runImportBackup() {
+    setBackupAction("import");
+    setMessage(null);
+    try {
+      const result = await importBackup();
+      const successMessage = t("settings.backupImportDone", {
+        created: result.created,
+        updated: result.updated,
+        skipped: result.skipped,
+        renamed: result.renamed
+      });
+      setMessage(successMessage);
+      Alert.alert(t("settings.backupImportTitle"), successMessage);
+    } catch (error) {
+      if (isPickerCancel(error)) {
+        return;
+      }
+      Alert.alert(
+        t("settings.backupFailedTitle"),
+        error instanceof Error && error.message === "INVALID_RECIPE_BACKUP"
+          ? t("settings.backupInvalid")
+          : t("settings.backupFailed")
+      );
+    } finally {
+      setBackupAction(null);
+    }
   }
 
   return (
@@ -175,6 +258,54 @@ export function SettingsScreen({ navigation }: Props) {
 
       <GlassPanel style={styles.section}>
         <View style={styles.serverHeader}>
+          <Database color={colors.primary} size={22} />
+          <AppText variant="label">{t("settings.dataBackup")}</AppText>
+        </View>
+        {isLocalMode ? (
+          <View style={styles.warningRow}>
+            <AlertTriangle color={colors.danger} size={20} />
+            <AppText style={styles.warningText}>
+              {t("settings.localDeleteWarning")}
+            </AppText>
+          </View>
+        ) : null}
+        <AppText muted variant="caption">
+          {t(
+            isLocalMode
+              ? "settings.dataBackupLocalBody"
+              : "settings.dataBackupNextcloudBody"
+          )}
+        </AppText>
+        <View style={styles.backupActions}>
+          <PrimaryButton
+            disabled={backupAction !== null}
+            icon={Download}
+            label={
+              backupAction === "export"
+                ? t("common.loading")
+                : t("settings.exportBackup")
+            }
+            onPress={() => void handleExportBackup()}
+            style={styles.backupButton}
+            variant="ghost"
+          />
+          <PrimaryButton
+            disabled={backupAction !== null}
+            icon={Upload}
+            label={
+              backupAction === "import"
+                ? t("common.loading")
+                : t("settings.importBackup")
+            }
+            onPress={() => handleImportBackup()}
+            style={styles.backupButton}
+            variant="ghost"
+          />
+        </View>
+      </GlassPanel>
+
+      <GlassPanel style={styles.section}>
+        <View style={styles.serverHeader}>
           <ShieldCheck color={colors.primary} size={22} />
           <AppText variant="label">
             {isLocalMode ? t("settings.localMode") : t("settings.server")}
@@ -232,6 +363,15 @@ const styles = StyleSheet.create({
   actions: {
     gap: spacing.sm
   },
+  backupActions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm
+  },
+  backupButton: {
+    flex: 1,
+    minWidth: 150
+  },
   rowSection: {
     alignItems: "center",
     flexDirection: "row",
@@ -256,5 +396,20 @@ const styles = StyleSheet.create({
   },
   toolbarSpacer: {
     width: 44
+  },
+  warningRow: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: spacing.xs
+  },
+  warningText: {
+    flex: 1
   }
 });
+
+function isPickerCancel(error: unknown) {
+  return (
+    error instanceof Error &&
+    /cancel|aborted|dismiss/i.test(error.message)
+  );
+}

@@ -14,12 +14,20 @@ import {
   clearSyncedLocalRecipes,
   createRecipe as createRecipeInRepository,
   deleteRecipe as deleteRecipeInRepository,
+  exportRecipeBackup,
+  importRecipeBackup,
   importRecipe as importRecipeInRepository,
   initialiseRecipeStore,
   syncRecipes,
   updateRecipeLocalPreferences,
   updateRecipe as updateRecipeInRepository
 } from "./recipeRepository";
+import {
+  pickRecipeBackupFile,
+  writeRecipeBackupToPickedDirectory,
+  type RecipeBackupExportResult
+} from "./recipeBackup";
+import type { RecipeBackupImportResult } from "./recipeRepository";
 import type { Recipe } from "./types";
 
 type RecipesContextValue = {
@@ -36,6 +44,8 @@ type RecipesContextValue = {
   updateRecipePreferences: (recipe: Recipe) => Promise<Recipe>;
   deleteRecipe: (id: string) => Promise<void>;
   importRecipe: (url: string) => Promise<Recipe>;
+  exportBackup: () => Promise<RecipeBackupExportResult & { fileUri: string }>;
+  importBackup: () => Promise<RecipeBackupImportResult>;
   createCategory: (category: string) => Promise<string[]>;
 };
 
@@ -158,6 +168,25 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     [getClient]
   );
 
+  const exportBackup = useCallback(async () => {
+    const result = await exportRecipeBackup({
+      client: getClient(),
+      customCategories,
+      isLocalMode
+    });
+    const fileUri = await writeRecipeBackupToPickedDirectory(result.backup);
+    setRecipes(await initialiseRecipeStore());
+    return { ...result, fileUri };
+  }, [customCategories, getClient, isLocalMode]);
+
+  const importBackup = useCallback(async () => {
+    const backup = await pickRecipeBackupFile();
+    const result = await importRecipeBackup(backup, getClient());
+    setRecipes(result.recipes);
+    setCustomCategories(await loadCustomCategories());
+    return result;
+  }, [getClient]);
+
   const createCategory = useCallback(async (category: string) => {
     const nextCategories = await saveCustomCategory(category);
     setCustomCategories(nextCategories);
@@ -184,6 +213,8 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       updateRecipePreferences,
       deleteRecipe,
       importRecipe,
+      exportBackup,
+      importBackup,
       createCategory
     }),
     [
@@ -200,6 +231,8 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       updateRecipePreferences,
       deleteRecipe,
       importRecipe,
+      exportBackup,
+      importBackup,
       createCategory
     ]
   );
