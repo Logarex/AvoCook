@@ -1,5 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
+  AlertTriangle,
   ChefHat,
   Eye,
   EyeOff,
@@ -156,6 +157,12 @@ export function LoginScreen(_props: Props) {
           onPress={() => void startLocalMode()}
           variant="ghost"
         />
+        <View style={styles.localWarning}>
+          <AlertTriangle color={colors.danger} size={18} />
+          <AppText muted variant="caption" style={styles.localWarningText}>
+            {t("auth.localDataWarning")}
+          </AppText>
+        </View>
         {submitting ? <ActivityIndicator color={colors.primary} /> : null}
       </GlassPanel>
 
@@ -220,5 +227,13 @@ const styles = StyleSheet.create({
   },
   languagePicker: {
     marginTop: spacing.md
+  },
+  localWarning: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: spacing.xs
+  },
+  localWarningText: {
+    flex: 1
   }
 });
