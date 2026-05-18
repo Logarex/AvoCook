@@ -728,7 +728,7 @@ export const resources = {
           "Manuell hinzugefügte Fotos werden in den App-Speicher kopiert, damit sie offline verfügbar bleiben."
       }
     }
-  }
+  },
   es: {
     translation: {
       common: {
