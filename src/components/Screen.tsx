@@ -15,6 +15,7 @@ import {
 import { ArrowUp } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useReducedMotion } from "../features/accessibility/useReducedMotion";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
@@ -37,6 +38,7 @@ export function Screen({
   const [scrolledPastTop, setScrolledPastTop] = React.useState(false);
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const reducedMotion = useReducedMotion();
   const content = (
     <View style={[styles.content, contentStyle]}>{children}</View>
   );
@@ -80,8 +82,9 @@ export function Screen({
               <Pressable
                 accessibilityLabel={t("common.backToTop")}
                 accessibilityRole="button"
+                hitSlop={6}
                 onPress={() =>
-                  scrollRef.current?.scrollTo({ y: 0, animated: true })
+                  scrollRef.current?.scrollTo({ y: 0, animated: !reducedMotion })
                 }
                 style={({ pressed }) => [
                   styles.scrollTopButton,

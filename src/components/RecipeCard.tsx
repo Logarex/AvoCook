@@ -33,9 +33,16 @@ export function RecipeCard({
       }
     : null;
   const totalTime = humanDuration(recipe.totalTime || recipe.prepTime);
+  const accessibilityParts = [
+    recipe.name,
+    recipe.description,
+    totalTime,
+    recipe.recipeCategory
+  ].filter(Boolean);
 
   return (
     <Pressable
+      accessibilityLabel={accessibilityParts.join(", ")}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
@@ -49,9 +56,19 @@ export function RecipeCard({
     >
       <View style={[styles.imageWrap, { backgroundColor: colors.chip }]}>
         {imageSource ? (
-          <Image source={imageSource} style={styles.image} contentFit="cover" />
+          <Image
+            accessible={false}
+            source={imageSource}
+            style={styles.image}
+            contentFit="cover"
+          />
         ) : (
-          <AppText variant="subtitle" style={{ color: colors.primary }}>
+          <AppText
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            variant="subtitle"
+            style={{ color: colors.primary }}
+          >
             {recipe.name.slice(0, 1).toUpperCase()}
           </AppText>
         )}

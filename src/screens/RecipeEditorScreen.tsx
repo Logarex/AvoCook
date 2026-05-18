@@ -206,7 +206,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
       <View style={styles.toolbar}>
         <IconButton
           icon={ArrowLeft}
-          label="Back"
+          label={t("common.back")}
           onPress={() => navigation.goBack()}
         />
         <AppText variant="subtitle">
@@ -225,6 +225,8 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
       {photoUrl ? (
         <View style={styles.photoPreview}>
           <ExpoImage
+            accessibilityLabel={name || t("editor.photoUrl")}
+            accessibilityRole="image"
             source={{ uri: photoUrl }}
             style={styles.photo}
             contentFit="cover"
@@ -276,6 +278,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           {categorySuggestions.map((suggestion) => (
             <Pressable
               key={suggestion}
+              accessibilityLabel={suggestion}
               accessibilityRole="button"
               onPress={() => setCategory(suggestion)}
               style={({ pressed }) => [
@@ -409,7 +412,11 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         />
       </View>
 
-      {error ? <AppText style={{ color: colors.danger }}>{error}</AppText> : null}
+      {error ? (
+        <AppText accessibilityRole="alert" style={{ color: colors.danger }}>
+          {error}
+        </AppText>
+      ) : null}
 
       <PrimaryButton
         disabled={saving}
@@ -490,10 +497,12 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.sm
   },
   rowItem: {
-    flex: 1
+    flex: 1,
+    minWidth: 150
   },
   suggestionChip: {
     borderRadius: 999,

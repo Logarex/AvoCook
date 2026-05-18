@@ -31,7 +31,7 @@ export function PrivacyScreen({ navigation }: Props) {
       <View style={styles.toolbar}>
         <IconButton
           icon={ArrowLeft}
-          label="Back"
+          label={t("common.back")}
           onPress={() => navigation.goBack()}
         />
         <AppText variant="subtitle">{t("privacy.title")}</AppText>

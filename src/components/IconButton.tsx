@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react-native";
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
+import { useReducedMotion } from "../features/accessibility/useReducedMotion";
 import { radius } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
@@ -24,12 +25,13 @@ export function IconButton({
   style
 }: IconButtonProps) {
   const { colors } = useAppTheme();
+  const reducedMotion = useReducedMotion();
   
   const spinValue = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     let animation: Animated.CompositeAnimation | null = null;
-    if (spinning) {
+    if (spinning && !reducedMotion) {
       spinValue.setValue(0);
       animation = Animated.loop(
         Animated.timing(spinValue, {
@@ -46,7 +48,7 @@ export function IconButton({
     return () => {
       animation?.stop();
     };
-  }, [spinning, spinValue]);
+  }, [reducedMotion, spinning, spinValue]);
 
   const spin = spinValue.interpolate({
     inputRange: [0, 1],
@@ -66,7 +68,9 @@ export function IconButton({
     <Pressable
       accessibilityLabel={label}
       accessibilityRole="button"
+      accessibilityState={{ busy: spinning, disabled: isButtonDisabled }}
       disabled={isButtonDisabled}
+      hitSlop={6}
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
