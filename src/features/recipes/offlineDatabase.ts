@@ -63,6 +63,14 @@ export async function loadLocalRecipes() {
   return rows.map((row) => normalizeRecipe(JSON.parse(row.payload) as Recipe));
 }
 
+export async function loadDirtyLocalRecipes() {
+  const db = await dbPromise;
+  const rows = await db.getAllAsync<RecipeRow>(
+    "SELECT * FROM recipes WHERE deleted = 0 AND dirty = 1 ORDER BY updated_at DESC"
+  );
+  return rows.map((row) => normalizeRecipe(JSON.parse(row.payload) as Recipe));
+}
+
 export async function saveLocalRecipe(
   recipe: Recipe,
   dirty = false,
@@ -111,6 +119,37 @@ export async function enqueueSyncOperation(
   payload: Recipe | null
 ) {
   const db = await dbPromise;
+
+  if (operation === "delete") {
+    await db.runAsync("DELETE FROM sync_queue WHERE recipe_id = ?", recipeId);
+  } else if (operation === "create") {
+    await db.runAsync(
+      "DELETE FROM sync_queue WHERE recipe_id = ? AND operation IN ('create', 'update')",
+      recipeId
+    );
+  } else {
+    const queuedCreates = await db.getAllAsync<QueueRow>(
+      "SELECT * FROM sync_queue WHERE recipe_id = ? AND operation = 'create' ORDER BY id ASC",
+      recipeId
+    );
+    const queuedCreate = queuedCreates[0];
+
+    await db.runAsync(
+      "DELETE FROM sync_queue WHERE recipe_id = ? AND operation = 'update'",
+      recipeId
+    );
+
+    if (queuedCreate) {
+      await db.runAsync(
+        "UPDATE sync_queue SET payload = ?, created_at = ? WHERE id = ?",
+        payload ? JSON.stringify(payload) : null,
+        new Date().toISOString(),
+        queuedCreate.id
+      );
+      return;
+    }
+  }
+
   await db.runAsync(
     `INSERT INTO sync_queue (operation, recipe_id, payload, created_at)
      VALUES (?, ?, ?, ?)`,
@@ -141,6 +180,11 @@ export async function listQueuedOperations() {
 export async function deleteQueuedOperation(id: number) {
   const db = await dbPromise;
   await db.runAsync("DELETE FROM sync_queue WHERE id = ?", id);
+}
+
+export async function deleteQueuedOperationsForRecipe(recipeId: string) {
+  const db = await dbPromise;
+  await db.runAsync("DELETE FROM sync_queue WHERE recipe_id = ?", recipeId);
 }
 
 export async function clearLocalRecipeCache() {
