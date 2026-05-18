@@ -105,32 +105,28 @@ export function createEmptyRecipe(): Recipe {
 
 export function normalizeRecipe(input: Partial<Recipe>): Recipe {
   const empty = createEmptyRecipe();
+  const raw = input as Record<string, unknown>;
+  const recipeYield = normalizePositiveInteger(raw.recipeYield, empty.recipeYield);
   return {
     ...empty,
     ...input,
     "@type": "Recipe",
-    id: input.id ?? null,
-    name: input.name?.trim() || empty.name,
-    description: input.description ?? "",
-    url: input.url ?? "",
-    image: input.image ?? "",
-    imageUrl: input.imageUrl ?? "",
-    imagePlaceholderUrl: input.imagePlaceholderUrl ?? "",
-    keywords: Array.isArray(input.keywords)
-      ? input.keywords.join(",")
-      : input.keywords ?? "",
-    prepTime: input.prepTime ?? null,
-    cookTime: input.cookTime ?? null,
-    totalTime: input.totalTime ?? null,
-    recipeYield: Number(input.recipeYield || 1),
-    recipeCategory: input.recipeCategory ?? "",
-    tool: Array.isArray(input.tool) ? input.tool : [],
-    recipeIngredient: Array.isArray(input.recipeIngredient)
-      ? input.recipeIngredient
-      : [],
-    recipeInstructions: Array.isArray(input.recipeInstructions)
-      ? input.recipeInstructions
-      : [],
+    id: raw.id === null || raw.id === undefined ? null : String(raw.id),
+    name: toRecipeString(raw.name).trim() || empty.name,
+    description: toRecipeString(raw.description),
+    url: toRecipeString(raw.url),
+    image: normalizeImageValue(raw.image),
+    imageUrl: normalizeImageValue(raw.imageUrl),
+    imagePlaceholderUrl: normalizeImageValue(raw.imagePlaceholderUrl),
+    keywords: normalizeKeywords(raw.keywords),
+    prepTime: normalizeNullableString(raw.prepTime),
+    cookTime: normalizeNullableString(raw.cookTime),
+    totalTime: normalizeNullableString(raw.totalTime),
+    recipeYield,
+    recipeCategory: toRecipeString(raw.recipeCategory),
+    tool: normalizeRecipeStringArray(raw.tool),
+    recipeIngredient: normalizeRecipeStringArray(raw.recipeIngredient),
+    recipeInstructions: normalizeRecipeInstructions(raw.recipeInstructions),
     nutrition: input.nutrition ?? { "@type": "NutritionInformation" },
     localMeta: normalizeLocalMeta(input.localMeta)
   };
@@ -201,4 +197,120 @@ function hasMeaningfulLocalMeta(localMeta: RecipeLocalMeta) {
       localMeta.servingOverride ||
       (localMeta.timers && localMeta.timers.length > 0)
   );
+}
+
+function normalizeRecipeInstructions(value: unknown): string[] {
+  if (!value) {
+    return [];
+  }
+
+  if (typeof value === "string") {
+    return splitRecipeText(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap(normalizeRecipeInstructions);
+  }
+
+  if (typeof value === "object") {
+    const node = value as Record<string, unknown>;
+    if (node.itemListElement) {
+      return normalizeRecipeInstructions(node.itemListElement);
+    }
+
+    return splitRecipeText(
+      toRecipeString(node.text || node.name || node.description)
+    );
+  }
+
+  return splitRecipeText(String(value));
+}
+
+function normalizeRecipeStringArray(value: unknown): string[] {
+  if (!value) {
+    return [];
+  }
+
+  if (typeof value === "string") {
+    return splitRecipeText(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.flatMap(normalizeRecipeStringArray);
+  }
+
+  if (typeof value === "object") {
+    const node = value as Record<string, unknown>;
+    return splitRecipeText(toRecipeString(node.name || node.text || node.value));
+  }
+
+  return splitRecipeText(String(value));
+}
+
+function normalizeKeywords(value: unknown) {
+  if (Array.isArray(value)) {
+    return normalizeRecipeStringArray(value).join(",");
+  }
+  return toRecipeString(value);
+}
+
+function normalizeNullableString(value: unknown) {
+  const normalized = toRecipeString(value);
+  return normalized || null;
+}
+
+function normalizeImageValue(value: unknown): string {
+  if (!value) {
+    return "";
+  }
+
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    return normalizeImageValue(value[0]);
+  }
+
+  if (typeof value === "object") {
+    const node = value as Record<string, unknown>;
+    return toRecipeString(node.url || node.contentUrl || node["@id"]);
+  }
+
+  return String(value);
+}
+
+function normalizePositiveInteger(value: unknown, fallback: number) {
+  const parsed =
+    typeof value === "number"
+      ? value
+      : Number.parseInt(toRecipeString(value), 10);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed) : fallback;
+}
+
+function toRecipeString(value: unknown): string {
+  if (!value) {
+    return "";
+  }
+  if (typeof value === "string") {
+    return value.trim();
+  }
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (Array.isArray(value)) {
+    return value.map(toRecipeString).filter(Boolean).join(", ");
+  }
+  if (typeof value === "object") {
+    const node = value as Record<string, unknown>;
+    return toRecipeString(node.name || node.text || node.value || node.url);
+  }
+  return String(value);
+}
+
+function splitRecipeText(value: string): string[] {
+  return value
+    .split(/\r?\n|(?:<br\s*\/?>)/i)
+    .map((item) => item.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
 }

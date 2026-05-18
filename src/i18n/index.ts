@@ -36,6 +36,8 @@ export const resources = {
         insecureUrl:
           "Utilisez HTTPS, sauf pour localhost pendant le développement.",
         failed: "Connexion impossible. Vérifiez le serveur et l'app password.",
+        certificateError:
+          "Connexion réseau/TLS impossible. Si votre serveur utilise un certificat auto-signé, installez et approuvez son autorité de certification sur l'appareil, ou utilisez un certificat public valide.",
         useLocal: "Utiliser sans Nextcloud",
         showPassword: "Afficher le mot de passe",
         hidePassword: "Masquer le mot de passe",
@@ -68,6 +70,9 @@ export const resources = {
         title: "Recettes",
         emptyTitle: "Aucune recette",
         emptyBody: "Ajoutez une recette ou synchronisez votre Cookbook.",
+        openFailedTitle: "Recette impossible à ouvrir",
+        openFailedBody:
+          "Cette recette contient des données inattendues. Elle reste conservée ; revenez à la liste puis relancez une synchronisation.",
         ingredients: "Ingrédients",
         instructions: "Étapes",
         tools: "Ustensiles",
@@ -308,6 +313,8 @@ export const resources = {
         invalidUrl: "Invalid Nextcloud address.",
         insecureUrl: "Use HTTPS except localhost during development.",
         failed: "Unable to sign in. Check the server and app password.",
+        certificateError:
+          "Network/TLS connection failed. If your server uses a self-signed certificate, install and trust its certificate authority on the device, or use a valid public certificate.",
         useLocal: "Use without Nextcloud",
         showPassword: "Show password",
         hidePassword: "Hide password",
@@ -340,6 +347,9 @@ export const resources = {
         title: "Recipes",
         emptyTitle: "No recipes",
         emptyBody: "Add a recipe or sync your Cookbook.",
+        openFailedTitle: "Recipe could not be opened",
+        openFailedBody:
+          "This recipe contains unexpected data. It has not been deleted; go back to the list and sync again.",
         ingredients: "Ingredients",
         instructions: "Steps",
         tools: "Tools",
@@ -577,6 +587,8 @@ export const resources = {
           "Verwende HTTPS, außer für localhost während der Entwicklung.",
         failed:
           "Anmeldung fehlgeschlagen. Prüfe Server und App-Passwort.",
+        certificateError:
+          "Netzwerk-/TLS-Verbindung fehlgeschlagen. Wenn dein Server ein selbstsigniertes Zertifikat nutzt, installiere und vertraue der Zertifizierungsstelle auf dem Gerät oder nutze ein gültiges öffentliches Zertifikat.",
         useLocal: "Ohne Nextcloud verwenden",
         showPassword: "Passwort anzeigen",
         hidePassword: "Passwort verbergen",
@@ -609,6 +621,9 @@ export const resources = {
         title: "Rezepte",
         emptyTitle: "Keine Rezepte",
         emptyBody: "Füge ein Rezept hinzu oder synchronisiere dein Cookbook.",
+        openFailedTitle: "Rezept konnte nicht geöffnet werden",
+        openFailedBody:
+          "Dieses Rezept enthält unerwartete Daten. Es wurde nicht gelöscht; gehe zurück zur Liste und synchronisiere erneut.",
         ingredients: "Zutaten",
         instructions: "Schritte",
         tools: "Werkzeuge",
