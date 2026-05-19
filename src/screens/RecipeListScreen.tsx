@@ -8,11 +8,13 @@ import {
   Plus,
   RefreshCw,
   Settings,
+  Trash2,
   X
 } from "lucide-react-native";
 import React, { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Modal,
   NativeScrollEvent,
@@ -24,6 +26,7 @@ import {
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
+import { BottomNavigation } from "../components/BottomNavigation";
 import { ConnectionStatus } from "../components/ConnectionStatus";
 import { EmptyState } from "../components/EmptyState";
 import { GlassPanel } from "../components/GlassPanel";
@@ -57,6 +60,7 @@ export function RecipeListScreen({ navigation }: Props) {
   const {
     createCategory,
     customCategories,
+    deleteCategory,
     recipes,
     loading,
     syncing,
@@ -164,6 +168,34 @@ export function RecipeListScreen({ navigation }: Props) {
     setShowCategoryPicker(false);
     setNewCategory("");
     setShowCategoryCreator(false);
+  }
+
+  function handleDeleteCategory(categoryName: string, count: number) {
+    if (count > 0) {
+      Alert.alert(
+        t("recipes.categoryHasRecipesTitle"),
+        t("recipes.categoryHasRecipesBody", { category: categoryName, count })
+      );
+      return;
+    }
+
+    Alert.alert(
+      t("recipes.deleteCategoryConfirmTitle"),
+      t("recipes.deleteCategoryConfirmBody", { category: categoryName }),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: () => {
+            if (category === categoryName) {
+              setCategory(null);
+            }
+            void deleteCategory(categoryName);
+          }
+        }
+      ]
+    );
   }
 
   function handleRecipeListScroll(
@@ -350,13 +382,24 @@ export function RecipeListScreen({ navigation }: Props) {
       <CategoryPickerModal
         category={category}
         categoryOptions={categoryOptions}
+        customCategories={customCategories}
         onClose={() => setShowCategoryPicker(false)}
+        onDeleteCategory={handleDeleteCategory}
         onSelect={(nextCategory) => {
           setCategory(nextCategory);
           setShowCategoryPicker(false);
         }}
         title={categoryPickerLabel}
         visible={showCategoryPicker}
+      />
+
+      <BottomNavigation
+        current="recipes"
+        onNavigate={(tab) => {
+          if (tab === "shoppingList") {
+            navigation.replace("ShoppingList");
+          }
+        }}
       />
     </Screen>
   );
@@ -444,14 +487,18 @@ function MoreCategoryChip({ onPress }: { onPress: () => void }) {
 function CategoryPickerModal({
   category,
   categoryOptions,
+  customCategories,
   onClose,
+  onDeleteCategory,
   onSelect,
   title,
   visible
 }: {
   category: string | null;
   categoryOptions: CategoryOption[];
+  customCategories: string[];
   onClose: () => void;
+  onDeleteCategory: (category: string, count: number) => void;
   onSelect: (category: string | null) => void;
   title: string;
   visible: boolean;
@@ -459,6 +506,10 @@ function CategoryPickerModal({
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const reducedMotion = useReducedMotion();
+  const customCategorySet = useMemo(
+    () => new Set(customCategories),
+    [customCategories]
+  );
   return (
     <Modal
       animationType={reducedMotion ? "none" : "slide"}
@@ -483,47 +534,66 @@ function CategoryPickerModal({
             showsVerticalScrollIndicator={false}
           >
             {categoryOptions.map((item) => (
-              <Pressable
+              <View
                 key={item.id ?? "all"}
-                accessibilityLabel={`${item.label}, ${item.count}`}
-                accessibilityRole="button"
-                accessibilityState={{ selected: category === item.id }}
-                onPress={() => onSelect(item.id)}
-                style={({ pressed }) => [
+                style={[
                   styles.categoryGridItem,
                   {
                     backgroundColor:
                       category === item.id ? colors.primary : colors.chip,
                     borderColor:
-                      category === item.id ? colors.primary : colors.border,
-                    opacity: pressed ? 0.78 : 1
+                      category === item.id ? colors.primary : colors.border
                   }
                 ]}
               >
-                {category === item.id ? (
-                  <Check color={colors.textInverted} size={17} strokeWidth={3} />
+                <Pressable
+                  accessibilityLabel={`${item.label}, ${item.count}`}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: category === item.id }}
+                  onPress={() => onSelect(item.id)}
+                  style={({ pressed }) => [
+                    styles.categoryGridSelect,
+                    { opacity: pressed ? 0.78 : 1 }
+                  ]}
+                >
+                  {category === item.id ? (
+                    <Check
+                      color={colors.textInverted}
+                      size={17}
+                      strokeWidth={3}
+                    />
+                  ) : null}
+                  <AppText
+                    variant="label"
+                    style={{
+                      color:
+                        category === item.id ? colors.textInverted : colors.text
+                    }}
+                  >
+                    {item.label}
+                  </AppText>
+                  <AppText
+                    variant="caption"
+                    style={{
+                      color:
+                        category === item.id
+                          ? colors.textInverted
+                          : colors.textMuted
+                    }}
+                  >
+                    {item.count}
+                  </AppText>
+                </Pressable>
+                {item.id && customCategorySet.has(item.id) ? (
+                  <IconButton
+                    icon={Trash2}
+                    label={t("recipes.deleteCategory")}
+                    onPress={() => onDeleteCategory(item.id ?? "", item.count)}
+                    tone="danger"
+                    style={styles.categoryDeleteButton}
+                  />
                 ) : null}
-                <AppText
-                  variant="label"
-                  style={{
-                    color:
-                      category === item.id ? colors.textInverted : colors.text
-                  }}
-                >
-                  {item.label}
-                </AppText>
-                <AppText
-                  variant="caption"
-                  style={{
-                    color:
-                      category === item.id
-                        ? colors.textInverted
-                        : colors.textMuted
-                  }}
-                >
-                  {item.count}
-                </AppText>
-              </Pressable>
+              </View>
             ))}
           </ScrollView>
         </GlassPanel>
@@ -615,10 +685,21 @@ const styles = StyleSheet.create({
   categoryGridItem: {
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
-    gap: spacing.xxs,
+    flexDirection: "row",
+    gap: spacing.xs,
     minHeight: 58,
-    padding: spacing.sm,
+    padding: spacing.xs,
     width: "48%"
+  },
+  categoryGridSelect: {
+    flex: 1,
+    gap: spacing.xxs,
+    justifyContent: "center",
+    minWidth: 0
+  },
+  categoryDeleteButton: {
+    height: 38,
+    width: 38
   },
   header: {
     alignItems: "center",
@@ -683,7 +764,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
-    bottom: spacing.md,
+    bottom: 104,
     height: 42,
     justifyContent: "center",
     position: "absolute",

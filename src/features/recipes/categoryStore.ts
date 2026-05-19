@@ -48,6 +48,26 @@ export async function saveCustomCategory(category: string) {
   return nextCategories;
 }
 
+export async function deleteCustomCategory(category: string) {
+  const normalized = normalizeCategoryName(category);
+  if (!normalized || DEFAULT_RECIPE_CATEGORIES.includes(normalized)) {
+    return loadCustomCategories();
+  }
+
+  const nextCategories = (await loadCustomCategories()).filter(
+    (categoryName) => categoryName !== normalized
+  );
+  await AsyncStorage.setItem(
+    CUSTOM_CATEGORIES_KEY,
+    JSON.stringify(
+      nextCategories.filter(
+        (categoryName) => !DEFAULT_RECIPE_CATEGORIES.includes(categoryName)
+      )
+    )
+  );
+  return nextCategories;
+}
+
 export async function saveCustomCategories(categories: string[]) {
   const storedCategories = (await loadCustomCategories()).filter(
     (categoryName) => !DEFAULT_RECIPE_CATEGORIES.includes(categoryName)

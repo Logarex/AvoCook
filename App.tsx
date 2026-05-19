@@ -11,6 +11,7 @@ import { AppText } from "./src/components/AppText";
 import { AuthProvider, useAuth } from "./src/features/auth/AuthProvider";
 import { PreferencesProvider } from "./src/features/preferences/PreferencesProvider";
 import { RecipesProvider } from "./src/features/recipes/RecipesProvider";
+import { ShoppingListProvider } from "./src/features/shopping/ShoppingListProvider";
 import { TimersProvider } from "./src/features/timers/TimersProvider";
 import { useReducedMotion } from "./src/features/accessibility/useReducedMotion";
 import type { RootStackParamList } from "./src/navigation/types";
@@ -20,6 +21,7 @@ import { RecipeDetailScreen } from "./src/screens/RecipeDetailScreen";
 import { RecipeEditorScreen } from "./src/screens/RecipeEditorScreen";
 import { RecipeListScreen } from "./src/screens/RecipeListScreen";
 import { SettingsScreen } from "./src/screens/SettingsScreen";
+import { ShoppingListScreen } from "./src/screens/ShoppingListScreen";
 import { PrivacyScreen } from "./src/screens/PrivacyScreen";
 import { AppThemeProvider, useAppTheme } from "./src/theme/ThemeProvider";
 
@@ -33,9 +35,11 @@ export default function App() {
           <PreferencesProvider>
             <AuthProvider>
               <RecipesProvider>
-                <TimersProvider>
-                  <RootNavigator />
-                </TimersProvider>
+                <ShoppingListProvider>
+                  <TimersProvider>
+                    <RootNavigator />
+                  </TimersProvider>
+                </ShoppingListProvider>
               </RecipesProvider>
             </AuthProvider>
           </PreferencesProvider>
@@ -73,10 +77,14 @@ function RootNavigator() {
       <StatusBar style={isDark ? "light" : "dark"} />
       <NavigationContainer theme={navTheme}>
         <Stack.Navigator
-          screenOptions={{
-            animation: reducedMotion ? "none" : "slide_from_right",
+          screenOptions={({ route }) => ({
+            animation: reducedMotion
+              ? "none"
+              : isPrimaryTabRoute(route.name)
+                ? "fade"
+                : "slide_from_right",
             headerShown: false
-          }}
+          })}
         >
           {credentials || isLocalMode ? (
             <>
@@ -84,6 +92,7 @@ function RootNavigator() {
               <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
               <Stack.Screen name="RecipeEditor" component={RecipeEditorScreen} />
               <Stack.Screen name="ImportRecipe" component={ImportRecipeScreen} />
+              <Stack.Screen name="ShoppingList" component={ShoppingListScreen} />
               <Stack.Screen name="Settings" component={SettingsScreen} />
               <Stack.Screen name="Privacy" component={PrivacyScreen} />
             </>
@@ -94,6 +103,10 @@ function RootNavigator() {
       </NavigationContainer>
     </>
   );
+}
+
+function isPrimaryTabRoute(routeName: keyof RootStackParamList) {
+  return routeName === "Recipes" || routeName === "ShoppingList";
 }
 
 const styles = StyleSheet.create({

@@ -96,9 +96,7 @@ export function createEmptyRecipe(): Recipe {
     tool: [],
     recipeIngredient: [],
     recipeInstructions: [],
-    nutrition: {
-      "@type": "NutritionInformation"
-    },
+    nutrition: null,
     localMeta: undefined
   };
 }
@@ -127,14 +125,17 @@ export function normalizeRecipe(input: Partial<Recipe>): Recipe {
     tool: normalizeRecipeStringArray(raw.tool),
     recipeIngredient: normalizeRecipeStringArray(raw.recipeIngredient),
     recipeInstructions: normalizeRecipeInstructions(raw.recipeInstructions),
-    nutrition: input.nutrition ?? { "@type": "NutritionInformation" },
+    nutrition:
+      raw.nutrition === undefined
+        ? empty.nutrition
+        : normalizeNutrition(raw.nutrition),
     localMeta: normalizeLocalMeta(input.localMeta)
   };
 }
 
 export function toCookbookRecipe(recipe: Recipe): Recipe {
   const { localMeta, ...cookbookRecipe } = recipe;
-  return cookbookRecipe;
+  return omitEmptyCookbookFields(cookbookRecipe);
 }
 
 export function toCookbookCreateRecipe(recipe: Recipe): Recipe {
@@ -155,6 +156,89 @@ export function hasLocalMetadata(recipe: Recipe) {
       meta.servingOverride ||
       (meta.timers && meta.timers.length > 0)
   );
+}
+
+export function hasNutritionValues(
+  nutrition?: Nutrition | Nutrition[] | null
+) {
+  const nodes = Array.isArray(nutrition) ? nutrition : nutrition ? [nutrition] : [];
+  return nodes.some((node) =>
+    Object.entries(node).some(
+      ([key, value]) => key !== "@type" && toRecipeString(value).trim()
+    )
+  );
+}
+
+function omitEmptyCookbookFields(recipe: Omit<Recipe, "localMeta">): Recipe {
+  const payload = { ...recipe } as Recipe;
+
+  for (const field of ["prepTime", "cookTime", "totalTime"] as const) {
+    if (!payload[field]) {
+      delete (payload as Partial<Recipe>)[field];
+    }
+  }
+
+  if (!hasNutritionValues(payload.nutrition)) {
+    delete (payload as Partial<Recipe>).nutrition;
+  }
+
+  return payload;
+}
+
+function normalizeNutrition(value: unknown): Nutrition | Nutrition[] | null {
+  if (!value) {
+    return null;
+  }
+
+  if (Array.isArray(value)) {
+    const nutrition = value.flatMap((item) => {
+      const normalized = normalizeNutrition(item);
+      return Array.isArray(normalized) ? normalized : normalized ? [normalized] : [];
+    });
+    return nutrition.length ? nutrition : null;
+  }
+
+  if (typeof value !== "object") {
+    return null;
+  }
+
+  const node = value as Record<string, unknown>;
+  const nutrition = { ...(value as Nutrition) };
+  nutrition["@type"] = toRecipeString(node["@type"]) || "NutritionInformation";
+  nutrition.calories = normalizeOptionalNutritionValue(node.calories);
+  nutrition.carbohydrateContent = normalizeOptionalNutritionValue(
+    node.carbohydrateContent
+  );
+  nutrition.cholesterolContent = normalizeOptionalNutritionValue(
+    node.cholesterolContent
+  );
+  nutrition.fatContent = normalizeOptionalNutritionValue(node.fatContent);
+  nutrition.fiberContent = normalizeOptionalNutritionValue(node.fiberContent);
+  nutrition.proteinContent = normalizeOptionalNutritionValue(node.proteinContent);
+  nutrition.saturatedFatContent = normalizeOptionalNutritionValue(
+    node.saturatedFatContent
+  );
+  nutrition.servingSize = normalizeOptionalNutritionValue(node.servingSize);
+  nutrition.sodiumContent = normalizeOptionalNutritionValue(node.sodiumContent);
+  nutrition.sugarContent = normalizeOptionalNutritionValue(node.sugarContent);
+  nutrition.transFatContent = normalizeOptionalNutritionValue(
+    node.transFatContent
+  );
+  nutrition.unsaturatedFatContent = normalizeOptionalNutritionValue(
+    node.unsaturatedFatContent
+  );
+
+  for (const [key, value] of Object.entries(nutrition)) {
+    if (key !== "@type" && !toRecipeString(value).trim()) {
+      delete (nutrition as Record<string, unknown>)[key];
+    }
+  }
+
+  return hasNutritionValues(nutrition) ? nutrition : null;
+}
+
+function normalizeOptionalNutritionValue(value: unknown) {
+  return toRecipeString(value) || undefined;
 }
 
 function normalizeLocalMeta(
