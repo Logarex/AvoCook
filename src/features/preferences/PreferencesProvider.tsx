@@ -8,13 +8,13 @@ import React, {
   useState
 } from "react";
 import i18n from "../../i18n";
+import {
+  isAppLanguage,
+  resolveAppLanguage,
+  type AppLanguage
+} from "../../i18n/languages";
 
-export type AppLanguage = "fr" | "en" | "de" | "es" | "it";
-
-function resolveInitialLanguage(lang: string): AppLanguage {
-  if (lang === "en" || lang === "de" || lang === "es" || lang === "it") return lang;
-  return "fr";
-}
+export type { AppLanguage };
 
 type PreferencesContextValue = {
   keepScreenAwake: boolean;
@@ -42,7 +42,7 @@ export function PreferencesProvider({
   const [keepScreenAwake, setKeepScreenAwakeState] = useState(true);
   const [keepRecipesLocal, setKeepRecipesLocalState] = useState(true);
   const [language, setLanguageState] = useState<AppLanguage>(
-    resolveInitialLanguage(i18n.language)
+    resolveAppLanguage(i18n.language)
   );
 
   useEffect(() => {
@@ -61,11 +61,7 @@ export function PreferencesProvider({
       ) {
         setKeepRecipesLocalState(storedKeepRecipesLocal === "true");
       }
-      if (
-        storedUserSet === "true" &&
-        (storedLanguage === "fr" || storedLanguage === "en" || storedLanguage === "de" ||
-          storedLanguage === "es" || storedLanguage === "it")
-      ) {
+      if (storedUserSet === "true" && isAppLanguage(storedLanguage)) {
         setLanguageState(storedLanguage);
         void i18n.changeLanguage(storedLanguage);
       }

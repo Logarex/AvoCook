@@ -14,9 +14,9 @@ import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
+import { LanguagePicker } from "../components/LanguagePicker";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
-import { SegmentedControl } from "../components/SegmentedControl";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
@@ -179,16 +179,9 @@ export function LoginScreen(_props: Props) {
       </AppText>
 
       <View style={styles.languagePicker}>
-        <SegmentedControl<"fr" | "en" | "de" | "es" | "it">
+        <LanguagePicker
           value={language}
           onChange={(value) => void setLanguage(value)}
-          options={[
-            { label: t("settings.french"), value: "fr" },
-            { label: t("settings.english"), value: "en" },
-            { label: t("settings.german"), value: "de" },
-            { label: t("settings.spanish"), value: "es" },
-            { label: t("settings.italian"), value: "it" }
-          ]}
         />
       </View>
     </Screen>
@@ -219,7 +212,8 @@ const styles = StyleSheet.create({
     textAlign: "center"
   },
   languagePicker: {
-    marginTop: spacing.md
+    marginTop: spacing.md,
+    width: "100%"
   },
   form: {
     gap: spacing.md
