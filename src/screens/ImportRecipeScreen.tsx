@@ -97,7 +97,7 @@ export function ImportRecipeScreen({ navigation }: Props) {
           keyboardType="url"
           label={t("importRecipe.url")}
           onChangeText={setUrl}
-          placeholder="https://www.marmiton.org/..."
+          placeholder={t("importRecipe.urlPlaceholder")}
           textContentType="URL"
           value={url}
         />

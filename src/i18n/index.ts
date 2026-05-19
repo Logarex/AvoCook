@@ -270,6 +270,7 @@ export const resources = {
       importRecipe: {
         title: "Importer",
         url: "URL de la recette",
+        urlPlaceholder: "https://www.marmiton.org/...",
         action: "Importer depuis l'URL",
         fileAction: "Importer un fichier AvoCook",
         sharedFileHint:
@@ -617,6 +618,7 @@ export const resources = {
       importRecipe: {
         title: "Import",
         url: "Recipe URL",
+        urlPlaceholder: "https://www.allrecipes.com/...",
         action: "Import from URL",
         fileAction: "Import AvoCook file",
         sharedFileHint:
@@ -966,6 +968,7 @@ export const resources = {
       importRecipe: {
         title: "Importieren",
         url: "Rezept-URL",
+        urlPlaceholder: "https://www.chefkoch.de/...",
         action: "Von URL importieren",
         fileAction: "AvoCook-Datei importieren",
         sharedFileHint:
@@ -1309,6 +1312,7 @@ export const resources = {
       importRecipe: {
         title: "Importar",
         url: "URL de la receta",
+        urlPlaceholder: "https://cookpad.com/...",
         action: "Importar desde URL",
         fileAction: "Importar archivo AvoCook",
         sharedFileHint:
@@ -1647,6 +1651,7 @@ export const resources = {
       importRecipe: {
         title: "Importa",
         url: "URL della ricetta",
+        urlPlaceholder: "https://www.giallozafferano.it/...",
         action: "Importa da URL",
         fileAction: "Importa file AvoCook",
         sharedFileHint:
