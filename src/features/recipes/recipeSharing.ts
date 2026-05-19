@@ -8,7 +8,7 @@ import {
   serializeRecipeBackup
 } from "./recipeBackup";
 import { getRecipeShareFilename } from "./recipeShareFilenames";
-import { normalizeRecipe, type Recipe } from "./types";
+import { normalizeRecipe, type NutritionValue, type Recipe } from "./types";
 import { humanDuration } from "../../utils/duration";
 import {
   getLocalRecipeImage,
@@ -412,16 +412,29 @@ function getNutritionEntries(
   }
 
   return [
-    [labels.calories, nutrition.calories],
-    [labels.carbs, nutrition.carbohydrateContent],
-    [labels.sugar, nutrition.sugarContent],
-    [labels.fat, nutrition.fatContent],
-    [labels.saturatedFat, nutrition.saturatedFatContent],
-    [labels.fiber, nutrition.fiberContent],
-    [labels.protein, nutrition.proteinContent],
-    [labels.sodium, nutrition.sodiumContent],
-    [labels.servingSize, nutrition.servingSize]
+    [labels.calories, normalizeNutritionValue(nutrition.calories)],
+    [labels.carbs, normalizeNutritionValue(nutrition.carbohydrateContent)],
+    [labels.sugar, normalizeNutritionValue(nutrition.sugarContent)],
+    [labels.fat, normalizeNutritionValue(nutrition.fatContent)],
+    [
+      labels.saturatedFat,
+      normalizeNutritionValue(nutrition.saturatedFatContent)
+    ],
+    [labels.fiber, normalizeNutritionValue(nutrition.fiberContent)],
+    [labels.protein, normalizeNutritionValue(nutrition.proteinContent)],
+    [labels.sodium, normalizeNutritionValue(nutrition.sodiumContent)],
+    [labels.servingSize, normalizeNutritionValue(nutrition.servingSize)]
   ].filter((entry): entry is [string, string] => Boolean(entry[1]));
+}
+
+function normalizeNutritionValue(value?: NutritionValue | null) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? String(value) : "";
+  }
+  return value.trim();
 }
 
 async function shareFile(

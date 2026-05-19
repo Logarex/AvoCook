@@ -1,4 +1,9 @@
-import type { NutriScoreGrade, Nutrition, Recipe } from "./types";
+import type {
+  NutriScoreGrade,
+  Nutrition,
+  NutritionValue,
+  Recipe
+} from "./types";
 
 export type HealthRecommendation =
   | "balanced"
@@ -162,13 +167,14 @@ function normalizeNutritionNode(
   return node && typeof node === "object" ? node : null;
 }
 
-function parseNutrient(value?: string, targetUnit?: "mg") {
-  if (!value) {
+function parseNutrient(value?: NutritionValue | null, targetUnit?: "mg") {
+  const normalized = normalizeNutrientText(value);
+  if (!normalized) {
     return null;
   }
 
-  const normalized = value.replace(",", ".");
-  const match = normalized.match(/-?\d+(?:\.\d+)?/);
+  const decimalValue = normalized.replace(",", ".");
+  const match = decimalValue.match(/-?\d+(?:\.\d+)?/);
   if (!match) {
     return null;
   }
@@ -178,17 +184,35 @@ function parseNutrient(value?: string, targetUnit?: "mg") {
     return null;
   }
 
-  if (targetUnit === "mg" && /\bg\b/i.test(value) && !/\bmg\b/i.test(value)) {
+  if (
+    targetUnit === "mg" &&
+    /\bg\b/i.test(normalized) &&
+    !/\bmg\b/i.test(normalized)
+  ) {
     return amount * 1000;
   }
 
   return amount;
 }
 
-function buildFact(labelKey: string, value?: string): HealthFact | null {
-  if (!value) {
+function buildFact(
+  labelKey: string,
+  value?: NutritionValue | null
+): HealthFact | null {
+  const normalized = normalizeNutrientText(value);
+  if (!normalized) {
     return null;
   }
 
-  return { labelKey, value };
+  return { labelKey, value: normalized };
+}
+
+function normalizeNutrientText(value?: NutritionValue | null) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? String(value) : "";
+  }
+  return value.trim();
 }
