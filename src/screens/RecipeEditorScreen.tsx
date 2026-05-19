@@ -15,7 +15,8 @@ import { persistRecipeImage } from "../features/recipes/recipeImages";
 import {
   createEmptyRecipe,
   normalizeRecipe,
-  type Nutrition
+  type Nutrition,
+  type NutritionValue
 } from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
 import { spacing } from "../theme/colors";
@@ -541,12 +542,13 @@ function normalizeNutritionForEditor(
   };
 }
 
-function stripNutritionUnit(value?: string) {
-  if (!value) {
+function stripNutritionUnit(value?: NutritionValue | null) {
+  const normalized = normalizeNutritionInput(value);
+  if (!normalized) {
     return "";
   }
 
-  return value.replace(/[^\d,.+-]/g, "").trim();
+  return normalized.replace(/[^\d,.+-]/g, "").trim();
 }
 
 function formatNutritionValue(value: string, unit: "g" | "kcal" | "mg") {
@@ -560,6 +562,16 @@ function formatNutritionValue(value: string, unit: "g" | "kcal" | "mg") {
   }
 
   return `${trimmed} ${unit}`;
+}
+
+function normalizeNutritionInput(value?: NutritionValue | null) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? String(value) : "";
+  }
+  return value;
 }
 
 const styles = StyleSheet.create({
