@@ -16,6 +16,7 @@ import {
   Printer,
   RotateCcw,
   Share2,
+  ShoppingCart,
   Square,
   Timer,
   Trash2,
@@ -46,6 +47,7 @@ import {
   type RecipePrintLabels
 } from "../features/recipes/recipeSharing";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import { useShoppingList } from "../features/shopping/ShoppingListProvider";
 import {
   useRecipeTimers,
   type TimerNotificationStatus,
@@ -80,6 +82,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
   const { getClient } = useAuth();
   const { keepScreenAwake } = usePreferences();
   const { deleteRecipe, getRecipe, updateRecipePreferences } = useRecipes();
+  const { addIngredients } = useShoppingList();
   const recipe = getRecipe(route.params.id);
 
   if (keepScreenAwake) {
@@ -96,6 +99,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
             recipe={recipe}
             deleteRecipe={deleteRecipe}
             updateRecipePreferences={updateRecipePreferences}
+            addIngredientsToShoppingList={addIngredients}
             getClient={getClient}
             getImageSource={() => getImageSource(recipe, getClient())}
           />
@@ -115,6 +119,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
         recipe={recipe}
         deleteRecipe={deleteRecipe}
         updateRecipePreferences={updateRecipePreferences}
+        addIngredientsToShoppingList={addIngredients}
         getClient={getClient}
         getImageSource={() => getImageSource(recipe, getClient())}
       />
@@ -156,6 +161,7 @@ function RecipeDetailContent({
   recipe,
   deleteRecipe,
   updateRecipePreferences,
+  addIngredientsToShoppingList,
   getClient,
   getImageSource
 }: {
@@ -164,6 +170,7 @@ function RecipeDetailContent({
   recipe: ReturnType<typeof useRecipes>["recipes"][number] | undefined;
   deleteRecipe: (id: string) => Promise<void>;
   updateRecipePreferences: ReturnType<typeof useRecipes>["updateRecipePreferences"];
+  addIngredientsToShoppingList: ReturnType<typeof useShoppingList>["addIngredients"];
   getClient: ReturnType<typeof useAuth>["getClient"];
   getImageSource: () => ImageSource | null;
 }) {
@@ -195,6 +202,59 @@ function RecipeDetailContent({
     () => (recipe ? getTimerPresets(recipe, t) : []),
     [recipe, t]
   );
+  const metricItems = useMemo(() => {
+    if (!recipe) {
+      return [];
+    }
+
+    const prepDuration = humanDuration(recipe.prepTime);
+    const cookDuration = humanDuration(recipe.cookTime);
+    const totalDuration = humanDuration(recipe.totalTime);
+
+    return [
+      prepDuration
+        ? {
+            id: "prep",
+            icon: Clock,
+            label: t("recipes.prepTime"),
+            value: prepDuration
+          }
+        : null,
+      cookDuration
+        ? {
+            id: "cook",
+            icon: Clock,
+            label: t("recipes.cookTime"),
+            value: cookDuration
+          }
+        : null,
+      totalDuration
+        ? {
+            id: "total",
+            icon: Clock,
+            label: t("recipes.totalTime"),
+            value: totalDuration
+          }
+        : null,
+      recipe.recipeYield
+        ? {
+            id: "yield",
+            icon: Users,
+            label: t("recipes.yield"),
+            value: String(selectedServings)
+          }
+        : null
+    ].filter(
+      (
+        item
+      ): item is {
+        id: string;
+        icon: LucideIcon;
+        label: string;
+        value: string;
+      } => Boolean(item)
+    );
+  }, [recipe, selectedServings, t]);
   const {
     notificationStatus: timerNotificationStatus,
     resetTimer,
@@ -349,6 +409,41 @@ function RecipeDetailContent({
     }
   }
 
+  async function handleAddToShoppingList() {
+    if (!recipe || !scaledIngredients.length) {
+      return;
+    }
+
+    const result = await addIngredientsToShoppingList(scaledIngredients, {
+      recipeId,
+      recipeName: recipe.name
+    });
+    showShoppingListAddResult(result.added.length);
+  }
+
+  async function handleAddIngredientToShoppingList(ingredient: string) {
+    if (!recipe) {
+      return;
+    }
+
+    const result = await addIngredientsToShoppingList([ingredient], {
+      recipeId,
+      recipeName: recipe.name
+    });
+    showShoppingListAddResult(result.added.length);
+  }
+
+  function showShoppingListAddResult(addedCount: number) {
+    Alert.alert(
+      addedCount
+        ? t("shoppingList.addedTitle")
+        : t("shoppingList.alreadyAddedTitle"),
+      addedCount
+        ? t("shoppingList.addedBody", { count: addedCount })
+        : t("shoppingList.alreadyAddedBody")
+    );
+  }
+
   function showShareWarning(skippedImageCount: number) {
     if (skippedImageCount > 0) {
       Alert.alert(
@@ -442,23 +537,18 @@ function RecipeDetailContent({
           ))}
       </View>
 
-      <View style={styles.metrics}>
-        <Metric
-          icon={Clock}
-          label={t("recipes.prepTime")}
-          value={humanDuration(recipe.prepTime) ?? "-"}
-        />
-        <Metric
-          icon={Clock}
-          label={t("recipes.cookTime")}
-          value={humanDuration(recipe.cookTime) ?? "-"}
-        />
-        <Metric
-          icon={Users}
-          label={t("recipes.yield")}
-          value={String(selectedServings)}
-        />
-      </View>
+      {metricItems.length ? (
+        <View style={styles.metrics}>
+          {metricItems.map((item) => (
+            <Metric
+              key={item.id}
+              icon={item.icon}
+              label={item.label}
+              value={item.value}
+            />
+          ))}
+        </View>
+      ) : null}
 
       <ServingsControl
         baseServings={baseServings}
@@ -474,7 +564,14 @@ function RecipeDetailContent({
         onToggle={(timerId) => void handleToggleTimer(timerId)}
       />
 
-      <RecipeSection title={t("recipes.ingredients")} items={scaledIngredients} />
+      <IngredientSection
+        items={scaledIngredients}
+        onAddAll={() => void handleAddToShoppingList()}
+        onAddItem={(ingredient) =>
+          void handleAddIngredientToShoppingList(ingredient)
+        }
+        title={t("recipes.ingredients")}
+      />
       <RecipeSection
         ordered
         title={t("recipes.instructions")}
@@ -507,7 +604,7 @@ function RecipeDetailContent({
         />
       ) : null}
 
-      {healthProfile ? <HealthSection profile={healthProfile} /> : null}
+      {healthProfile?.hasNutrition ? <HealthSection profile={healthProfile} /> : null}
     </Screen>
   );
 }
@@ -681,6 +778,57 @@ function TimerSection({
             </View>
           );
         })}
+      </View>
+    </GlassPanel>
+  );
+}
+
+function IngredientSection({
+  title,
+  items,
+  onAddAll,
+  onAddItem
+}: {
+  title: string;
+  items: string[];
+  onAddAll: () => void;
+  onAddItem: (ingredient: string) => void;
+}) {
+  const { t } = useTranslation();
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <GlassPanel style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <AppText variant="subtitle">{title}</AppText>
+        <PrimaryButton
+          icon={ShoppingCart}
+          label={t("shoppingList.addFromRecipe")}
+          onPress={onAddAll}
+          style={styles.addAllIngredientsButton}
+          variant="ghost"
+        />
+      </View>
+      <View style={styles.sectionItems}>
+        {items.map((item, index) => (
+          <View key={`${item}-${index}`} style={styles.ingredientRow}>
+            <AppText muted variant="label" style={styles.rowIndex}>
+              {"•"}
+            </AppText>
+            <AppText style={styles.rowText}>{item}</AppText>
+            <IconButton
+              icon={ShoppingCart}
+              label={t("shoppingList.addIngredientFromRecipe", {
+                ingredient: item
+              })}
+              onPress={() => onAddItem(item)}
+              tone="primary"
+              style={styles.ingredientAction}
+            />
+          </View>
+        ))}
       </View>
     </GlassPanel>
   );
@@ -953,6 +1101,20 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: spacing.md
   },
+  addAllIngredientsButton: {
+    flexGrow: 1,
+    minWidth: 190
+  },
+  ingredientAction: {
+    height: 40,
+    width: 40
+  },
+  ingredientRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.sm,
+    minHeight: 44
+  },
   metric: {
     alignItems: "flex-start",
     flex: 1,
@@ -1028,6 +1190,7 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     alignItems: "center",
+    flexWrap: "wrap",
     flexDirection: "row",
     gap: spacing.xs
   },

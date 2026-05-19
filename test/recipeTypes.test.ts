@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { normalizeRecipe } from "../src/features/recipes/types";
+import {
+  normalizeRecipe,
+  toCookbookRecipe
+} from "../src/features/recipes/types";
 
 describe("normalizeRecipe", () => {
   it("flattens structured Cookbook instructions before rendering", () => {
@@ -42,5 +45,47 @@ describe("normalizeRecipe", () => {
     expect(recipe.image).toBe("https://example.com/soup.jpg");
     expect(recipe.keywords).toBe("quick,veggie");
     expect(recipe.recipeYield).toBe(1);
+  });
+
+  it("keeps empty optional recipe data local but omits it from Cookbook payloads", () => {
+    const recipe = normalizeRecipe({
+      id: "local-optional",
+      name: "Grandma soup",
+      prepTime: null,
+      cookTime: null,
+      totalTime: null,
+      nutrition: {
+        "@type": "NutritionInformation"
+      }
+    });
+
+    const payload = toCookbookRecipe(recipe) as Record<string, unknown>;
+
+    expect(recipe.prepTime).toBeNull();
+    expect(recipe.nutrition).toBeNull();
+    expect(payload.prepTime).toBeUndefined();
+    expect(payload.cookTime).toBeUndefined();
+    expect(payload.totalTime).toBeUndefined();
+    expect(payload.nutrition).toBeUndefined();
+  });
+
+  it("preserves filled optional recipe data for Cookbook payloads", () => {
+    const recipe = normalizeRecipe({
+      id: "42",
+      name: "Pasta",
+      prepTime: "PT15M",
+      nutrition: {
+        "@type": "NutritionInformation",
+        calories: "420 kcal"
+      }
+    });
+
+    const payload = toCookbookRecipe(recipe);
+
+    expect(payload.prepTime).toBe("PT15M");
+    expect(payload.nutrition).toEqual({
+      "@type": "NutritionInformation",
+      calories: "420 kcal"
+    });
   });
 });
