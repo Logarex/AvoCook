@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { ArrowLeft, ImagePlus, Save, X } from "lucide-react-native";
+import { ArrowLeft, ImagePlus, Plus, Save, Trash2, X } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -60,10 +60,10 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
     minutesToString(initialRecipe.totalTime)
   );
   const [ingredients, setIngredients] = useState(
-    initialRecipe.recipeIngredient.join("\n")
+    createEditableList(initialRecipe.recipeIngredient)
   );
   const [instructions, setInstructions] = useState(
-    initialRecipe.recipeInstructions.join("\n")
+    createEditableList(initialRecipe.recipeInstructions)
   );
   const [tools, setTools] = useState(initialRecipe.tool.join("\n"));
   const initialNutrition = useMemo(
@@ -118,8 +118,8 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
     setPrepMinutes(minutesToString(initialRecipe.prepTime));
     setCookMinutes(minutesToString(initialRecipe.cookTime));
     setTotalMinutes(minutesToString(initialRecipe.totalTime));
-    setIngredients(initialRecipe.recipeIngredient.join("\n"));
-    setInstructions(initialRecipe.recipeInstructions.join("\n"));
+    setIngredients(createEditableList(initialRecipe.recipeIngredient));
+    setInstructions(createEditableList(initialRecipe.recipeInstructions));
     setTools(initialRecipe.tool.join("\n"));
     setCalories(initialNutrition.calories);
     setCarbohydrates(initialNutrition.carbohydrates);
@@ -153,8 +153,8 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         prepTime: minutesToIsoDuration(Number.parseInt(prepMinutes, 10)),
         cookTime: minutesToIsoDuration(Number.parseInt(cookMinutes, 10)),
         totalTime: minutesToIsoDuration(Number.parseInt(totalMinutes, 10)),
-        recipeIngredient: splitLines(ingredients),
-        recipeInstructions: splitLines(instructions),
+        recipeIngredient: cleanEditableList(ingredients),
+        recipeInstructions: cleanEditableList(instructions),
         tool: splitLines(tools),
         nutrition: {
           "@type": "NutritionInformation",
@@ -322,17 +322,24 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         onChangeText={setTotalMinutes}
         value={totalMinutes}
       />
-      <TextField
+      <EditableLineList
+        addLabel={t("editor.addIngredient")}
+        itemLabel={(index) => t("editor.ingredientItem", { count: index + 1 })}
         label={t("editor.ingredients")}
-        multiline
-        onChangeText={setIngredients}
-        value={ingredients}
+        onChange={setIngredients}
+        placeholder={t("editor.ingredientPlaceholder")}
+        removeLabel={t("editor.removeIngredient")}
+        values={ingredients}
       />
-      <TextField
+      <EditableLineList
+        addLabel={t("editor.addInstruction")}
+        itemLabel={(index) => t("editor.instructionItem", { count: index + 1 })}
         label={t("editor.instructions")}
         multiline
-        onChangeText={setInstructions}
-        value={instructions}
+        onChange={setInstructions}
+        placeholder={t("editor.instructionPlaceholder")}
+        removeLabel={t("editor.removeInstruction")}
+        values={instructions}
       />
       <TextField
         label={t("editor.tools")}
@@ -428,6 +435,76 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   );
 }
 
+function EditableLineList({
+  addLabel,
+  itemLabel,
+  label,
+  multiline = false,
+  onChange,
+  placeholder,
+  removeLabel,
+  values
+}: {
+  addLabel: string;
+  itemLabel: (index: number) => string;
+  label: string;
+  multiline?: boolean;
+  onChange: (values: string[]) => void;
+  placeholder: string;
+  removeLabel: string;
+  values: string[];
+}) {
+  function updateItem(index: number, value: string) {
+    onChange(values.map((item, itemIndex) => (itemIndex === index ? value : item)));
+  }
+
+  function removeItem(index: number) {
+    const nextValues = values.filter((_, itemIndex) => itemIndex !== index);
+    onChange(nextValues.length ? nextValues : [""]);
+  }
+
+  return (
+    <View style={styles.lineList}>
+      <AppText variant="label">{label}</AppText>
+      {values.map((value, index) => (
+        <View key={index} style={styles.lineItem}>
+          <TextField
+            containerStyle={styles.lineInput}
+            label={itemLabel(index)}
+            multiline={multiline}
+            onChangeText={(nextValue) => updateItem(index, nextValue)}
+            placeholder={placeholder}
+            style={multiline ? styles.instructionInput : styles.compactInput}
+            value={value}
+          />
+          <IconButton
+            disabled={values.length === 1 && !value.trim()}
+            icon={Trash2}
+            label={removeLabel}
+            onPress={() => removeItem(index)}
+            tone="danger"
+            style={styles.lineRemoveButton}
+          />
+        </View>
+      ))}
+      <PrimaryButton
+        icon={Plus}
+        label={addLabel}
+        onPress={() => onChange([...values, ""])}
+        variant="ghost"
+      />
+    </View>
+  );
+}
+
+function createEditableList(items: string[]) {
+  return items.length ? items : [""];
+}
+
+function cleanEditableList(items: string[]) {
+  return items.map((item) => item.trim()).filter(Boolean);
+}
+
 function splitLines(value: string) {
   return value
     .split(/\r?\n/)
@@ -517,6 +594,28 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     gap: spacing.xs
+  },
+  compactInput: {
+    minHeight: 48
+  },
+  instructionInput: {
+    minHeight: 68,
+    textAlignVertical: "top"
+  },
+  lineInput: {
+    flex: 1,
+    minWidth: 0
+  },
+  lineItem: {
+    alignItems: "flex-end",
+    flexDirection: "row",
+    gap: spacing.xs
+  },
+  lineList: {
+    gap: spacing.sm
+  },
+  lineRemoveButton: {
+    marginBottom: 0
   },
   toolbar: {
     alignItems: "center",

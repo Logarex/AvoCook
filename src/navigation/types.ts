@@ -1,6 +1,10 @@
 export type RootStackParamList = {
   Login: undefined;
-  Recipes: undefined;
+  Recipes:
+    | {
+        tabTransition?: "fromShopping";
+      }
+    | undefined;
   RecipeDetail: {
     id: string;
   };
@@ -9,6 +13,11 @@ export type RootStackParamList = {
     category?: string;
   };
   ImportRecipe: undefined;
+  ShoppingList:
+    | {
+        tabTransition?: "fromRecipes";
+      }
+    | undefined;
   Settings: undefined;
   Privacy: undefined;
 };

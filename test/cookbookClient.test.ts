@@ -36,6 +36,8 @@ describe("CookbookClient", () => {
     const body = JSON.parse(String(options?.body));
     expect(body.id).toBeNull();
     expect(body.localMeta).toBeUndefined();
+    expect(body.prepTime).toBeUndefined();
+    expect(body.nutrition).toBeUndefined();
     expect(body.name).toBe("Chocolate cake");
   });
 
