@@ -2,6 +2,10 @@ import { Image } from "expo-image";
 import { Clock, Tag } from "lucide-react-native";
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import {
+  isCookbookImageEndpoint,
+  isDisplayableRecipeImage
+} from "../features/recipes/recipeImageReferences";
 import { Recipe } from "../features/recipes/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -9,18 +13,36 @@ import { humanDuration } from "../utils/duration";
 import { AppText } from "./AppText";
 
 export function RecipeCard({
+  imageHeaders,
   recipe,
   onPress
 }: {
+  imageHeaders?: Record<string, string>;
   recipe: Recipe;
   onPress: () => void;
 }) {
   const { colors } = useAppTheme();
-  const imageUri = recipe.image || recipe.imagePlaceholderUrl || recipe.imageUrl;
+  const imageUri =
+    [recipe.image, recipe.imagePlaceholderUrl, recipe.imageUrl].find(
+      isDisplayableRecipeImage
+    ) ?? "";
+  const imageSource = imageUri
+    ? {
+        uri: imageUri,
+        headers: isCookbookImageEndpoint(imageUri) ? imageHeaders : undefined
+      }
+    : null;
   const totalTime = humanDuration(recipe.totalTime || recipe.prepTime);
+  const accessibilityParts = [
+    recipe.name,
+    recipe.description,
+    totalTime,
+    recipe.recipeCategory
+  ].filter(Boolean);
 
   return (
     <Pressable
+      accessibilityLabel={accessibilityParts.join(", ")}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
@@ -33,10 +55,20 @@ export function RecipeCard({
       ]}
     >
       <View style={[styles.imageWrap, { backgroundColor: colors.chip }]}>
-        {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.image} contentFit="cover" />
+        {imageSource ? (
+          <Image
+            accessible={false}
+            source={imageSource}
+            style={styles.image}
+            contentFit="cover"
+          />
         ) : (
-          <AppText variant="subtitle" style={{ color: colors.primary }}>
+          <AppText
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            variant="subtitle"
+            style={{ color: colors.primary }}
+          >
             {recipe.name.slice(0, 1).toUpperCase()}
           </AppText>
         )}

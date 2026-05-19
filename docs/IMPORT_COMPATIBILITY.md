@@ -6,7 +6,7 @@
 
 ## Français
 
-L'import fonctionne en priorité via l'API Nextcloud Cookbook, puis via le parser local schema.org Recipe.
+L'import fonctionne en priorité via le parser local schema.org Recipe afin de détecter les doublons avant création. En mode connecté, l'API Nextcloud Cookbook sert de fallback si le parser local échoue.
 
 ### Vérifié en live
 
@@ -50,7 +50,7 @@ Si un site échoue mais contient encore des données de recette dans son HTML, a
 
 ## English
 
-Import works primarily via the Nextcloud Cookbook API, then via the local schema.org Recipe parser.
+Import works primarily through the local schema.org Recipe parser so duplicates can be detected before creation. When connected, the Nextcloud Cookbook API is used as a fallback if the local parser fails.
 
 ### Verified Live
 

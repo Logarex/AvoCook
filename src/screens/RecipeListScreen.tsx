@@ -34,6 +34,7 @@ import { Screen } from "../components/Screen";
 import { SearchField } from "../components/SearchField";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
+import { useReducedMotion } from "../features/accessibility/useReducedMotion";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import type { Recipe } from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
@@ -51,7 +52,8 @@ type CategoryOption = {
 export function RecipeListScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
-  const { credentials, isLocalMode } = useAuth();
+  const reducedMotion = useReducedMotion();
+  const { credentials, getClient, isLocalMode } = useAuth();
   const {
     createCategory,
     customCategories,
@@ -142,16 +144,15 @@ export function RecipeListScreen({ navigation }: Props) {
   }, [category, query, recipes]);
 
   const connected = Boolean(credentials || isLocalMode);
+  const imageHeaders = credentials ? getClient()?.getImageHeaders() : undefined;
   const statusLabel = isLocalMode
     ? t("settings.localMode")
     : credentials
       ? t("common.online")
       : t("common.offline");
-  const statusDetail = syncing
-    ? t("recipes.syncingRecipesShort")
-    : loading
-      ? t("recipes.loadingRecipes")
-      : undefined;
+  const statusDetail = loading
+    ? t("recipes.loadingRecipes")
+    : undefined;
 
   async function handleCreateCategory() {
     const normalized = newCategory.replace(/\s+/g, " ").trim();
@@ -199,7 +200,8 @@ export function RecipeListScreen({ navigation }: Props) {
             icon={RefreshCw}
             label={t("common.sync")}
             onPress={() => void sync()}
-            disabled={syncing || !credentials}
+            spinning={syncing}
+            disabled={!credentials}
             style={styles.headerIcon}
           />
           <IconButton
@@ -310,6 +312,7 @@ export function RecipeListScreen({ navigation }: Props) {
           }
           renderItem={({ item }) => (
             <RecipeCard
+              imageHeaders={imageHeaders}
               recipe={item}
               onPress={() =>
                 item.id && navigation.navigate("RecipeDetail", { id: item.id })
@@ -326,7 +329,7 @@ export function RecipeListScreen({ navigation }: Props) {
           accessibilityRole="button"
           onPress={() =>
             recipeListRef.current?.scrollToOffset({
-              animated: true,
+              animated: !reducedMotion,
               offset: 0
             })
           }
@@ -373,7 +376,9 @@ function CategoryChip({
   const { colors } = useAppTheme();
   return (
     <Pressable
+      accessibilityLabel={`${label}, ${count}`}
       accessibilityRole="button"
+      accessibilityState={{ selected }}
       onPress={onPress}
       style={({ pressed }) => [
         styles.categoryChip,
@@ -384,6 +389,9 @@ function CategoryChip({
         }
       ]}
     >
+      {selected ? (
+        <Check color={colors.textInverted} size={16} strokeWidth={3} />
+      ) : null}
       <AppText
         variant="label"
         style={{ color: selected ? colors.textInverted : colors.text }}
@@ -415,6 +423,7 @@ function MoreCategoryChip({ onPress }: { onPress: () => void }) {
   const label = safeTranslation(t("recipes.moreCategories"), "Plus");
   return (
     <Pressable
+      accessibilityLabel={label}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
@@ -449,15 +458,21 @@ function CategoryPickerModal({
 }) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const reducedMotion = useReducedMotion();
   return (
     <Modal
-      animationType="slide"
+      animationType={reducedMotion ? "none" : "slide"}
       onRequestClose={onClose}
       transparent
       visible={visible}
     >
       <View style={styles.modalRoot}>
-        <Pressable style={styles.modalScrim} onPress={onClose} />
+        <Pressable
+          accessibilityLabel={t("common.close")}
+          accessibilityRole="button"
+          style={styles.modalScrim}
+          onPress={onClose}
+        />
         <GlassPanel style={styles.modalSheet}>
           <View style={styles.modalHeader}>
             <AppText variant="subtitle">{title}</AppText>
@@ -470,7 +485,9 @@ function CategoryPickerModal({
             {categoryOptions.map((item) => (
               <Pressable
                 key={item.id ?? "all"}
+                accessibilityLabel={`${item.label}, ${item.count}`}
                 accessibilityRole="button"
+                accessibilityState={{ selected: category === item.id }}
                 onPress={() => onSelect(item.id)}
                 style={({ pressed }) => [
                   styles.categoryGridItem,
@@ -483,6 +500,9 @@ function CategoryPickerModal({
                   }
                 ]}
               >
+                {category === item.id ? (
+                  <Check color={colors.textInverted} size={17} strokeWidth={3} />
+                ) : null}
                 <AppText
                   variant="label"
                   style={{

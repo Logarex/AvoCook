@@ -6,19 +6,22 @@ import {
   ArrowLeft,
   Clock,
   ExternalLink,
+  FileUp,
   HeartPulse,
   Minus,
   Pause,
   Pencil,
   Play,
   Plus,
+  Printer,
   RotateCcw,
+  Share2,
   Square,
   Timer,
   Trash2,
   Users
 } from "lucide-react-native";
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { Alert, Linking, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
@@ -27,10 +30,21 @@ import { IconButton } from "../components/IconButton";
 import { Pill } from "../components/Pill";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
+import { ScreenErrorBoundary } from "../components/ScreenErrorBoundary";
 import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import type { HealthProfile } from "../features/recipes/health";
 import { getRecipeHealthProfile } from "../features/recipes/health";
+import {
+  isCookbookImageEndpoint,
+  isDisplayableRecipeImage
+} from "../features/recipes/recipeImageReferences";
+import {
+  printRecipe,
+  shareRecipeFile,
+  shareRecipePdf,
+  type RecipePrintLabels
+} from "../features/recipes/recipeSharing";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import {
   useRecipeTimers,
@@ -72,27 +86,62 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
     return (
       <>
         <KeepAwake />
-        <RecipeDetailContent
-          navigation={navigation}
-          recipeId={route.params.id}
-          recipe={recipe}
-          deleteRecipe={deleteRecipe}
-          updateRecipePreferences={updateRecipePreferences}
-          getImageSource={() => getImageSource(recipe, getClient())}
-        />
+        <ScreenErrorBoundary
+          resetKey={route.params.id}
+          fallback={<RecipeDetailFallback navigation={navigation} />}
+        >
+          <RecipeDetailContent
+            navigation={navigation}
+            recipeId={route.params.id}
+            recipe={recipe}
+            deleteRecipe={deleteRecipe}
+            updateRecipePreferences={updateRecipePreferences}
+            getClient={getClient}
+            getImageSource={() => getImageSource(recipe, getClient())}
+          />
+        </ScreenErrorBoundary>
       </>
     );
   }
 
   return (
-    <RecipeDetailContent
-      navigation={navigation}
-      recipeId={route.params.id}
-      recipe={recipe}
-      deleteRecipe={deleteRecipe}
-      updateRecipePreferences={updateRecipePreferences}
-      getImageSource={() => getImageSource(recipe, getClient())}
-    />
+    <ScreenErrorBoundary
+      resetKey={route.params.id}
+      fallback={<RecipeDetailFallback navigation={navigation} />}
+    >
+      <RecipeDetailContent
+        navigation={navigation}
+        recipeId={route.params.id}
+        recipe={recipe}
+        deleteRecipe={deleteRecipe}
+        updateRecipePreferences={updateRecipePreferences}
+        getClient={getClient}
+        getImageSource={() => getImageSource(recipe, getClient())}
+      />
+    </ScreenErrorBoundary>
+  );
+}
+
+function RecipeDetailFallback({ navigation }: { navigation: Props["navigation"] }) {
+  const { t } = useTranslation();
+  return (
+    <Screen>
+      <IconButton
+        icon={ArrowLeft}
+        label={t("common.back")}
+        onPress={() => {
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          } else {
+            navigation.navigate("Recipes");
+          }
+        }}
+      />
+      <GlassPanel style={styles.section}>
+        <AppText variant="subtitle">{t("recipes.openFailedTitle")}</AppText>
+        <AppText muted>{t("recipes.openFailedBody")}</AppText>
+      </GlassPanel>
+    </Screen>
   );
 }
 
@@ -107,6 +156,7 @@ function RecipeDetailContent({
   recipe,
   deleteRecipe,
   updateRecipePreferences,
+  getClient,
   getImageSource
 }: {
   navigation: Props["navigation"];
@@ -114,10 +164,14 @@ function RecipeDetailContent({
   recipe: ReturnType<typeof useRecipes>["recipes"][number] | undefined;
   deleteRecipe: (id: string) => Promise<void>;
   updateRecipePreferences: ReturnType<typeof useRecipes>["updateRecipePreferences"];
+  getClient: ReturnType<typeof useAuth>["getClient"];
   getImageSource: () => ImageSource | null;
 }) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const [shareAction, setShareAction] = useState<
+    "print" | "pdf" | "file" | null
+  >(null);
   const source = getImageSource();
   const nutrition = useMemo(
     () => normalizeNutrition(recipe?.nutrition),
@@ -153,8 +207,14 @@ function RecipeDetailContent({
       <Screen>
         <IconButton
           icon={ArrowLeft}
-          label="Back"
-          onPress={() => navigation.goBack()}
+          label={t("common.back")}
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate("Recipes");
+            }
+          }}
         />
         <AppText variant="subtitle">{t("recipes.emptyTitle")}</AppText>
       </Screen>
@@ -168,7 +228,12 @@ function RecipeDetailContent({
         text: t("common.delete"),
         style: "destructive",
         onPress: () => {
-          void deleteRecipe(recipeId).then(() => navigation.goBack());
+          if (navigation.canGoBack()) {
+            navigation.goBack();
+          } else {
+            navigation.navigate("Recipes");
+          }
+          void deleteRecipe(recipeId);
         }
       }
     ]);
@@ -230,15 +295,97 @@ function RecipeDetailContent({
     resetTimer(timerId);
   }
 
+  async function handlePrint() {
+    if (!recipe) {
+      return;
+    }
+    setShareAction("print");
+    try {
+      const result = await printRecipe(recipe, getPrintLabels(t), getClient());
+      showShareWarning(result.skippedImageCount);
+    } catch (error) {
+      if (isUserDismissedShareOrPrint(error)) {
+        return;
+      }
+      Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
+    } finally {
+      setShareAction(null);
+    }
+  }
+
+  async function handleSharePdf() {
+    if (!recipe) {
+      return;
+    }
+    setShareAction("pdf");
+    try {
+      const result = await shareRecipePdf(recipe, getPrintLabels(t), getClient());
+      showShareWarning(result.skippedImageCount);
+    } catch (error) {
+      if (isUserDismissedShareOrPrint(error)) {
+        return;
+      }
+      Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
+    } finally {
+      setShareAction(null);
+    }
+  }
+
+  async function handleShareFile() {
+    if (!recipe) {
+      return;
+    }
+    setShareAction("file");
+    try {
+      const result = await shareRecipeFile(recipe, getClient());
+      showShareWarning(result.skippedImageCount);
+    } catch (error) {
+      if (isUserDismissedShareOrPrint(error)) {
+        return;
+      }
+      Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
+    } finally {
+      setShareAction(null);
+    }
+  }
+
+  function showShareWarning(skippedImageCount: number) {
+    if (skippedImageCount > 0) {
+      Alert.alert(
+        t("recipes.share.partialTitle"),
+        t("recipes.share.partialBody", { count: skippedImageCount })
+      );
+    }
+  }
+
   return (
     <Screen showScrollTop={false}>
       <View style={styles.toolbar}>
         <IconButton
           icon={ArrowLeft}
-          label="Back"
+          label={t("common.back")}
           onPress={() => navigation.goBack()}
         />
         <View style={styles.toolbarActions}>
+          <IconButton
+            icon={Printer}
+            label={t("recipes.share.print")}
+            onPress={() => void handlePrint()}
+            disabled={shareAction !== null}
+          />
+          <IconButton
+            icon={Share2}
+            label={t("recipes.share.sharePdf")}
+            onPress={() => void handleSharePdf()}
+            disabled={shareAction !== null}
+            tone="primary"
+          />
+          <IconButton
+            icon={FileUp}
+            label={t("recipes.share.shareFile")}
+            onPress={() => void handleShareFile()}
+            disabled={shareAction !== null}
+          />
           <IconButton
             icon={Pencil}
             label={t("common.edit")}
@@ -256,9 +403,20 @@ function RecipeDetailContent({
 
       <View style={[styles.heroImage, { backgroundColor: colors.chip }]}>
         {source ? (
-          <Image source={source} style={styles.image} contentFit="cover" />
+          <Image
+            accessibilityLabel={recipe.name}
+            accessibilityRole="image"
+            source={source}
+            style={styles.image}
+            contentFit="cover"
+          />
         ) : (
-          <AppText variant="title" style={{ color: colors.primary }}>
+          <AppText
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            variant="title"
+            style={{ color: colors.primary }}
+          >
             {recipe.name.slice(0, 1).toUpperCase()}
           </AppText>
         )}
@@ -504,8 +662,8 @@ function TimerSection({
                   icon={running ? Pause : Play}
                   label={
                     running
-                      ? t("recipes.timers.pause")
-                      : t("recipes.timers.start")
+                      ? `${preset.label}, ${t("recipes.timers.pause")}`
+                      : `${preset.label}, ${t("recipes.timers.start")}`
                   }
                   onPress={() => onToggle(preset.id)}
                   tone="primary"
@@ -514,8 +672,8 @@ function TimerSection({
                   icon={running || finished ? Square : RotateCcw}
                   label={
                     running || finished
-                      ? t("recipes.timers.stop")
-                      : t("recipes.timers.reset")
+                      ? `${preset.label}, ${t("recipes.timers.stop")}`
+                      : `${preset.label}, ${t("recipes.timers.reset")}`
                   }
                   onPress={() => onReset(preset.id)}
                 />
@@ -686,6 +844,32 @@ function formatTimerSeconds(seconds: number) {
   return `${paddedMinutes}:${paddedSeconds}`;
 }
 
+function getPrintLabels(t: (key: string) => string): RecipePrintLabels {
+  return {
+    appName: "AvoCook",
+    calories: t("editor.caloriesKcal"),
+    category: t("recipes.category"),
+    cookTime: t("recipes.cookTime"),
+    carbs: t("editor.carbsGrams"),
+    fat: t("editor.fatGrams"),
+    fiber: t("editor.fiberGrams"),
+    ingredients: t("recipes.ingredients"),
+    instructions: t("recipes.instructions"),
+    keywords: t("recipes.share.keywords"),
+    nutrition: t("recipes.nutrition"),
+    prepTime: t("recipes.prepTime"),
+    protein: t("editor.proteinGrams"),
+    saturatedFat: t("editor.saturatedFatGrams"),
+    servingSize: t("recipes.share.servingSize"),
+    source: t("recipes.source"),
+    sodium: t("editor.sodiumMg"),
+    sugar: t("editor.sugarGrams"),
+    tools: t("recipes.tools"),
+    totalTime: t("recipes.totalTime"),
+    yield: t("recipes.yield")
+  };
+}
+
 function normalizeNutrition(
   nutrition?: Nutrition | Nutrition[] | null
 ): [string, string][] {
@@ -699,6 +883,14 @@ function normalizeNutrition(
     .map(([key, value]) => [key.replace(/Content$/, ""), String(value)]);
 }
 
+function isUserDismissedShareOrPrint(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return /printing did not complete|cancel|dismiss|abort/i.test(error.message);
+}
+
 function getImageSource(
   recipe: ReturnType<typeof useRecipes>["recipes"][number] | undefined,
   client: ReturnType<typeof useAuth>["getClient"] extends () => infer T ? T : never
@@ -707,9 +899,18 @@ function getImageSource(
     return null;
   }
 
-  const publicImage = recipe.image || recipe.imageUrl || recipe.imagePlaceholderUrl;
+  const publicImage =
+    [recipe.image, recipe.imageUrl, recipe.imagePlaceholderUrl].find(
+      isDisplayableRecipeImage
+    ) ?? "";
   if (publicImage) {
-    return { uri: publicImage };
+    return {
+      uri: publicImage,
+      headers:
+        client && isCookbookImageEndpoint(publicImage)
+          ? client.getImageHeaders()
+          : undefined
+    };
   }
 
   if (recipe.id && client) {
@@ -749,6 +950,7 @@ const styles = StyleSheet.create({
   healthHeader: {
     alignItems: "center",
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.md
   },
   metric: {
@@ -812,6 +1014,7 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.sm
   },
   rowIndex: {
@@ -857,6 +1060,7 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.md,
     justifyContent: "space-between",
     padding: spacing.sm
@@ -872,12 +1076,17 @@ const styles = StyleSheet.create({
     gap: spacing.xs
   },
   toolbar: {
-    alignItems: "center",
+    alignItems: "flex-start",
+    flexWrap: "wrap",
+    gap: spacing.sm,
     flexDirection: "row",
     justifyContent: "space-between"
   },
   toolbarActions: {
     flexDirection: "row",
-    gap: spacing.xs
+    flexWrap: "wrap",
+    gap: spacing.xs,
+    justifyContent: "flex-end",
+    maxWidth: "80%"
   }
 });

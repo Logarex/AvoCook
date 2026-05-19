@@ -12,6 +12,7 @@ import { AuthProvider, useAuth } from "./src/features/auth/AuthProvider";
 import { PreferencesProvider } from "./src/features/preferences/PreferencesProvider";
 import { RecipesProvider } from "./src/features/recipes/RecipesProvider";
 import { TimersProvider } from "./src/features/timers/TimersProvider";
+import { useReducedMotion } from "./src/features/accessibility/useReducedMotion";
 import type { RootStackParamList } from "./src/navigation/types";
 import { ImportRecipeScreen } from "./src/screens/ImportRecipeScreen";
 import { LoginScreen } from "./src/screens/LoginScreen";
@@ -47,6 +48,7 @@ export default function App() {
 function RootNavigator() {
   const { credentials, hydrated, isLocalMode } = useAuth();
   const { colors, isDark, navTheme } = useAppTheme();
+  const reducedMotion = useReducedMotion();
   const loadingLogo = isDark
     ? require("./assets/logo-dark.png")
     : require("./assets/logo.png");
@@ -54,7 +56,12 @@ function RootNavigator() {
   if (!hydrated) {
     return (
       <View style={[styles.loading, { backgroundColor: colors.background }]}>
-        <Image source={loadingLogo} style={styles.loadingLogo} contentFit="contain" />
+        <Image
+          accessible={false}
+          source={loadingLogo}
+          style={styles.loadingLogo}
+          contentFit="contain"
+        />
         <ActivityIndicator color={colors.primary} />
         <AppText muted>AvoCook</AppText>
       </View>
@@ -67,7 +74,7 @@ function RootNavigator() {
       <NavigationContainer theme={navTheme}>
         <Stack.Navigator
           screenOptions={{
-            animation: "slide_from_right",
+            animation: reducedMotion ? "none" : "slide_from_right",
             headerShown: false
           }}
         >
