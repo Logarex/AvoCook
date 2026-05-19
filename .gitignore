@@ -21,7 +21,6 @@ yarn-error.log*
 # Environment
 .env
 .env.*
-!.env.example
 
 # Testing
 coverage/
