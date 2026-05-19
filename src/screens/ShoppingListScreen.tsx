@@ -179,7 +179,7 @@ export function ShoppingListScreen({ navigation }: Props) {
         current="shoppingList"
         onNavigate={(tab) => {
           if (tab === "recipes") {
-            navigation.replace("Recipes");
+            navigation.replace("Recipes", { tabTransition: "fromShopping" });
           }
         }}
       />

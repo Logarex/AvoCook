@@ -397,7 +397,7 @@ export function RecipeListScreen({ navigation }: Props) {
         current="recipes"
         onNavigate={(tab) => {
           if (tab === "shoppingList") {
-            navigation.replace("ShoppingList");
+            navigation.replace("ShoppingList", { tabTransition: "fromRecipes" });
           }
         }}
       />

@@ -78,11 +78,11 @@ function RootNavigator() {
       <NavigationContainer theme={navTheme}>
         <Stack.Navigator
           screenOptions={({ route }) => ({
-            animation: reducedMotion
-              ? "none"
-              : isPrimaryTabRoute(route.name)
-                ? "fade"
-                : "slide_from_right",
+            animation: getStackAnimation(
+              route.name,
+              route.params,
+              reducedMotion
+            ),
             headerShown: false
           })}
         >
@@ -105,8 +105,40 @@ function RootNavigator() {
   );
 }
 
-function isPrimaryTabRoute(routeName: keyof RootStackParamList) {
-  return routeName === "Recipes" || routeName === "ShoppingList";
+function getStackAnimation(
+  routeName: keyof RootStackParamList,
+  routeParams: RootStackParamList[keyof RootStackParamList],
+  reducedMotion: boolean
+) {
+  if (reducedMotion) {
+    return "none";
+  }
+
+  const tabTransition = getTabTransition(routeParams);
+
+  if (routeName === "ShoppingList" && tabTransition === "fromRecipes") {
+    return "slide_from_right";
+  }
+
+  if (routeName === "Recipes" && tabTransition === "fromShopping") {
+    return "slide_from_left";
+  }
+
+  return "slide_from_right";
+}
+
+function getTabTransition(
+  routeParams: RootStackParamList[keyof RootStackParamList]
+) {
+  if (
+    routeParams &&
+    "tabTransition" in routeParams &&
+    typeof routeParams.tabTransition === "string"
+  ) {
+    return routeParams.tabTransition;
+  }
+
+  return undefined;
 }
 
 const styles = StyleSheet.create({
