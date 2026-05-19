@@ -1,28 +1,43 @@
-import { Check, ChevronDown, X } from "lucide-react-native";
+import { Check, ChevronDown, Globe, X } from "lucide-react-native";
 import { useState } from "react";
 import {
   Modal,
   Pressable,
   ScrollView,
   StyleSheet,
-  View
+  StyleProp,
+  View,
+  ViewStyle
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import type { AppLanguage } from "../features/preferences/PreferencesProvider";
+import { SUPPORTED_LANGUAGES } from "../i18n/languages";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { AppText } from "./AppText";
 import { GlassPanel } from "./GlassPanel";
 import { IconButton } from "./IconButton";
 
-type LanguageOption = { value: AppLanguage; label: string };
+type LanguageOption = {
+  value: AppLanguage;
+  nativeName: string;
+  shortLabel: string;
+};
 
 type Props = {
   value: AppLanguage;
-  options: LanguageOption[];
+  options?: readonly LanguageOption[];
   onChange: (value: AppLanguage) => void;
+  style?: StyleProp<ViewStyle>;
 };
 
-export function LanguagePicker({ value, options, onChange }: Props) {
+export function LanguagePicker({
+  value,
+  options = SUPPORTED_LANGUAGES,
+  onChange,
+  style
+}: Props) {
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
   const [open, setOpen] = useState(false);
 
@@ -40,11 +55,27 @@ export function LanguagePicker({ value, options, onChange }: Props) {
         accessibilityState={{ expanded: open }}
         style={[
           styles.trigger,
-          { backgroundColor: colors.input, borderColor: colors.border }
+          { backgroundColor: colors.input, borderColor: colors.border },
+          style
         ]}
         onPress={() => setOpen(true)}
       >
-        <AppText style={styles.triggerLabel}>{selected?.label ?? value}</AppText>
+        <View style={[styles.triggerIcon, { backgroundColor: colors.chip }]}>
+          <Globe color={colors.primary} size={18} />
+        </View>
+        <View style={styles.triggerText}>
+          <AppText muted variant="caption">
+            {t("settings.language")}
+          </AppText>
+          <AppText variant="label" numberOfLines={1}>
+            {selected?.nativeName ?? value.toUpperCase()}
+          </AppText>
+        </View>
+        <View style={[styles.codeBadge, { backgroundColor: colors.chip }]}>
+          <AppText variant="caption" style={{ color: colors.primary }}>
+            {selected?.shortLabel ?? value.toUpperCase()}
+          </AppText>
+        </View>
         <ChevronDown color={colors.textMuted} size={18} />
       </Pressable>
 
@@ -63,8 +94,11 @@ export function LanguagePicker({ value, options, onChange }: Props) {
           />
           <GlassPanel style={styles.modalSheet}>
             <View style={styles.modalHeader}>
-              <AppText variant="subtitle">Language / Langue / Sprache</AppText>
-              <IconButton icon={X} label="Close" onPress={() => setOpen(false)} />
+              <View style={styles.modalTitleGroup}>
+                <Globe color={colors.primary} size={22} />
+                <AppText variant="subtitle">{t("settings.language")}</AppText>
+              </View>
+              <IconButton icon={X} label={t("common.close")} onPress={() => setOpen(false)} />
             </View>
             <ScrollView
               contentContainerStyle={styles.optionList}
@@ -80,22 +114,33 @@ export function LanguagePicker({ value, options, onChange }: Props) {
                     style={({ pressed }) => [
                       styles.optionRow,
                       {
-                        backgroundColor: isSelected ? colors.primary : colors.chip,
+                        backgroundColor: isSelected ? colors.primary : colors.input,
                         borderColor: isSelected ? colors.primary : colors.border,
                         opacity: pressed ? 0.78 : 1
                       }
                     ]}
                     onPress={() => handleSelect(option.value)}
                   >
+                    <View style={styles.optionText}>
+                      <AppText
+                        variant="label"
+                        numberOfLines={1}
+                        style={{ color: isSelected ? colors.textInverted : colors.text }}
+                      >
+                        {option.nativeName}
+                      </AppText>
+                      <AppText
+                        variant="caption"
+                        style={{
+                          color: isSelected ? colors.textInverted : colors.textMuted
+                        }}
+                      >
+                        {option.shortLabel}
+                      </AppText>
+                    </View>
                     {isSelected ? (
-                      <Check color={colors.textInverted} size={17} strokeWidth={3} />
+                      <Check color={colors.textInverted} size={19} strokeWidth={3} />
                     ) : null}
-                    <AppText
-                      variant="label"
-                      style={{ color: isSelected ? colors.textInverted : colors.text }}
-                    >
-                      {option.label}
-                    </AppText>
                   </Pressable>
                 );
               })}
@@ -110,16 +155,31 @@ export function LanguagePicker({ value, options, onChange }: Props) {
 const styles = StyleSheet.create({
   trigger: {
     alignItems: "center",
-    borderRadius: radius.pill,
+    borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
-    gap: spacing.xs,
-    minHeight: 40,
+    gap: spacing.sm,
+    minHeight: 56,
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs
+    paddingVertical: spacing.xs,
+    width: "100%"
   },
-  triggerLabel: {
+  triggerIcon: {
+    alignItems: "center",
+    borderRadius: radius.sm,
+    height: 36,
+    justifyContent: "center",
+    width: 36
+  },
+  triggerText: {
     flex: 1
+  },
+  codeBadge: {
+    alignItems: "center",
+    borderRadius: radius.pill,
+    minWidth: 38,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: spacing.xxs
   },
   modalRoot: {
     flex: 1,
@@ -133,12 +193,17 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
     gap: spacing.md,
-    maxHeight: "60%"
+    maxHeight: "70%"
   },
   modalHeader: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between"
+  },
+  modalTitleGroup: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.xs
   },
   optionList: {
     gap: spacing.xs,
@@ -149,8 +214,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
+    justifyContent: "space-between",
     gap: spacing.sm,
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.sm
+  },
+  optionText: {
+    flex: 1
   }
 });

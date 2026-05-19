@@ -1,6 +1,7 @@
 import * as Localization from "expo-localization";
 import { createInstance } from "i18next";
 import { initReactI18next } from "react-i18next";
+import { resolveAppLanguage } from "./languages";
 
 export const resources = {
   fr: {
@@ -918,7 +919,10 @@ export const resources = {
     translation: {
       common: {
         add: "Añadir",
+        back: "Atrás",
+        backToTop: "Volver arriba",
         cancel: "Cancelar",
+        clearSearch: "Borrar búsqueda",
         delete: "Eliminar",
         edit: "Editar",
         save: "Guardar",
@@ -946,11 +950,15 @@ export const resources = {
         invalidUrl: "Dirección de Nextcloud no válida.",
         insecureUrl: "Usa HTTPS, salvo localhost durante el desarrollo.",
         failed: "No se pudo iniciar sesión. Revisa el servidor y la contraseña de app.",
+        certificateError:
+          "No se pudo establecer la conexión de red/TLS. Si tu servidor usa un certificado autofirmado, instala y confía en su autoridad certificadora en el dispositivo, o usa un certificado público válido.",
         useLocal: "Usar sin Nextcloud",
         showPassword: "Mostrar contraseña",
         hidePassword: "Ocultar contraseña",
         appPasswordHelp: "¿Cómo creo una contraseña de aplicación?",
         localSubtitle: "Modo local gratuito: las recetas se guardan solo en este dispositivo.",
+        localDataWarning:
+          "Atención: en modo local, al eliminar la app también se eliminan las recetas guardadas en este dispositivo. Exporta una copia de seguridad antes de desinstalar.",
         badCredentials:
           "Usuario o contraseña de aplicación incorrectos. Crea una contraseña de app dedicada en Nextcloud.",
         tutorial: {
@@ -973,6 +981,9 @@ export const resources = {
         title: "Recetas",
         emptyTitle: "Sin recetas",
         emptyBody: "Añade una receta o sincroniza tu Cookbook.",
+        openFailedTitle: "No se pudo abrir la receta",
+        openFailedBody:
+          "Esta receta contiene datos inesperados. Se conserva; vuelve a la lista y sincroniza de nuevo.",
         ingredients: "Ingredientes",
         instructions: "Pasos",
         tools: "Utensilios",
@@ -986,6 +997,11 @@ export const resources = {
         source: "Fuente",
         noCategory: "Sin categoría",
         deleteConfirm: "¿Eliminar esta receta?",
+        duplicateTitle: "Receta con el mismo nombre",
+        duplicateTitleBody:
+          "\"{{title}}\" ya existe con el nombre \"{{existingTitle}}\". ¿Quieres fusionar los datos o conservar ambas recetas?",
+        keepBoth: "Conservar ambas",
+        mergeRecipes: "Fusionar",
         allCategories: "Todas",
         uncategorized: "Sin categoría",
         categories: "Categorías",
@@ -1035,6 +1051,19 @@ export const resources = {
             "Activa las notificaciones para AvoCook en los ajustes del teléfono. Sin ellas, el temporizador no puede sonar con el iPhone bloqueado.",
           notificationsUnavailableBody:
             "Esta build aún no incluye el módulo nativo de notificaciones. Instala una build iOS real para usar temporizadores."
+        },
+        share: {
+          print: "Imprimir receta",
+          sharePdf: "Compartir como PDF",
+          shareFile: "Compartir para AvoCook",
+          keywords: "Palabras clave",
+          servingSize: "Porción",
+          failedTitle: "No se pudo compartir",
+          failedBody:
+            "No se pudo preparar la receta. Revisa el acceso a la foto o inténtalo de nuevo más tarde.",
+          partialTitle: "Foto no incluida",
+          partialBody:
+            "{{count}} imagen(es) no se pudieron añadir, pero el resto de la información de la receta está listo."
         },
         health: {
           title: "Salud",
@@ -1096,6 +1125,14 @@ export const resources = {
         title: "Importar",
         url: "URL de la receta",
         action: "Importar desde URL",
+        fileAction: "Importar archivo AvoCook",
+        sharedFileHint:
+          "También puedes elegir un archivo de receta compartido por Mensajes, WhatsApp, Mail u otro dispositivo.",
+        fileFailed: "No se pudo importar este archivo.",
+        invalidFile: "Este archivo no es una receta AvoCook válida.",
+        fileImportedTitle: "Archivo importado",
+        fileImportedBody:
+          "Importación completada: {{created}} añadida(s), {{updated}} actualizada(s), {{skipped}} duplicado(s) omitido(s), {{renamed}} renombrada(s).",
         failed: "No se pudo importar esta página.",
         success: "Receta importada"
       },
@@ -1118,6 +1155,8 @@ export const resources = {
         localOnly: "Usar sin cuenta de Nextcloud",
         privacy: "Privacidad",
         secureStore: "Las credenciales permanecen en el almacenamiento seguro del teléfono.",
+        localNotice:
+          "Tus recetas se guardan exclusivamente en este dispositivo y no se envían a ningún servidor.",
         reindex: "Reindexar Cookbook",
         reindexConfirmTitle: "¿Reindexar el servidor?",
         reindexConfirmBody:
@@ -1126,7 +1165,31 @@ export const resources = {
         openPrivacy: "Privacidad y datos",
         notifications: "Notificaciones",
         notificationsEnabled: "Activadas",
-        notificationsDisabled: "Desactivadas (pulsa para activar)"
+        notificationsDisabled: "Desactivadas (pulsa para activar)",
+        dataBackup: "Copia de seguridad",
+        dataBackupLocalBody:
+          "Exporta o importa un archivo AvoCook con recetas, categorías y fotos de este dispositivo.",
+        dataBackupNextcloudBody:
+          "La exportación sincroniza primero Nextcloud y luego guarda recetas, categorías y fotos disponibles.",
+        localDeleteWarning:
+          "Si eliminas la app, los datos locales se eliminan de este teléfono.",
+        exportBackup: "Exportar copia",
+        importBackup: "Importar copia",
+        backupExportTitle: "Copia exportada",
+        backupExportDone:
+          "Copia lista: {{count}} recetas y {{images}} imágenes.",
+        backupExportPartial:
+          "{{count}} imagen(es) no se pudieron añadir al archivo.",
+        backupImportTitle: "Importación completada",
+        backupImportConfirmTitle: "¿Importar esta copia?",
+        backupImportConfirmBody:
+          "La importación fusiona los datos sin eliminar tus recetas actuales. Los duplicados exactos se omiten, las recetas coincidentes se actualizan y los conflictos de nombre se renombran.",
+        backupImportDone:
+          "Importación completada: {{created}} añadida(s), {{updated}} actualizada(s), {{skipped}} duplicado(s) omitido(s), {{renamed}} renombrada(s).",
+        backupFailedTitle: "No se pudo hacer la copia",
+        backupFailed:
+          "La operación no pudo terminar. Revisa el archivo elegido, el acceso a la carpeta o la conexión con Nextcloud.",
+        backupInvalid: "Este archivo no es una copia de seguridad AvoCook válida."
       },
       privacy: {
         title: "Privacidad",
@@ -1146,7 +1209,10 @@ export const resources = {
     translation: {
       common: {
         add: "Aggiungi",
+        back: "Indietro",
+        backToTop: "Torna in alto",
         cancel: "Annulla",
+        clearSearch: "Cancella ricerca",
         delete: "Elimina",
         edit: "Modifica",
         save: "Salva",
@@ -1174,11 +1240,15 @@ export const resources = {
         invalidUrl: "Indirizzo Nextcloud non valido.",
         insecureUrl: "Usa HTTPS, tranne localhost durante lo sviluppo.",
         failed: "Accesso non riuscito. Controlla il server e la password dell'app.",
+        certificateError:
+          "Connessione di rete/TLS non riuscita. Se il server usa un certificato autofirmato, installa e autorizza la sua autorità di certificazione sul dispositivo oppure usa un certificato pubblico valido.",
         useLocal: "Usa senza Nextcloud",
         showPassword: "Mostra password",
         hidePassword: "Nascondi password",
         appPasswordHelp: "Come creo una password dell'app?",
         localSubtitle: "Modalità locale gratuita: le ricette restano solo su questo dispositivo.",
+        localDataWarning:
+          "Attenzione: in modalità locale, eliminare l'app elimina anche le ricette salvate su questo dispositivo. Esporta un backup prima di disinstallare.",
         badCredentials:
           "Nome utente o password dell'app errati. Crea una password app dedicata in Nextcloud.",
         tutorial: {
@@ -1201,6 +1271,9 @@ export const resources = {
         title: "Ricette",
         emptyTitle: "Nessuna ricetta",
         emptyBody: "Aggiungi una ricetta o sincronizza il tuo Cookbook.",
+        openFailedTitle: "Impossibile aprire la ricetta",
+        openFailedBody:
+          "Questa ricetta contiene dati inattesi. È stata conservata; torna all'elenco e avvia di nuovo la sincronizzazione.",
         ingredients: "Ingredienti",
         instructions: "Passaggi",
         tools: "Strumenti",
@@ -1214,6 +1287,11 @@ export const resources = {
         source: "Fonte",
         noCategory: "Nessuna categoria",
         deleteConfirm: "Eliminare questa ricetta?",
+        duplicateTitle: "Ricetta con lo stesso nome",
+        duplicateTitleBody:
+          "\"{{title}}\" esiste già con il nome \"{{existingTitle}}\". Vuoi unire i dati o conservare entrambe le ricette?",
+        keepBoth: "Conserva entrambe",
+        mergeRecipes: "Unisci",
         allCategories: "Tutte",
         uncategorized: "Nessuna categoria",
         categories: "Categorie",
@@ -1263,6 +1341,19 @@ export const resources = {
             "Abilita le notifiche per AvoCook nelle impostazioni del telefono. Senza di esse, il timer non può suonare con l'iPhone bloccato.",
           notificationsUnavailableBody:
             "Questa build non include ancora il modulo nativo delle notifiche. Installa una build iOS reale per usare i timer."
+        },
+        share: {
+          print: "Stampa ricetta",
+          sharePdf: "Condividi come PDF",
+          shareFile: "Condividi per AvoCook",
+          keywords: "Parole chiave",
+          servingSize: "Porzione",
+          failedTitle: "Condivisione impossibile",
+          failedBody:
+            "Non è stato possibile preparare la ricetta. Controlla l'accesso alla foto o riprova più tardi.",
+          partialTitle: "Foto non inclusa",
+          partialBody:
+            "{{count}} immagine/i non sono state aggiunte, ma le altre informazioni della ricetta sono pronte."
         },
         health: {
           title: "Salute",
@@ -1324,6 +1415,14 @@ export const resources = {
         title: "Importa",
         url: "URL della ricetta",
         action: "Importa da URL",
+        fileAction: "Importa file AvoCook",
+        sharedFileHint:
+          "Puoi anche scegliere un file ricetta condiviso tramite Messaggi, WhatsApp, Mail o un altro dispositivo.",
+        fileFailed: "Impossibile importare questo file.",
+        invalidFile: "Questo file non è una ricetta AvoCook valida.",
+        fileImportedTitle: "File importato",
+        fileImportedBody:
+          "Importazione completata: {{created}} aggiunta/e, {{updated}} aggiornata/e, {{skipped}} duplicato/i ignorato/i, {{renamed}} rinominata/e.",
         failed: "Impossibile importare questa pagina.",
         success: "Ricetta importata"
       },
@@ -1346,6 +1445,8 @@ export const resources = {
         localOnly: "Uso senza account Nextcloud",
         privacy: "Privacy",
         secureStore: "Le credenziali rimangono nel deposito sicuro del telefono.",
+        localNotice:
+          "Le tue ricette sono archiviate esclusivamente su questo dispositivo e non vengono inviate a nessun server.",
         reindex: "Reindicizza Cookbook",
         reindexConfirmTitle: "Reindicizzare il server?",
         reindexConfirmBody:
@@ -1354,7 +1455,31 @@ export const resources = {
         openPrivacy: "Privacy e dati",
         notifications: "Notifiche",
         notificationsEnabled: "Abilitate",
-        notificationsDisabled: "Disabilitate (tocca per abilitare)"
+        notificationsDisabled: "Disabilitate (tocca per abilitare)",
+        dataBackup: "Backup dei dati",
+        dataBackupLocalBody:
+          "Esporta o importa un file AvoCook con ricette, categorie e foto da questo dispositivo.",
+        dataBackupNextcloudBody:
+          "L'esportazione sincronizza prima Nextcloud, poi salva ricette, categorie e foto disponibili.",
+        localDeleteWarning:
+          "Se elimini l'app, i dati locali vengono rimossi da questo telefono.",
+        exportBackup: "Esporta backup",
+        importBackup: "Importa backup",
+        backupExportTitle: "Backup esportato",
+        backupExportDone:
+          "Backup pronto: {{count}} ricette e {{images}} immagini.",
+        backupExportPartial:
+          "{{count}} immagine/i non sono state aggiunte al file.",
+        backupImportTitle: "Importazione completata",
+        backupImportConfirmTitle: "Importare questo backup?",
+        backupImportConfirmBody:
+          "L'importazione unisce i dati senza eliminare le ricette attuali. I duplicati esatti vengono ignorati, le ricette corrispondenti aggiornate e i conflitti di nome rinominati.",
+        backupImportDone:
+          "Importazione completata: {{created}} aggiunta/e, {{updated}} aggiornata/e, {{skipped}} duplicato/i ignorato/i, {{renamed}} rinominata/e.",
+        backupFailedTitle: "Backup non riuscito",
+        backupFailed:
+          "L'operazione non è stata completata. Controlla il file selezionato, l'accesso alla cartella o la connessione Nextcloud.",
+        backupInvalid: "Questo file non è un backup AvoCook valido."
       },
       privacy: {
         title: "Privacy",
@@ -1372,19 +1497,12 @@ export const resources = {
   }
 } as const;
 
-type SupportedLang = "fr" | "en" | "de" | "es" | "it";
-
-function detectLanguage(lang: string | undefined): SupportedLang {
-  if (lang === "en" || lang === "de" || lang === "es" || lang === "it") return lang;
-  return "fr";
-}
-
 const deviceLanguage = Localization.getLocales()[0]?.languageCode;
 const i18n = createInstance();
 
 void i18n.use(initReactI18next).init({
   resources,
-  lng: detectLanguage(deviceLanguage),
+  lng: resolveAppLanguage(deviceLanguage),
   fallbackLng: "fr",
   interpolation: {
     escapeValue: false

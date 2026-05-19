@@ -207,17 +207,9 @@ export function SettingsScreen({ navigation }: Props) {
       </GlassPanel>
 
       <GlassPanel style={styles.section}>
-        <AppText variant="label">{t("settings.language")}</AppText>
         <LanguagePicker
           value={language}
           onChange={(value) => void setLanguage(value)}
-          options={[
-            { label: t("settings.french"), value: "fr" },
-            { label: t("settings.english"), value: "en" },
-            { label: t("settings.german"), value: "de" },
-            { label: t("settings.spanish"), value: "es" },
-            { label: t("settings.italian"), value: "it" }
-          ]}
         />
       </GlassPanel>
 
