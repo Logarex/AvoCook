@@ -21,18 +21,22 @@ import {
   createRecipe as createRecipeInRepository,
   deleteRecipe as deleteRecipeInRepository,
   exportRecipeBackup,
+  findDuplicateRecipes,
   importRecipeBackup,
   importRecipeBackupFile,
   importRecipe as importRecipeInRepository,
   initialiseRecipeStore,
+  mergeDuplicateRecipes,
   syncRecipes,
   updateRecipeLocalPreferences,
   updateRecipe as updateRecipeInRepository,
   type RecipeBackupImportResult,
+  type RecipeDuplicateMergeResult,
   type RecipeNameConflict,
   type RecipeNameConflictResolution,
   type RecipeRepositoryOptions
 } from "./recipeRepository";
+import type { RecipeDuplicateGroup } from "./backupDuplicates";
 import {
   pickRecipeBackupFile,
   writeRecipeBackupToPickedDirectory,
@@ -57,6 +61,10 @@ type RecipesContextValue = {
   exportBackup: () => Promise<RecipeBackupExportResult & { fileUri: string }>;
   importBackup: () => Promise<RecipeBackupImportResult>;
   importBackupFile: (uri: string) => Promise<RecipeBackupImportResult>;
+  findDuplicateGroups: () => Promise<RecipeDuplicateGroup[]>;
+  mergeDuplicateGroup: (
+    group: RecipeDuplicateGroup
+  ) => Promise<RecipeDuplicateMergeResult>;
   createCategory: (category: string) => Promise<string[]>;
   deleteCategory: (category: string) => Promise<string[]>;
 };
@@ -263,6 +271,17 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     [getClient, repositoryOptions]
   );
 
+  const findDuplicateGroups = useCallback(() => findDuplicateRecipes(), []);
+
+  const mergeDuplicateGroup = useCallback(
+    async (group: RecipeDuplicateGroup) => {
+      const result = await mergeDuplicateRecipes(group, getClient());
+      setRecipes(result.recipes);
+      return result;
+    },
+    [getClient]
+  );
+
   const createCategory = useCallback(async (category: string) => {
     const nextCategories = await saveCustomCategory(category);
     setCustomCategories(nextCategories);
@@ -298,6 +317,8 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       exportBackup,
       importBackup,
       importBackupFile,
+      findDuplicateGroups,
+      mergeDuplicateGroup,
       createCategory,
       deleteCategory
     }),
@@ -318,6 +339,8 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       exportBackup,
       importBackup,
       importBackupFile,
+      findDuplicateGroups,
+      mergeDuplicateGroup,
       createCategory,
       deleteCategory
     ]

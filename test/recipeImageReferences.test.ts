@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  getEditableRecipeImageSource,
   getRemoteRecipeImage,
+  replaceLocalRecipeImageReferencesWithRemote,
   sanitizeRecipeImagesForNextcloud,
   withCachedRecipeImage
 } from "../src/features/recipes/recipeImageReferences";
@@ -38,6 +40,26 @@ describe("recipe image references", () => {
     expect(sanitized.image).toBe("https://example.com/tarte.jpg");
     expect(sanitized.imageUrl).toBe("https://example.com/tarte.jpg");
     expect(sanitized.imagePlaceholderUrl).toBe("https://example.com/tarte.jpg");
+  });
+
+  it("does not make a cached Cookbook endpoint image primary", () => {
+    const imageUrl =
+      "https://cloud.example.com/apps/cookbook/webapp/recipes/3264/image?size=full";
+    const recipe = normalizeRecipe({
+      name: "Tapenade",
+      image: imageUrl,
+      imageUrl,
+      imagePlaceholderUrl: imageUrl
+    });
+
+    const cached = withCachedRecipeImage(
+      recipe,
+      "file:///documents/recipe-images/tapenade.jpg"
+    );
+
+    expect(cached.image).toBe(imageUrl);
+    expect(cached.imageUrl).toBe(imageUrl);
+    expect(cached.imagePlaceholderUrl).toBe(imageUrl);
   });
 
   it("does not leak local file paths to Nextcloud", () => {
@@ -88,5 +110,59 @@ describe("recipe image references", () => {
     expect(sanitized.image).toBe("");
     expect(sanitized.imageUrl).toBe("");
     expect(sanitized.imagePlaceholderUrl).toBe("");
+  });
+
+  it("prefers a remote image over a stale local cache in editable fields", () => {
+    const recipe = normalizeRecipe({
+      name: "Tapenade",
+      image: "file:///documents/recipe-images/tapenade.jpg",
+      imageUrl:
+        "https://cloud.example.com/apps/cookbook/webapp/recipes/3264/image?size=full",
+      imagePlaceholderUrl:
+        "https://cloud.example.com/apps/cookbook/webapp/recipes/3264/image?size=thumb"
+    });
+
+    expect(getEditableRecipeImageSource(recipe)).toBe(
+      "https://cloud.example.com/apps/cookbook/webapp/recipes/3264/image?size=full"
+    );
+  });
+
+  it("repairs stale local cache references when a remote image exists", () => {
+    const recipe = normalizeRecipe({
+      name: "Tapenade",
+      image: "file:///documents/recipe-images/tapenade.jpg",
+      imageUrl:
+        "https://cloud.example.com/apps/cookbook/webapp/recipes/3264/image?size=full",
+      imagePlaceholderUrl:
+        "https://cloud.example.com/apps/cookbook/webapp/recipes/3264/image?size=thumb"
+    });
+
+    const repaired = replaceLocalRecipeImageReferencesWithRemote(recipe);
+
+    expect(repaired.image).toBe(
+      "https://cloud.example.com/apps/cookbook/webapp/recipes/3264/image?size=full"
+    );
+    expect(repaired.imageUrl).toBe(
+      "https://cloud.example.com/apps/cookbook/webapp/recipes/3264/image?size=full"
+    );
+    expect(repaired.imagePlaceholderUrl).toBe(
+      "https://cloud.example.com/apps/cookbook/webapp/recipes/3264/image?size=thumb"
+    );
+  });
+
+  it("keeps local-only image references", () => {
+    const recipe = normalizeRecipe({
+      name: "Photo maison",
+      image: "file:///documents/recipe-images/photo.jpg",
+      imageUrl: "",
+      imagePlaceholderUrl: ""
+    });
+
+    const repaired = replaceLocalRecipeImageReferencesWithRemote(recipe);
+
+    expect(repaired.image).toBe("file:///documents/recipe-images/photo.jpg");
+    expect(getEditableRecipeImageSource(repaired)).toBe(
+      "file:///documents/recipe-images/photo.jpg"
+    );
   });
 });
