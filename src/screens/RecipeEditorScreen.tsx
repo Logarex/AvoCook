@@ -12,6 +12,7 @@ import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { persistRecipeImage } from "../features/recipes/recipeImages";
+import { getEditableRecipeImageSource } from "../features/recipes/recipeImageReferences";
 import {
   createEmptyRecipe,
   normalizeRecipe,
@@ -44,7 +45,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const [name, setName] = useState(initialRecipe.name);
   const [description, setDescription] = useState(initialRecipe.description);
   const [photoUrl, setPhotoUrl] = useState(
-    initialRecipe.image || initialRecipe.imageUrl
+    getEditableRecipeImageSource(initialRecipe)
   );
   const [category, setCategory] = useState(initialRecipe.recipeCategory);
   const [keywords, setKeywords] = useState(initialRecipe.keywords);
@@ -112,7 +113,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   useEffect(() => {
     setName(initialRecipe.name);
     setDescription(initialRecipe.description);
-    setPhotoUrl(initialRecipe.image || initialRecipe.imageUrl);
+    setPhotoUrl(getEditableRecipeImageSource(initialRecipe));
     setCategory(initialRecipe.recipeCategory);
     setKeywords(initialRecipe.keywords);
     setRecipeYield(String(initialRecipe.recipeYield || 1));

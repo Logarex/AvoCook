@@ -29,6 +29,7 @@ import { SegmentedControl } from "../components/SegmentedControl";
 import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import type { RecipeDuplicateGroup } from "../features/recipes/backupDuplicates";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { type ThemeMode, useAppTheme } from "../theme/ThemeProvider";
@@ -44,7 +45,14 @@ export function SettingsScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors, mode, setMode } = useAppTheme();
   const { credentials, getClient, isLocalMode, logout } = useAuth();
-  const { exportBackup, importBackup, recipes, sync } = useRecipes();
+  const {
+    exportBackup,
+    findDuplicateGroups,
+    importBackup,
+    mergeDuplicateGroup,
+    recipes,
+    sync
+  } = useRecipes();
   const {
     keepRecipesLocal,
     keepScreenAwake,
@@ -57,6 +65,7 @@ export function SettingsScreen({ navigation }: Props) {
   const [backupAction, setBackupAction] = useState<"export" | "import" | null>(
     null
   );
+  const [duplicateAction, setDuplicateAction] = useState(false);
   const [notificationState, setNotificationState] =
     useState<TimerNotificationState>("unavailable");
 
@@ -179,6 +188,83 @@ export function SettingsScreen({ navigation }: Props) {
     } finally {
       setBackupAction(null);
     }
+  }
+
+  async function handleCheckDuplicates() {
+    setDuplicateAction(true);
+    setMessage(null);
+    let merged = 0;
+    let skipped = 0;
+    const skippedGroups = new Set<string>();
+
+    try {
+      while (true) {
+        const groups = (await findDuplicateGroups()).filter(
+          (group) => !skippedGroups.has(group.id)
+        );
+        const group = groups[0];
+
+        if (!group) {
+          const title =
+            merged || skipped
+              ? t("settings.duplicatesDoneTitle")
+              : t("settings.duplicatesNoneTitle");
+          const body =
+            merged || skipped
+              ? t("settings.duplicatesDoneBody", { merged, skipped })
+              : t("settings.duplicatesNoneBody");
+          setMessage(body);
+          Alert.alert(title, body);
+          break;
+        }
+
+        const resolution = await askDuplicateResolution(group);
+        if (resolution === "merge") {
+          const result = await mergeDuplicateGroup(group);
+          merged += result.removed;
+          if (result.removed === 0) {
+            skippedGroups.add(group.id);
+          }
+        } else {
+          skipped += 1;
+          skippedGroups.add(group.id);
+        }
+      }
+    } catch {
+      Alert.alert(t("settings.duplicatesFailedTitle"), t("settings.duplicatesFailed"));
+    } finally {
+      setDuplicateAction(false);
+    }
+  }
+
+  function askDuplicateResolution(group: RecipeDuplicateGroup) {
+    return new Promise<"keep" | "merge">((resolve) => {
+      Alert.alert(
+        t("settings.duplicateFoundTitle"),
+        t("settings.duplicateFoundBody", {
+          count: group.recipes.length,
+          reason: t(`settings.duplicateReason.${group.reason}`),
+          recipes: group.recipes
+            .map((recipe, index) => `${index + 1}. ${recipe.name}`)
+            .join("\n")
+        }),
+        [
+          {
+            text: t("recipes.keepBoth"),
+            onPress: () => resolve("keep"),
+            style: "cancel"
+          },
+          {
+            text: t("recipes.mergeRecipes"),
+            onPress: () => resolve("merge")
+          }
+        ],
+        {
+          cancelable: true,
+          onDismiss: () => resolve("keep")
+        }
+      );
+    });
   }
 
   return (
@@ -310,6 +396,31 @@ export function SettingsScreen({ navigation }: Props) {
             variant="ghost"
           />
         </View>
+      </GlassPanel>
+
+      <GlassPanel style={styles.section}>
+        <View style={styles.serverHeader}>
+          <Database color={colors.primary} size={22} />
+          <AppText variant="label">{t("settings.duplicates")}</AppText>
+        </View>
+        <AppText muted variant="caption">
+          {t(
+            isLocalMode
+              ? "settings.duplicatesLocalBody"
+              : "settings.duplicatesNextcloudBody"
+          )}
+        </AppText>
+        <PrimaryButton
+          disabled={duplicateAction}
+          icon={Database}
+          label={
+            duplicateAction
+              ? t("common.loading")
+              : t("settings.checkDuplicates")
+          }
+          onPress={() => void handleCheckDuplicates()}
+          variant="ghost"
+        />
       </GlassPanel>
 
       <GlassPanel style={styles.connectionCard}>

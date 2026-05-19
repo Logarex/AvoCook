@@ -344,7 +344,30 @@ export const resources = {
         backupFailedTitle: "Sauvegarde impossible",
         backupFailed:
           "L'opération n'a pas pu se terminer. Vérifiez le fichier choisi, l'accès au dossier ou la connexion Nextcloud.",
-        backupInvalid: "Ce fichier n'est pas une sauvegarde AvoCook valide."
+        backupInvalid: "Ce fichier n'est pas une sauvegarde AvoCook valide.",
+        duplicates: "Doublons",
+        duplicatesLocalBody:
+          "Analyse les recettes de cet appareil et propose de fusionner les doublons probables.",
+        duplicatesNextcloudBody:
+          "Analyse les recettes synchronisées et applique les fusions validées en local et sur Nextcloud.",
+        checkDuplicates: "Vérifier les doublons",
+        duplicateFoundTitle: "Doublon possible",
+        duplicateFoundBody:
+          "{{count}} recettes semblent correspondre ({{reason}}) :\n\n{{recipes}}\n\nVoulez-vous les fusionner ? La recette la plus complète sera conservée.",
+        duplicateReason: {
+          url: "même URL source",
+          signature: "mêmes ingrédients et étapes",
+          name: "nom très proche"
+        },
+        duplicatesNoneTitle: "Aucun doublon trouvé",
+        duplicatesNoneBody:
+          "Aucune recette suffisamment proche n'a été détectée.",
+        duplicatesDoneTitle: "Vérification terminée",
+        duplicatesDoneBody:
+          "{{merged}} recette(s) fusionnée(s), {{skipped}} groupe(s) conservé(s).",
+        duplicatesFailedTitle: "Vérification impossible",
+        duplicatesFailed:
+          "La vérification ou la fusion n'a pas pu se terminer. Vérifiez la connexion Nextcloud puis réessayez."
       },
       privacy: {
         title: "Confidentialité",
@@ -695,7 +718,29 @@ export const resources = {
         backupFailedTitle: "Backup failed",
         backupFailed:
           "The operation could not finish. Check the selected file, folder access or Nextcloud connection.",
-        backupInvalid: "This file is not a valid AvoCook backup."
+        backupInvalid: "This file is not a valid AvoCook backup.",
+        duplicates: "Duplicates",
+        duplicatesLocalBody:
+          "Scans the recipes on this device and offers to merge likely duplicates.",
+        duplicatesNextcloudBody:
+          "Scans synced recipes and applies approved merges locally and on Nextcloud.",
+        checkDuplicates: "Check duplicates",
+        duplicateFoundTitle: "Possible duplicate",
+        duplicateFoundBody:
+          "{{count}} recipes seem to match ({{reason}}):\n\n{{recipes}}\n\nDo you want to merge them? The most complete recipe will be kept.",
+        duplicateReason: {
+          url: "same source URL",
+          signature: "same ingredients and steps",
+          name: "very similar name"
+        },
+        duplicatesNoneTitle: "No duplicates found",
+        duplicatesNoneBody: "No sufficiently similar recipes were detected.",
+        duplicatesDoneTitle: "Check complete",
+        duplicatesDoneBody:
+          "{{merged}} recipe(s) merged, {{skipped}} group(s) kept separate.",
+        duplicatesFailedTitle: "Check failed",
+        duplicatesFailed:
+          "The duplicate check or merge could not finish. Check the Nextcloud connection and try again."
       },
       privacy: {
         title: "Privacy",
@@ -1054,7 +1099,30 @@ export const resources = {
         backupFailedTitle: "Sicherung fehlgeschlagen",
         backupFailed:
           "Der Vorgang konnte nicht abgeschlossen werden. Prüfe die ausgewählte Datei, den Ordnerzugriff oder die Nextcloud-Verbindung.",
-        backupInvalid: "Diese Datei ist keine gültige AvoCook-Sicherung."
+        backupInvalid: "Diese Datei ist keine gültige AvoCook-Sicherung.",
+        duplicates: "Duplikate",
+        duplicatesLocalBody:
+          "Prüft die Rezepte auf diesem Gerät und bietet an, wahrscheinliche Duplikate zusammenzuführen.",
+        duplicatesNextcloudBody:
+          "Prüft synchronisierte Rezepte und übernimmt bestätigte Zusammenführungen lokal und in Nextcloud.",
+        checkDuplicates: "Duplikate prüfen",
+        duplicateFoundTitle: "Mögliches Duplikat",
+        duplicateFoundBody:
+          "{{count}} Rezepte scheinen übereinzustimmen ({{reason}}):\n\n{{recipes}}\n\nMöchtest du sie zusammenführen? Das vollständigste Rezept bleibt erhalten.",
+        duplicateReason: {
+          url: "gleiche Quell-URL",
+          signature: "gleiche Zutaten und Schritte",
+          name: "sehr ähnlicher Name"
+        },
+        duplicatesNoneTitle: "Keine Duplikate gefunden",
+        duplicatesNoneBody:
+          "Es wurden keine ausreichend ähnlichen Rezepte erkannt.",
+        duplicatesDoneTitle: "Prüfung abgeschlossen",
+        duplicatesDoneBody:
+          "{{merged}} Rezept(e) zusammengeführt, {{skipped}} Gruppe(n) getrennt behalten.",
+        duplicatesFailedTitle: "Prüfung fehlgeschlagen",
+        duplicatesFailed:
+          "Die Duplikatprüfung oder Zusammenführung konnte nicht abgeschlossen werden. Prüfe die Nextcloud-Verbindung und versuche es erneut."
       },
       privacy: {
         title: "Datenschutz",
@@ -1402,7 +1470,30 @@ export const resources = {
         backupFailedTitle: "No se pudo hacer la copia",
         backupFailed:
           "La operación no pudo terminar. Revisa el archivo elegido, el acceso a la carpeta o la conexión con Nextcloud.",
-        backupInvalid: "Este archivo no es una copia de seguridad AvoCook válida."
+        backupInvalid: "Este archivo no es una copia de seguridad AvoCook válida.",
+        duplicates: "Duplicados",
+        duplicatesLocalBody:
+          "Analiza las recetas de este dispositivo y propone fusionar duplicados probables.",
+        duplicatesNextcloudBody:
+          "Analiza las recetas sincronizadas y aplica las fusiones aprobadas en local y en Nextcloud.",
+        checkDuplicates: "Comprobar duplicados",
+        duplicateFoundTitle: "Posible duplicado",
+        duplicateFoundBody:
+          "{{count}} recetas parecen coincidir ({{reason}}):\n\n{{recipes}}\n\n¿Quieres fusionarlas? Se conservará la receta más completa.",
+        duplicateReason: {
+          url: "misma URL de origen",
+          signature: "mismos ingredientes y pasos",
+          name: "nombre muy parecido"
+        },
+        duplicatesNoneTitle: "No se encontraron duplicados",
+        duplicatesNoneBody:
+          "No se detectaron recetas suficientemente parecidas.",
+        duplicatesDoneTitle: "Comprobación terminada",
+        duplicatesDoneBody:
+          "{{merged}} receta(s) fusionada(s), {{skipped}} grupo(s) conservado(s).",
+        duplicatesFailedTitle: "No se pudo comprobar",
+        duplicatesFailed:
+          "La comprobación o la fusión no pudo terminar. Revisa la conexión con Nextcloud e inténtalo de nuevo."
       },
       privacy: {
         title: "Privacidad",
@@ -1747,7 +1838,30 @@ export const resources = {
         backupFailedTitle: "Backup non riuscito",
         backupFailed:
           "L'operazione non è stata completata. Controlla il file selezionato, l'accesso alla cartella o la connessione Nextcloud.",
-        backupInvalid: "Questo file non è un backup AvoCook valido."
+        backupInvalid: "Questo file non è un backup AvoCook valido.",
+        duplicates: "Duplicati",
+        duplicatesLocalBody:
+          "Analizza le ricette su questo dispositivo e propone di unire i probabili duplicati.",
+        duplicatesNextcloudBody:
+          "Analizza le ricette sincronizzate e applica le unioni approvate in locale e su Nextcloud.",
+        checkDuplicates: "Controlla duplicati",
+        duplicateFoundTitle: "Possibile duplicato",
+        duplicateFoundBody:
+          "{{count}} ricette sembrano corrispondere ({{reason}}):\n\n{{recipes}}\n\nVuoi unirle? Verrà conservata la ricetta più completa.",
+        duplicateReason: {
+          url: "stesso URL di origine",
+          signature: "stessi ingredienti e passaggi",
+          name: "nome molto simile"
+        },
+        duplicatesNoneTitle: "Nessun duplicato trovato",
+        duplicatesNoneBody:
+          "Non sono state rilevate ricette sufficientemente simili.",
+        duplicatesDoneTitle: "Controllo completato",
+        duplicatesDoneBody:
+          "{{merged}} ricetta/e unite, {{skipped}} gruppo/i conservato/i.",
+        duplicatesFailedTitle: "Controllo non riuscito",
+        duplicatesFailed:
+          "Il controllo o l'unione non è stato completato. Controlla la connessione Nextcloud e riprova."
       },
       privacy: {
         title: "Privacy",
