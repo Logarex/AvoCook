@@ -9,6 +9,7 @@ export type RootStackParamList = {
     category?: string;
   };
   ImportRecipe: undefined;
+  ShoppingList: undefined;
   Settings: undefined;
   Privacy: undefined;
 };

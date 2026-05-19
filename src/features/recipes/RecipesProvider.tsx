@@ -11,7 +11,11 @@ import { Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../auth/AuthProvider";
 import { usePreferences } from "../preferences/PreferencesProvider";
-import { loadCustomCategories, saveCustomCategory } from "./categoryStore";
+import {
+  deleteCustomCategory,
+  loadCustomCategories,
+  saveCustomCategory
+} from "./categoryStore";
 import {
   clearSyncedLocalRecipes,
   createRecipe as createRecipeInRepository,
@@ -54,6 +58,7 @@ type RecipesContextValue = {
   importBackup: () => Promise<RecipeBackupImportResult>;
   importBackupFile: (uri: string) => Promise<RecipeBackupImportResult>;
   createCategory: (category: string) => Promise<string[]>;
+  deleteCategory: (category: string) => Promise<string[]>;
 };
 
 const RecipesContext = createContext<RecipesContextValue | undefined>(
@@ -264,6 +269,12 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     return nextCategories;
   }, []);
 
+  const deleteCategory = useCallback(async (category: string) => {
+    const nextCategories = await deleteCustomCategory(category);
+    setCustomCategories(nextCategories);
+    return nextCategories;
+  }, []);
+
   const getRecipe = useCallback(
     (id: string) => recipes.find((recipe) => recipe.id === id),
     [recipes]
@@ -287,7 +298,8 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       exportBackup,
       importBackup,
       importBackupFile,
-      createCategory
+      createCategory,
+      deleteCategory
     }),
     [
       recipes,
@@ -306,7 +318,8 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       exportBackup,
       importBackup,
       importBackupFile,
-      createCategory
+      createCategory,
+      deleteCategory
     ]
   );
 
