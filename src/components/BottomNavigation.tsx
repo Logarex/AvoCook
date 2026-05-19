@@ -34,7 +34,7 @@ export function BottomNavigation({
         styles.wrap,
         {
           backgroundColor: colors.background,
-          paddingBottom: Math.max(insets.bottom, spacing.xs)
+          paddingBottom: Math.max(insets.bottom > 0 ? insets.bottom - 16 : 0, spacing.xs)
         }
       ]}
     >
@@ -110,7 +110,7 @@ function BottomNavigationItem({
 const styles = StyleSheet.create({
   wrap: {
     paddingHorizontal: spacing.md,
-    paddingTop: spacing.xs
+    paddingTop: spacing.xxs
   },
   bar: {
     borderRadius: radius.pill,
