@@ -202,7 +202,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen>
+    <Screen showScrollTop={false}>
       <View style={styles.toolbar}>
         <IconButton
           icon={ArrowLeft}
