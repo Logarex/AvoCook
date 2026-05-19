@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/Expo-SDK%2054-00020d?logo=expo&logoColor=white&style=flat-square" alt="Expo" />
   <img src="https://img.shields.io/badge/React%20Native-0.81-61dafb?logo=react&logoColor=black&style=flat-square" alt="React Native" />
   <img src="https://img.shields.io/badge/platforms-iOS%20%7C%20iPadOS%20%7C%20Android-green?style=flat-square" alt="Platforms" />
-  <img src="https://img.shields.io/badge/i18n-FR%20%7C%20EN%20%7C%20DE-orange?style=flat-square" alt="Languages" />
+  <img src="https://img.shields.io/badge/i18n-FR%20%7C%20EN%20%7C%20DE%20%7C%20ES%20%7C%20IT-orange?style=flat-square" alt="Languages" />
 </p>
 
 ---
@@ -49,7 +49,7 @@
 *   **Core** : Expo React Native, TypeScript, React Navigation
 *   **Données locales** : SQLite (`expo-sqlite`) pour le cache et le stockage hors ligne, SecureStore (`expo-secure-store`) pour le chiffrement des identifiants
 *   **UI & Expérience** : Blur (iOS glassmorphism), Fast Image, System Image Picker
-*   **Qualité & Internationalisation** : i18next (Français, Anglais, Allemand), Vitest pour les tests unitaires
+*   **Qualité & Internationalisation** : i18next (Français, Anglais, Allemand, Espagnol, Italien), Vitest pour les tests unitaires
 
 ### Installation et Lancement
 
@@ -122,7 +122,7 @@ npm run import:check -- <URL-recette> # Tester le parser de recette sur une URL
 *   **Core**: Expo React Native, TypeScript, React Navigation
 *   **Data & Security**: SQLite (`expo-sqlite`) for offline-first caching, SecureStore (`expo-secure-store`) for encrypted keychain credentials
 *   **UI & Native**: Expo Blur (glassmorphism layouts on iOS), Fast Image, System Image Picker
-*   **Testing & i18n**: i18next (French, English, German), Vitest for unit testing
+*   **Testing & i18n**: i18next (French, English, German, Spanish, Italian), Vitest for unit testing
 
 ### Setup & Getting Started
 
@@ -194,7 +194,7 @@ npm run import:check -- <Recipe-URL>  # Validate site parser compatibility
 *   **Kern**: Expo React Native, TypeScript, React Navigation
 *   **Daten & Sicherheit**: SQLite (`expo-sqlite`) für den Offline-Cache, SecureStore (`expo-secure-store`) für verschlüsselte Passwörter
 *   **Design & UI**: Blur-Effekte (Glassmorphismus auf iOS), Fast Image, nativer Image Picker
-*   **Qualitätssicherung & i18n**: i18next (Deutsch, Französisch, Englisch), Vitest für Unit-Tests
+*   **Qualitätssicherung & i18n**: i18next (Deutsch, Französisch, Englisch, Spanisch, Italienisch), Vitest für Unit-Tests
 
 ### Installation & Start
 

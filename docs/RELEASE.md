@@ -23,7 +23,7 @@
 - Tester créations, éditions, suppressions et import URL en mode avion.
 - Tester le mode local sans Nextcloud.
 - Tester l'ajout manuel d'une photo et l'import d'une photo depuis Marmiton, CuisineAZ et 750g.
-- Tester français/anglais, clair/sombre et tailles de texte système.
+- Tester les différentes langues (français/anglais/allemand/espagnol/italien), clair/sombre et tailles de texte système.
 - Vérifier les écrans iPhone compact, iPhone grand, iPad et Android.
 - Vérifier sur appareil réel que l'option `Garder l'écran allumé` est désactivée par défaut et ne s'active que sur l'écran détail recette.
 - Vérifier que la désactivation de `Conserver une copie locale` supprime les recettes synchronisées et les images de recettes devenues inutiles.
@@ -99,7 +99,7 @@ L'application est un client indépendant de Nextcloud Cookbook. Elle doit évite
 - Test creations, edits, deletions, and URL imports in airplane mode.
 - Test local mode without Nextcloud.
 - Test manual addition of a photo and photo import from Marmiton, CuisineAZ, and 750g.
-- Test French/English, light/dark, and system text sizes.
+- Test the different languages (French/English/German/Spanish/Italian), light/dark, and system text sizes.
 - Check compact iPhone, large iPhone, iPad, and Android screens.
 - Verify on a real device that the `Keep screen on` option is disabled by default and only activates on the recipe detail screen.
 - Verify that disabling `Keep a local copy` deletes synchronized recipes and unused recipe images.
