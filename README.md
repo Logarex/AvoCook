@@ -29,6 +29,16 @@
   <img src="assets/screenshots/recipe.jpeg" width="300" alt="Détail d'une recette" />
 </p>
 
+### Installation (Utilisateurs)
+
+*   **iOS (iPhone & iPad)** : Téléchargez directement l'application sur l'[App Store](https://apps.apple.com/app/avocook/id6769012665).
+*   **Android (Direct)** :
+    1. Téléchargez le dernier fichier `avocook.apk` depuis les [Releases GitHub](https://github.com/Logarex/AvoCook/releases/latest).
+    2. Ouvrez le fichier téléchargé et autorisez l'installation d'applications issues de sources inconnues si votre navigateur ou gestionnaire de fichiers vous le demande.
+    3. *Mises à jour* : L'application intègre un détecteur de mise à jour. Vous serez averti directement dans l'application lorsqu'un nouvel APK sera publié sur GitHub, avec un bouton pour le télécharger.
+*   **Android (F-Droid)** :
+    *   *(Bientôt disponible)* : L'application sera disponible sur F-Droid via le dépôt IzzyOnDroid pour des mises à jour automatiques en arrière-plan.
+
 ### Fonctionnalités
 
 *   **Mode Local & Hors-ligne (100% Autonome)** : Utilisez l'application de manière entièrement autonome, sans compte ni serveur. Les recettes et photos restent stockées localement et en toute sécurité dans la base de données de votre appareil.
@@ -102,6 +112,16 @@ npm run import:check -- <URL-recette> # Tester le parser de recette sur une URL
   <img src="assets/screenshots/recipe.jpeg" width="300" alt="Recipe Details" />
 </p>
 
+### Installation (Users)
+
+*   **iOS (iPhone & iPad)**: Download the application directly from the [App Store](https://apps.apple.com/app/avocook/id6769012665).
+*   **Android (Direct APK)**:
+    1. Download the latest `avocook.apk` file from the [GitHub Releases](https://github.com/Logarex/AvoCook/releases/latest).
+    2. Open the downloaded file and authorize installation from unknown sources if prompted by your browser or file manager.
+    3. *Updates*: The application features a built-in release checker. You will be notified directly inside the app when a new APK version is available on GitHub, with a direct download link.
+*   **Android (F-Droid)**:
+    *   *(Coming soon)*: The app will be available on F-Droid via the IzzyOnDroid repository for automatic background updates.
+
 ### Features
 
 *   **Local & Offline Mode (100% Standalone)**: Use the app completely server-free. All recipes, photos, and categories are saved locally and securely in your device's persistent database.
@@ -173,6 +193,16 @@ npm run import:check -- <Recipe-URL>  # Validate site parser compatibility
   <img src="assets/screenshots/list.jpeg" width="300" alt="Rezeptliste" />
   <img src="assets/screenshots/recipe.jpeg" width="300" alt="Rezeptdetails" />
 </p>
+
+### Installation (Endbenutzer)
+
+*   **iOS (iPhone & iPad)**: Laden Sie die App direkt aus dem [App Store](https://apps.apple.com/app/avocook/id6769012665) herunter.
+*   **Android (Direkt-APK)**:
+    1. Laden Sie die neueste `avocook.apk`-Datei aus den [GitHub-Releases](https://github.com/Logarex/AvoCook/releases/latest) herunter.
+    2. Öffnen Sie die heruntergeladene Datei und erlauben Sie die Installation aus unbekannten Quellen, falls Ihr Browser oder Dateimanager danach fragt.
+    3. *Updates*: Die App verfügt über einen integrierten Versionsprüfer. Sie werden direkt in der App benachrichtigt, wenn eine neue APK-Version auf GitHub verfügbar ist, mit einem Link zum direkten Download.
+*   **Android (F-Droid)**:
+    *   *(Demnächst verfügbar)*: Die App wird auf F-Droid über das IzzyOnDroid-Repository für automatische Updates im Hintergrund verfügbar sein.
 
 ### Funktionen
 
