@@ -25,8 +25,8 @@
 [Télécharger sur l'App Store](https://apps.apple.com/app/avocook/id6769012665) | [Télécharger l'APK Android](https://github.com/Logarex/AvoCook/releases/latest)
 
 <p align="center">
-  <img src="assets/screenshots/list.jpeg" width="300" alt="Liste des recettes" />
-  <img src="assets/screenshots/recipe.jpeg" width="300" alt="Détail d'une recette" />
+  <img src="assets/screenshots/login.png" width="300" alt="Écran de connexion" />
+  <img src="assets/screenshots/recipe.png" width="300" alt="Détail d'une recette" />
 </p>
 
 ### Installation (Utilisateurs)
@@ -108,8 +108,8 @@ npm run import:check -- <URL-recette> # Tester le parser de recette sur une URL
 [Download on the App Store](https://apps.apple.com/app/avocook/id6769012665) | [Download Android APK](https://github.com/Logarex/AvoCook/releases/latest)
 
 <p align="center">
-  <img src="assets/screenshots/list.jpeg" width="300" alt="Recipe List" />
-  <img src="assets/screenshots/recipe.jpeg" width="300" alt="Recipe Details" />
+  <img src="assets/screenshots/login.png" width="300" alt="Login Screen" />
+  <img src="assets/screenshots/recipe.png" width="300" alt="Recipe Details" />
 </p>
 
 ### Installation (Users)
@@ -190,8 +190,8 @@ npm run import:check -- <Recipe-URL>  # Validate site parser compatibility
 [Im App Store herunterladen](https://apps.apple.com/app/avocook/id6769012665) | [Android APK herunterladen](https://github.com/Logarex/AvoCook/releases/latest)
 
 <p align="center">
-  <img src="assets/screenshots/list.jpeg" width="300" alt="Rezeptliste" />
-  <img src="assets/screenshots/recipe.jpeg" width="300" alt="Rezeptdetails" />
+  <img src="assets/screenshots/login.png" width="300" alt="Anmeldebildschirm" />
+  <img src="assets/screenshots/recipe.png" width="300" alt="Rezeptdetails" />
 </p>
 
 ### Installation (Endbenutzer)
