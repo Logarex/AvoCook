@@ -5,8 +5,7 @@ import * as Crypto from "expo-crypto";
 import type { CookbookClient } from "../nextcloud/cookbookClient";
 import {
   createRecipeBackup,
-  serializeRecipeBackup,
-  type RecipeBackup
+  serializeRecipeBackup
 } from "./recipeBackup";
 import { getRecipeShareFilename } from "./recipeShareFilenames";
 import { normalizeRecipe, type Recipe } from "./types";
@@ -365,15 +364,6 @@ async function createRecipePrintDocument(
     imageCount: imageUri ? 1 : 0,
     skippedImageCount: hasImage && !imageUri ? 1 : 0
   };
-}
-
-function getRecipeImageDataUri(backup: RecipeBackup) {
-  const entry = backup.recipes[0];
-  const asset = entry?.imageAssetId ? backup.assets[entry.imageAssetId] : undefined;
-  if (!asset) {
-    return "";
-  }
-  return `data:${asset.mimeType};base64,${asset.data}`;
 }
 
 function renderMeta(label: string, value: string) {
