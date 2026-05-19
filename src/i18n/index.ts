@@ -245,6 +245,8 @@ export const resources = {
         french: "Français",
         english: "English",
         german: "Deutsch",
+        spanish: "Español",
+        italian: "Italiano",
         keepAwake: "Garder l'écran allumé sur une recette",
         keepRecipesLocal:
           "Conserver une copie locale des recettes pour le hors ligne",
@@ -545,6 +547,8 @@ export const resources = {
         french: "Français",
         english: "English",
         german: "Deutsch",
+        spanish: "Español",
+        italian: "Italiano",
         keepAwake: "Keep screen awake on a recipe",
         keepRecipesLocal: "Keep a local copy of recipes for offline use",
         server: "Server",
@@ -846,6 +850,8 @@ export const resources = {
         french: "Français",
         english: "English",
         german: "Deutsch",
+        spanish: "Español",
+        italian: "Italiano",
         keepAwake: "Bildschirm bei einem Rezept wach halten",
         keepRecipesLocal:
           "Lokale Kopie der Rezepte für die Offline-Nutzung speichern",
@@ -907,15 +913,478 @@ export const resources = {
           "Manuell hinzugefügte Fotos werden in den App-Speicher kopiert, damit sie offline verfügbar bleiben."
       }
     }
+  },
+  es: {
+    translation: {
+      common: {
+        add: "Añadir",
+        cancel: "Cancelar",
+        delete: "Eliminar",
+        edit: "Editar",
+        save: "Guardar",
+        search: "Buscar",
+        clear: "Limpiar",
+        settings: "Ajustes",
+        import: "Importar",
+        sync: "Sincronizar",
+        logout: "Cerrar sesión",
+        loading: "Cargando",
+        offline: "Sin conexión",
+        online: "Conectado",
+        retry: "Reintentar",
+        close: "Cerrar",
+        continue: "Continuar"
+      },
+      auth: {
+        title: "AvoCook",
+        subtitle: "Tus recetas en la nube, listas para cocinar.",
+        server: "Dirección de Nextcloud",
+        username: "Usuario",
+        appPassword: "Contraseña de aplicación",
+        login: "Iniciar sesión",
+        secure: "Credenciales cifradas en el llavero del dispositivo",
+        invalidUrl: "Dirección de Nextcloud no válida.",
+        insecureUrl: "Usa HTTPS, salvo localhost durante el desarrollo.",
+        failed: "No se pudo iniciar sesión. Revisa el servidor y la contraseña de app.",
+        useLocal: "Usar sin Nextcloud",
+        showPassword: "Mostrar contraseña",
+        hidePassword: "Ocultar contraseña",
+        appPasswordHelp: "¿Cómo creo una contraseña de aplicación?",
+        localSubtitle: "Modo local gratuito: las recetas se guardan solo en este dispositivo.",
+        badCredentials:
+          "Usuario o contraseña de aplicación incorrectos. Crea una contraseña de app dedicada en Nextcloud.",
+        tutorial: {
+          title: "Crear una contraseña de aplicación en Nextcloud",
+          steps: {
+            openNextcloud: "Abre Nextcloud en el navegador e inicia sesión.",
+            openSettings:
+              "Selecciona tu avatar o nombre y abre Ajustes, Ajustes personales o Personal según la versión.",
+            openSecurity:
+              "Abre Seguridad. En algunas versiones la sección se llama Dispositivos y sesiones o Contraseñas de aplicación.",
+            createPassword: "Crea una nueva contraseña de aplicación, por ejemplo con el nombre Cookbook Mobile.",
+            copyPassword:
+              "Copia la contraseña que se muestra una sola vez y pégala aquí junto con tu nombre de usuario de Nextcloud."
+          },
+          versionNote:
+            "Los nombres exactos varían según la versión de Nextcloud y el tema, pero la ruta siempre está en los ajustes personales de la cuenta, en Seguridad o Sesiones."
+        }
+      },
+      recipes: {
+        title: "Recetas",
+        emptyTitle: "Sin recetas",
+        emptyBody: "Añade una receta o sincroniza tu Cookbook.",
+        ingredients: "Ingredientes",
+        instructions: "Pasos",
+        tools: "Utensilios",
+        nutrition: "Nutrición",
+        category: "Categoría",
+        yield: "Porciones",
+        prepTime: "Preparación",
+        cookTime: "Cocción",
+        totalTime: "Total",
+        minutes: "min",
+        source: "Fuente",
+        noCategory: "Sin categoría",
+        deleteConfirm: "¿Eliminar esta receta?",
+        allCategories: "Todas",
+        uncategorized: "Sin categoría",
+        categories: "Categorías",
+        categoryCount: "{{count}} receta",
+        categoryCount_one: "{{count}} receta",
+        categoryCount_other: "{{count}} recetas",
+        newCategory: "Nueva categoría",
+        categoryName: "Nombre de categoría",
+        createCategory: "Crear categoría",
+        chooseCategory: "Elegir categoría",
+        moreCategories: "Más",
+        loadingRecipes: "Cargando recetas...",
+        syncingRecipes: "Sincronizando recetas...",
+        syncingRecipesShort: "Sincronizando...",
+        loadedRecipes: "{{count}} receta cargada",
+        loadedRecipes_one: "{{count}} receta cargada",
+        loadedRecipes_other: "{{count}} recetas cargadas",
+        selectedCategory: "Categoría seleccionada: {{category}}",
+        servings: {
+          title: "Porciones",
+          people: "personas",
+          decrease: "Reducir porciones",
+          increase: "Aumentar porciones",
+          original: "Receta original: {{count}} persona",
+          original_one: "Receta original: {{count}} persona",
+          original_other: "Receta original: {{count}} personas",
+          reset: "Restablecer original"
+        },
+        timers: {
+          title: "Temporizadores",
+          prep: "Preparación",
+          cook: "Cocción",
+          total: "Total",
+          start: "Iniciar temporizador",
+          pause: "Pausar",
+          reset: "Reiniciar",
+          stop: "Detener",
+          done: "Listo",
+          notificationTitle: "{{timer}} finalizado",
+          notificationHint:
+            "Los temporizadores suenan mediante notificaciones. Las notificaciones deben estar activadas.",
+          notificationsOff: "Notificaciones desactivadas: los temporizadores no pueden sonar.",
+          notificationsUnavailable:
+            "Las notificaciones no están disponibles en este entorno. Instala una build real para usar temporizadores.",
+          notificationsRequiredTitle: "Notificaciones necesarias",
+          notificationsRequiredBody:
+            "Activa las notificaciones para AvoCook en los ajustes del teléfono. Sin ellas, el temporizador no puede sonar con el iPhone bloqueado.",
+          notificationsUnavailableBody:
+            "Esta build aún no incluye el módulo nativo de notificaciones. Instala una build iOS real para usar temporizadores."
+        },
+        health: {
+          title: "Salud",
+          estimated: "Puntuación de salud estimada",
+          missingTitle: "Faltan datos nutricionales",
+          localNote:
+            "Estimación local no oficial basada en los valores nutricionales por porción.",
+          calculation:
+            "La puntuación penaliza calorías, azúcar, grasa saturada y sodio, y premia la fibra y la proteína. Es fiable solo cuando los valores nutricionales están completos.",
+          calories: "Calorías",
+          sugar: "Azúcar",
+          fat: "Grasa",
+          salt: "Sal",
+          fiber: "Fibra",
+          protein: "Proteína",
+          recommendations: {
+            balanced: "Perfil equilibrado con los datos disponibles.",
+            missingNutrition:
+              "Añade calorías, azúcar, sal, fibra y proteína para una recomendación más precisa.",
+            highCalories: "Sirve una porción más pequeña o acompáñalo con verduras.",
+            highSugar: "Reduce el azúcar o añade fruta fresca de guarnición.",
+            highFat: "Usa una fuente de grasa más ligera o reduce la cantidad.",
+            highSalt: "Prueba antes de salar y usa hierbas, especias o limón.",
+            addFiber: "Añade fibra: verduras, legumbres o cereales integrales.",
+            goodProtein: "Buen nivel de proteína para la saciedad."
+          }
+        }
+      },
+      editor: {
+        newRecipe: "Nueva receta",
+        editRecipe: "Editar receta",
+        name: "Nombre",
+        description: "Descripción",
+        ingredients: "Ingredientes, uno por línea",
+        instructions: "Pasos, uno por línea",
+        tools: "Utensilios, uno por línea",
+        photoUrl: "URL de la foto",
+        choosePhoto: "Elegir foto",
+        removePhoto: "Eliminar foto",
+        keywords: "Palabras clave separadas por comas",
+        category: "Categoría",
+        prepMinutes: "Minutos de preparación",
+        cookMinutes: "Minutos de cocción",
+        totalMinutes: "Minutos totales",
+        nutrition: "Nutrición por porción",
+        nutritionHelp:
+          "Estos valores alimentan la puntuación de salud. Déjalos vacíos si no los conoces.",
+        caloriesKcal: "Calorías (kcal)",
+        carbsGrams: "Carbohidratos (g)",
+        sugarGrams: "Azúcar (g)",
+        fatGrams: "Grasa (g)",
+        saturatedFatGrams: "Grasa saturada (g)",
+        sodiumMg: "Sodio / sal (mg)",
+        fiberGrams: "Fibra (g)",
+        proteinGrams: "Proteína (g)",
+        requiredName: "El nombre de la receta es obligatorio."
+      },
+      importRecipe: {
+        title: "Importar",
+        url: "URL de la receta",
+        action: "Importar desde URL",
+        failed: "No se pudo importar esta página.",
+        success: "Receta importada"
+      },
+      settings: {
+        title: "Ajustes",
+        appearance: "Apariencia",
+        language: "Idioma",
+        system: "Sistema",
+        light: "Claro",
+        dark: "Oscuro",
+        french: "Français",
+        english: "English",
+        german: "Deutsch",
+        spanish: "Español",
+        italian: "Italiano",
+        keepAwake: "Mantener pantalla activa en una receta",
+        keepRecipesLocal: "Guardar copia local de recetas para uso sin conexión",
+        server: "Servidor",
+        localMode: "Modo local",
+        localOnly: "Usar sin cuenta de Nextcloud",
+        privacy: "Privacidad",
+        secureStore: "Las credenciales permanecen en el almacenamiento seguro del teléfono.",
+        reindex: "Reindexar Cookbook",
+        reindexConfirmTitle: "¿Reindexar el servidor?",
+        reindexConfirmBody:
+          "Esto pide a Nextcloud Cookbook que vuelva a escanear la carpeta de recetas. Es útil si se añadieron o modificaron recetas fuera de la app, pero puede tardar en un Cookbook grande.",
+        reindexDone: "Reindexación solicitada",
+        openPrivacy: "Privacidad y datos",
+        notifications: "Notificaciones",
+        notificationsEnabled: "Activadas",
+        notificationsDisabled: "Desactivadas (pulsa para activar)"
+      },
+      privacy: {
+        title: "Privacidad",
+        free: "Esta app es gratuita y desarrollada por un estudiante independiente.",
+        independent: "No es una app oficial de Nextcloud y no vende datos.",
+        local:
+          "En modo local, las recetas permanecen en este dispositivo. Con Nextcloud, se sincronizan solo con el servidor que elijas.",
+        credentials:
+          "La dirección del servidor, el usuario y la contraseña de app se guardan en el almacenamiento seguro del dispositivo.",
+        tracking: "No hay publicidad, rastreadores de marketing ni reventa de datos.",
+        photos:
+          "Las fotos añadidas manualmente se copian en el almacenamiento de la app para que estén disponibles sin conexión."
+      }
+    }
+  },
+  it: {
+    translation: {
+      common: {
+        add: "Aggiungi",
+        cancel: "Annulla",
+        delete: "Elimina",
+        edit: "Modifica",
+        save: "Salva",
+        search: "Cerca",
+        clear: "Cancella",
+        settings: "Impostazioni",
+        import: "Importa",
+        sync: "Sincronizza",
+        logout: "Esci",
+        loading: "Caricamento",
+        offline: "Non in linea",
+        online: "Connesso",
+        retry: "Riprova",
+        close: "Chiudi",
+        continue: "Continua"
+      },
+      auth: {
+        title: "AvoCook",
+        subtitle: "Le tue ricette in cloud, pronte in cucina.",
+        server: "Indirizzo Nextcloud",
+        username: "Nome utente",
+        appPassword: "Password dell'app",
+        login: "Accedi",
+        secure: "Credenziali cifrate nel portachiavi del dispositivo",
+        invalidUrl: "Indirizzo Nextcloud non valido.",
+        insecureUrl: "Usa HTTPS, tranne localhost durante lo sviluppo.",
+        failed: "Accesso non riuscito. Controlla il server e la password dell'app.",
+        useLocal: "Usa senza Nextcloud",
+        showPassword: "Mostra password",
+        hidePassword: "Nascondi password",
+        appPasswordHelp: "Come creo una password dell'app?",
+        localSubtitle: "Modalità locale gratuita: le ricette restano solo su questo dispositivo.",
+        badCredentials:
+          "Nome utente o password dell'app errati. Crea una password app dedicata in Nextcloud.",
+        tutorial: {
+          title: "Creare una password dell'app Nextcloud",
+          steps: {
+            openNextcloud: "Apri Nextcloud nel browser e accedi al tuo account.",
+            openSettings:
+              "Seleziona il tuo avatar o nome, poi apri Impostazioni, Impostazioni personali o Personale a seconda della versione.",
+            openSecurity:
+              "Apri Sicurezza. In alcune versioni la sezione si chiama Dispositivi e sessioni o Password dell'app.",
+            createPassword: "Crea una nuova password dell'app, ad esempio con il nome Cookbook Mobile.",
+            copyPassword:
+              "Copia la password mostrata una sola volta e incollala qui insieme al tuo nome utente Nextcloud."
+          },
+          versionNote:
+            "I nomi esatti variano in base alla versione di Nextcloud e al tema, ma il percorso si trova sempre nelle impostazioni personali dell'account, sotto Sicurezza o Sessioni."
+        }
+      },
+      recipes: {
+        title: "Ricette",
+        emptyTitle: "Nessuna ricetta",
+        emptyBody: "Aggiungi una ricetta o sincronizza il tuo Cookbook.",
+        ingredients: "Ingredienti",
+        instructions: "Passaggi",
+        tools: "Strumenti",
+        nutrition: "Valori nutrizionali",
+        category: "Categoria",
+        yield: "Porzioni",
+        prepTime: "Preparazione",
+        cookTime: "Cottura",
+        totalTime: "Totale",
+        minutes: "min",
+        source: "Fonte",
+        noCategory: "Nessuna categoria",
+        deleteConfirm: "Eliminare questa ricetta?",
+        allCategories: "Tutte",
+        uncategorized: "Nessuna categoria",
+        categories: "Categorie",
+        categoryCount: "{{count}} ricetta",
+        categoryCount_one: "{{count}} ricetta",
+        categoryCount_other: "{{count}} ricette",
+        newCategory: "Nuova categoria",
+        categoryName: "Nome categoria",
+        createCategory: "Crea categoria",
+        chooseCategory: "Scegli categoria",
+        moreCategories: "Altro",
+        loadingRecipes: "Caricamento ricette...",
+        syncingRecipes: "Sincronizzazione ricette...",
+        syncingRecipesShort: "Sincronizzazione...",
+        loadedRecipes: "{{count}} ricetta caricata",
+        loadedRecipes_one: "{{count}} ricetta caricata",
+        loadedRecipes_other: "{{count}} ricette caricate",
+        selectedCategory: "Categoria selezionata: {{category}}",
+        servings: {
+          title: "Porzioni",
+          people: "persone",
+          decrease: "Riduci porzioni",
+          increase: "Aumenta porzioni",
+          original: "Ricetta originale: {{count}} persona",
+          original_one: "Ricetta originale: {{count}} persona",
+          original_other: "Ricetta originale: {{count}} persone",
+          reset: "Ripristina originale"
+        },
+        timers: {
+          title: "Timer",
+          prep: "Preparazione",
+          cook: "Cottura",
+          total: "Totale",
+          start: "Avvia timer",
+          pause: "Pausa",
+          reset: "Reimposta",
+          stop: "Ferma",
+          done: "Fatto",
+          notificationTitle: "{{timer}} completato",
+          notificationHint:
+            "I timer suonano tramite notifiche. Le notifiche devono essere abilitate.",
+          notificationsOff: "Notifiche disattivate: i timer non possono suonare.",
+          notificationsUnavailable:
+            "Le notifiche non sono disponibili in questo ambiente. Installa una build reale per usare i timer.",
+          notificationsRequiredTitle: "Notifiche necessarie",
+          notificationsRequiredBody:
+            "Abilita le notifiche per AvoCook nelle impostazioni del telefono. Senza di esse, il timer non può suonare con l'iPhone bloccato.",
+          notificationsUnavailableBody:
+            "Questa build non include ancora il modulo nativo delle notifiche. Installa una build iOS reale per usare i timer."
+        },
+        health: {
+          title: "Salute",
+          estimated: "Punteggio di salute stimato",
+          missingTitle: "Dati nutrizionali mancanti",
+          localNote:
+            "Stima locale non ufficiale basata sui valori nutrizionali per porzione.",
+          calculation:
+            "Il punteggio penalizza calorie, zuccheri, grassi saturi e sodio, e premia fibre e proteine. È affidabile solo quando i valori nutrizionali sono completi.",
+          calories: "Calorie",
+          sugar: "Zuccheri",
+          fat: "Grassi",
+          salt: "Sale",
+          fiber: "Fibre",
+          protein: "Proteine",
+          recommendations: {
+            balanced: "Profilo equilibrato con i dati disponibili.",
+            missingNutrition:
+              "Aggiungi calorie, zuccheri, sale, fibre e proteine per una raccomandazione più precisa.",
+            highCalories: "Servi una porzione più piccola o abbinala con verdure.",
+            highSugar: "Riduci lo zucchero o aggiungi frutta fresca come contorno.",
+            highFat: "Usa una fonte di grassi più leggera o riduci la quantità.",
+            highSalt: "Assaggia prima di salare e usa erbe, spezie o limone.",
+            addFiber: "Aggiungi fibre: verdure, legumi o cereali integrali.",
+            goodProtein: "Buon livello proteico per la sazietà."
+          }
+        }
+      },
+      editor: {
+        newRecipe: "Nuova ricetta",
+        editRecipe: "Modifica ricetta",
+        name: "Nome",
+        description: "Descrizione",
+        ingredients: "Ingredienti, uno per riga",
+        instructions: "Passaggi, uno per riga",
+        tools: "Strumenti, uno per riga",
+        photoUrl: "URL della foto",
+        choosePhoto: "Scegli foto",
+        removePhoto: "Rimuovi foto",
+        keywords: "Parole chiave separate da virgola",
+        category: "Categoria",
+        prepMinutes: "Minuti di preparazione",
+        cookMinutes: "Minuti di cottura",
+        totalMinutes: "Minuti totali",
+        nutrition: "Valori nutrizionali per porzione",
+        nutritionHelp:
+          "Questi valori alimentano il punteggio di salute. Lasciali vuoti se non li conosci.",
+        caloriesKcal: "Calorie (kcal)",
+        carbsGrams: "Carboidrati (g)",
+        sugarGrams: "Zuccheri (g)",
+        fatGrams: "Grassi (g)",
+        saturatedFatGrams: "Grassi saturi (g)",
+        sodiumMg: "Sodio / sale (mg)",
+        fiberGrams: "Fibre (g)",
+        proteinGrams: "Proteine (g)",
+        requiredName: "Il nome della ricetta è obbligatorio."
+      },
+      importRecipe: {
+        title: "Importa",
+        url: "URL della ricetta",
+        action: "Importa da URL",
+        failed: "Impossibile importare questa pagina.",
+        success: "Ricetta importata"
+      },
+      settings: {
+        title: "Impostazioni",
+        appearance: "Aspetto",
+        language: "Lingua",
+        system: "Sistema",
+        light: "Chiaro",
+        dark: "Scuro",
+        french: "Français",
+        english: "English",
+        german: "Deutsch",
+        spanish: "Español",
+        italian: "Italiano",
+        keepAwake: "Tieni lo schermo acceso su una ricetta",
+        keepRecipesLocal: "Mantieni una copia locale delle ricette per l'uso offline",
+        server: "Server",
+        localMode: "Modalità locale",
+        localOnly: "Uso senza account Nextcloud",
+        privacy: "Privacy",
+        secureStore: "Le credenziali rimangono nel deposito sicuro del telefono.",
+        reindex: "Reindicizza Cookbook",
+        reindexConfirmTitle: "Reindicizzare il server?",
+        reindexConfirmBody:
+          "Questo chiede a Nextcloud Cookbook di scansionare nuovamente la cartella delle ricette. È utile se le ricette sono state aggiunte o modificate fuori dall'app, ma può richiedere tempo su un Cookbook grande.",
+        reindexDone: "Reindicizzazione richiesta",
+        openPrivacy: "Privacy e dati",
+        notifications: "Notifiche",
+        notificationsEnabled: "Abilitate",
+        notificationsDisabled: "Disabilitate (tocca per abilitare)"
+      },
+      privacy: {
+        title: "Privacy",
+        free: "Questa app è gratuita e sviluppata da uno studente indipendente.",
+        independent: "Non è un'app ufficiale Nextcloud e non vende dati.",
+        local:
+          "In modalità locale, le ricette rimangono su questo dispositivo. Con Nextcloud, vengono sincronizzate solo con il server che scegli.",
+        credentials:
+          "L'indirizzo del server, il nome utente e la password dell'app sono memorizzati nel deposito sicuro del dispositivo.",
+        tracking: "Nessuna pubblicità, nessun tracker di marketing e nessuna rivendita di dati.",
+        photos:
+          "Le foto aggiunte manualmente vengono copiate nell'archiviazione dell'app per restare disponibili offline."
+      }
+    }
   }
 } as const;
+
+type SupportedLang = "fr" | "en" | "de" | "es" | "it";
+
+function detectLanguage(lang: string | undefined): SupportedLang {
+  if (lang === "en" || lang === "de" || lang === "es" || lang === "it") return lang;
+  return "fr";
+}
 
 const deviceLanguage = Localization.getLocales()[0]?.languageCode;
 const i18n = createInstance();
 
 void i18n.use(initReactI18next).init({
   resources,
-  lng: deviceLanguage === "en" ? "en" : deviceLanguage === "de" ? "de" : "fr",
+  lng: detectLanguage(deviceLanguage),
   fallbackLng: "fr",
   interpolation: {
     escapeValue: false
