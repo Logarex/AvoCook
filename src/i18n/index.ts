@@ -70,6 +70,12 @@ export const resources = {
             "Les noms exacts changent selon les versions et thèmes Nextcloud, mais le chemin reste toujours dans les paramètres personnels du compte, section sécurité ou sessions."
         }
       },
+      updates: {
+        bannerTitle: "Mise à jour disponible : {{version}}",
+        download: "Télécharger",
+        localBackupWarning: "Attention : vous utilisez le mode local (sans compte Nextcloud). Par précaution, exportez une sauvegarde de vos recettes dans les Réglages avant d'installer la mise à jour pour éviter toute perte de données.",
+        dismiss: "Plus tard"
+      },
       recipes: {
         title: "Recettes",
         emptyTitle: "Aucune recette",
@@ -422,6 +428,12 @@ export const resources = {
             "Exact labels vary across Nextcloud versions and themes, but the path stays in personal account settings under security or sessions."
         }
       },
+      updates: {
+        bannerTitle: "Update available: {{version}}",
+        download: "Download",
+        localBackupWarning: "Warning: you are in local mode (without a Nextcloud account). As a precaution, export a backup of your recipes in Settings before installing the update to prevent any data loss.",
+        dismiss: "Later"
+      },
       recipes: {
         title: "Recipes",
         emptyTitle: "No recipes",
@@ -768,6 +780,12 @@ export const resources = {
           versionNote:
             "Die genauen Bezeichnungen variieren je nach Nextcloud-Version und Theme, aber der Pfad liegt immer in den persönlichen Kontoeinstellungen unter Sicherheit oder Sitzungen."
         }
+      },
+      updates: {
+        bannerTitle: "Update verfügbar: {{version}}",
+        download: "Herunterladen",
+        localBackupWarning: "Achtung: Sie verwenden den lokalen Modus (ohne Nextcloud-Konto). Exportieren Sie als Vorsichtsmaßnahme vor der Installation des Updates ein Backup Ihrer Rezepte in den Einstellungen, um Datenverlust zu vermeiden.",
+        dismiss: "Später"
       },
       recipes: {
         title: "Rezepte",
@@ -1117,6 +1135,12 @@ export const resources = {
             "Los nombres exactos varían según la versión de Nextcloud y el tema, pero la ruta siempre está en los ajustes personales de la cuenta, en Seguridad o Sesiones."
         }
       },
+      updates: {
+        bannerTitle: "Actualización disponible: {{version}}",
+        download: "Descargar",
+        localBackupWarning: "Atención: estás usando el modo local (sin cuenta Nextcloud). Como precaución, exporta una copia de seguridad de tus recetas en Ajustes antes de instalar la actualización para evitar la pérdida de datos.",
+        dismiss: "Más tarde"
+      },
       recipes: {
         title: "Recetas",
         emptyTitle: "Sin recetas",
@@ -1455,6 +1479,12 @@ export const resources = {
           versionNote:
             "I nomi esatti variano in base alla versione di Nextcloud e al tema, ma il percorso si trova sempre nelle impostazioni personali dell'account, sotto Sicurezza o Sessioni."
         }
+      },
+      updates: {
+        bannerTitle: "Aggiornamento disponibile: {{version}}",
+        download: "Scarica",
+        localBackupWarning: "Attenzione: stai usando la modalità locale (senza account Nextcloud). Per precauzione, esporta un backup delle tue ricette nelle Impostazioni prima di installare l'aggiornamento per evitare perdite di dati.",
+        dismiss: "Più tardi"
       },
       recipes: {
         title: "Ricette",
