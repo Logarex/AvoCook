@@ -1,11 +1,16 @@
 import { normalizeRecipe, type Recipe } from "./types";
 
 const REMOTE_IMAGE_PATTERN = /^https?:\/\//i;
+const LOCAL_IMAGE_PATTERN = /^file:\/\//i;
 const COOKBOOK_IMAGE_ENDPOINT_PATTERN =
   /\/apps\/cookbook\/(?:api\/v1|webapp)\/recipes\/[^/?#]+\/image(?:[?#]|$)/i;
 
 export function isRemoteImageReference(value: string | null | undefined) {
   return Boolean(value && REMOTE_IMAGE_PATTERN.test(value));
+}
+
+export function isLocalImageReference(value: string | null | undefined) {
+  return Boolean(value && LOCAL_IMAGE_PATTERN.test(value));
 }
 
 export function getRemoteRecipeImage(
@@ -49,10 +54,7 @@ export function getLocalRecipeImage(
 ) {
   return (
     [recipe.image, recipe.imageUrl, recipe.imagePlaceholderUrl].find(
-      (value) =>
-        Boolean(value) &&
-        !isRemoteImageReference(value) &&
-        !String(value).startsWith("/")
+      (value) => isLocalImageReference(value)
     ) ?? ""
   );
 }
@@ -64,9 +66,42 @@ export function withCachedRecipeImage(recipe: Recipe, cachedImage: string) {
 
   return normalizeRecipe({
     ...recipe,
-    image: externalImage || cachedImage,
+    image: referenceImage,
     imageUrl: referenceImage,
     imagePlaceholderUrl: referenceImage
+  });
+}
+
+export function getEditableRecipeImageSource(
+  recipe: Pick<Recipe, "image" | "imageUrl" | "imagePlaceholderUrl">
+) {
+  return (
+    getExternalRecipeImageSource(recipe) ||
+    getRemoteRecipeImage(recipe) ||
+    getLocalRecipeImage(recipe)
+  );
+}
+
+export function replaceLocalRecipeImageReferencesWithRemote(recipe: Recipe) {
+  const remoteImage = getRemoteRecipeImage(recipe);
+  if (
+    !remoteImage ||
+    ![recipe.image, recipe.imageUrl, recipe.imagePlaceholderUrl].some(
+      isLocalImageReference
+    )
+  ) {
+    return recipe;
+  }
+
+  return normalizeRecipe({
+    ...recipe,
+    image: isLocalImageReference(recipe.image) ? remoteImage : recipe.image,
+    imageUrl: isLocalImageReference(recipe.imageUrl)
+      ? remoteImage
+      : recipe.imageUrl,
+    imagePlaceholderUrl: isLocalImageReference(recipe.imagePlaceholderUrl)
+      ? remoteImage
+      : recipe.imagePlaceholderUrl
   });
 }
 
