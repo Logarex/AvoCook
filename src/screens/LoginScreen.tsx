@@ -1,5 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
+  AlertTriangle,
   ChefHat,
   Eye,
   EyeOff,
@@ -14,8 +15,8 @@ import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
-import { LanguagePicker } from "../components/LanguagePicker";
 import { Screen } from "../components/Screen";
+import { SegmentedControl } from "../components/SegmentedControl";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
@@ -47,6 +48,8 @@ export function LoginScreen(_props: Props) {
       const message =
         caught instanceof Error && caught.message === "INSECURE_URL"
           ? t("auth.insecureUrl")
+          : isLikelyTlsError(caught)
+            ? t("auth.certificateError")
           : caught instanceof Error && /401|997|credentials/i.test(caught.message)
             ? t("auth.badCredentials")
             : t("auth.failed");
@@ -60,6 +63,7 @@ export function LoginScreen(_props: Props) {
     <Screen contentStyle={styles.screen} showScrollTop={false}>
       <View style={styles.hero}>
         <Image
+          accessible={false}
           source={require("../../assets/logo.png")}
           style={styles.logo}
           contentFit="contain"
@@ -141,7 +145,12 @@ export function LoginScreen(_props: Props) {
           </View>
         ) : null}
         {error ? (
-          <AppText style={{ color: colors.danger }}>{error}</AppText>
+          <AppText
+            accessibilityRole="alert"
+            style={{ color: colors.danger }}
+          >
+            {error}
+          </AppText>
         ) : null}
         <PrimaryButton
           disabled={!serverUrl || !username || !appPassword || submitting}
@@ -156,6 +165,12 @@ export function LoginScreen(_props: Props) {
           onPress={() => void startLocalMode()}
           variant="ghost"
         />
+        <View style={styles.localWarning}>
+          <AlertTriangle color={colors.danger} size={18} />
+          <AppText muted variant="caption" style={styles.localWarningText}>
+            {t("auth.localDataWarning")}
+          </AppText>
+        </View>
         {submitting ? <ActivityIndicator color={colors.primary} /> : null}
       </GlassPanel>
 
@@ -164,7 +179,7 @@ export function LoginScreen(_props: Props) {
       </AppText>
 
       <View style={styles.languagePicker}>
-        <LanguagePicker
+        <SegmentedControl<"fr" | "en" | "de" | "es" | "it">
           value={language}
           onChange={(value) => void setLanguage(value)}
           options={[
@@ -177,6 +192,13 @@ export function LoginScreen(_props: Props) {
         />
       </View>
     </Screen>
+  );
+}
+
+function isLikelyTlsError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error);
+  return /certificate|cert|ssl|tls|network request failed|trust anchor/i.test(
+    message
   );
 }
 
@@ -222,5 +244,13 @@ const styles = StyleSheet.create({
   tutorialStep: {
     flexDirection: "row",
     gap: spacing.sm
+  },
+  localWarning: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: spacing.xs
+  },
+  localWarningText: {
+    flex: 1
   }
 });

@@ -4,7 +4,10 @@ import type { Recipe } from "./types";
 
 const IMAGE_DIR = new Directory(Paths.document, "recipe-images");
 
-export async function persistRecipeImage(uri: string): Promise<string> {
+export async function persistRecipeImage(
+  uri: string,
+  options?: { headers?: Record<string, string> }
+): Promise<string> {
   if (!uri) {
     return uri;
   }
@@ -27,6 +30,7 @@ export async function persistRecipeImage(uri: string): Promise<string> {
 
   if (/^https?:\/\//i.test(uri)) {
     const file = await File.downloadFileAsync(uri, destination, {
+      headers: options?.headers,
       idempotent: true
     });
     return file.uri;
@@ -58,11 +62,42 @@ export async function pruneRecipeImageCache(recipes: Recipe[]) {
   }
 }
 
+export async function restoreRecipeImageFromBackup({
+  base64,
+  extension
+}: {
+  base64: string;
+  extension: string;
+}) {
+  IMAGE_DIR.create({ idempotent: true, intermediates: true });
+  const safeExtension = normalizeImageExtension(extension);
+  const filename = await Crypto.digestStringAsync(
+    Crypto.CryptoDigestAlgorithm.SHA256,
+    base64
+  );
+  const destination = new File(IMAGE_DIR, `${filename}.${safeExtension}`);
+
+  if (!destination.exists) {
+    destination.create({ intermediates: true });
+    destination.write(base64, { encoding: "base64" });
+  }
+
+  return destination.uri;
+}
+
 function getImageExtension(uri: string) {
   const withoutQuery = uri.split("?")[0] ?? uri;
   const extension = withoutQuery.split(".").pop()?.toLowerCase();
   if (extension && ["jpg", "jpeg", "png", "webp", "heic"].includes(extension)) {
     return extension === "jpeg" ? "jpg" : extension;
+  }
+  return "jpg";
+}
+
+function normalizeImageExtension(extension: string) {
+  const normalized = extension.replace(/^\./, "").toLowerCase();
+  if (["jpg", "jpeg", "png", "webp", "heic"].includes(normalized)) {
+    return normalized === "jpeg" ? "jpg" : normalized;
   }
   return "jpg";
 }

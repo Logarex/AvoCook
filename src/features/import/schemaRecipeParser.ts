@@ -67,19 +67,20 @@ export function jsonLdToRecipe(
   jsonLd: Record<string, unknown>,
   sourceUrl = ""
 ): Recipe {
-  const image = normalizeImage(jsonLd.image);
+  const image = normalizeImage(jsonLd.image, sourceUrl);
   const instructions = normalizeInstructions(jsonLd.recipeInstructions);
   const ingredients = normalizeStringArray(jsonLd.recipeIngredient);
   const tools = normalizeStringArray(jsonLd.tool);
   const keywords = Array.isArray(jsonLd.keywords)
     ? normalizeStringArray(jsonLd.keywords).join(",")
     : toStringValue(jsonLd.keywords);
+  const recipeUrl = resolveUrl(toStringValue(jsonLd.url), sourceUrl) || sourceUrl;
 
   return normalizeRecipe({
     id: null,
     name: toStringValue(jsonLd.name),
     description: toStringValue(jsonLd.description),
-    url: toStringValue(jsonLd.url) || sourceUrl,
+    url: recipeUrl,
     image,
     imageUrl: image,
     imagePlaceholderUrl: image,
@@ -184,25 +185,38 @@ function normalizeInstructions(value: unknown): string[] {
   return [];
 }
 
-function normalizeImage(value: unknown): string {
+function normalizeImage(value: unknown, sourceUrl = ""): string {
   if (!value) {
     return "";
   }
 
   if (typeof value === "string") {
-    return value;
+    return resolveUrl(value, sourceUrl);
   }
 
   if (Array.isArray(value)) {
-    return normalizeImage(value[0]);
+    return normalizeImage(value[0], sourceUrl);
   }
 
   if (typeof value === "object") {
     const image = value as Record<string, unknown>;
-    return toStringValue(image.url || image.contentUrl);
+    return resolveUrl(toStringValue(image.url || image.contentUrl), sourceUrl);
   }
 
   return "";
+}
+
+function resolveUrl(value: string, sourceUrl: string) {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return "";
+  }
+
+  try {
+    return sourceUrl ? new URL(trimmed, sourceUrl).toString() : trimmed;
+  } catch {
+    return trimmed;
+  }
 }
 
 function normalizeStringArray(value: unknown): string[] {

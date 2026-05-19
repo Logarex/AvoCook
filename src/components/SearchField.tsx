@@ -1,5 +1,6 @@
 import { Search, X } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   Pressable,
   StyleProp,
@@ -24,6 +25,7 @@ export function SearchField({
   onChangeText,
   style
 }: SearchFieldProps) {
+  const { t } = useTranslation();
   const { colors } = useAppTheme();
 
   return (
@@ -40,6 +42,7 @@ export function SearchField({
     >
       <Search color={colors.textMuted} size={19} strokeWidth={2.4} />
       <TextInput
+        accessibilityLabel={placeholder}
         autoCapitalize="none"
         autoCorrect={false}
         onChangeText={onChangeText}
@@ -52,8 +55,9 @@ export function SearchField({
       />
       {value ? (
         <Pressable
-          accessibilityLabel="Clear search"
+          accessibilityLabel={t("common.clearSearch")}
           accessibilityRole="button"
+          hitSlop={6}
           onPress={() => onChangeText("")}
           style={[styles.clear, { backgroundColor: colors.chip }]}
         >
