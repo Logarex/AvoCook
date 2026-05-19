@@ -88,4 +88,26 @@ describe("normalizeRecipe", () => {
       calories: "420 kcal"
     });
   });
+
+  it("normalizes numeric nutrition values before saving or syncing", () => {
+    const recipe = normalizeRecipe({
+      id: "nyt",
+      name: "Spoon salad",
+      nutrition: {
+        "@type": "NutritionInformation",
+        calories: 455
+      }
+    });
+
+    const payload = toCookbookRecipe(recipe);
+
+    expect(recipe.nutrition).toEqual({
+      "@type": "NutritionInformation",
+      calories: "455"
+    });
+    expect(payload.nutrition).toEqual({
+      "@type": "NutritionInformation",
+      calories: "455"
+    });
+  });
 });

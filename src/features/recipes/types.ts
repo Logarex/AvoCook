@@ -1,17 +1,19 @@
+export type NutritionValue = string | number;
+
 export type Nutrition = {
   "@type"?: "NutritionInformation" | string;
-  calories?: string;
-  carbohydrateContent?: string;
-  cholesterolContent?: string;
-  fatContent?: string;
-  fiberContent?: string;
-  proteinContent?: string;
-  saturatedFatContent?: string;
-  servingSize?: string;
-  sodiumContent?: string;
-  sugarContent?: string;
-  transFatContent?: string;
-  unsaturatedFatContent?: string;
+  calories?: NutritionValue;
+  carbohydrateContent?: NutritionValue;
+  cholesterolContent?: NutritionValue;
+  fatContent?: NutritionValue;
+  fiberContent?: NutritionValue;
+  proteinContent?: NutritionValue;
+  saturatedFatContent?: NutritionValue;
+  servingSize?: NutritionValue;
+  sodiumContent?: NutritionValue;
+  sugarContent?: NutritionValue;
+  transFatContent?: NutritionValue;
+  unsaturatedFatContent?: NutritionValue;
 };
 
 export type NutriScoreGrade = "A" | "B" | "C" | "D" | "E" | "?";
