@@ -1,5 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
+  AlertTriangle,
   ArrowUp,
   Check,
   Download,
@@ -11,11 +12,12 @@ import {
   Trash2,
   X
 } from "lucide-react-native";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   FlatList,
+  Linking,
   Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
@@ -39,6 +41,7 @@ import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
 import { useReducedMotion } from "../features/accessibility/useReducedMotion";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import { checkForUpdates, type UpdateInfo } from "../features/updates/updateService";
 import type { Recipe } from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
@@ -73,6 +76,21 @@ export function RecipeListScreen({ navigation }: Props) {
   const [showListScrollTop, setShowListScrollTop] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const recipeListRef = useRef<FlatList<Recipe>>(null);
+  const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
+  const [dismissedUpdate, setDismissedUpdate] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void checkForUpdates().then((info) => {
+      if (active && info && info.updateAvailable) {
+        setUpdateInfo(info);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const categoryPickerLabel = safeTranslation(
     t("recipes.chooseCategory"),
     t("recipes.categories")
@@ -322,6 +340,58 @@ export function RecipeListScreen({ navigation }: Props) {
           <MoreCategoryChip onPress={() => setShowCategoryPicker(true)} />
         ) : null}
       </ScrollView>
+
+      {updateInfo && !dismissedUpdate ? (
+        <GlassPanel style={styles.updateBanner}>
+          <View style={styles.updateBannerHeader}>
+            <View style={styles.updateBannerTitleRow}>
+              <View style={[styles.updateIconWrapper, { backgroundColor: colors.chip }]}>
+                <Download color={colors.primary} size={20} strokeWidth={2.4} />
+              </View>
+              <AppText variant="subtitle" style={styles.updateTitle}>
+                {t("updates.bannerTitle", { version: updateInfo.latestVersion })}
+              </AppText>
+            </View>
+            <IconButton
+              icon={X}
+              label={t("updates.dismiss")}
+              onPress={() => setDismissedUpdate(true)}
+              style={styles.closeIcon}
+            />
+          </View>
+          
+          {isLocalMode ? (
+            <View style={styles.updateWarningRow}>
+              <AlertTriangle color={colors.danger} size={18} />
+              <AppText variant="caption" style={[styles.updateWarningText, { color: colors.danger }]}>
+                {t("updates.localBackupWarning")}
+              </AppText>
+            </View>
+          ) : null}
+
+          <View style={styles.updateActions}>
+            {isLocalMode ? (
+              <PrimaryButton
+                label={t("settings.exportBackup")}
+                onPress={() => {
+                  setDismissedUpdate(true);
+                  navigation.navigate("Settings");
+                }}
+                style={styles.updateActionButton}
+                variant="ghost"
+              />
+            ) : null}
+            <PrimaryButton
+              label={t("updates.download")}
+              onPress={() => {
+                const url = updateInfo.apkUrl || updateInfo.releaseUrl;
+                void Linking.openURL(url);
+              }}
+              style={styles.updateActionButton}
+            />
+          </View>
+        </GlassPanel>
+      ) : null}
 
       {loading ? (
         <View style={styles.loading}>
@@ -787,5 +857,60 @@ const styles = StyleSheet.create({
   titleBlock: {
     flex: 1,
     minWidth: 0
+  },
+  updateBanner: {
+    gap: spacing.sm,
+    padding: spacing.md,
+    marginBottom: spacing.xs
+  },
+  updateBannerHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between"
+  },
+  updateBannerTitleRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.xs,
+    flex: 1
+  },
+  updateIconWrapper: {
+    alignItems: "center",
+    borderRadius: radius.pill,
+    height: 36,
+    justifyContent: "center",
+    width: 36
+  },
+  updateTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    flex: 1
+  },
+  closeIcon: {
+    height: 32,
+    width: 32
+  },
+  updateWarningRow: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: spacing.xs,
+    backgroundColor: "rgba(219, 68, 85, 0.08)",
+    padding: spacing.sm,
+    borderRadius: radius.sm
+  },
+  updateWarningText: {
+    flex: 1,
+    lineHeight: 18,
+    fontWeight: "500"
+  },
+  updateActions: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: spacing.sm,
+    marginTop: spacing.xxs
+  },
+  updateActionButton: {
+    flex: 1,
+    minHeight: 38
   }
 });
