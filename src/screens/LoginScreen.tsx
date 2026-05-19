@@ -179,13 +179,15 @@ export function LoginScreen(_props: Props) {
       </AppText>
 
       <View style={styles.languagePicker}>
-        <SegmentedControl<"fr" | "en" | "de">
+        <SegmentedControl<"fr" | "en" | "de" | "es" | "it">
           value={language}
           onChange={(value) => void setLanguage(value)}
           options={[
             { label: t("settings.french"), value: "fr" },
             { label: t("settings.english"), value: "en" },
-            { label: t("settings.german"), value: "de" }
+            { label: t("settings.german"), value: "de" },
+            { label: t("settings.spanish"), value: "es" },
+            { label: t("settings.italian"), value: "it" }
           ]}
         />
       </View>
@@ -216,6 +218,9 @@ const styles = StyleSheet.create({
   center: {
     textAlign: "center"
   },
+  languagePicker: {
+    marginTop: spacing.md
+  },
   form: {
     gap: spacing.md
   },
@@ -239,9 +244,6 @@ const styles = StyleSheet.create({
   tutorialStep: {
     flexDirection: "row",
     gap: spacing.sm
-  },
-  languagePicker: {
-    marginTop: spacing.md
   },
   localWarning: {
     alignItems: "flex-start",
