@@ -21,6 +21,7 @@ import {
   Modal,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -80,6 +81,9 @@ export function RecipeListScreen({ navigation }: Props) {
   const [dismissedUpdate, setDismissedUpdate] = useState(false);
 
   useEffect(() => {
+    if (Platform.OS !== "android") {
+      return;
+    }
     let active = true;
     void checkForUpdates().then((info) => {
       if (active && info && info.updateAvailable) {
