@@ -1,0 +1,1 @@
+Carnet de recettes local avec synchronisation Nextcloud Cookbook.
