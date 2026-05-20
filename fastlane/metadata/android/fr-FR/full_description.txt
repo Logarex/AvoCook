@@ -1,0 +1,16 @@
+AvoCook est une application de cuisine gratuite et open source pour Android et iOS.
+
+Elle peut etre utilisee entierement hors ligne, sans compte ni serveur, ou synchronisee avec une instance Nextcloud Cookbook auto-hebergee.
+
+Fonctionnalites principales :
+
+* Carnet de recettes local pour recettes, categories et photos
+* Synchronisation bidirectionnelle optionnelle avec Nextcloud Cookbook via un mot de passe d'application
+* Import de recettes depuis les pages compatibles avec les metadonnees schema.org Recipe
+* Ajustement des portions avec recalcul des ingredients
+* Minuteurs de cuisine avec notifications locales
+* Option pour garder l'ecran allume pendant la preparation
+* Impression et export PDF des recettes
+* Sauvegarde et restauration locale au format JSON
+
+AvoCook est une application independante et n'est ni affiliee a Nextcloud GmbH, ni approuvee par Nextcloud GmbH.
