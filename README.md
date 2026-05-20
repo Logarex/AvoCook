@@ -103,7 +103,7 @@ npm run import:check -- <URL-recette> # Tester le parser de recette sur une URL
 
 Si vous appréciez AvoCook et souhaitez m'aider à financer les frais (notamment la licence développeur Google Play Store pour publier l'application officiellement sur Android), vous pouvez faire un don :
 *   [Faire un don via Revolut](https://revolut.me/logarex)
-*   [Faire un don via PayPal](https://www.paypal.com/paypalme/logarex31)
+*   [Faire un don via PayPal](https://paypal.me/logarex31)
 
 ---
 
@@ -191,7 +191,7 @@ npm run import:check -- <Recipe-URL>  # Validate site parser compatibility
 
 If you enjoy AvoCook and want to help me cover publishing costs (especially the Google Play Store developer license to publish the app officially on Android), feel free to support:
 *   [Donate via Revolut](https://revolut.me/logarex)
-*   [Donate via PayPal](https://www.paypal.com/paypalme/logarex31)
+*   [Donate via PayPal](https://paypal.me/logarex31)
 
 ---
 
@@ -267,7 +267,7 @@ npm run import:check -- <Rezept-URL>  # Website-Importkompatibilität testen
 
 Wenn Ihnen AvoCook gefällt und Sie mir helfen möchten, die Kosten zu decken (insbesondere die Google Play Store Entwicklerlizenz, um die App offiziell auf Android zu veröffentlichen), können Sie das Projekt hier unterstützen:
 *   [Spenden via Revolut](https://revolut.me/logarex)
-*   [Spenden via PayPal](https://www.paypal.com/paypalme/logarex31)
+*   [Spenden via PayPal](https://paypal.me/logarex31)
 
 ---
 
