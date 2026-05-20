@@ -67,6 +67,8 @@ npx eas build --platform all --profile production
 
 La configuration Android est déjà dans `app.json` with the package `app.avocook.mobile`. Avant publication Google Play, vérifier l'icône adaptative, la fiche confidentialité Google Play et tester au moins un build `preview` sur un appareil Android réel.
 
+Pour la distribution Android gratuite via GitHub Releases, IzzyOnDroid et F-Droid, suivre `docs/ANDROID_DISTRIBUTION.md`.
+
 ### Soumission
 
 ```bash
