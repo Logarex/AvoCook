@@ -350,7 +350,7 @@ async function createRecipePrintDocument(
     ${renderListSection(labels.instructions, normalizedRecipe.recipeInstructions, true)}
     ${renderListSection(labels.tools, normalizedRecipe.tool, false)}
     ${renderNutritionSection(labels.nutrition, nutritionEntries)}
-    ${normalizedRecipe.url ? `<h2>${escapeHtml(labels.source)}</h2><p class="source">${escapeHtml(normalizedRecipe.url)}</p>` : ""}
+    ${renderSourceSection(labels.source, normalizedRecipe)}
 
     <p class="footer">${escapeHtml(labels.appName)}</p>
   </body>
@@ -398,6 +398,21 @@ function renderNutritionSection(
   return `<h2>${escapeHtml(title)}</h2><section class="meta">${entries
     .map(([label, value]) => renderMeta(label, value))
     .join("")}</section>`;
+}
+
+function renderSourceSection(title: string, recipe: Recipe) {
+  const sourceName = recipe.sourceName.trim();
+  const sourceUrl = recipe.url.trim();
+  if (!sourceName && !sourceUrl) {
+    return "";
+  }
+
+  const body = [sourceName, sourceUrl]
+    .filter(Boolean)
+    .map((item) => `<p class="source">${escapeHtml(item)}</p>`)
+    .join("");
+
+  return `<h2>${escapeHtml(title)}</h2>${body}`;
 }
 
 function getNutritionEntries(
