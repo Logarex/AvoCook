@@ -34,6 +34,7 @@ import { ConnectionStatus } from "../components/ConnectionStatus";
 import { EmptyState } from "../components/EmptyState";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
+import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { RecipeCard } from "../components/RecipeCard";
 import { Screen } from "../components/Screen";
@@ -180,6 +181,10 @@ export function RecipeListScreen({ navigation }: Props) {
     ? t("recipes.loadingRecipes")
     : undefined;
 
+  const openShoppingList = React.useCallback(() => {
+    navigation.navigate("ShoppingList", { tabTransition: "fromRecipes" });
+  }, [navigation]);
+
   async function handleCreateCategory() {
     const normalized = newCategory.replace(/\s+/g, " ").trim();
     if (!normalized) {
@@ -230,7 +235,8 @@ export function RecipeListScreen({ navigation }: Props) {
   }
 
   return (
-    <Screen scroll={false} contentStyle={styles.screenContent}>
+    <PageSwipeGesture onSwipeLeft={openShoppingList}>
+      <Screen scroll={false} contentStyle={styles.screenContent}>
       <View style={styles.header}>
         <View style={styles.titleBlock}>
           <AppText
@@ -471,11 +477,12 @@ export function RecipeListScreen({ navigation }: Props) {
         current="recipes"
         onNavigate={(tab) => {
           if (tab === "shoppingList") {
-            navigation.replace("ShoppingList", { tabTransition: "fromRecipes" });
+            openShoppingList();
           }
         }}
       />
-    </Screen>
+      </Screen>
+    </PageSwipeGesture>
   );
 }
 
