@@ -28,6 +28,7 @@ import {
   initialiseRecipeStore,
   mergeDuplicateRecipes,
   syncRecipes,
+  updateRecipeFromSource as updateRecipeFromSourceInRepository,
   updateRecipeLocalPreferences,
   updateRecipe as updateRecipeInRepository,
   type RecipeBackupImportResult,
@@ -55,6 +56,7 @@ type RecipesContextValue = {
   sync: () => Promise<void>;
   createRecipe: (recipe: Recipe) => Promise<Recipe>;
   updateRecipe: (recipe: Recipe) => Promise<Recipe>;
+  updateRecipeFromSource: (recipe: Recipe) => Promise<Recipe>;
   updateRecipePreferences: (recipe: Recipe) => Promise<Recipe>;
   deleteRecipe: (id: string) => Promise<void>;
   importRecipe: (url: string) => Promise<Recipe>;
@@ -198,6 +200,19 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     [getClient, repositoryOptions]
   );
 
+  const updateRecipeFromSource = useCallback(
+    async (recipe: Recipe) => {
+      const saved = await updateRecipeFromSourceInRepository(
+        recipe,
+        getClient(),
+        repositoryOptions
+      );
+      setRecipes(await initialiseRecipeStore());
+      return saved;
+    },
+    [getClient, repositoryOptions]
+  );
+
   const updateRecipePreferences = useCallback(async (recipe: Recipe) => {
     setRecipes((currentRecipes) =>
       currentRecipes.map((currentRecipe) =>
@@ -311,6 +326,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       sync,
       createRecipe,
       updateRecipe,
+      updateRecipeFromSource,
       updateRecipePreferences,
       deleteRecipe,
       importRecipe,
@@ -333,6 +349,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       sync,
       createRecipe,
       updateRecipe,
+      updateRecipeFromSource,
       updateRecipePreferences,
       deleteRecipe,
       importRecipe,

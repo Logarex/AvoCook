@@ -46,6 +46,10 @@ import {
   type Recipe
 } from "./types";
 import {
+  isExternalRecipeSourceUrl,
+  mergeRecipeUpdateFromSource
+} from "./recipeSource";
+import {
   createRecipeBackup,
   readRecipeBackupFile,
   type RecipeBackup,
@@ -366,6 +370,53 @@ export async function importRecipe(
       existingRecipes,
       options
     );
+  }
+}
+
+export async function updateRecipeFromSource(
+  recipe: Recipe,
+  client: CookbookClient | null,
+  options: RecipeRepositoryOptions = {}
+) {
+  await migrateDatabase();
+  if (!isExternalRecipeSourceUrl(recipe.url)) {
+    throw new Error("Recipe does not have an external source URL");
+  }
+
+  let temporaryImportedId: string | null = null;
+  let importedRecipe: Recipe;
+
+  try {
+    importedRecipe = withInferredCategory(await importRecipeFromWeb(recipe.url));
+  } catch (localImportError) {
+    if (!client) {
+      throw localImportError;
+    }
+
+    importedRecipe = withInferredCategory(
+      normalizeRecipe(await client.importRecipe(recipe.url))
+    );
+    temporaryImportedId = importedRecipe.id;
+  }
+
+  try {
+    return await updateRecipe(
+      mergeRecipeUpdateFromSource(recipe, importedRecipe),
+      client,
+      options
+    );
+  } finally {
+    if (client && temporaryImportedId && temporaryImportedId !== recipe.id) {
+      try {
+        await deleteNextcloudImportedDuplicate(
+          client,
+          temporaryImportedId,
+          recipe.id
+        );
+      } catch {
+        // The source refresh succeeded; cleanup can be retried by sync/reindex later.
+      }
+    }
   }
 }
 
@@ -1237,15 +1288,18 @@ function mergeServerRecipeWithLocalImages(
   serverRecipe: Recipe,
   localRecipe: Recipe
 ) {
+  const externalImage =
+    getExternalRecipeImageSource(localRecipe) ||
+    getExternalRecipeImageSource(serverRecipe);
   const localImage = getLocalRecipeImage(localRecipe);
   const localRemoteImage = getRemoteRecipeImage(localRecipe);
   const serverRemoteImage = getRemoteRecipeImage(serverRecipe);
-  const referenceImage = localRemoteImage || serverRemoteImage;
+  const referenceImage = externalImage || localRemoteImage || serverRemoteImage;
 
   return replaceLocalRecipeImageReferencesWithRemote(
     normalizeRecipe({
       ...serverRecipe,
-      image: localImage || serverRecipe.image,
+      image: externalImage || localImage || serverRecipe.image,
       imageUrl: referenceImage || serverRecipe.imageUrl,
       imagePlaceholderUrl: referenceImage || serverRecipe.imagePlaceholderUrl,
       localMeta: localRecipe.localMeta

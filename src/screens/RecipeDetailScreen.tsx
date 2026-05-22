@@ -14,6 +14,7 @@ import {
   Play,
   Plus,
   Printer,
+  RefreshCw,
   RotateCcw,
   Share2,
   ShoppingCart,
@@ -23,7 +24,13 @@ import {
   Users
 } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
-import { Alert, Linking, StyleSheet, View } from "react-native";
+import {
+  Alert,
+  Linking,
+  StyleSheet,
+  useWindowDimensions,
+  View
+} from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -59,6 +66,7 @@ import {
   type NutriScoreGrade,
   type Nutrition
 } from "../features/recipes/types";
+import { isExternalRecipeSourceUrl } from "../features/recipes/recipeSource";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -67,6 +75,19 @@ import { scaleIngredientLine } from "../utils/servings";
 
 type Props = NativeStackScreenProps<RootStackParamList, "RecipeDetail">;
 type DetailRecipe = ReturnType<typeof useRecipes>["recipes"][number];
+type ToolbarAction = {
+  id: string;
+  icon: LucideIcon;
+  label: string;
+  onPress: () => void;
+  tone?: "default" | "primary" | "danger";
+  disabled?: boolean;
+};
+
+const TOOLBAR_ICON_SIZE = 44;
+const TOOLBAR_HORIZONTAL_PADDING = spacing.md * 2;
+const TOOLBAR_BACK_ACTION_GAP = spacing.sm;
+
 const nutriScoreColors: Record<NutriScoreGrade, string> = {
   A: "#1B8F4B",
   B: "#70B744",
@@ -81,7 +102,12 @@ const nutriScoreGrades: NutriScoreGrade[] = ["A", "B", "C", "D", "E"];
 export function RecipeDetailScreen({ navigation, route }: Props) {
   const { getClient } = useAuth();
   const { keepScreenAwake } = usePreferences();
-  const { deleteRecipe, getRecipe, updateRecipePreferences } = useRecipes();
+  const {
+    deleteRecipe,
+    getRecipe,
+    updateRecipeFromSource,
+    updateRecipePreferences
+  } = useRecipes();
   const { addIngredients } = useShoppingList();
   const recipe = getRecipe(route.params.id);
 
@@ -98,6 +124,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
             recipeId={route.params.id}
             recipe={recipe}
             deleteRecipe={deleteRecipe}
+            updateRecipeFromSource={updateRecipeFromSource}
             updateRecipePreferences={updateRecipePreferences}
             addIngredientsToShoppingList={addIngredients}
             getClient={getClient}
@@ -118,6 +145,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
         recipeId={route.params.id}
         recipe={recipe}
         deleteRecipe={deleteRecipe}
+        updateRecipeFromSource={updateRecipeFromSource}
         updateRecipePreferences={updateRecipePreferences}
         addIngredientsToShoppingList={addIngredients}
         getClient={getClient}
@@ -160,6 +188,7 @@ function RecipeDetailContent({
   recipeId,
   recipe,
   deleteRecipe,
+  updateRecipeFromSource,
   updateRecipePreferences,
   addIngredientsToShoppingList,
   getClient,
@@ -169,6 +198,7 @@ function RecipeDetailContent({
   recipeId: string;
   recipe: ReturnType<typeof useRecipes>["recipes"][number] | undefined;
   deleteRecipe: (id: string) => Promise<void>;
+  updateRecipeFromSource: ReturnType<typeof useRecipes>["updateRecipeFromSource"];
   updateRecipePreferences: ReturnType<typeof useRecipes>["updateRecipePreferences"];
   addIngredientsToShoppingList: ReturnType<typeof useShoppingList>["addIngredients"];
   getClient: ReturnType<typeof useAuth>["getClient"];
@@ -176,10 +206,12 @@ function RecipeDetailContent({
 }) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const { width: windowWidth } = useWindowDimensions();
   const [shareAction, setShareAction] = useState<
-    "print" | "pdf" | "file" | null
+    "print" | "pdf" | "file" | "source" | null
   >(null);
   const source = getImageSource();
+  const canUpdateFromSource = isExternalRecipeSourceUrl(recipe?.url);
   const nutrition = useMemo(
     () => normalizeNutrition(recipe?.nutrition),
     [recipe?.nutrition]
@@ -409,6 +441,27 @@ function RecipeDetailContent({
     }
   }
 
+  async function handleUpdateFromSource() {
+    if (!recipe) {
+      return;
+    }
+    setShareAction("source");
+    try {
+      await updateRecipeFromSource(recipe);
+      Alert.alert(
+        t("recipes.share.updateFromSourceSuccessTitle"),
+        t("recipes.share.updateFromSourceSuccessBody")
+      );
+    } catch {
+      Alert.alert(
+        t("recipes.share.updateFromSourceFailedTitle"),
+        t("recipes.share.updateFromSourceFailedBody")
+      );
+    } finally {
+      setShareAction(null);
+    }
+  }
+
   async function handleAddToShoppingList() {
     if (!recipe || !scaledIngredients.length) {
       return;
@@ -453,6 +506,62 @@ function RecipeDetailContent({
     }
   }
 
+  const toolbarActions: ToolbarAction[] = [
+    {
+      id: "print",
+      icon: Printer,
+      label: t("recipes.share.print"),
+      onPress: () => void handlePrint(),
+      disabled: shareAction !== null
+    },
+    {
+      id: "share-pdf",
+      icon: Share2,
+      label: t("recipes.share.sharePdf"),
+      onPress: () => void handleSharePdf(),
+      disabled: shareAction !== null,
+      tone: "primary"
+    },
+    {
+      id: "share-file",
+      icon: FileUp,
+      label: t("recipes.share.shareFile"),
+      onPress: () => void handleShareFile(),
+      disabled: shareAction !== null
+    },
+    ...(canUpdateFromSource
+      ? [
+          {
+            id: "source",
+            icon: RefreshCw,
+            label: t("recipes.share.updateFromSource"),
+            onPress: () => void handleUpdateFromSource(),
+            disabled: shareAction !== null
+          }
+        ]
+      : []),
+    {
+      id: "edit",
+      icon: Pencil,
+      label: t("common.edit"),
+      onPress: () => navigation.navigate("RecipeEditor", { id: recipeId }),
+      tone: "primary"
+    },
+    {
+      id: "delete",
+      icon: Trash2,
+      label: t("common.delete"),
+      onPress: () => void handleDelete(),
+      tone: "danger"
+    }
+  ];
+  const toolbarColumnCount = getToolbarColumnCount(
+    toolbarActions.length,
+    windowWidth
+  );
+  const toolbarRows = chunkToolbarActions(toolbarActions, toolbarColumnCount);
+  const toolbarActionsWidth = getToolbarActionsWidth(toolbarColumnCount);
+
   return (
     <Screen showScrollTop={false}>
       <View style={styles.toolbar}>
@@ -461,38 +570,21 @@ function RecipeDetailContent({
           label={t("common.back")}
           onPress={() => navigation.goBack()}
         />
-        <View style={styles.toolbarActions}>
-          <IconButton
-            icon={Printer}
-            label={t("recipes.share.print")}
-            onPress={() => void handlePrint()}
-            disabled={shareAction !== null}
-          />
-          <IconButton
-            icon={Share2}
-            label={t("recipes.share.sharePdf")}
-            onPress={() => void handleSharePdf()}
-            disabled={shareAction !== null}
-            tone="primary"
-          />
-          <IconButton
-            icon={FileUp}
-            label={t("recipes.share.shareFile")}
-            onPress={() => void handleShareFile()}
-            disabled={shareAction !== null}
-          />
-          <IconButton
-            icon={Pencil}
-            label={t("common.edit")}
-            onPress={() => navigation.navigate("RecipeEditor", { id: recipeId })}
-            tone="primary"
-          />
-          <IconButton
-            icon={Trash2}
-            label={t("common.delete")}
-            onPress={() => void handleDelete()}
-            tone="danger"
-          />
+        <View style={[styles.toolbarActions, { width: toolbarActionsWidth }]}>
+          {toolbarRows.map((row, rowIndex) => (
+            <View key={rowIndex} style={styles.toolbarActionRow}>
+              {row.map((action) => (
+                <IconButton
+                  key={action.id}
+                  icon={action.icon}
+                  label={action.label}
+                  onPress={action.onPress}
+                  disabled={action.disabled}
+                  tone={action.tone}
+                />
+              ))}
+            </View>
+          ))}
         </View>
       </View>
 
@@ -1087,6 +1179,35 @@ function getImageSource(
   return null;
 }
 
+function getToolbarColumnCount(actionCount: number, windowWidth: number) {
+  const availableActionsWidth =
+    windowWidth -
+    TOOLBAR_HORIZONTAL_PADDING -
+    TOOLBAR_ICON_SIZE -
+    TOOLBAR_BACK_ACTION_GAP;
+
+  if (getToolbarActionsWidth(actionCount) <= availableActionsWidth) {
+    return actionCount;
+  }
+
+  return Math.max(1, Math.ceil(actionCount / 2));
+}
+
+function getToolbarActionsWidth(columnCount: number) {
+  return (
+    columnCount * TOOLBAR_ICON_SIZE +
+    Math.max(0, columnCount - 1) * spacing.xs
+  );
+}
+
+function chunkToolbarActions(actions: ToolbarAction[], columnCount: number) {
+  const rows: ToolbarAction[][] = [];
+  for (let index = 0; index < actions.length; index += columnCount) {
+    rows.push(actions.slice(index, index + columnCount));
+  }
+  return rows;
+}
+
 const styles = StyleSheet.create({
   heroImage: {
     alignItems: "center",
@@ -1256,16 +1377,17 @@ const styles = StyleSheet.create({
   },
   toolbar: {
     alignItems: "flex-start",
-    flexWrap: "wrap",
     gap: spacing.sm,
     flexDirection: "row",
     justifyContent: "space-between"
   },
   toolbarActions: {
+    alignItems: "stretch",
+    gap: spacing.xs
+  },
+  toolbarActionRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
     gap: spacing.xs,
-    justifyContent: "flex-end",
-    maxWidth: "80%"
+    justifyContent: "flex-end"
   }
 });

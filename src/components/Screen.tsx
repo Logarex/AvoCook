@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
-    bottom: spacing.md,
+    bottom: spacing.sm,
     height: 42,
     justifyContent: "center",
     position: "absolute",
