@@ -14,6 +14,7 @@ import { AppText } from "../components/AppText";
 import { BottomNavigation } from "../components/BottomNavigation";
 import { EmptyState } from "../components/EmptyState";
 import { IconButton } from "../components/IconButton";
+import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
 import { useShoppingList } from "../features/shopping/ShoppingListProvider";
@@ -42,6 +43,14 @@ export function ShoppingListScreen({ navigation }: Props) {
     [items]
   );
   const checkedCount = items.length - remainingCount;
+
+  const openRecipes = React.useCallback(() => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+    navigation.navigate("Recipes", { tabTransition: "fromShopping" });
+  }, [navigation]);
 
   async function handleAddItem() {
     const label = newItem.trim();
@@ -93,7 +102,8 @@ export function ShoppingListScreen({ navigation }: Props) {
   }
 
   return (
-    <Screen scroll={false} contentStyle={styles.screenContent}>
+    <PageSwipeGesture onSwipeRight={openRecipes}>
+      <Screen scroll={false} contentStyle={styles.screenContent}>
       <View style={styles.header}>
         <View style={styles.titleBlock}>
           <View style={styles.titleRow}>
@@ -179,11 +189,12 @@ export function ShoppingListScreen({ navigation }: Props) {
         current="shoppingList"
         onNavigate={(tab) => {
           if (tab === "recipes") {
-            navigation.replace("Recipes", { tabTransition: "fromShopping" });
+            openRecipes();
           }
         }}
       />
-    </Screen>
+      </Screen>
+    </PageSwipeGesture>
   );
 }
 

@@ -34,7 +34,10 @@ export function BottomNavigation({
         styles.wrap,
         {
           backgroundColor: colors.background,
-          paddingBottom: Math.max(insets.bottom > 0 ? insets.bottom - 16 : 0, spacing.xs)
+          paddingBottom: Math.max(
+            insets.bottom > 0 ? insets.bottom - 18 : 0,
+            spacing.xxs
+          )
         }
       ]}
     >
@@ -109,30 +112,30 @@ function BottomNavigationItem({
 
 const styles = StyleSheet.create({
   wrap: {
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.xxs
+    paddingHorizontal: spacing.sm,
+    paddingTop: 0
   },
   bar: {
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
-    gap: spacing.xs,
+    gap: spacing.xxs,
     padding: spacing.xxs,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.1,
-    shadowRadius: 18,
-    elevation: 5
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    elevation: 3
   },
   item: {
     alignItems: "center",
     borderRadius: radius.pill,
     flex: 1,
     flexDirection: "row",
-    gap: spacing.xs,
+    gap: spacing.xxs,
     justifyContent: "center",
-    minHeight: 44,
+    minHeight: 38,
     minWidth: 0,
-    paddingHorizontal: spacing.sm
+    paddingHorizontal: spacing.xs
   },
   label: {
     flexShrink: 1
