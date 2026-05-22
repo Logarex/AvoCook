@@ -20,9 +20,13 @@ import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
+import { useAuth } from "../features/auth/AuthProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { persistRecipeImage } from "../features/recipes/recipeImages";
-import { getEditableRecipeImageSource } from "../features/recipes/recipeImageReferences";
+import {
+  getEditableRecipeImageSource,
+  isCookbookImageEndpoint
+} from "../features/recipes/recipeImageReferences";
 import {
   createEmptyRecipe,
   normalizeRecipe,
@@ -40,6 +44,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const { getClient } = useAuth();
   const { createRecipe, customCategories, getRecipe, recipes, updateRecipe } =
     useRecipes();
   const existingRecipe = route.params.id ? getRecipe(route.params.id) : undefined;
@@ -125,6 +130,13 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
       })
       .slice(0, 6);
   }, [category, customCategories, recipes]);
+  const photoClient = isCookbookImageEndpoint(photoUrl) ? getClient() : null;
+  const photoSource = photoUrl
+    ? {
+        uri: photoUrl,
+        headers: photoClient?.getImageHeaders()
+      }
+    : null;
 
   useEffect(() => {
     setName(initialRecipe.name);
@@ -161,15 +173,31 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
     setSaving(true);
     setError(null);
     try {
+      const initialPhotoUrl = getEditableRecipeImageSource(initialRecipe);
+      const imageFields =
+        photoUrl === initialPhotoUrl
+          ? {
+              image: initialRecipe.image,
+              imageUrl: initialRecipe.imageUrl,
+              imagePlaceholderUrl: initialRecipe.imagePlaceholderUrl
+            }
+          : {
+              image: photoUrl,
+              imageUrl: photoUrl,
+              imagePlaceholderUrl: photoUrl
+            };
+      const localMeta =
+        photoUrl === initialPhotoUrl
+          ? initialRecipe.localMeta
+          : getLocalMetaAfterPhotoChange(initialRecipe.localMeta, photoUrl);
       const recipe = normalizeRecipe({
         ...initialRecipe,
         name,
         description,
         sourceName,
         url: sourceUrl,
-        image: photoUrl,
-        imageUrl: photoUrl,
-        imagePlaceholderUrl: photoUrl,
+        ...imageFields,
+        localMeta,
         recipeCategory: category,
         keywords,
         recipeYield: Number.parseInt(recipeYield, 10) || 1,
@@ -288,7 +316,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           <ExpoImage
             accessibilityLabel={name || t("editor.photoUrl")}
             accessibilityRole="image"
-            source={{ uri: photoUrl }}
+            source={photoSource}
             style={styles.photo}
             contentFit="cover"
           />
@@ -622,6 +650,22 @@ function formatNutritionValue(value: string, unit: "g" | "kcal" | "mg") {
   }
 
   return `${trimmed} ${unit}`;
+}
+
+function getLocalMetaAfterPhotoChange(
+  localMeta: ReturnType<typeof normalizeRecipe>["localMeta"],
+  photoUrl: string
+) {
+  const nextLocalMeta: NonNullable<
+    ReturnType<typeof normalizeRecipe>["localMeta"]
+  > = { ...(localMeta ?? {}) };
+  delete nextLocalMeta.cachedImage;
+
+  if (/^file:\/\//i.test(photoUrl)) {
+    nextLocalMeta.cachedImage = photoUrl;
+  }
+
+  return Object.keys(nextLocalMeta).length ? nextLocalMeta : undefined;
 }
 
 function normalizeNutritionInput(value?: NutritionValue | null) {

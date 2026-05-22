@@ -12,6 +12,7 @@ import { normalizeRecipe, type NutritionValue, type Recipe } from "./types";
 import { humanDuration } from "../../utils/duration";
 import {
   canUseRemoteRecipeImageFallback,
+  getCachedRecipeImage,
   getLocalRecipeImage,
   getExternalRecipeImageSource,
   hasRecipeImageReference,
@@ -192,7 +193,7 @@ async function getPrintImageUri(
   client: CookbookClient | null
 ): Promise<{ uri: string; isTemp: boolean }> {
   // 1. If local cached/persisted image is present, use its file:/// URI directly
-  const localImage = getLocalRecipeImage(recipe);
+  const localImage = getCachedRecipeImage(recipe) || getLocalRecipeImage(recipe);
   if (localImage) {
     const file = new File(localImage);
     if (file.exists) {

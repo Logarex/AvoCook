@@ -323,6 +323,7 @@ export const resources = {
         reindexConfirmBody:
           "Cette action demande à Nextcloud Cookbook de rescanner le dossier de recettes. C'est utile si des recettes ont été ajoutées ou modifiées hors de l'app, mais cela peut prendre du temps sur un gros Cookbook.",
         reindexDone: "Réindexation demandée",
+        openLogs: "Journaux de diagnostic",
         openPrivacy: "Confidentialité et données",
         notifications: "Notifications",
         notificationsEnabled: "Activées",
@@ -374,6 +375,28 @@ export const resources = {
         duplicatesFailedTitle: "Vérification impossible",
         duplicatesFailed:
           "La vérification ou la fusion n'a pas pu se terminer. Vérifiez la connexion Nextcloud puis réessayez."
+      },
+      logs: {
+        title: "Journaux",
+        refresh: "Actualiser",
+        count: "{{count}} entrée(s)",
+        anonymize: "Anonymiser",
+        anonymizedNotice:
+          "Le rapport masque domaines, IP, e-mails, chemins locaux et identifiants WebDAV.",
+        rawNotice:
+          "Les secrets restent masqués, mais les détails personnels peuvent rester visibles.",
+        share: "Exporter",
+        shareAnonymized: "Envoyer anonymisé",
+        clear: "Vider",
+        clearConfirmTitle: "Vider les journaux ?",
+        clearConfirmBody:
+          "Les traces locales et réseau enregistrées sur ce téléphone seront supprimées.",
+        emptyTitle: "Aucun journal",
+        emptyBody:
+          "Utilisez l'app puis revenez ici pour voir les traces détaillées.",
+        exportFailedTitle: "Export impossible",
+        exportFailed:
+          "Le rapport de diagnostic n'a pas pu être créé ou partagé."
       },
       privacy: {
         title: "Confidentialité",
@@ -705,6 +728,7 @@ export const resources = {
         reindexConfirmBody:
           "This asks Nextcloud Cookbook to rescan the recipe folder. It is useful if recipes were added or changed outside the app, but it can take a while on a large Cookbook.",
         reindexDone: "Reindex requested",
+        openLogs: "Diagnostic logs",
         openPrivacy: "Privacy and data",
         notifications: "Notifications",
         notificationsEnabled: "Enabled",
@@ -755,6 +779,27 @@ export const resources = {
         duplicatesFailedTitle: "Check failed",
         duplicatesFailed:
           "The duplicate check or merge could not finish. Check the Nextcloud connection and try again."
+      },
+      logs: {
+        title: "Logs",
+        refresh: "Refresh",
+        count: "{{count}} entry/entries",
+        anonymize: "Anonymize",
+        anonymizedNotice:
+          "The report masks domains, IPs, emails, local paths, and WebDAV user IDs.",
+        rawNotice:
+          "Secrets stay redacted, but personal details may remain visible.",
+        share: "Export",
+        shareAnonymized: "Send anonymized",
+        clear: "Clear",
+        clearConfirmTitle: "Clear logs?",
+        clearConfirmBody:
+          "Local and network traces stored on this phone will be deleted.",
+        emptyTitle: "No logs",
+        emptyBody:
+          "Use the app, then come back here to inspect detailed traces.",
+        exportFailedTitle: "Export failed",
+        exportFailed: "The diagnostic report could not be created or shared."
       },
       privacy: {
         title: "Privacy",

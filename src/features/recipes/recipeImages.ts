@@ -50,7 +50,8 @@ export async function pruneRecipeImageCache(recipes: Recipe[]) {
       .flatMap((recipe) => [
         recipe.image,
         recipe.imageUrl,
-        recipe.imagePlaceholderUrl
+        recipe.imagePlaceholderUrl,
+        recipe.localMeta?.cachedImage ?? ""
       ])
       .filter((uri) => uri.startsWith(IMAGE_DIR.uri))
   );

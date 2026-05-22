@@ -47,8 +47,8 @@ import type { HealthProfile } from "../features/recipes/health";
 import { getRecipeHealthProfile } from "../features/recipes/health";
 import {
   canUseRemoteRecipeImageFallback,
-  isCookbookImageEndpoint,
-  isDisplayableRecipeImage
+  getPreferredDisplayRecipeImage,
+  isCookbookImageEndpoint
 } from "../features/recipes/recipeImageReferences";
 import {
   printRecipe,
@@ -1406,10 +1406,7 @@ function getImageSource(
     return null;
   }
 
-  const publicImage =
-    [recipe.image, recipe.imageUrl, recipe.imagePlaceholderUrl].find(
-      isDisplayableRecipeImage
-    ) ?? "";
+  const publicImage = getPreferredDisplayRecipeImage(recipe);
   if (publicImage) {
     return {
       uri: publicImage,

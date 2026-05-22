@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
   canUseRemoteRecipeImageFallback,
+  getCachedRecipeImage,
   getEditableRecipeImageSource,
+  getPreferredDisplayRecipeImage,
   getRemoteRecipeImage,
   hasRecipeImageRemovalIntent,
+  normalizeCookbookImageEndpointReference,
   replaceLocalRecipeImageReferencesWithRemote,
   sanitizeRecipeImagesForNextcloud,
   withRecipeImageRemovalIntent,
@@ -81,6 +84,21 @@ describe("recipe image references", () => {
     expect(sanitized.imagePlaceholderUrl).toBe("");
   });
 
+  it("keeps uploaded Nextcloud file paths as Cookbook image sources", () => {
+    const recipe = normalizeRecipe({
+      name: "Photo maison",
+      image: "/AvoCook Images/photo.jpg",
+      imageUrl: "/AvoCook Images/photo.jpg",
+      imagePlaceholderUrl: "/AvoCook Images/photo.jpg"
+    });
+
+    const sanitized = sanitizeRecipeImagesForNextcloud(recipe);
+
+    expect(sanitized.image).toBe("/AvoCook Images/photo.jpg");
+    expect(sanitized.imageUrl).toBe("/AvoCook Images/photo.jpg");
+    expect(sanitized.imagePlaceholderUrl).toBe("/AvoCook Images/photo.jpg");
+  });
+
   it("does not send Cookbook image endpoints back as source images", () => {
     const imageUrl =
       "https://cloud.example.com/apps/cookbook/api/v1/recipes/12/image?size=thumb";
@@ -113,6 +131,21 @@ describe("recipe image references", () => {
     expect(sanitized.image).toBe("");
     expect(sanitized.imageUrl).toBe("");
     expect(sanitized.imagePlaceholderUrl).toBe("");
+  });
+
+  it("repairs malformed legacy Cookbook image endpoint sizes", () => {
+    expect(
+      normalizeCookbookImageEndpointReference(
+        "https://cloud.example.com/apps/cookbook/webapp/recipes/1380499/image?size=fulld"
+      )
+    ).toBe(
+      "https://cloud.example.com/apps/cookbook/webapp/recipes/1380499/image?size=full"
+    );
+    expect(
+      normalizeCookbookImageEndpointReference(
+        "/apps/cookbook/api/v1/recipes/1380499/image?size=thumb16d"
+      )
+    ).toBe("/apps/cookbook/api/v1/recipes/1380499/image?size=thumb16");
   });
 
   it("prefers a remote image over a stale local cache in editable fields", () => {
@@ -150,6 +183,33 @@ describe("recipe image references", () => {
     );
     expect(repaired.imagePlaceholderUrl).toBe(
       "https://cloud.example.com/apps/cookbook/webapp/recipes/3264/image?size=thumb"
+    );
+  });
+
+  it("keeps an explicit cached local copy while preserving the Nextcloud file source", () => {
+    const recipe = normalizeRecipe({
+      name: "Photo maison",
+      image: "/AvoCook Images/photo.jpg",
+      imageUrl:
+        "https://cloud.example.com/apps/cookbook/api/v1/recipes/42/image?size=full",
+      imagePlaceholderUrl:
+        "https://cloud.example.com/apps/cookbook/api/v1/recipes/42/image?size=thumb"
+    });
+
+    const cached = withCachedRecipeImage(
+      recipe,
+      "file:///documents/recipe-images/photo.jpg"
+    );
+
+    expect(cached.image).toBe("/AvoCook Images/photo.jpg");
+    expect(cached.imageUrl).toBe(
+      "https://cloud.example.com/apps/cookbook/api/v1/recipes/42/image?size=full"
+    );
+    expect(getCachedRecipeImage(cached)).toBe(
+      "file:///documents/recipe-images/photo.jpg"
+    );
+    expect(getPreferredDisplayRecipeImage(cached)).toBe(
+      "file:///documents/recipe-images/photo.jpg"
     );
   });
 
@@ -220,6 +280,7 @@ describe("recipe image references", () => {
     expect(cached.image).toBe("");
     expect(cached.imageUrl).toBe("");
     expect(cached.imagePlaceholderUrl).toBe("");
+    expect(getCachedRecipeImage(cached)).toBe("");
     expect(hasRecipeImageRemovalIntent(cached)).toBe(true);
   });
 
