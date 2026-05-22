@@ -2,6 +2,7 @@ import { normalizeRecipe, type Recipe } from "./types";
 
 const REMOTE_IMAGE_PATTERN = /^https?:\/\//i;
 const LOCAL_IMAGE_PATTERN = /^file:\/\//i;
+const NEXTCLOUD_FILE_IMAGE_PATTERN = /^\/(?!apps\/cookbook\/)/i;
 const COOKBOOK_IMAGE_ENDPOINT_PATTERN =
   /\/apps\/cookbook\/(?:api\/v1|webapp)\/recipes\/[^/?#]+\/image(?:[?#]|$)/i;
 
@@ -13,12 +14,28 @@ export function isLocalImageReference(value: string | null | undefined) {
   return Boolean(value && LOCAL_IMAGE_PATTERN.test(value));
 }
 
+export function isNextcloudFileImageReference(
+  value: string | null | undefined
+) {
+  return Boolean(value && NEXTCLOUD_FILE_IMAGE_PATTERN.test(value));
+}
+
 export function getRemoteRecipeImage(
   recipe: Pick<Recipe, "image" | "imageUrl" | "imagePlaceholderUrl">
 ) {
   return (
     [recipe.image, recipe.imageUrl, recipe.imagePlaceholderUrl].find(
       isRemoteImageReference
+    ) ?? ""
+  );
+}
+
+export function getNextcloudFileRecipeImage(
+  recipe: Pick<Recipe, "image" | "imageUrl" | "imagePlaceholderUrl">
+) {
+  return (
+    [recipe.image, recipe.imageUrl, recipe.imagePlaceholderUrl].find(
+      isNextcloudFileImageReference
     ) ?? ""
   );
 }
@@ -45,6 +62,26 @@ export function isCookbookImageEndpoint(value: string | null | undefined) {
   return Boolean(value && COOKBOOK_IMAGE_ENDPOINT_PATTERN.test(value));
 }
 
+export function normalizeCookbookImageEndpointReference(value: string) {
+  if (!COOKBOOK_IMAGE_ENDPOINT_PATTERN.test(value)) {
+    return value;
+  }
+
+  try {
+    const isRelative = value.startsWith("/");
+    const url = new URL(value, "https://avocook.local");
+    const size = url.searchParams.get("size");
+    if (size && !["full", "thumb", "thumb16"].includes(size)) {
+      url.searchParams.set("size", normalizeCookbookImageSize(size));
+    }
+    return isRelative
+      ? `${url.pathname}${url.search}${url.hash}`
+      : url.toString();
+  } catch {
+    return value;
+  }
+}
+
 export function isDisplayableRecipeImage(value: string | null | undefined) {
   return Boolean(value && /^(?:https?:|file:|data:)/i.test(value));
 }
@@ -57,6 +94,12 @@ export function getLocalRecipeImage(
       (value) => isLocalImageReference(value)
     ) ?? ""
   );
+}
+
+export function getCachedRecipeImage(recipe: Pick<Recipe, "localMeta">) {
+  return hasRecipeImageRemovalIntent(recipe)
+    ? ""
+    : recipe.localMeta?.cachedImage ?? "";
 }
 
 export function hasRecipeImageReference(
@@ -82,11 +125,15 @@ export function canUseRemoteRecipeImageFallback<
 }
 
 export function withoutRecipeImages(recipe: Recipe) {
+  const localMeta = { ...recipe.localMeta };
+  delete localMeta.cachedImage;
+
   return normalizeRecipe({
     ...recipe,
     image: "",
     imageUrl: "",
-    imagePlaceholderUrl: ""
+    imagePlaceholderUrl: "",
+    localMeta: Object.keys(localMeta).length ? localMeta : undefined
   });
 }
 
@@ -98,6 +145,7 @@ export function withRecipeImageRemovalIntent(
 
   if (imageRemoved) {
     localMeta.imageRemoved = true;
+    delete localMeta.cachedImage;
   } else {
     delete localMeta.imageRemoved;
   }
@@ -114,47 +162,106 @@ export function withCachedRecipeImage(recipe: Recipe, cachedImage: string) {
   }
 
   const externalImage = getExternalRecipeImageSource(recipe);
+  const nextcloudFileImage = getNextcloudFileRecipeImage(recipe);
   const remoteImage = getRemoteRecipeImage(recipe);
-  const referenceImage = externalImage || remoteImage || cachedImage;
+  const sourceImage =
+    externalImage || nextcloudFileImage || remoteImage || cachedImage;
+  const displayImage =
+    externalImage || remoteImage || nextcloudFileImage || cachedImage;
+  const localMeta = {
+    ...recipe.localMeta,
+    cachedImage
+  };
 
   return normalizeRecipe({
     ...recipe,
-    image: referenceImage,
-    imageUrl: referenceImage,
-    imagePlaceholderUrl: referenceImage
+    image: sourceImage,
+    imageUrl: externalImage ? externalImage : recipe.imageUrl || displayImage,
+    imagePlaceholderUrl: externalImage
+      ? externalImage
+      : recipe.imagePlaceholderUrl || displayImage,
+    localMeta
   });
 }
 
 export function getEditableRecipeImageSource(
-  recipe: Pick<Recipe, "image" | "imageUrl" | "imagePlaceholderUrl">
+  recipe: Pick<
+    Recipe,
+    "image" | "imageUrl" | "imagePlaceholderUrl" | "localMeta"
+  >
 ) {
-  return (
+  const image =
+    getCachedRecipeImage(recipe) ||
     getExternalRecipeImageSource(recipe) ||
     getRemoteRecipeImage(recipe) ||
-    getLocalRecipeImage(recipe)
-  );
+    getLocalRecipeImage(recipe) ||
+    getNextcloudFileRecipeImage(recipe);
+
+  return image ? normalizeCookbookImageEndpointReference(image) : "";
+}
+
+export function getPreferredDisplayRecipeImage(
+  recipe: Pick<
+    Recipe,
+    "image" | "imageUrl" | "imagePlaceholderUrl" | "localMeta"
+  >
+) {
+  const image =
+    [
+      getCachedRecipeImage(recipe),
+      recipe.image,
+      recipe.imagePlaceholderUrl,
+      recipe.imageUrl
+    ].find(isDisplayableRecipeImage) ?? "";
+
+  return image ? normalizeCookbookImageEndpointReference(image) : "";
+}
+
+export function normalizeRecipeImageReferences(recipe: Recipe) {
+  return normalizeRecipe({
+    ...recipe,
+    image: normalizeCookbookImageEndpointReference(recipe.image),
+    imageUrl: normalizeCookbookImageEndpointReference(recipe.imageUrl),
+    imagePlaceholderUrl: normalizeCookbookImageEndpointReference(
+      recipe.imagePlaceholderUrl
+    )
+  });
 }
 
 export function replaceLocalRecipeImageReferencesWithRemote(recipe: Recipe) {
-  const remoteImage = getRemoteRecipeImage(recipe);
+  const normalizedRecipe = normalizeRecipeImageReferences(recipe);
+
+  if (getCachedRecipeImage(normalizedRecipe)) {
+    return normalizedRecipe;
+  }
+
+  const remoteImage = getRemoteRecipeImage(normalizedRecipe);
   if (
     !remoteImage ||
-    ![recipe.image, recipe.imageUrl, recipe.imagePlaceholderUrl].some(
+    ![
+      normalizedRecipe.image,
+      normalizedRecipe.imageUrl,
+      normalizedRecipe.imagePlaceholderUrl
+    ].some(
       isLocalImageReference
     )
   ) {
-    return recipe;
+    return normalizedRecipe;
   }
 
   return normalizeRecipe({
-    ...recipe,
-    image: isLocalImageReference(recipe.image) ? remoteImage : recipe.image,
-    imageUrl: isLocalImageReference(recipe.imageUrl)
+    ...normalizedRecipe,
+    image: isLocalImageReference(normalizedRecipe.image)
       ? remoteImage
-      : recipe.imageUrl,
-    imagePlaceholderUrl: isLocalImageReference(recipe.imagePlaceholderUrl)
+      : normalizedRecipe.image,
+    imageUrl: isLocalImageReference(normalizedRecipe.imageUrl)
       ? remoteImage
-      : recipe.imagePlaceholderUrl
+      : normalizedRecipe.imageUrl,
+    imagePlaceholderUrl: isLocalImageReference(
+      normalizedRecipe.imagePlaceholderUrl
+    )
+      ? remoteImage
+      : normalizedRecipe.imagePlaceholderUrl
   });
 }
 
@@ -184,6 +291,7 @@ export function sanitizeRecipeImagesForNextcloud(recipe: Recipe) {
   }
 
   const externalImage = getExternalRecipeImageSource(recipe);
+  const nextcloudFileImage = getNextcloudFileRecipeImage(recipe);
 
   if (externalImage) {
     return normalizeRecipe({
@@ -191,6 +299,15 @@ export function sanitizeRecipeImagesForNextcloud(recipe: Recipe) {
       image: externalImage,
       imageUrl: externalImage,
       imagePlaceholderUrl: externalImage
+    });
+  }
+
+  if (nextcloudFileImage) {
+    return normalizeRecipe({
+      ...recipe,
+      image: nextcloudFileImage,
+      imageUrl: nextcloudFileImage,
+      imagePlaceholderUrl: nextcloudFileImage
     });
   }
 
@@ -212,4 +329,15 @@ export function sanitizeRecipeImagesForNextcloud(recipe: Recipe) {
         ? recipe.imagePlaceholderUrl
         : ""
   });
+}
+
+function normalizeCookbookImageSize(size: string) {
+  const normalized = size.toLowerCase();
+  if (normalized.startsWith("thumb16")) {
+    return "thumb16";
+  }
+  if (normalized.startsWith("thumb")) {
+    return "thumb";
+  }
+  return "full";
 }

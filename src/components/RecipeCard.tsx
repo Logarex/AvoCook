@@ -3,8 +3,8 @@ import { Clock, Tag } from "lucide-react-native";
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import {
-  isCookbookImageEndpoint,
-  isDisplayableRecipeImage
+  getPreferredDisplayRecipeImage,
+  isCookbookImageEndpoint
 } from "../features/recipes/recipeImageReferences";
 import { Recipe } from "../features/recipes/types";
 import { radius, spacing } from "../theme/colors";
@@ -24,10 +24,7 @@ export function RecipeCard({
   onPress: () => void;
 }) {
   const { colors } = useAppTheme();
-  const imageUri =
-    [recipe.image, recipe.imagePlaceholderUrl, recipe.imageUrl].find(
-      isDisplayableRecipeImage
-    ) ?? "";
+  const imageUri = getPreferredDisplayRecipeImage(recipe);
   const imageSource = imageUri
     ? {
         uri: imageUri,

@@ -3,6 +3,7 @@ import { Directory, File, Paths } from "expo-file-system";
 import type { CookbookClient } from "../nextcloud/cookbookClient";
 import {
   canUseRemoteRecipeImageFallback,
+  getCachedRecipeImage,
   hasRecipeImageReference,
   hasRecipeImageRemovalIntent
 } from "./recipeImageReferences";
@@ -215,7 +216,11 @@ async function collectRecipeImageAsset(
   client?: CookbookClient | null,
   imageDownloadTimeoutMs?: number
 ) {
-  const localOrPublicUri = recipe.image || recipe.imageUrl || recipe.imagePlaceholderUrl;
+  const localOrPublicUri =
+    getCachedRecipeImage(recipe) ||
+    recipe.image ||
+    recipe.imageUrl ||
+    recipe.imagePlaceholderUrl;
   const directAsset = localOrPublicUri
     ? await createImageAssetFromUri(localOrPublicUri, {
         timeoutMs: imageDownloadTimeoutMs
@@ -327,6 +332,7 @@ function parseDataUri(uri: string) {
 
 function hasBackupImageReference(recipe: Recipe) {
   return (
+    Boolean(getCachedRecipeImage(recipe)) ||
     hasRecipeImageReference(recipe) ||
     (!hasRecipeImageRemovalIntent(recipe) &&
       Boolean(recipe.id && !recipe.id.startsWith("local-")))

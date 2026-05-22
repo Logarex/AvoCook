@@ -7,6 +7,7 @@ import {
   BookOpen,
   Database,
   Download,
+  FileText,
   Globe,
   Info,
   Lock,
@@ -539,6 +540,12 @@ export function SettingsScreen({ navigation }: Props) {
       ) : null}
 
       <View style={styles.actions}>
+        <PrimaryButton
+          icon={FileText}
+          label={t("settings.openLogs")}
+          onPress={() => navigation.navigate("DiagnosticsLogs")}
+          variant="ghost"
+        />
         <PrimaryButton
           icon={Info}
           label={t("settings.openPrivacy")}

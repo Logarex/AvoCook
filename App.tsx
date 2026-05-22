@@ -9,12 +9,15 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import "./src/i18n";
 import { AppText } from "./src/components/AppText";
 import { AuthProvider, useAuth } from "./src/features/auth/AuthProvider";
+import { logInfo } from "./src/features/logging/appLogger";
+import { installNetworkLogger } from "./src/features/logging/networkLogger";
 import { PreferencesProvider } from "./src/features/preferences/PreferencesProvider";
 import { RecipesProvider } from "./src/features/recipes/RecipesProvider";
 import { ShoppingListProvider } from "./src/features/shopping/ShoppingListProvider";
 import { TimersProvider } from "./src/features/timers/TimersProvider";
 import { useReducedMotion } from "./src/features/accessibility/useReducedMotion";
 import type { RootStackParamList } from "./src/navigation/types";
+import { DiagnosticsLogsScreen } from "./src/screens/DiagnosticsLogsScreen";
 import { ImportRecipeScreen } from "./src/screens/ImportRecipeScreen";
 import { LoginScreen } from "./src/screens/LoginScreen";
 import { RecipeDetailScreen } from "./src/screens/RecipeDetailScreen";
@@ -27,7 +30,14 @@ import { AppThemeProvider, useAppTheme } from "./src/theme/ThemeProvider";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+installNetworkLogger();
+
 export default function App() {
+  React.useEffect(() => {
+    installNetworkLogger();
+    logInfo("app", "AvoCook mounted");
+  }, []);
+
   return (
     <GestureHandlerRootView style={styles.flex}>
       <SafeAreaProvider>
@@ -94,6 +104,10 @@ function RootNavigator() {
               <Stack.Screen name="ImportRecipe" component={ImportRecipeScreen} />
               <Stack.Screen name="ShoppingList" component={ShoppingListScreen} />
               <Stack.Screen name="Settings" component={SettingsScreen} />
+              <Stack.Screen
+                name="DiagnosticsLogs"
+                component={DiagnosticsLogsScreen}
+              />
               <Stack.Screen name="Privacy" component={PrivacyScreen} />
             </>
           ) : (
