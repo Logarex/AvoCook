@@ -1027,21 +1027,6 @@ function HealthSection({ profile }: { profile: HealthProfile }) {
           ))}
         </View>
       ) : null}
-      <View style={styles.recommendations}>
-        {profile.recommendations.map((recommendation) => (
-          <View key={recommendation} style={styles.recommendationRow}>
-            <View
-              style={[
-                styles.recommendationDot,
-                { backgroundColor: profile.backgroundColor }
-              ]}
-            />
-            <AppText style={styles.recommendationText}>
-              {t(`recipes.health.recommendations.${recommendation}`)}
-            </AppText>
-          </View>
-        ))}
-      </View>
     </GlassPanel>
   );
 }
