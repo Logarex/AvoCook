@@ -1250,30 +1250,32 @@ function getNextcloudImportRecipe(localRecipe: Recipe, originalRecipe: Recipe) {
 }
 
 async function updateRecipeOnNextcloud(recipe: Recipe, client: CookbookClient) {
-  const serverRecipeBeforeUpdate =
-    hasRecipeImageRemovalIntent(recipe) && recipe.id
-      ? await client.getRecipe(recipe.id).catch(() => null)
-      : null;
+  const shouldRemoveImage = hasRecipeImageRemovalIntent(recipe);
+  const serverRecipeBeforeUpdatePromise =
+    shouldRemoveImage && recipe.id
+      ? client.getRecipe(recipe.id).catch(() => null)
+      : Promise.resolve(null);
 
   await client.updateRecipe(
     toCookbookRecipe(await prepareRecipeForNextcloud(recipe, client))
   );
 
-  if (hasRecipeImageRemovalIntent(recipe)) {
-    await deleteRemovedRecipeImagesFromNextcloud(
+  if (shouldRemoveImage) {
+    void deleteRemovedRecipeImagesFromNextcloud(
       recipe,
       client,
-      serverRecipeBeforeUpdate
+      serverRecipeBeforeUpdatePromise
     );
-    await reindexRecipes(client);
   }
 }
 
 async function deleteRemovedRecipeImagesFromNextcloud(
   recipe: Recipe,
   client: CookbookClient,
-  serverRecipeBeforeUpdate: Recipe | null
+  serverRecipeBeforeUpdatePromise: Promise<Recipe | null>
 ) {
+  const serverRecipeBeforeUpdate = await serverRecipeBeforeUpdatePromise;
+
   try {
     await client.deleteCookbookRecipeImages(recipe.name);
   } catch {
@@ -1286,6 +1288,8 @@ async function deleteRemovedRecipeImagesFromNextcloud(
       client.deleteWebDavFile(path).catch(() => undefined)
     )
   );
+
+  await reindexRecipes(client);
 }
 
 function getAvoCookImagePaths(recipe: Recipe) {
