@@ -28,7 +28,8 @@ import {
   markLocalRecipeDeleted,
   migrateDatabase,
   removeLocalRecipe,
-  saveLocalRecipe
+  saveLocalRecipe,
+  loadAnyLocalRecipeById
 } from "./offlineDatabase";
 import {
   persistRecipeImage,
@@ -332,6 +333,8 @@ export async function deleteRecipe(id: string, client: CookbookClient | null) {
     return;
   }
 
+  await deleteStaleRecipeImages(id, null, client);
+
   try {
     await client.deleteRecipe(id);
     await removeLocalRecipe(id);
@@ -401,6 +404,7 @@ async function deleteRemoteDuplicateRecipes(
     }
 
     try {
+      await deleteStaleRecipeImages(recipe.id, null, client);
       await client.deleteRecipe(recipe.id);
     } catch (error) {
       if (!(error instanceof CookbookApiError) || error.status !== 404) {
@@ -583,6 +587,7 @@ async function deleteNextcloudImportedDuplicate(
   }
 
   try {
+    await deleteStaleRecipeImages(importedId, null, client);
     await client.deleteRecipe(importedId);
   } catch (error) {
     if (!(error instanceof CookbookApiError) || error.status !== 404) {
@@ -1159,6 +1164,7 @@ async function flushSyncQueue(
     if (operation.operation === "delete") {
       if (!operation.recipeId.startsWith("local-")) {
         try {
+          await deleteStaleRecipeImages(operation.recipeId, null, client);
           await client.deleteRecipe(operation.recipeId);
           pushed = true;
         } catch (error) {
@@ -1347,44 +1353,89 @@ function getNextcloudImportRecipe(localRecipe: Recipe, originalRecipe: Recipe) {
 }
 
 async function updateRecipeOnNextcloud(recipe: Recipe, client: CookbookClient) {
+  if (recipe.id) {
+    await deleteStaleRecipeImages(recipe.id, recipe, client);
+  }
+
   const shouldRemoveImage = hasRecipeImageRemovalIntent(recipe);
-  const serverRecipeBeforeUpdatePromise =
-    shouldRemoveImage && recipe.id
-      ? client.getRecipe(recipe.id).catch(() => null)
-      : Promise.resolve(null);
 
   await client.updateRecipe(
     toCookbookRecipe(await prepareRecipeForNextcloud(recipe, client))
   );
 
   if (shouldRemoveImage) {
-    void deleteRemovedRecipeImagesFromNextcloud(
-      recipe,
-      client,
-      serverRecipeBeforeUpdatePromise
+    void deleteRemovedRecipeImagesFromNextcloud(recipe, client);
+  }
+}
+
+async function deleteStaleRecipeImages(
+  recipeId: string,
+  newRecipe: Recipe | null,
+  client: CookbookClient
+) {
+  if (recipeId.startsWith("local-")) {
+    return;
+  }
+
+  try {
+    const oldPaths = new Set<string>();
+
+    const localRecipeBefore = await loadAnyLocalRecipeById(recipeId);
+    if (localRecipeBefore) {
+      getAvoCookImagePaths(localRecipeBefore).forEach((p) => oldPaths.add(p));
+    }
+
+    const serverRecipe = await client.getRecipe(recipeId).catch(() => null);
+    if (serverRecipe) {
+      getAvoCookImagePaths(serverRecipe).forEach((p) => oldPaths.add(p));
+    }
+
+    const newPaths = new Set(newRecipe ? getAvoCookImagePaths(newRecipe) : []);
+
+    const allRecipes = await loadLocalRecipes();
+    const otherRecipes = allRecipes.filter((r) => r.id !== recipeId);
+    const referencedPaths = new Set(
+      otherRecipes.flatMap((r) => getAvoCookImagePaths(r))
     );
+
+    const pathsToDelete = Array.from(oldPaths).filter(
+      (p) => !newPaths.has(p) && !referencedPaths.has(p)
+    );
+
+    if (pathsToDelete.length > 0) {
+      logInfo("sync", "Deleting stale recipe images from Nextcloud", {
+        recipeId,
+        paths: pathsToDelete
+      });
+      await Promise.all(
+        pathsToDelete.map((path) =>
+          client.deleteWebDavFile(path).catch((error) => {
+            logError("sync", "Failed to delete stale recipe image", {
+              path,
+              error: normalizeLogError(error)
+            });
+          })
+        )
+      );
+    }
+  } catch (error) {
+    logError("sync", "Failed to clean up stale recipe images", {
+      recipeId,
+      error: normalizeLogError(error)
+    });
   }
 }
 
 async function deleteRemovedRecipeImagesFromNextcloud(
   recipe: Recipe,
-  client: CookbookClient,
-  serverRecipeBeforeUpdatePromise: Promise<Recipe | null>
+  client: CookbookClient
 ) {
-  const serverRecipeBeforeUpdate = await serverRecipeBeforeUpdatePromise;
-
   try {
     await client.deleteCookbookRecipeImages(recipe.name);
   } catch {
     // The Cookbook update already requests image removal. This WebDAV cleanup
     // handles stale recipe-folder files when a server keeps them around.
   }
-
-  await Promise.all(
-    getAvoCookImagePaths(serverRecipeBeforeUpdate ?? recipe).map((path) =>
-      client.deleteWebDavFile(path).catch(() => undefined)
-    )
-  );
 
   await reindexRecipes(client);
 }
