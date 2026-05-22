@@ -227,6 +227,25 @@ export class CookbookClient {
     return remotePath;
   }
 
+  async deleteCookbookRecipeImages(recipeName: string) {
+    const recipeFolderPath = await this.getCookbookRecipeFolderPath(recipeName);
+    await Promise.all(
+      ["full.jpg", "thumb.jpg", "thumb16.jpg"].map((filename) =>
+        this.deleteWebDavFile(`${recipeFolderPath}/${filename}`)
+      )
+    );
+  }
+
+  async deleteWebDavFile(path: string) {
+    try {
+      await this.rawRequest(this.getWebDavPath(path), { method: "DELETE" });
+    } catch (error) {
+      if (!(error instanceof CookbookApiError) || error.status !== 404) {
+        throw error;
+      }
+    }
+  }
+
   private async request<T>(path: string, options: RequestOptions = {}) {
     const headers = new Headers(options.headers);
     headers.set("Accept", "application/json");
@@ -291,8 +310,16 @@ export class CookbookClient {
     }
   }
 
+  private async getCookbookRecipeFolderPath(recipeName: string) {
+    const config = await this.getConfig().catch(
+      (): Partial<CookbookConfig> => ({})
+    );
+    const cookbookFolder = normalizeWebDavPath(config.folder || "/Recipes");
+    return `${cookbookFolder}/${getSafeCookbookRecipeFolderName(recipeName)}`;
+  }
+
   private getWebDavPath(path: string) {
-    const encodedPath = path
+    const encodedPath = normalizeWebDavPath(path)
       .split("/")
       .filter(Boolean)
       .map(encodeURIComponent)
@@ -317,6 +344,11 @@ export class CookbookClient {
   }
 }
 
+function normalizeWebDavPath(path: string) {
+  const normalized = path.trim().replace(/^\/+|\/+$/g, "");
+  return normalized ? `/${normalized}` : "";
+}
+
 function getSafeRemoteImageFilename(uri: string) {
   const withoutQuery = uri.split("?")[0] ?? uri;
   const rawName = decodeURIComponent(withoutQuery.split("/").pop() || "image.jpg");
@@ -326,6 +358,11 @@ function getSafeRemoteImageFilename(uri: string) {
   const extension = getImageExtension(safeName);
   const baseName = safeName.replace(/\.[^.]+$/, "") || "image";
   return `${baseName}.${extension}`;
+}
+
+function getSafeCookbookRecipeFolderName(recipeName: string) {
+  const safeName = recipeName.replace(/[\\/:?!"'|&^#]/g, "_");
+  return safeName.length > 100 ? `${safeName.slice(0, 97)}___` : safeName;
 }
 
 function getImageExtension(value: string) {

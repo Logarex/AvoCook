@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import {
+  canUseRemoteRecipeImageFallback,
   getEditableRecipeImageSource,
   getRemoteRecipeImage,
+  hasRecipeImageRemovalIntent,
   replaceLocalRecipeImageReferencesWithRemote,
   sanitizeRecipeImagesForNextcloud,
+  withRecipeImageRemovalIntent,
   withCachedRecipeImage
 } from "../src/features/recipes/recipeImageReferences";
 import { normalizeRecipe } from "../src/features/recipes/types";
@@ -164,5 +167,80 @@ describe("recipe image references", () => {
     expect(getEditableRecipeImageSource(repaired)).toBe(
       "file:///documents/recipe-images/photo.jpg"
     );
+  });
+
+  it("remembers when a recipe image was intentionally removed", () => {
+    const recipe = normalizeRecipe({
+      name: "Sans photo",
+      image: "",
+      imageUrl: "",
+      imagePlaceholderUrl: ""
+    });
+
+    const updated = withRecipeImageRemovalIntent(recipe, true);
+
+    expect(hasRecipeImageRemovalIntent(updated)).toBe(true);
+  });
+
+  it("does not send a source image when the image was intentionally removed", () => {
+    const recipe = withRecipeImageRemovalIntent(
+      normalizeRecipe({
+        name: "Tarte aux pommes",
+        image: "https://example.com/tarte.jpg",
+        imageUrl: "https://example.com/tarte.jpg",
+        imagePlaceholderUrl: "https://example.com/tarte.jpg"
+      }),
+      true
+    );
+
+    const sanitized = sanitizeRecipeImagesForNextcloud(recipe);
+
+    expect(sanitized.image).toBe("");
+    expect(sanitized.imageUrl).toBe("");
+    expect(sanitized.imagePlaceholderUrl).toBe("");
+    expect(hasRecipeImageRemovalIntent(sanitized)).toBe(true);
+  });
+
+  it("does not restore a cached image when the image was intentionally removed", () => {
+    const recipe = withRecipeImageRemovalIntent(
+      normalizeRecipe({
+        name: "Tapenade",
+        image: "",
+        imageUrl: "",
+        imagePlaceholderUrl: ""
+      }),
+      true
+    );
+
+    const cached = withCachedRecipeImage(
+      recipe,
+      "file:///documents/recipe-images/tapenade.jpg"
+    );
+
+    expect(cached.image).toBe("");
+    expect(cached.imageUrl).toBe("");
+    expect(cached.imagePlaceholderUrl).toBe("");
+    expect(hasRecipeImageRemovalIntent(cached)).toBe(true);
+  });
+
+  it("does not fall back to the Cookbook image endpoint after image removal", () => {
+    const recipe = withRecipeImageRemovalIntent(
+      normalizeRecipe({
+        id: "42",
+        name: "Sans photo"
+      }),
+      true
+    );
+
+    expect(canUseRemoteRecipeImageFallback(recipe)).toBe(false);
+  });
+
+  it("can still fall back to the Cookbook image endpoint for synced recipes without removal intent", () => {
+    const recipe = normalizeRecipe({
+      id: "42",
+      name: "Avec photo distante"
+    });
+
+    expect(canUseRemoteRecipeImageFallback(recipe)).toBe(true);
   });
 });

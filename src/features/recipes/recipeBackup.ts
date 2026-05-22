@@ -1,6 +1,11 @@
 import * as Crypto from "expo-crypto";
 import { Directory, File, Paths } from "expo-file-system";
 import type { CookbookClient } from "../nextcloud/cookbookClient";
+import {
+  canUseRemoteRecipeImageFallback,
+  hasRecipeImageReference,
+  hasRecipeImageRemovalIntent
+} from "./recipeImageReferences";
 import { normalizeRecipe, type Recipe } from "./types";
 
 export const RECIPE_BACKUP_SCHEMA_VERSION = 1;
@@ -96,7 +101,7 @@ export async function createRecipeBackup({
   for (const entry of entries) {
     if (entry.imageAsset) {
       assets[entry.imageAsset.id] = entry.imageAsset;
-    } else if (hasImageReference(entry.recipe)) {
+    } else if (hasBackupImageReference(entry.recipe)) {
       skippedImageCount += 1;
     }
 
@@ -221,7 +226,7 @@ async function collectRecipeImageAsset(
     return directAsset;
   }
 
-  if (recipe.id && client && !recipe.id.startsWith("local-")) {
+  if (client && canUseRemoteRecipeImageFallback(recipe)) {
     return createImageAssetFromUri(client.getRecipeImageUrl(recipe.id, "full"), {
       headers: client.getImageHeaders(),
       timeoutMs: imageDownloadTimeoutMs
@@ -320,8 +325,12 @@ function parseDataUri(uri: string) {
   };
 }
 
-function hasImageReference(recipe: Recipe) {
-  return Boolean(recipe.image || recipe.imageUrl || recipe.imagePlaceholderUrl);
+function hasBackupImageReference(recipe: Recipe) {
+  return (
+    hasRecipeImageReference(recipe) ||
+    (!hasRecipeImageRemovalIntent(recipe) &&
+      Boolean(recipe.id && !recipe.id.startsWith("local-")))
+  );
 }
 
 function getImageExtension(uri: string) {

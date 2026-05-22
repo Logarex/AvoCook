@@ -195,7 +195,11 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         ? await updateRecipe(recipe)
         : await createRecipe(recipe);
       if (saved.id) {
-        navigation.replace("RecipeDetail", { id: saved.id });
+        if (existingRecipe && navigation.canGoBack()) {
+          navigation.goBack();
+        } else {
+          navigation.replace("RecipeDetail", { id: saved.id });
+        }
       } else {
         navigation.goBack();
       }

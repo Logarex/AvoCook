@@ -6,6 +6,7 @@
   <img src="https://img.shields.io/badge/React%20Native-0.81-61dafb?logo=react&logoColor=black&style=flat-square" alt="React Native" />
   <img src="https://img.shields.io/badge/platforms-iOS%20%7C%20iPadOS%20%7C%20Android-green?style=flat-square" alt="Platforms" />
   <img src="https://img.shields.io/badge/i18n-FR%20%7C%20EN%20%7C%20DE%20%7C%20ES%20%7C%20IT-orange?style=flat-square" alt="Languages" />
+  <img src="https://img.shields.io/github/downloads/Logarex/AvoCook/total?color=blueviolet&logo=android&logoColor=white&style=flat-square&label=t%C3%A9l%C3%A9chargements%20(android)" alt="Téléchargements Android" />
 </p>
 
 ---
