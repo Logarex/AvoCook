@@ -1,7 +1,15 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { ArrowLeft, ImagePlus, Plus, Save, Trash2, X } from "lucide-react-native";
+import {
+  ArrowLeft,
+  ImagePlus,
+  Link,
+  Plus,
+  Save,
+  Trash2,
+  X
+} from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -44,6 +52,11 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
 
   const [name, setName] = useState(initialRecipe.name);
   const [description, setDescription] = useState(initialRecipe.description);
+  const [sourceName, setSourceName] = useState(initialRecipe.sourceName);
+  const [sourceUrl, setSourceUrl] = useState(initialRecipe.url);
+  const [showSourceFields, setShowSourceFields] = useState(
+    Boolean(initialRecipe.sourceName || initialRecipe.url)
+  );
   const [photoUrl, setPhotoUrl] = useState(
     getEditableRecipeImageSource(initialRecipe)
   );
@@ -113,6 +126,9 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   useEffect(() => {
     setName(initialRecipe.name);
     setDescription(initialRecipe.description);
+    setSourceName(initialRecipe.sourceName);
+    setSourceUrl(initialRecipe.url);
+    setShowSourceFields(Boolean(initialRecipe.sourceName || initialRecipe.url));
     setPhotoUrl(getEditableRecipeImageSource(initialRecipe));
     setCategory(initialRecipe.recipeCategory);
     setKeywords(initialRecipe.keywords);
@@ -146,6 +162,8 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         ...initialRecipe,
         name,
         description,
+        sourceName,
+        url: sourceUrl,
         image: photoUrl,
         imageUrl: photoUrl,
         imagePlaceholderUrl: photoUrl,
@@ -224,6 +242,31 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         onChangeText={setDescription}
         value={description}
       />
+      {showSourceFields ? (
+        <View style={styles.lineList}>
+          <TextField
+            label={t("editor.sourceName")}
+            onChangeText={setSourceName}
+            placeholder={t("editor.sourceNamePlaceholder")}
+            value={sourceName}
+          />
+          <TextField
+            autoCapitalize="none"
+            autoCorrect={false}
+            keyboardType="url"
+            label={t("editor.sourceUrl")}
+            onChangeText={setSourceUrl}
+            value={sourceUrl}
+          />
+        </View>
+      ) : (
+        <PrimaryButton
+          icon={Link}
+          label={t("editor.addSource")}
+          onPress={() => setShowSourceFields(true)}
+          variant="ghost"
+        />
+      )}
       {photoUrl ? (
         <View style={styles.photoPreview}>
           <ExpoImage

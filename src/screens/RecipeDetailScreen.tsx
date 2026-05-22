@@ -595,7 +595,22 @@ function RecipeDetailContent({
         </GlassPanel>
       ) : null}
 
-      {recipe.url ? (
+      {recipe.sourceName ? (
+        <GlassPanel style={styles.section}>
+          <AppText muted variant="caption">
+            {t("recipes.source")}
+          </AppText>
+          <AppText variant="label">{recipe.sourceName}</AppText>
+          {recipe.url ? (
+            <PrimaryButton
+              icon={ExternalLink}
+              label={t("recipes.openSource")}
+              onPress={() => void Linking.openURL(recipe.url)}
+              variant="ghost"
+            />
+          ) : null}
+        </GlassPanel>
+      ) : recipe.url ? (
         <PrimaryButton
           icon={ExternalLink}
           label={t("recipes.source")}

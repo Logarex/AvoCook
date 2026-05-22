@@ -73,6 +73,7 @@ describe("normalizeRecipe", () => {
     const recipe = normalizeRecipe({
       id: "42",
       name: "Pasta",
+      sourceName: "Grandma's notebook",
       prepTime: "PT15M",
       nutrition: {
         "@type": "NutritionInformation",
@@ -82,6 +83,7 @@ describe("normalizeRecipe", () => {
 
     const payload = toCookbookRecipe(recipe);
 
+    expect(payload.sourceName).toBe("Grandma's notebook");
     expect(payload.prepTime).toBe("PT15M");
     expect(payload.nutrition).toEqual({
       "@type": "NutritionInformation",
