@@ -1020,6 +1020,7 @@ function getPrintLabels(t: (key: string) => string): RecipePrintLabels {
     instructions: t("recipes.instructions"),
     keywords: t("recipes.share.keywords"),
     nutrition: t("recipes.nutrition"),
+    nutriScore: "Nutri-Score",
     prepTime: t("recipes.prepTime"),
     protein: t("editor.proteinGrams"),
     saturatedFat: t("editor.saturatedFatGrams"),
