@@ -15,10 +15,12 @@ import { AppText } from "./AppText";
 export function RecipeCard({
   imageHeaders,
   recipe,
+  onLongPress,
   onPress
 }: {
   imageHeaders?: Record<string, string>;
   recipe: Recipe;
+  onLongPress?: () => void;
   onPress: () => void;
 }) {
   const { colors } = useAppTheme();
@@ -44,6 +46,7 @@ export function RecipeCard({
     <Pressable
       accessibilityLabel={accessibilityParts.join(", ")}
       accessibilityRole="button"
+      onLongPress={onLongPress}
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
