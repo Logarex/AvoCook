@@ -190,30 +190,13 @@ export const resources = {
           localNote:
             "Estimation locale non officielle, basée sur les valeurs par portion/personne.",
           calculation:
-            "Le score pénalise calories, sucres, graisses saturées et sodium, puis valorise fibres et protéines. Il devient fiable seulement si les valeurs nutritionnelles sont renseignées.",
+            "Le score pénalise calories, sucres, graisses saturées et sodium, puis valorise fibres et protéines.",
           calories: "Calories",
           sugar: "Sucres",
           fat: "Matières grasses",
           salt: "Sel",
           fiber: "Fibres",
-          protein: "Protéines",
-          recommendations: {
-            balanced: "Profil équilibré pour les données disponibles.",
-            missingNutrition:
-              "Ajoutez calories, sucres, sel, fibres et protéines pour obtenir une recommandation plus précise.",
-            highCalories:
-              "Servez une portion plus petite ou accompagnez avec des légumes.",
-            highSugar:
-              "Réduisez le sucre ou ajoutez un fruit frais en accompagnement.",
-            highFat:
-              "Privilégiez une matière grasse plus légère ou diminuez la quantité.",
-            highSalt:
-              "Goûtez avant de saler et utilisez herbes, épices ou citron.",
-            addFiber:
-              "Ajoutez fibres, légumes, légumineuses ou céréales complètes.",
-            goodProtein:
-              "Bon apport en protéines pour la satiété."
-          }
+          protein: "Protéines"
         }
       },
       shoppingList: {
@@ -585,28 +568,13 @@ export const resources = {
           localNote:
             "Unofficial local estimate based on per-serving/person nutrition values.",
           calculation:
-            "The score penalizes calories, sugar, saturated fat and sodium, then rewards fiber and protein. It is reliable only when nutrition values are filled in.",
+            "The score penalizes calories, sugar, saturated fat and sodium, then rewards fiber and protein.",
           calories: "Calories",
           sugar: "Sugar",
           fat: "Fat",
           salt: "Salt",
           fiber: "Fiber",
-          protein: "Protein",
-          recommendations: {
-            balanced: "Balanced profile for the available data.",
-            missingNutrition:
-              "Add calories, sugar, salt, fiber and protein for a more precise recommendation.",
-            highCalories:
-              "Serve a smaller portion or pair it with vegetables.",
-            highSugar: "Reduce sugar or add fresh fruit on the side.",
-            highFat:
-              "Use a lighter fat source or reduce the quantity.",
-            highSalt:
-              "Taste before salting and use herbs, spices or lemon.",
-            addFiber:
-              "Add fiber, vegetables, legumes or whole grains.",
-            goodProtein: "Good protein level for satiety."
-          }
+          protein: "Protein"
         }
       },
       shoppingList: {
@@ -976,29 +944,13 @@ export const resources = {
           localNote:
             "Inoffizielle lokale Schätzung basierend auf Nährwerten pro Portion/Person.",
           calculation:
-            "Der Score bewertet Kalorien, Zucker, gesättigte Fettsäuren und Natrium negativ, Ballaststoffe und Eiweiß positiv. Er ist nur verlässlich, wenn Nährwerte angegeben sind.",
+            "Der Score bewertet Kalorien, Zucker, gesättigte Fettsäuren und Natrium negativ, Ballaststoffe und Eiweiß positiv.",
           calories: "Kalorien",
           sugar: "Zucker",
           fat: "Fett",
           salt: "Salz",
           fiber: "Ballaststoffe",
-          protein: "Eiweiß",
-          recommendations: {
-            balanced: "Ausgewogenes Profil für die verfügbaren Daten.",
-            missingNutrition:
-              "Füge Kalorien, Zucker, Salz, Ballaststoffe und Eiweiß für eine genauere Empfehlung hinzu.",
-            highCalories:
-              "Serviere eine kleinere Portion oder ergänze mit Gemüse.",
-            highSugar:
-              "Reduziere Zucker oder füge frisches Obst als Beilage hinzu.",
-            highFat:
-              "Verwende ein leichteres Fett oder reduziere die Menge.",
-            highSalt:
-              "Koste vor dem Salzen und verwende Kräuter, Gewürze oder Zitrone.",
-            addFiber:
-              "Füge Ballaststoffe, Gemüse, Hülsenfrüchte oder Vollkorngetreide hinzu.",
-            goodProtein: "Guter Eiweißgehalt für die Sättigung."
-          }
+          protein: "Eiweiß"
         }
       },
       shoppingList: {
@@ -1367,24 +1319,13 @@ export const resources = {
           localNote:
             "Estimación local no oficial basada en los valores nutricionales por porción.",
           calculation:
-            "La puntuación penaliza calorías, azúcar, grasa saturada y sodio, y premia la fibra y la proteína. Es fiable solo cuando los valores nutricionales están completos.",
+            "La puntuación penaliza calorías, azúcar, grasa saturada y sodio, y premia la fibra y la proteína.",
           calories: "Calorías",
           sugar: "Azúcar",
           fat: "Grasa",
           salt: "Sal",
           fiber: "Fibra",
-          protein: "Proteína",
-          recommendations: {
-            balanced: "Perfil equilibrado con los datos disponibles.",
-            missingNutrition:
-              "Añade calorías, azúcar, sal, fibra y proteína para una recomendación más precisa.",
-            highCalories: "Sirve una porción más pequeña o acompáñalo con verduras.",
-            highSugar: "Reduce el azúcar o añade fruta fresca de guarnición.",
-            highFat: "Usa una fuente de grasa más ligera o reduce la cantidad.",
-            highSalt: "Prueba antes de salar y usa hierbas, especias o limón.",
-            addFiber: "Añade fibra: verduras, legumbres o cereales integrales.",
-            goodProtein: "Buen nivel de proteína para la saciedad."
-          }
+          protein: "Proteína"
         }
       },
       shoppingList: {
@@ -1750,24 +1691,13 @@ export const resources = {
           localNote:
             "Stima locale non ufficiale basata sui valori nutrizionali per porzione.",
           calculation:
-            "Il punteggio penalizza calorie, zuccheri, grassi saturi e sodio, e premia fibre e proteine. È affidabile solo quando i valori nutrizionali sono completi.",
+            "Il punteggio penalizza calorie, zuccheri, grassi saturi e sodio, e premia fibre e proteine.",
           calories: "Calorie",
           sugar: "Zuccheri",
           fat: "Grassi",
           salt: "Sale",
           fiber: "Fibre",
-          protein: "Proteine",
-          recommendations: {
-            balanced: "Profilo equilibrato con i dati disponibili.",
-            missingNutrition:
-              "Aggiungi calorie, zuccheri, sale, fibre e proteine per una raccomandazione più precisa.",
-            highCalories: "Servi una porzione più piccola o abbinala con verdure.",
-            highSugar: "Riduci lo zucchero o aggiungi frutta fresca come contorno.",
-            highFat: "Usa una fonte di grassi più leggera o riduci la quantità.",
-            highSalt: "Assaggia prima di salare e usa erbe, spezie o limone.",
-            addFiber: "Aggiungi fibre: verdure, legumi o cereali integrali.",
-            goodProtein: "Buon livello proteico per la sazietà."
-          }
+          protein: "Proteine"
         }
       },
       shoppingList: {
