@@ -3,6 +3,7 @@ import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import {
   ArrowLeft,
+  Check,
   ImagePlus,
   Link,
   Plus,
@@ -13,6 +14,7 @@ import {
 import React, { useEffect, useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "../components/AppText";
 import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
@@ -37,6 +39,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "RecipeEditor">;
 export function RecipeEditorScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const { createRecipe, customCategories, getRecipe, recipes, updateRecipe } =
     useRecipes();
   const existingRecipe = route.params.id ? getRecipe(route.params.id) : undefined;
@@ -222,7 +225,10 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   }
 
   return (
-    <Screen showScrollTop={false}>
+    <Screen
+      contentStyle={{ paddingBottom: spacing.md + insets.bottom }}
+      showScrollTop={false}
+    >
       <View style={styles.toolbar}>
         <IconButton
           icon={ArrowLeft}
@@ -232,7 +238,13 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         <AppText variant="subtitle">
           {existingRecipe ? t("editor.editRecipe") : t("editor.newRecipe")}
         </AppText>
-        <View style={styles.toolbarSpacer} />
+        <IconButton
+          disabled={saving}
+          icon={Check}
+          label={saving ? t("common.loading") : t("common.save")}
+          onPress={() => void handleSave()}
+          tone="primary"
+        />
       </View>
 
       <TextField label={t("editor.name")} onChangeText={setName} value={name} />
@@ -678,8 +690,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.md,
     justifyContent: "space-between"
-  },
-  toolbarSpacer: {
-    width: 44
   }
 });
