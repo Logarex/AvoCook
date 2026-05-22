@@ -20,6 +20,8 @@ import {
   formatLogEntry,
   loadLogEntries,
   subscribeToLogEntries,
+  getLogMode,
+  setLogMode,
   type AppLogEntry
 } from "../features/logging/appLogger";
 import { shareDiagnosticsReport } from "../features/logging/diagnosticsReport";
@@ -29,7 +31,7 @@ import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "DiagnosticsLogs">;
 
-const VISIBLE_LOG_LIMIT = 220;
+const VISIBLE_LOG_LIMIT = 50;
 
 export function DiagnosticsLogsScreen({ navigation }: Props) {
   const { t } = useTranslation();
@@ -37,8 +39,13 @@ export function DiagnosticsLogsScreen({ navigation }: Props) {
   const [entries, setEntries] = useState<AppLogEntry[]>([]);
   const [anonymize, setAnonymize] = useState(true);
   const [sharing, setSharing] = useState(false);
+  const [detailed, setDetailed] = useState(false);
 
   useEffect(() => subscribeToLogEntries(setEntries), []);
+
+  useEffect(() => {
+    void getLogMode().then((mode) => setDetailed(mode === "all"));
+  }, []);
 
   const visibleEntries = useMemo(
     () => entries.slice(-VISIBLE_LOG_LIMIT).reverse(),
@@ -46,6 +53,13 @@ export function DiagnosticsLogsScreen({ navigation }: Props) {
   );
 
   async function refreshLogs() {
+    setEntries(await loadLogEntries());
+  }
+
+  async function handleToggleDetailed(value: boolean) {
+    const nextMode = value ? "all" : "errors";
+    setDetailed(value);
+    await setLogMode(nextMode);
     setEntries(await loadLogEntries());
   }
 
@@ -103,6 +117,24 @@ export function DiagnosticsLogsScreen({ navigation }: Props) {
             label={sharing ? t("common.loading") : t("logs.share")}
             onPress={() => void shareLogs()}
             variant="ghost"
+          />
+        </View>
+
+        <View style={styles.switchRow}>
+          <View style={styles.switchText}>
+            <AppText variant="label">{t("logs.detailed")}</AppText>
+            <AppText muted variant="caption">
+              {detailed ? t("logs.detailedNotice") : t("logs.errorsOnlyNotice")}
+            </AppText>
+          </View>
+          <Switch
+            accessibilityLabel={t("logs.detailed")}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: detailed }}
+            onValueChange={(val) => void handleToggleDetailed(val)}
+            thumbColor={detailed ? colors.primary : colors.textMuted}
+            trackColor={{ false: colors.border, true: colors.chip }}
+            value={detailed}
           />
         </View>
 
