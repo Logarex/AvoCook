@@ -14,6 +14,7 @@ import {
   getLocalRecipeImage,
   getExternalRecipeImageSource
 } from "./recipeImageReferences";
+import { getRecipeHealthProfile } from "./health";
 
 export type RecipePrintLabels = {
   appName: string;
@@ -27,6 +28,7 @@ export type RecipePrintLabels = {
   instructions: string;
   keywords: string;
   nutrition: string;
+  nutriScore: string;
   prepTime: string;
   protein: string;
   saturatedFat: string;
@@ -47,6 +49,8 @@ export type RecipeShareExportResult = {
 
 const PDF_MIME_TYPE = "application/pdf";
 const RECIPE_FILE_MIME_TYPE = "application/json";
+const PRINT_IMAGE_DOWNLOAD_TIMEOUT_MS = 3000;
+const SHARE_IMAGE_DOWNLOAD_TIMEOUT_MS = 4000;
 
 export async function printRecipe(
   recipe: Recipe,
@@ -143,7 +147,8 @@ export async function createRecipeShareBackup(
       ? [normalizedRecipe.recipeCategory]
       : [],
     source: client ? "nextcloud" : "local",
-    client
+    client,
+    imageDownloadTimeoutMs: SHARE_IMAGE_DOWNLOAD_TIMEOUT_MS
   });
 
   return {
@@ -192,33 +197,67 @@ async function getPrintImageUri(
     }
   }
 
-  // 2. If it's a standard remote image (non-Nextcloud), the WebView can render it directly
+  // 2. Remote images are downloaded with a short timeout so PDF generation
+  // does not wait indefinitely on the WebView image loader.
   const externalImage = getExternalRecipeImageSource(recipe);
   if (externalImage) {
-    return { uri: externalImage, isTemp: false };
+    const downloaded = await downloadTempPrintImage(externalImage);
+    if (downloaded) {
+      return downloaded;
+    }
   }
 
   // 3. If it's a Nextcloud endpoint, we download it to a temp file once using auth headers
   if (recipe.id && client && !recipe.id.startsWith("local-")) {
     const imageUrl = client.getRecipeImageUrl(recipe.id, "full");
-    const tempDirectory = new Directory(Paths.cache, "avocook-print-images");
-    tempDirectory.create({ idempotent: true, intermediates: true });
-
-    const extension = getImageExtension(imageUrl);
-    const tempFile = new File(tempDirectory, `${Crypto.randomUUID()}.${extension}`);
-
-    try {
-      const downloaded = await File.downloadFileAsync(imageUrl, tempFile, {
-        headers: client.getImageHeaders(),
-        idempotent: true
-      });
-      return { uri: downloaded.uri, isTemp: true };
-    } catch (error) {
-      console.warn("Failed to download Nextcloud print image:", error);
+    const downloaded = await downloadTempPrintImage(imageUrl, {
+      headers: client.getImageHeaders()
+    });
+    if (downloaded) {
+      return downloaded;
     }
   }
 
   return { uri: "", isTemp: false };
+}
+
+async function downloadTempPrintImage(
+  imageUrl: string,
+  options?: { headers?: Record<string, string> }
+) {
+  const tempDirectory = new Directory(Paths.cache, "avocook-print-images");
+  tempDirectory.create({ idempotent: true, intermediates: true });
+
+  const extension = getImageExtension(imageUrl);
+  const tempFile = new File(tempDirectory, `${Crypto.randomUUID()}.${extension}`);
+
+  try {
+    const download = File.downloadFileAsync(imageUrl, tempFile, {
+      headers: options?.headers,
+      idempotent: true
+    });
+    const downloaded = await resolveWithTimeout(
+      download,
+      PRINT_IMAGE_DOWNLOAD_TIMEOUT_MS
+    );
+    if (!downloaded) {
+      download
+        .then((file) => {
+          try {
+            file.delete();
+          } catch {
+            // Best-effort cleanup after a deliberately skipped slow image.
+          }
+        })
+        .catch(() => undefined);
+      return null;
+    }
+
+    return { uri: downloaded.uri, isTemp: true };
+  } catch (error) {
+    console.warn("Failed to download print image:", error);
+    return null;
+  }
 }
 
 async function createRecipePrintDocument(
@@ -229,6 +268,7 @@ async function createRecipePrintDocument(
   const normalizedRecipe = normalizeRecipe(recipe);
   const { uri: imageUri, isTemp } = await getPrintImageUri(normalizedRecipe, client);
   const nutritionEntries = getNutritionEntries(normalizedRecipe, labels);
+  const healthProfile = getRecipeHealthProfile(normalizedRecipe);
   const keywords = normalizedRecipe.keywords
     .split(",")
     .map((keyword) => keyword.trim())
@@ -245,69 +285,93 @@ async function createRecipePrintDocument(
       body {
         color: #1f2a24;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        font-size: 13px;
-        line-height: 1.5;
+        font-size: 11.5px;
+        line-height: 1.38;
         margin: 0;
-        padding: 34px;
+        padding: 22px;
       }
+      @page { margin: 12mm; size: A4; }
       h1, h2, p { margin: 0; }
-      h1 { font-size: 30px; line-height: 1.08; margin-bottom: 8px; }
+      h1 { font-size: 24px; line-height: 1.08; margin-bottom: 6px; }
       h2 {
         border-bottom: 1px solid #d8ded4;
         color: #315948;
-        font-size: 16px;
-        margin: 24px 0 10px;
-        padding-bottom: 5px;
+        font-size: 13px;
+        margin: 14px 0 7px;
+        padding-bottom: 4px;
       }
       .eyebrow {
         color: #5a6a60;
         font-size: 11px;
         font-weight: 700;
         letter-spacing: 0.04em;
-        margin-bottom: 8px;
+        margin-bottom: 6px;
         text-transform: uppercase;
       }
       .hero {
         display: grid;
-        gap: 22px;
-        grid-template-columns: ${imageUri ? "1.25fr 0.85fr" : "1fr"};
-        margin-bottom: 18px;
+        gap: 16px;
+        grid-template-columns: ${imageUri ? "1.4fr 0.75fr" : "1fr"};
+        margin-bottom: 12px;
       }
-      .description { color: #4d5c53; font-size: 14px; margin-top: 10px; }
+      .description { color: #4d5c53; font-size: 12px; margin-top: 7px; }
       .photo {
-        border-radius: 12px;
-        height: 235px;
+        border-radius: 10px;
+        height: 142px;
         object-fit: cover;
         width: 100%;
       }
       .meta {
         display: grid;
-        gap: 8px;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        margin: 18px 0;
+        gap: 6px;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        margin: 10px 0;
       }
       .meta-item {
         background: #f5f2eb;
         border: 1px solid #e1ddd3;
-        border-radius: 10px;
-        padding: 10px 12px;
+        border-radius: 7px;
+        padding: 6px 8px;
       }
       .meta-label {
         color: #667369;
         display: block;
-        font-size: 10px;
+        font-size: 8.5px;
         font-weight: 700;
         text-transform: uppercase;
       }
       .meta-value { font-weight: 700; }
+      .nutri-score .meta-value {
+        background: var(--score-bg);
+        border-radius: 999px;
+        color: var(--score-color);
+        display: inline-block;
+        line-height: 1;
+        min-width: 24px;
+        padding: 5px 8px;
+        text-align: center;
+      }
+      .content {
+        align-items: start;
+        display: grid;
+        gap: 18px;
+        grid-template-columns: 0.9fr 1.1fr;
+      }
+      .nutrition-grid {
+        display: grid;
+        gap: 6px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        margin: 0;
+      }
       ul, ol { margin: 0; padding-left: 20px; }
-      li { margin-bottom: 7px; }
-      .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+      li { margin-bottom: 4px; }
+      .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
       .tag {
         border: 1px solid #d8ded4;
         border-radius: 999px;
         color: #315948;
-        padding: 4px 9px;
+        font-size: 10.5px;
+        padding: 3px 7px;
       }
       .source {
         color: #315948;
@@ -316,12 +380,12 @@ async function createRecipePrintDocument(
       .footer {
         border-top: 1px solid #d8ded4;
         color: #68756b;
-        font-size: 11px;
-        margin-top: 26px;
-        padding-top: 10px;
+        font-size: 10px;
+        margin-top: 16px;
+        padding-top: 7px;
       }
       @media print {
-        body { padding: 24px; }
+        body { padding: 0; }
         h2 { break-after: avoid; }
         li, .meta-item { break-inside: avoid; }
       }
@@ -335,10 +399,11 @@ async function createRecipePrintDocument(
         ${normalizedRecipe.description ? `<p class="description">${escapeHtml(normalizedRecipe.description)}</p>` : ""}
         ${renderTags(keywords)}
       </div>
-      ${imageUri ? `<img class="photo" alt="${escapeHtml(normalizedRecipe.name)}" src="${imageUri}" />` : ""}
+      ${imageUri ? `<img class="photo" alt="${escapeHtml(normalizedRecipe.name)}" src="${escapeHtml(imageUri)}" />` : ""}
     </section>
 
     <section class="meta">
+      ${renderNutriScoreMeta(labels.nutriScore, healthProfile)}
       ${renderMeta(labels.category, normalizedRecipe.recipeCategory)}
       ${renderMeta(labels.yield, normalizedRecipe.recipeYield ? String(normalizedRecipe.recipeYield) : "")}
       ${renderMeta(labels.prepTime, humanDuration(normalizedRecipe.prepTime) ?? "")}
@@ -346,11 +411,17 @@ async function createRecipePrintDocument(
       ${renderMeta(labels.totalTime, humanDuration(normalizedRecipe.totalTime) ?? "")}
     </section>
 
-    ${renderListSection(labels.ingredients, normalizedRecipe.recipeIngredient, false)}
-    ${renderListSection(labels.instructions, normalizedRecipe.recipeInstructions, true)}
-    ${renderListSection(labels.tools, normalizedRecipe.tool, false)}
-    ${renderNutritionSection(labels.nutrition, nutritionEntries)}
-    ${renderSourceSection(labels.source, normalizedRecipe)}
+    <section class="content">
+      <div>
+        ${renderListSection(labels.ingredients, normalizedRecipe.recipeIngredient, false)}
+        ${renderListSection(labels.tools, normalizedRecipe.tool, false)}
+        ${renderNutritionSection(labels.nutrition, nutritionEntries)}
+      </div>
+      <div>
+        ${renderListSection(labels.instructions, normalizedRecipe.recipeInstructions, true)}
+        ${renderSourceSection(labels.source, normalizedRecipe)}
+      </div>
+    </section>
 
     <p class="footer">${escapeHtml(labels.appName)}</p>
   </body>
@@ -371,6 +442,17 @@ function renderMeta(label: string, value: string) {
     return "";
   }
   return `<div class="meta-item"><span class="meta-label">${escapeHtml(label)}</span><span class="meta-value">${escapeHtml(value)}</span></div>`;
+}
+
+function renderNutriScoreMeta(
+  label: string,
+  profile: ReturnType<typeof getRecipeHealthProfile>
+) {
+  if (profile.grade === "?") {
+    return "";
+  }
+
+  return `<div class="meta-item nutri-score" style="--score-bg: ${escapeHtml(profile.backgroundColor)}; --score-color: ${escapeHtml(profile.color)};"><span class="meta-label">${escapeHtml(label)}</span><span class="meta-value">${escapeHtml(profile.grade)}</span></div>`;
 }
 
 function renderTags(tags: string[]) {
@@ -395,7 +477,7 @@ function renderNutritionSection(
   if (!entries.length) {
     return "";
   }
-  return `<h2>${escapeHtml(title)}</h2><section class="meta">${entries
+  return `<h2>${escapeHtml(title)}</h2><section class="nutrition-grid">${entries
     .map(([label, value]) => renderMeta(label, value))
     .join("")}</section>`;
 }
@@ -470,6 +552,25 @@ async function shareFile(
 
 function createCacheFile(recipe: Recipe, extension: "json" | "pdf") {
   return new File(Paths.cache, getRecipeShareFilename(recipe, extension));
+}
+
+async function resolveWithTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number
+): Promise<T | null> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<null>((resolve) => {
+        timeout = setTimeout(() => resolve(null), timeoutMs);
+      })
+    ]);
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  }
 }
 
 function escapeHtml(value: string | number) {
