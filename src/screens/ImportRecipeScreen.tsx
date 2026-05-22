@@ -47,7 +47,11 @@ export function ImportRecipeScreen({ navigation }: Props) {
     try {
       const result = await importBackup();
       showImportSuccess(result);
-      navigation.replace("Recipes");
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      } else {
+        navigation.replace("Recipes");
+      }
     } catch (error) {
       if (!isPickerCancel(error)) {
         setError(
