@@ -221,3 +221,17 @@ export async function clearLocalRecipeCache() {
     }
   }
 }
+
+export async function loadAnyLocalRecipeById(id: string) {
+  const db = await dbPromise;
+  const rows = await db.getAllAsync<RecipeRow>(
+    "SELECT * FROM recipes WHERE id = ?",
+    id
+  );
+  const row = rows[0];
+  if (!row) {
+    return null;
+  }
+  return normalizeRecipe(JSON.parse(row.payload) as Recipe);
+}
+
