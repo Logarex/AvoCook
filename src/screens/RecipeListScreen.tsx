@@ -1086,14 +1086,11 @@ const styles = StyleSheet.create({
     flex: 1
   },
   recipeActionButton: {
-    flexBasis: "48%",
-    flexGrow: 1,
-    minHeight: 46
+    width: "100%",
+    minHeight: 52
   },
   recipeActionGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm
+    gap: spacing.xs
   },
   recipeActionSheet: {
     borderBottomLeftRadius: 0,
