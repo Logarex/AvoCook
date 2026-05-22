@@ -5,6 +5,7 @@ import type { LucideIcon } from "lucide-react-native";
 import {
   ArrowLeft,
   Clock,
+  Check,
   ExternalLink,
   FileUp,
   HeartPulse,
@@ -23,10 +24,11 @@ import {
   Trash2,
   Users
 } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Linking,
+  Pressable,
   StyleSheet,
   useWindowDimensions,
   View
@@ -211,6 +213,12 @@ function RecipeDetailContent({
   const [shareAction, setShareAction] = useState<
     "print" | "pdf" | "file" | "source" | null
   >(null);
+  const [checkedIngredientIndexes, setCheckedIngredientIndexes] = useState<
+    Set<number>
+  >(() => new Set());
+  const [checkedStepIndexes, setCheckedStepIndexes] = useState<Set<number>>(
+    () => new Set()
+  );
   const source = getImageSource();
   const canUpdateFromSource = isExternalRecipeSourceUrl(recipe?.url);
   const nutrition = useMemo(
@@ -226,6 +234,30 @@ function RecipeDetailContent({
         scaleIngredientLine(ingredient, servingFactor)
       ) ?? [],
     [recipe?.recipeIngredient, servingFactor]
+  );
+  useEffect(() => {
+    setCheckedIngredientIndexes(new Set());
+  }, [recipeId, scaledIngredients.length]);
+  const checkedIngredientCount = useMemo(
+    () =>
+      scaledIngredients.reduce(
+        (count, _ingredient, index) =>
+          checkedIngredientIndexes.has(index) ? count + 1 : count,
+        0
+      ),
+    [checkedIngredientIndexes, scaledIngredients]
+  );
+  useEffect(() => {
+    setCheckedStepIndexes(new Set());
+  }, [recipeId, recipe?.recipeInstructions.length]);
+  const checkedStepCount = useMemo(
+    () =>
+      recipe?.recipeInstructions.reduce(
+        (count, _step, index) =>
+          checkedStepIndexes.has(index) ? count + 1 : count,
+        0
+      ) ?? 0,
+    [checkedStepIndexes, recipe?.recipeInstructions]
   );
   const healthProfile = useMemo(
     () => (recipe ? getRecipeHealthProfile(recipe) : null),
@@ -503,6 +535,38 @@ function RecipeDetailContent({
     showShoppingListAddResult(result.added.length);
   }
 
+  function handleToggleIngredientCheck(index: number) {
+    setCheckedIngredientIndexes((current) => {
+      const next = new Set(current);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  }
+
+  function handleResetIngredientChecks() {
+    setCheckedIngredientIndexes(new Set());
+  }
+
+  function handleToggleStepCheck(index: number) {
+    setCheckedStepIndexes((current) => {
+      const next = new Set(current);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  }
+
+  function handleResetStepChecks() {
+    setCheckedStepIndexes(new Set());
+  }
+
   function showShoppingListAddResult(addedCount: number) {
     Alert.alert(
       addedCount
@@ -674,17 +738,24 @@ function RecipeDetailContent({
       />
 
       <IngredientSection
+        checkedCount={checkedIngredientCount}
+        checkedIndexes={checkedIngredientIndexes}
         items={scaledIngredients}
         onAddAll={() => void handleAddToShoppingList()}
         onAddItem={(ingredient) =>
           void handleAddIngredientToShoppingList(ingredient)
         }
+        onResetChecked={handleResetIngredientChecks}
+        onToggleItem={handleToggleIngredientCheck}
         title={t("recipes.ingredients")}
       />
-      <RecipeSection
-        ordered
+      <InstructionSection
+        checkedCount={checkedStepCount}
+        checkedIndexes={checkedStepIndexes}
         title={t("recipes.instructions")}
         items={recipe.recipeInstructions}
+        onResetChecked={handleResetStepChecks}
+        onToggleItem={handleToggleStepCheck}
       />
       <RecipeSection title={t("recipes.tools")} items={recipe.tool} />
 
@@ -910,15 +981,24 @@ function TimerSection({
 function IngredientSection({
   title,
   items,
+  checkedIndexes,
+  checkedCount,
   onAddAll,
-  onAddItem
+  onAddItem,
+  onResetChecked,
+  onToggleItem
 }: {
   title: string;
   items: string[];
+  checkedIndexes: Set<number>;
+  checkedCount: number;
   onAddAll: () => void;
   onAddItem: (ingredient: string) => void;
+  onResetChecked: () => void;
+  onToggleItem: (index: number) => void;
 }) {
   const { t } = useTranslation();
+  const { colors } = useAppTheme();
   if (!items.length) {
     return null;
   }
@@ -926,33 +1006,202 @@ function IngredientSection({
   return (
     <GlassPanel style={styles.section}>
       <View style={styles.sectionHeader}>
-        <AppText variant="subtitle">{title}</AppText>
-        <PrimaryButton
-          icon={ShoppingCart}
-          label={t("shoppingList.addFromRecipe")}
-          onPress={onAddAll}
-          style={styles.addAllIngredientsButton}
-          variant="ghost"
-        />
+        <View style={styles.sectionTitleBlock}>
+          <AppText variant="subtitle">{title}</AppText>
+          {checkedCount > 0 ? (
+            <AppText muted variant="caption">
+              {t("recipes.ingredientsChecked", {
+                checked: checkedCount,
+                total: items.length
+              })}
+            </AppText>
+          ) : null}
+        </View>
+        <View style={styles.ingredientHeaderActions}>
+          {checkedCount > 0 ? (
+            <PrimaryButton
+              icon={RotateCcw}
+              label={t("recipes.resetIngredientChecks")}
+              onPress={onResetChecked}
+              style={styles.ingredientHeaderButton}
+              variant="ghost"
+            />
+          ) : null}
+          <PrimaryButton
+            icon={ShoppingCart}
+            label={t("shoppingList.addFromRecipe")}
+            onPress={onAddAll}
+            style={styles.ingredientHeaderButton}
+            variant="ghost"
+          />
+        </View>
       </View>
       <View style={styles.sectionItems}>
-        {items.map((item, index) => (
-          <View key={`${item}-${index}`} style={styles.ingredientRow}>
-            <AppText muted variant="label" style={styles.rowIndex}>
-              {"•"}
-            </AppText>
-            <AppText style={styles.rowText}>{item}</AppText>
-            <IconButton
-              icon={ShoppingCart}
-              label={t("shoppingList.addIngredientFromRecipe", {
-                ingredient: item
+        {items.map((item, index) => {
+          const checked = checkedIndexes.has(index);
+          return (
+            <View key={`${item}-${index}`} style={styles.ingredientRow}>
+              <Pressable
+                accessibilityLabel={t(
+                  checked
+                    ? "recipes.unmarkIngredientReady"
+                    : "recipes.markIngredientReady",
+                  { ingredient: item }
+                )}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked }}
+                onPress={() => onToggleItem(index)}
+                style={({ pressed }) => [
+                  styles.ingredientCheckTarget,
+                  { opacity: pressed ? 0.72 : 1 }
+                ]}
+              >
+                <View
+                  style={[
+                    styles.checkCircle,
+                    {
+                      backgroundColor: checked ? colors.success : "transparent",
+                      borderColor: checked ? colors.success : colors.border
+                    }
+                  ]}
+                >
+                  {checked ? (
+                    <Check
+                      color={colors.textInverted}
+                      size={15}
+                      strokeWidth={3}
+                    />
+                  ) : null}
+                </View>
+                <AppText
+                  style={[
+                    styles.rowText,
+                    checked
+                      ? [
+                          styles.checkedItemText,
+                          { color: colors.textMuted }
+                        ]
+                      : undefined
+                  ]}
+                >
+                  {item}
+                </AppText>
+              </Pressable>
+              <IconButton
+                icon={ShoppingCart}
+                label={t("shoppingList.addIngredientFromRecipe", {
+                  ingredient: item
+                })}
+                onPress={() => onAddItem(item)}
+                tone="primary"
+                style={styles.ingredientAction}
+              />
+            </View>
+          );
+        })}
+      </View>
+    </GlassPanel>
+  );
+}
+
+function InstructionSection({
+  title,
+  items,
+  checkedIndexes,
+  checkedCount,
+  onResetChecked,
+  onToggleItem
+}: {
+  title: string;
+  items: string[];
+  checkedIndexes: Set<number>;
+  checkedCount: number;
+  onResetChecked: () => void;
+  onToggleItem: (index: number) => void;
+}) {
+  const { t } = useTranslation();
+  const { colors } = useAppTheme();
+  if (!items.length) {
+    return null;
+  }
+
+  return (
+    <GlassPanel style={styles.section}>
+      <View style={styles.sectionHeader}>
+        <View style={styles.sectionTitleBlock}>
+          <AppText variant="subtitle">{title}</AppText>
+          {checkedCount > 0 ? (
+            <AppText muted variant="caption">
+              {t("recipes.stepsChecked", {
+                checked: checkedCount,
+                total: items.length
               })}
-              onPress={() => onAddItem(item)}
-              tone="primary"
-              style={styles.ingredientAction}
+            </AppText>
+          ) : null}
+        </View>
+        {checkedCount > 0 ? (
+          <View style={styles.stepHeaderActions}>
+            <PrimaryButton
+              icon={RotateCcw}
+              label={t("recipes.resetStepChecks")}
+              onPress={onResetChecked}
+              style={styles.stepHeaderButton}
+              variant="ghost"
             />
           </View>
-        ))}
+        ) : null}
+      </View>
+      <View style={styles.sectionItems}>
+        {items.map((item, index) => {
+          const checked = checkedIndexes.has(index);
+          return (
+            <Pressable
+              key={`${item}-${index}`}
+              accessibilityLabel={t(
+                checked ? "recipes.unmarkStepDone" : "recipes.markStepDone",
+                { step: index + 1 }
+              )}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked }}
+              onPress={() => onToggleItem(index)}
+              style={({ pressed }) => [
+                styles.stepCheckRow,
+                { opacity: pressed ? 0.72 : 1 }
+              ]}
+            >
+              <AppText muted variant="label" style={styles.rowIndex}>
+                {index + 1}
+              </AppText>
+              <AppText
+                style={[
+                  styles.rowText,
+                  checked
+                    ? [styles.checkedItemText, { color: colors.textMuted }]
+                    : undefined
+                ]}
+              >
+                {item}
+              </AppText>
+              <View
+                style={[
+                  styles.checkCircle,
+                  {
+                    backgroundColor: checked ? colors.success : "transparent",
+                    borderColor: checked ? colors.success : colors.border
+                  }
+                ]}
+              >
+                {checked ? (
+                  <Check
+                    color={colors.textInverted}
+                    size={15}
+                    strokeWidth={3}
+                  />
+                ) : null}
+              </View>
+            </Pressable>
+          );
+        })}
       </View>
     </GlassPanel>
   );
@@ -1240,13 +1489,42 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: spacing.md
   },
-  addAllIngredientsButton: {
-    flexGrow: 1,
-    minWidth: 190
-  },
   ingredientAction: {
     height: 40,
     width: 40
+  },
+  checkCircle: {
+    alignItems: "center",
+    borderRadius: radius.pill,
+    borderWidth: 1.6,
+    height: 26,
+    justifyContent: "center",
+    width: 26
+  },
+  checkedItemText: {
+    opacity: 0.68,
+    textDecorationLine: "line-through"
+  },
+  ingredientCheckTarget: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+    gap: spacing.sm,
+    minHeight: 44,
+    minWidth: 0
+  },
+  ingredientHeaderActions: {
+    alignItems: "center",
+    flexBasis: "100%",
+    flexDirection: "row",
+    flexGrow: 1,
+    flexWrap: "wrap",
+    gap: spacing.xs
+  },
+  ingredientHeaderButton: {
+    flexBasis: 190,
+    flexGrow: 1,
+    minWidth: 190
   },
   ingredientRow: {
     alignItems: "center",
@@ -1322,7 +1600,8 @@ const styles = StyleSheet.create({
     width: 24
   },
   rowText: {
-    flex: 1
+    flex: 1,
+    minWidth: 0
   },
   section: {
     gap: spacing.md
@@ -1335,6 +1614,11 @@ const styles = StyleSheet.create({
   },
   sectionItems: {
     gap: spacing.sm
+  },
+  sectionTitleBlock: {
+    flex: 1,
+    gap: spacing.xxs,
+    minWidth: 150
   },
   servingFooter: {
     alignItems: "center",
@@ -1352,6 +1636,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.md
+  },
+  stepCheckRow: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.sm,
+    minHeight: 44
+  },
+  stepHeaderActions: {
+    alignItems: "center",
+    flexBasis: "100%",
+    flexDirection: "row",
+    flexGrow: 1,
+    flexWrap: "wrap",
+    gap: spacing.xs
+  },
+  stepHeaderButton: {
+    flexBasis: 190,
+    flexGrow: 1,
+    minWidth: 190
   },
   timerActions: {
     flexDirection: "row",
