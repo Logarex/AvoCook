@@ -36,6 +36,7 @@ export type Recipe = {
   recipe_id?: number;
   name: string;
   description: string;
+  sourceName: string;
   url: string;
   image: string;
   imageUrl: string;
@@ -83,6 +84,7 @@ export function createEmptyRecipe(): Recipe {
     id: null,
     name: "",
     description: "",
+    sourceName: "",
     url: "",
     image: "",
     imageUrl: "",
@@ -114,6 +116,7 @@ export function normalizeRecipe(input: Partial<Recipe>): Recipe {
     id: raw.id === null || raw.id === undefined ? null : String(raw.id),
     name: toRecipeString(raw.name).trim() || empty.name,
     description: toRecipeString(raw.description),
+    sourceName: toRecipeString(raw.sourceName),
     url: toRecipeString(raw.url),
     image: normalizeImageValue(raw.image),
     imageUrl: normalizeImageValue(raw.imageUrl),
@@ -178,6 +181,10 @@ function omitEmptyCookbookFields(recipe: Omit<Recipe, "localMeta">): Recipe {
     if (!payload[field]) {
       delete (payload as Partial<Recipe>)[field];
     }
+  }
+
+  if (!payload.sourceName) {
+    delete (payload as Partial<Recipe>).sourceName;
   }
 
   if (!hasNutritionValues(payload.nutrition)) {

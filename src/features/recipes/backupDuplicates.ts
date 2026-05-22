@@ -155,6 +155,7 @@ export function mergeDuplicateRecipeData(recipes: Recipe[]) {
     ...retainedRecipe,
     name: getPreferredRecipeName(candidates),
     description: getLongestString(candidates.map((recipe) => recipe.description)),
+    sourceName: getFirstNonEmpty(candidates.map((recipe) => recipe.sourceName)),
     url: getFirstNonEmpty(candidates.map((recipe) => recipe.url)),
     image: referenceImage || retainedRecipe.image,
     imageUrl: referenceImage || retainedRecipe.imageUrl,
@@ -375,6 +376,7 @@ function getRecipeCompletenessScore(recipe: Recipe) {
   return [
     recipe.name,
     recipe.description,
+    recipe.sourceName,
     recipe.url,
     recipe.image || recipe.imageUrl || recipe.imagePlaceholderUrl,
     recipe.keywords,
