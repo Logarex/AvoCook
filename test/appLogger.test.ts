@@ -1,5 +1,29 @@
-import { describe, expect, it } from "vitest";
-import { formatLogEntry, type AppLogEntry } from "../src/features/logging/appLogger";
+import { describe, expect, it, vi } from "vitest";
+import {
+  formatLogEntry,
+  getLogMode,
+  setLogMode,
+  isLogLevelEnabled,
+  logError,
+  logInfo,
+  clearLogEntries,
+  loadLogEntries,
+  type AppLogEntry
+} from "../src/features/logging/appLogger";
+
+const mockStorage: Record<string, string> = {};
+
+vi.mock("@react-native-async-storage/async-storage", () => ({
+  default: {
+    getItem: vi.fn(async (key: string) => mockStorage[key] || null),
+    setItem: vi.fn(async (key: string, value: string) => {
+      mockStorage[key] = value;
+    }),
+    removeItem: vi.fn(async (key: string) => {
+      delete mockStorage[key];
+    })
+  }
+}));
 
 describe("appLogger diagnostics anonymization", () => {
   it("redacts Nextcloud profile fields without mangling HTTP dates", () => {
@@ -45,5 +69,55 @@ describe("appLogger diagnostics anonymization", () => {
     expect(report).not.toContain("louis@example.com");
     expect(report).not.toContain("/var/www/html/data");
     expect(report).not.toContain("admin");
+  });
+});
+
+describe("appLogger modes", () => {
+  it("defaults to errors log mode", async () => {
+    const mode = await getLogMode();
+    expect(mode).toBe("errors");
+  });
+
+  it("returns enabled log levels correctly based on mode", async () => {
+    await setLogMode("errors");
+    expect(isLogLevelEnabled("debug")).toBe(false);
+    expect(isLogLevelEnabled("info")).toBe(false);
+    expect(isLogLevelEnabled("warn")).toBe(true);
+    expect(isLogLevelEnabled("error")).toBe(true);
+
+    await setLogMode("all");
+    expect(isLogLevelEnabled("debug")).toBe(true);
+    expect(isLogLevelEnabled("info")).toBe(true);
+    expect(isLogLevelEnabled("warn")).toBe(true);
+    expect(isLogLevelEnabled("error")).toBe(true);
+  });
+
+  it("prioritizes error and warning logs when pruning in detailed mode", async () => {
+    await setLogMode("all");
+    await clearLogEntries();
+
+    // Log an error first
+    logError("app", "Initial Error");
+
+    // Log 60 info logs
+    for (let i = 0; i < 60; i++) {
+      logInfo("app", `Info ${i}`);
+    }
+
+    // Flush the writeQueue by setting the mode
+    await setLogMode("all");
+
+    const entries = await loadLogEntries();
+    
+    // Total entries should be capped at 50
+    expect(entries.length).toBe(50);
+    
+    // The "Initial Error" should still be present in the entries
+    const hasError = entries.some((e) => e.message === "Initial Error");
+    expect(hasError).toBe(true);
+    
+    // And some info logs must have been pruned (e.g. Info 0 should be pruned because we prioritized the error)
+    const hasInfo0 = entries.some((e) => e.message === "Info 0");
+    expect(hasInfo0).toBe(false);
   });
 });

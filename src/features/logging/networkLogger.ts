@@ -1,4 +1,5 @@
 import {
+  isLogLevelEnabled,
   logError,
   logInfo,
   normalizeLogError
@@ -35,9 +36,12 @@ export function installNetworkLogger() {
   state.originalFetch = globalThis.fetch.bind(globalThis);
 
   globalThis.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-    const request = getRequestSnapshot(input, init);
     const startedAt = Date.now();
-    logInfo("network", "HTTP request", request);
+    const shouldLogInfo = isLogLevelEnabled("info");
+    const request = shouldLogInfo ? getRequestSnapshot(input, init) : null;
+    if (shouldLogInfo && request) {
+      logInfo("network", "HTTP request", request);
+    }
 
     try {
       const response = await state.originalFetch?.(input, init);
@@ -45,20 +49,23 @@ export function installNetworkLogger() {
         throw new Error("fetch returned no response");
       }
 
-      logInfo("network", "HTTP response", {
-        ...request,
-        durationMs: Date.now() - startedAt,
-        ok: response.ok,
-        status: response.status,
-        statusText: response.statusText,
-        responseHeaders: headersToObject(response.headers),
-        responseBodyPreview: await getResponsePreview(response)
-      });
+      if (shouldLogInfo && request) {
+        logInfo("network", "HTTP response", {
+          ...request,
+          durationMs: Date.now() - startedAt,
+          ok: response.ok,
+          status: response.status,
+          statusText: response.statusText,
+          responseHeaders: headersToObject(response.headers),
+          responseBodyPreview: await getResponsePreview(response)
+        });
+      }
 
       return response;
     } catch (error) {
+      const reqSnapshotForError = request ?? getRequestSnapshot(input, init);
       logError("network", "HTTP request failed", {
-        ...request,
+        ...reqSnapshotForError,
         durationMs: Date.now() - startedAt,
         error: normalizeLogError(error)
       });
