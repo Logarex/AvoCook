@@ -59,7 +59,60 @@ export function getLocalRecipeImage(
   );
 }
 
+export function hasRecipeImageReference(
+  recipe: Pick<Recipe, "image" | "imageUrl" | "imagePlaceholderUrl">
+) {
+  return Boolean(recipe.image || recipe.imageUrl || recipe.imagePlaceholderUrl);
+}
+
+export function hasRecipeImageRemovalIntent(
+  recipe: Pick<Recipe, "localMeta">
+) {
+  return Boolean(recipe.localMeta?.imageRemoved);
+}
+
+export function canUseRemoteRecipeImageFallback<
+  T extends Pick<Recipe, "id" | "localMeta">
+>(recipe: T): recipe is T & { id: string } {
+  return Boolean(
+    recipe.id &&
+      !recipe.id.startsWith("local-") &&
+      !hasRecipeImageRemovalIntent(recipe)
+  );
+}
+
+export function withoutRecipeImages(recipe: Recipe) {
+  return normalizeRecipe({
+    ...recipe,
+    image: "",
+    imageUrl: "",
+    imagePlaceholderUrl: ""
+  });
+}
+
+export function withRecipeImageRemovalIntent(
+  recipe: Recipe,
+  imageRemoved: boolean
+) {
+  const localMeta = { ...recipe.localMeta };
+
+  if (imageRemoved) {
+    localMeta.imageRemoved = true;
+  } else {
+    delete localMeta.imageRemoved;
+  }
+
+  return normalizeRecipe({
+    ...recipe,
+    localMeta: Object.keys(localMeta).length ? localMeta : undefined
+  });
+}
+
 export function withCachedRecipeImage(recipe: Recipe, cachedImage: string) {
+  if (hasRecipeImageRemovalIntent(recipe)) {
+    return withoutRecipeImages(recipe);
+  }
+
   const externalImage = getExternalRecipeImageSource(recipe);
   const remoteImage = getRemoteRecipeImage(recipe);
   const referenceImage = externalImage || remoteImage || cachedImage;
@@ -126,6 +179,10 @@ export function preferRecipeImageUrls(
 }
 
 export function sanitizeRecipeImagesForNextcloud(recipe: Recipe) {
+  if (hasRecipeImageRemovalIntent(recipe)) {
+    return withoutRecipeImages(recipe);
+  }
+
   const externalImage = getExternalRecipeImageSource(recipe);
 
   if (externalImage) {

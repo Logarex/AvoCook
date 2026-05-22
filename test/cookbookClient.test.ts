@@ -105,4 +105,38 @@ describe("CookbookClient", () => {
     expect(recipe.imageUrl).toBe("/AvoCook Images/baguette.jpg");
     expect(recipe.imagePlaceholderUrl).toBe("/AvoCook Images/baguette.jpg");
   });
+
+  it("deletes Cookbook recipe image files from the configured recipe folder", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (url, options) => {
+        if (String(url).endsWith("/apps/cookbook/api/v1/config")) {
+          return new Response(JSON.stringify({ folder: "/Mes recettes" }), {
+            headers: { "Content-Type": "application/json" },
+            status: 200
+          });
+        }
+
+        expect(options?.method).toBe("DELETE");
+        return new Response("", { status: 200 });
+      }
+    );
+    const client = new CookbookClient({
+      serverUrl: "https://cloud.example.com/",
+      username: "reedstrm",
+      appPassword: "app-password"
+    });
+
+    await client.deleteCookbookRecipeImages('Pain / beurre: miel? "test"');
+
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(String(fetchMock.mock.calls[1][0])).toBe(
+      "https://cloud.example.com/remote.php/dav/files/reedstrm/Mes%20recettes/Pain%20_%20beurre_%20miel_%20_test_/full.jpg"
+    );
+    expect(String(fetchMock.mock.calls[2][0])).toBe(
+      "https://cloud.example.com/remote.php/dav/files/reedstrm/Mes%20recettes/Pain%20_%20beurre_%20miel_%20_test_/thumb.jpg"
+    );
+    expect(String(fetchMock.mock.calls[3][0])).toBe(
+      "https://cloud.example.com/remote.php/dav/files/reedstrm/Mes%20recettes/Pain%20_%20beurre_%20miel_%20_test_/thumb16.jpg"
+    );
+  });
 });
