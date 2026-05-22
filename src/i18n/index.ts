@@ -164,8 +164,15 @@ export const resources = {
           print: "Imprimer la recette",
           sharePdf: "Partager en PDF",
           shareFile: "Partager pour AvoCook",
+          updateFromSource: "Mettre à jour depuis la source",
           keywords: "Mots-clés",
           servingSize: "Portion",
+          updateFromSourceSuccessTitle: "Recette mise à jour",
+          updateFromSourceSuccessBody:
+            "La recette a été rechargée depuis son lien d'origine.",
+          updateFromSourceFailedTitle: "Mise à jour impossible",
+          updateFromSourceFailedBody:
+            "La recette n'a pas pu être rechargée depuis son lien d'origine. Vérifiez la page source ou réessayez plus tard.",
           failedTitle: "Partage impossible",
           failedBody:
             "La recette n'a pas pu être préparée. Vérifiez l'accès à la photo ou réessayez plus tard.",
@@ -549,8 +556,15 @@ export const resources = {
           print: "Print recipe",
           sharePdf: "Share as PDF",
           shareFile: "Share for AvoCook",
+          updateFromSource: "Update from source",
           keywords: "Keywords",
           servingSize: "Serving size",
+          updateFromSourceSuccessTitle: "Recipe updated",
+          updateFromSourceSuccessBody:
+            "The recipe was refreshed from its original link.",
+          updateFromSourceFailedTitle: "Update failed",
+          updateFromSourceFailedBody:
+            "The recipe could not be refreshed from its original link. Check the source page or try again later.",
           failedTitle: "Sharing failed",
           failedBody:
             "The recipe could not be prepared. Check photo access or try again later.",
@@ -930,8 +944,15 @@ export const resources = {
           print: "Rezept drucken",
           sharePdf: "Als PDF teilen",
           shareFile: "Für AvoCook teilen",
+          updateFromSource: "Aus Quelle aktualisieren",
           keywords: "Schlagwörter",
           servingSize: "Portion",
+          updateFromSourceSuccessTitle: "Rezept aktualisiert",
+          updateFromSourceSuccessBody:
+            "Das Rezept wurde über den ursprünglichen Link neu geladen.",
+          updateFromSourceFailedTitle: "Aktualisierung fehlgeschlagen",
+          updateFromSourceFailedBody:
+            "Das Rezept konnte nicht über den ursprünglichen Link neu geladen werden. Prüfe die Quellseite oder versuche es später erneut.",
           failedTitle: "Teilen fehlgeschlagen",
           failedBody:
             "Das Rezept konnte nicht vorbereitet werden. Prüfe den Fotozugriff oder versuche es später erneut.",
@@ -1311,8 +1332,15 @@ export const resources = {
           print: "Imprimir receta",
           sharePdf: "Compartir como PDF",
           shareFile: "Compartir para AvoCook",
+          updateFromSource: "Actualizar desde la fuente",
           keywords: "Palabras clave",
           servingSize: "Porción",
+          updateFromSourceSuccessTitle: "Receta actualizada",
+          updateFromSourceSuccessBody:
+            "La receta se ha recargado desde su enlace original.",
+          updateFromSourceFailedTitle: "No se pudo actualizar",
+          updateFromSourceFailedBody:
+            "No se pudo recargar la receta desde su enlace original. Revisa la página de origen o inténtalo de nuevo más tarde.",
           failedTitle: "No se pudo compartir",
           failedBody:
             "No se pudo preparar la receta. Revisa el acceso a la foto o inténtalo de nuevo más tarde.",
@@ -1684,8 +1712,15 @@ export const resources = {
           print: "Stampa ricetta",
           sharePdf: "Condividi come PDF",
           shareFile: "Condividi per AvoCook",
+          updateFromSource: "Aggiorna dalla fonte",
           keywords: "Parole chiave",
           servingSize: "Porzione",
+          updateFromSourceSuccessTitle: "Ricetta aggiornata",
+          updateFromSourceSuccessBody:
+            "La ricetta è stata ricaricata dal link originale.",
+          updateFromSourceFailedTitle: "Aggiornamento non riuscito",
+          updateFromSourceFailedBody:
+            "Non è stato possibile ricaricare la ricetta dal link originale. Controlla la pagina sorgente o riprova più tardi.",
           failedTitle: "Condivisione impossibile",
           failedBody:
             "Non è stato possibile preparare la ricetta. Controlla l'accesso alla foto o riprova più tardi.",
