@@ -25,6 +25,7 @@ export type RecipeLocalTimer = {
 };
 
 export type RecipeLocalMeta = {
+  cachedImage?: string;
   imageRemoved?: boolean;
   nutriScoreOverride?: NutriScoreGrade;
   servingOverride?: number;
@@ -261,6 +262,10 @@ function normalizeLocalMeta(
 
   const normalized: RecipeLocalMeta = {};
 
+  if (typeof localMeta.cachedImage === "string" && localMeta.cachedImage) {
+    normalized.cachedImage = localMeta.cachedImage;
+  }
+
   if (localMeta.imageRemoved) {
     normalized.imageRemoved = true;
   }
@@ -287,7 +292,7 @@ function normalizeLocalMeta(
       .filter((timer) => timer.id && timer.label && timer.minutes > 0);
   }
 
-  return hasMeaningfulLocalMeta(normalized) ? normalized : undefined;
+  return hasPersistableLocalMeta(normalized) ? normalized : undefined;
 }
 
 function hasMeaningfulLocalMeta(localMeta: RecipeLocalMeta) {
@@ -297,6 +302,10 @@ function hasMeaningfulLocalMeta(localMeta: RecipeLocalMeta) {
       localMeta.servingOverride ||
       (localMeta.timers && localMeta.timers.length > 0)
   );
+}
+
+function hasPersistableLocalMeta(localMeta: RecipeLocalMeta) {
+  return Boolean(localMeta.cachedImage || hasMeaningfulLocalMeta(localMeta));
 }
 
 function normalizeRecipeInstructions(value: unknown): string[] {
