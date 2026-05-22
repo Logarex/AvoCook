@@ -4,11 +4,14 @@ import {
   ArrowUp,
   Check,
   Download,
+  FileUp,
   ListFilter,
   ListPlus,
   Plus,
+  Printer,
   RefreshCw,
   Settings,
+  Share2,
   Trash2,
   X
 } from "lucide-react-native";
@@ -43,6 +46,12 @@ import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
 import { useReducedMotion } from "../features/accessibility/useReducedMotion";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import {
+  printRecipe,
+  shareRecipeFile,
+  shareRecipePdf,
+  type RecipePrintLabels
+} from "../features/recipes/recipeSharing";
 import { checkForUpdates, type UpdateInfo } from "../features/updates/updateService";
 import type { Recipe } from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
@@ -66,6 +75,7 @@ export function RecipeListScreen({ navigation }: Props) {
     createCategory,
     customCategories,
     deleteCategory,
+    deleteRecipe,
     recipes,
     loading,
     syncing,
@@ -77,6 +87,10 @@ export function RecipeListScreen({ navigation }: Props) {
   const [showCategoryCreator, setShowCategoryCreator] = useState(false);
   const [showListScrollTop, setShowListScrollTop] = useState(false);
   const [newCategory, setNewCategory] = useState("");
+  const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [recipeAction, setRecipeAction] = useState<
+    "print" | "pdf" | "file" | "delete" | null
+  >(null);
   const recipeListRef = useRef<FlatList<Recipe>>(null);
   const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
   const [dismissedUpdate, setDismissedUpdate] = useState(false);
@@ -232,6 +246,96 @@ export function RecipeListScreen({ navigation }: Props) {
     setShowListScrollTop((current) =>
       current === nextShowListScrollTop ? current : nextShowListScrollTop
     );
+  }
+
+  function handleRecipeLongPress(recipe: Recipe) {
+    setSelectedRecipe(recipe);
+  }
+
+  function handleCloseRecipeActions() {
+    if (recipeAction) {
+      return;
+    }
+    setSelectedRecipe(null);
+  }
+
+  async function handlePrintRecipe(recipe: Recipe) {
+    setRecipeAction("print");
+    try {
+      const result = await printRecipe(recipe, getPrintLabels(t), getClient());
+      showShareWarning(result.skippedImageCount);
+    } catch (error) {
+      if (isUserDismissedShareOrPrint(error)) {
+        return;
+      }
+      Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
+    } finally {
+      setRecipeAction(null);
+      setSelectedRecipe(null);
+    }
+  }
+
+  async function handleShareRecipePdf(recipe: Recipe) {
+    setRecipeAction("pdf");
+    try {
+      const result = await shareRecipePdf(recipe, getPrintLabels(t), getClient());
+      showShareWarning(result.skippedImageCount);
+    } catch (error) {
+      if (isUserDismissedShareOrPrint(error)) {
+        return;
+      }
+      Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
+    } finally {
+      setRecipeAction(null);
+      setSelectedRecipe(null);
+    }
+  }
+
+  async function handleShareRecipeFile(recipe: Recipe) {
+    setRecipeAction("file");
+    try {
+      const result = await shareRecipeFile(recipe, getClient());
+      showShareWarning(result.skippedImageCount);
+    } catch (error) {
+      if (isUserDismissedShareOrPrint(error)) {
+        return;
+      }
+      Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
+    } finally {
+      setRecipeAction(null);
+      setSelectedRecipe(null);
+    }
+  }
+
+  function handleDeleteRecipe(recipe: Recipe) {
+    if (!recipe.id) {
+      return;
+    }
+    setRecipeAction("delete");
+    Alert.alert(t("common.delete"), t("recipes.deleteConfirm"), [
+      {
+        text: t("common.cancel"),
+        style: "cancel",
+        onPress: () => setRecipeAction(null)
+      },
+      {
+        text: t("common.delete"),
+        style: "destructive",
+        onPress: () => {
+          setSelectedRecipe(null);
+          void deleteRecipe(recipe.id ?? "").finally(() => setRecipeAction(null));
+        }
+      }
+    ]);
+  }
+
+  function showShareWarning(skippedImageCount: number) {
+    if (skippedImageCount > 0) {
+      Alert.alert(
+        t("recipes.share.partialTitle"),
+        t("recipes.share.partialBody", { count: skippedImageCount })
+      );
+    }
   }
 
   return (
@@ -426,6 +530,7 @@ export function RecipeListScreen({ navigation }: Props) {
             <RecipeCard
               imageHeaders={imageHeaders}
               recipe={item}
+              onLongPress={() => handleRecipeLongPress(item)}
               onPress={() =>
                 item.id && navigation.navigate("RecipeDetail", { id: item.id })
               }
@@ -471,6 +576,17 @@ export function RecipeListScreen({ navigation }: Props) {
         }}
         title={categoryPickerLabel}
         visible={showCategoryPicker}
+      />
+
+      <RecipeActionsModal
+        action={recipeAction}
+        onClose={handleCloseRecipeActions}
+        onDelete={handleDeleteRecipe}
+        onPrint={(recipe) => void handlePrintRecipe(recipe)}
+        onShareFile={(recipe) => void handleShareRecipeFile(recipe)}
+        onSharePdf={(recipe) => void handleShareRecipePdf(recipe)}
+        recipe={selectedRecipe}
+        visible={Boolean(selectedRecipe)}
       />
 
       <BottomNavigation
@@ -562,6 +678,104 @@ function MoreCategoryChip({ onPress }: { onPress: () => void }) {
       <ListFilter color={colors.primary} size={17} strokeWidth={2.5} />
       <AppText variant="label">{label}</AppText>
     </Pressable>
+  );
+}
+
+function RecipeActionsModal({
+  action,
+  onClose,
+  onDelete,
+  onPrint,
+  onShareFile,
+  onSharePdf,
+  recipe,
+  visible
+}: {
+  action: "print" | "pdf" | "file" | "delete" | null;
+  onClose: () => void;
+  onDelete: (recipe: Recipe) => void;
+  onPrint: (recipe: Recipe) => void;
+  onShareFile: (recipe: Recipe) => void;
+  onSharePdf: (recipe: Recipe) => void;
+  recipe: Recipe | null;
+  visible: boolean;
+}) {
+  const { t } = useTranslation();
+  const { colors } = useAppTheme();
+  const reducedMotion = useReducedMotion();
+  const busy = action !== null;
+
+  return (
+    <Modal
+      animationType={reducedMotion ? "none" : "slide"}
+      onRequestClose={onClose}
+      transparent
+      visible={visible}
+    >
+      <View style={styles.modalRoot}>
+        <Pressable
+          accessibilityLabel={t("common.close")}
+          accessibilityRole="button"
+          disabled={busy}
+          onPress={onClose}
+          style={styles.modalScrim}
+        />
+        <GlassPanel style={styles.recipeActionSheet}>
+          <View style={styles.modalHeader}>
+            <View style={styles.recipeActionTitle}>
+              <AppText variant="subtitle" numberOfLines={1}>
+                {recipe?.name}
+              </AppText>
+              <AppText muted variant="caption">
+                {t("recipes.title")}
+              </AppText>
+            </View>
+            <IconButton
+              icon={X}
+              label={t("common.close")}
+              onPress={onClose}
+              disabled={busy}
+            />
+          </View>
+          <View style={styles.recipeActionGrid}>
+            <PrimaryButton
+              disabled={!recipe || busy}
+              icon={Printer}
+              label={t("recipes.share.print")}
+              onPress={() => recipe && onPrint(recipe)}
+              style={styles.recipeActionButton}
+              variant="ghost"
+            />
+            <PrimaryButton
+              disabled={!recipe || busy}
+              icon={Share2}
+              label={t("recipes.share.sharePdf")}
+              onPress={() => recipe && onSharePdf(recipe)}
+              style={styles.recipeActionButton}
+            />
+            <PrimaryButton
+              disabled={!recipe || busy}
+              icon={FileUp}
+              label={t("recipes.share.shareFile")}
+              onPress={() => recipe && onShareFile(recipe)}
+              style={styles.recipeActionButton}
+              variant="secondary"
+            />
+            <PrimaryButton
+              disabled={!recipe || busy}
+              icon={Trash2}
+              label={t("common.delete")}
+              onPress={() => recipe && onDelete(recipe)}
+              style={[
+                styles.recipeActionButton,
+                { borderColor: colors.danger }
+              ]}
+              variant="danger"
+            />
+          </View>
+        </GlassPanel>
+      </View>
+    </Modal>
   );
 }
 
@@ -681,6 +895,41 @@ function CategoryPickerModal({
       </View>
     </Modal>
   );
+}
+
+function isUserDismissedShareOrPrint(error: unknown) {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+
+  return /printing did not complete|cancel|dismiss|abort/i.test(error.message);
+}
+
+function getPrintLabels(t: (key: string) => string): RecipePrintLabels {
+  return {
+    appName: "AvoCook",
+    calories: t("editor.caloriesKcal"),
+    category: t("recipes.category"),
+    cookTime: t("recipes.cookTime"),
+    carbs: t("editor.carbsGrams"),
+    fat: t("editor.fatGrams"),
+    fiber: t("editor.fiberGrams"),
+    ingredients: t("recipes.ingredients"),
+    instructions: t("recipes.instructions"),
+    keywords: t("recipes.share.keywords"),
+    nutrition: t("recipes.nutrition"),
+    nutriScore: "Nutri-Score",
+    prepTime: t("recipes.prepTime"),
+    protein: t("editor.proteinGrams"),
+    saturatedFat: t("editor.saturatedFatGrams"),
+    servingSize: t("recipes.share.servingSize"),
+    source: t("recipes.source"),
+    sodium: t("editor.sodiumMg"),
+    sugar: t("editor.sugarGrams"),
+    tools: t("recipes.tools"),
+    totalTime: t("recipes.totalTime"),
+    yield: t("recipes.yield")
+  };
 }
 
 function safeTranslation(value: string, fallback: string) {
@@ -835,6 +1084,24 @@ const styles = StyleSheet.create({
   },
   recipeList: {
     flex: 1
+  },
+  recipeActionButton: {
+    width: "100%",
+    minHeight: 52
+  },
+  recipeActionGrid: {
+    gap: spacing.xs
+  },
+  recipeActionSheet: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    gap: spacing.md
+  },
+  recipeActionTitle: {
+    flex: 1,
+    gap: spacing.xxs,
+    minWidth: 0,
+    paddingRight: spacing.sm
   },
   screenContent: {
     gap: spacing.sm,

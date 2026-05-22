@@ -44,6 +44,7 @@ type CreateRecipeBackupOptions = {
   customCategories: string[];
   source: RecipeBackupSource;
   client?: CookbookClient | null;
+  imageDownloadTimeoutMs?: number;
 };
 
 async function mapWithConcurrency<T, R>(
@@ -71,7 +72,8 @@ export async function createRecipeBackup({
   recipes,
   customCategories,
   source,
-  client
+  client,
+  imageDownloadTimeoutMs
 }: CreateRecipeBackupOptions): Promise<RecipeBackupExportResult> {
   const assets: Record<string, RecipeBackupImageAsset> = {};
   let skippedImageCount = 0;
@@ -79,7 +81,11 @@ export async function createRecipeBackup({
   // Process recipe assets concurrently with a limit of 4
   const entries = await mapWithConcurrency(recipes, 4, async (recipe) => {
     const normalizedRecipe = normalizeRecipe(recipe);
-    const imageAsset = await collectRecipeImageAsset(normalizedRecipe, client);
+    const imageAsset = await collectRecipeImageAsset(
+      normalizedRecipe,
+      client,
+      imageDownloadTimeoutMs
+    );
     return {
       recipe: normalizedRecipe,
       imageAsset
@@ -201,11 +207,14 @@ function getRecipeBackupFilename(createdAt: string) {
 
 async function collectRecipeImageAsset(
   recipe: Recipe,
-  client?: CookbookClient | null
+  client?: CookbookClient | null,
+  imageDownloadTimeoutMs?: number
 ) {
   const localOrPublicUri = recipe.image || recipe.imageUrl || recipe.imagePlaceholderUrl;
   const directAsset = localOrPublicUri
-    ? await createImageAssetFromUri(localOrPublicUri).catch(() => null)
+    ? await createImageAssetFromUri(localOrPublicUri, {
+        timeoutMs: imageDownloadTimeoutMs
+      }).catch(() => null)
     : null;
 
   if (directAsset) {
@@ -214,7 +223,8 @@ async function collectRecipeImageAsset(
 
   if (recipe.id && client && !recipe.id.startsWith("local-")) {
     return createImageAssetFromUri(client.getRecipeImageUrl(recipe.id, "full"), {
-      headers: client.getImageHeaders()
+      headers: client.getImageHeaders(),
+      timeoutMs: imageDownloadTimeoutMs
     }).catch(() => null);
   }
 
@@ -223,7 +233,7 @@ async function collectRecipeImageAsset(
 
 async function createImageAssetFromUri(
   uri: string,
-  options?: { headers?: Record<string, string> }
+  options?: { headers?: Record<string, string>; timeoutMs?: number }
 ): Promise<RecipeBackupImageAsset | null> {
   if (!uri) {
     return null;
@@ -239,10 +249,25 @@ async function createImageAssetFromUri(
     tempDirectory.create({ idempotent: true, intermediates: true });
     const extension = getImageExtension(uri);
     const tempFile = new File(tempDirectory, `${Crypto.randomUUID()}.${extension}`);
-    const downloaded = await File.downloadFileAsync(uri, tempFile, {
+    const download = File.downloadFileAsync(uri, tempFile, {
       headers: options?.headers,
       idempotent: true
     });
+    const downloaded = options?.timeoutMs
+      ? await resolveWithTimeout(download, options.timeoutMs)
+      : await download;
+    if (!downloaded) {
+      download
+        .then((file) => {
+          try {
+            file.delete();
+          } catch {
+            // Best-effort cleanup after skipping a slow remote image.
+          }
+        })
+        .catch(() => undefined);
+      return null;
+    }
     const base64 = await downloaded.base64();
     downloaded.delete();
     return createImageAsset(base64, extension, getImageMimeType(extension), uri);
@@ -352,4 +377,23 @@ function isRecipeBackupImageAsset(
     typeof candidate.extension === "string" &&
     typeof candidate.mimeType === "string"
   );
+}
+
+async function resolveWithTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number
+): Promise<T | null> {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<null>((resolve) => {
+        timeout = setTimeout(() => resolve(null), timeoutMs);
+      })
+    ]);
+  } finally {
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+  }
 }
