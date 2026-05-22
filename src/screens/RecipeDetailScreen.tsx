@@ -44,6 +44,7 @@ import { usePreferences } from "../features/preferences/PreferencesProvider";
 import type { HealthProfile } from "../features/recipes/health";
 import { getRecipeHealthProfile } from "../features/recipes/health";
 import {
+  canUseRemoteRecipeImageFallback,
   isCookbookImageEndpoint,
   isDisplayableRecipeImage
 } from "../features/recipes/recipeImageReferences";
@@ -445,9 +446,25 @@ function RecipeDetailContent({
     if (!recipe) {
       return;
     }
+    Alert.alert(
+      t("recipes.share.updateFromSourceConfirmTitle"),
+      t("recipes.share.updateFromSourceConfirmBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("recipes.share.updateFromSource"),
+          onPress: () => {
+            void updateFromSource(recipe);
+          }
+        }
+      ]
+    );
+  }
+
+  async function updateFromSource(recipeToUpdate: DetailRecipe) {
     setShareAction("source");
     try {
-      await updateRecipeFromSource(recipe);
+      await updateRecipeFromSource(recipeToUpdate);
       Alert.alert(
         t("recipes.share.updateFromSourceSuccessTitle"),
         t("recipes.share.updateFromSourceSuccessBody")
@@ -1169,7 +1186,7 @@ function getImageSource(
     };
   }
 
-  if (recipe.id && client) {
+  if (client && canUseRemoteRecipeImageFallback(recipe)) {
     return {
       uri: client.getRecipeImageUrl(recipe.id, "full"),
       headers: client.getImageHeaders()

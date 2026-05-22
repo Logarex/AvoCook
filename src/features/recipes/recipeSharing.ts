@@ -11,8 +11,11 @@ import { getRecipeShareFilename } from "./recipeShareFilenames";
 import { normalizeRecipe, type NutritionValue, type Recipe } from "./types";
 import { humanDuration } from "../../utils/duration";
 import {
+  canUseRemoteRecipeImageFallback,
   getLocalRecipeImage,
-  getExternalRecipeImageSource
+  getExternalRecipeImageSource,
+  hasRecipeImageReference,
+  hasRecipeImageRemovalIntent
 } from "./recipeImageReferences";
 import { getRecipeHealthProfile } from "./health";
 
@@ -208,7 +211,7 @@ async function getPrintImageUri(
   }
 
   // 3. If it's a Nextcloud endpoint, we download it to a temp file once using auth headers
-  if (recipe.id && client && !recipe.id.startsWith("local-")) {
+  if (client && canUseRemoteRecipeImageFallback(recipe)) {
     const imageUrl = client.getRecipeImageUrl(recipe.id, "full");
     const downloaded = await downloadTempPrintImage(imageUrl, {
       headers: client.getImageHeaders()
@@ -427,7 +430,10 @@ async function createRecipePrintDocument(
   </body>
 </html>`;
 
-  const hasImage = Boolean(recipe.image || recipe.imageUrl || recipe.imagePlaceholderUrl);
+  const hasImage =
+    hasRecipeImageReference(recipe) ||
+    (!hasRecipeImageRemovalIntent(recipe) &&
+      Boolean(recipe.id && !recipe.id.startsWith("local-")));
 
   return {
     html,

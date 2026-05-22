@@ -167,6 +167,9 @@ export const resources = {
           updateFromSource: "Mettre à jour depuis la source",
           keywords: "Mots-clés",
           servingSize: "Portion",
+          updateFromSourceConfirmTitle: "Mettre à jour cette recette ?",
+          updateFromSourceConfirmBody:
+            "La recette actuelle sera fusionnée avec sa version disponible sur le site source. Les réglages locaux seront conservés.",
           updateFromSourceSuccessTitle: "Recette mise à jour",
           updateFromSourceSuccessBody:
             "La recette a été rechargée depuis son lien d'origine.",
@@ -559,6 +562,9 @@ export const resources = {
           updateFromSource: "Update from source",
           keywords: "Keywords",
           servingSize: "Serving size",
+          updateFromSourceConfirmTitle: "Update this recipe?",
+          updateFromSourceConfirmBody:
+            "The current recipe will be merged with the version available on its source website. Local settings will be kept.",
           updateFromSourceSuccessTitle: "Recipe updated",
           updateFromSourceSuccessBody:
             "The recipe was refreshed from its original link.",
@@ -947,6 +953,9 @@ export const resources = {
           updateFromSource: "Aus Quelle aktualisieren",
           keywords: "Schlagwörter",
           servingSize: "Portion",
+          updateFromSourceConfirmTitle: "Dieses Rezept aktualisieren?",
+          updateFromSourceConfirmBody:
+            "Das aktuelle Rezept wird mit der Version auf der Quellwebsite zusammengeführt. Lokale Einstellungen bleiben erhalten.",
           updateFromSourceSuccessTitle: "Rezept aktualisiert",
           updateFromSourceSuccessBody:
             "Das Rezept wurde über den ursprünglichen Link neu geladen.",
@@ -1335,6 +1344,9 @@ export const resources = {
           updateFromSource: "Actualizar desde la fuente",
           keywords: "Palabras clave",
           servingSize: "Porción",
+          updateFromSourceConfirmTitle: "¿Actualizar esta receta?",
+          updateFromSourceConfirmBody:
+            "La receta actual se fusionará con la versión disponible en su sitio de origen. Se conservarán los ajustes locales.",
           updateFromSourceSuccessTitle: "Receta actualizada",
           updateFromSourceSuccessBody:
             "La receta se ha recargado desde su enlace original.",
@@ -1715,6 +1727,9 @@ export const resources = {
           updateFromSource: "Aggiorna dalla fonte",
           keywords: "Parole chiave",
           servingSize: "Porzione",
+          updateFromSourceConfirmTitle: "Aggiornare questa ricetta?",
+          updateFromSourceConfirmBody:
+            "La ricetta attuale verrà unita alla versione disponibile sul sito sorgente. Le impostazioni locali saranno conservate.",
           updateFromSourceSuccessTitle: "Ricetta aggiornata",
           updateFromSourceSuccessBody:
             "La ricetta è stata ricaricata dal link originale.",
