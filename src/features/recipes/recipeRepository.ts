@@ -32,10 +32,14 @@ import {
   getExternalRecipeImageSource,
   getLocalRecipeImage,
   getRemoteRecipeImage,
+  hasRecipeImageReference,
+  hasRecipeImageRemovalIntent,
   isRemoteImageReference,
   preferRecipeImageUrls,
   replaceLocalRecipeImageReferencesWithRemote,
   sanitizeRecipeImagesForNextcloud,
+  withoutRecipeImages,
+  withRecipeImageRemovalIntent,
   withCachedRecipeImage
 } from "./recipeImageReferences";
 import {
@@ -223,9 +227,7 @@ export async function updateRecipe(
   }
 
   try {
-    await client.updateRecipe(
-      toCookbookRecipe(await prepareRecipeForNextcloud(localRecipe, client))
-    );
+    await updateRecipeOnNextcloud(localRecipe, client);
     const saved = await saveLocalRecipe(localRecipe, false);
     await pruneRecipeImageCache(await loadLocalRecipes());
     return saved;
@@ -289,9 +291,7 @@ async function saveMergedDuplicateRecipe(
   }
 
   if (!mergedRecipe.id.startsWith("local-")) {
-    await client.updateRecipe(
-      toCookbookRecipe(await prepareRecipeForNextcloud(mergedRecipe, client))
-    );
+    await updateRecipeOnNextcloud(mergedRecipe, client);
     await deleteRemoteDuplicateRecipes(removedRecipes, client);
     const saved = await saveLocalRecipe(mergedRecipe, false);
     await deleteQueuedOperationsForRecipe(saved.id ?? "");
@@ -481,9 +481,7 @@ async function reconcileNextcloudImportedRecipe(
 
   if (recipe.id && !recipe.id.startsWith("local-")) {
     if (decision.renamed) {
-      await client.updateRecipe(
-        toCookbookRecipe(await prepareRecipeForNextcloud(recipe, client))
-      );
+      await updateRecipeOnNextcloud(recipe, client);
       const serverRecipe = await client.getRecipe(recipe.id);
       return saveLocalRecipe(
         mergeServerRecipeWithLocalImages(serverRecipe, recipe),
@@ -544,7 +542,11 @@ async function resolveRecipeForSave(
   options: RecipeRepositoryOptions
 ) {
   const candidate = withInferredCategory(recipe);
-  const existingRecipes = (await loadLocalRecipes()).filter(
+  const localRecipes = await loadLocalRecipes();
+  const previousRecipe = candidate.id
+    ? localRecipes.find((existingRecipe) => existingRecipe.id === candidate.id)
+    : undefined;
+  const existingRecipes = localRecipes.filter(
     (existingRecipe) => existingRecipe.id !== candidate.id
   );
   const decision = await resolveRecipeImportWithNameConflict(
@@ -554,7 +556,10 @@ async function resolveRecipeForSave(
   );
 
   if (decision.action === "create" && !decision.renamed) {
-    return { action: "save" as const, recipe: candidate };
+    return {
+      action: "save" as const,
+      recipe: applyRecipeImageRemovalIntent(candidate, previousRecipe)
+    };
   }
 
   const resolvedRecipe =
@@ -568,9 +573,21 @@ async function resolveRecipeForSave(
 
   return {
     action: decision.action === "skip" ? ("skip" as const) : ("save" as const),
-    recipe: resolvedRecipe,
+    recipe: applyRecipeImageRemovalIntent(resolvedRecipe, previousRecipe),
     removeRecipeId
   };
+}
+
+function applyRecipeImageRemovalIntent(recipe: Recipe, previousRecipe?: Recipe) {
+  if (hasRecipeImageReference(recipe)) {
+    return withRecipeImageRemovalIntent(recipe, false);
+  }
+
+  return withRecipeImageRemovalIntent(
+    recipe,
+    hasRecipeImageRemovalIntent(previousRecipe ?? recipe) ||
+      hasRecipeImageReference(previousRecipe ?? recipe)
+  );
 }
 
 async function resolveRecipeImportWithNameConflict(
@@ -865,9 +882,7 @@ async function syncMissingLocalRecipes(
     }
 
     if (decision.action === "update" && recipe.id && !recipe.id.startsWith("local-")) {
-      await client.updateRecipe(
-        toCookbookRecipe(await prepareRecipeForNextcloud(recipe, client))
-      );
+      await updateRecipeOnNextcloud(recipe, client);
       const serverRecipe = await client.getRecipe(recipe.id);
       if (localRecipe.id !== recipe.id) {
         await removeLocalRecipe(localRecipe.id);
@@ -1086,9 +1101,7 @@ async function flushSyncQueue(
     }
 
     try {
-      await client.updateRecipe(
-        toCookbookRecipe(await prepareRecipeForNextcloud(operation.payload, client))
-      );
+      await updateRecipeOnNextcloud(operation.payload, client);
       const saved = await saveLocalRecipe(operation.payload, false);
       recipes = upsertRecipeInList(recipes, saved);
       flushedRecipes.push(saved);
@@ -1142,9 +1155,7 @@ async function pushQueuedRecipeAsCreateOrMerge(
   }
 
   if (decision.action === "update" && recipe.id && !recipe.id.startsWith("local-")) {
-    await client.updateRecipe(
-      toCookbookRecipe(await prepareRecipeForNextcloud(recipe, client))
-    );
+    await updateRecipeOnNextcloud(recipe, client);
     const serverRecipe = await client.getRecipe(recipe.id);
     if (queuedRecipeId !== recipe.id) {
       await removeLocalRecipe(queuedRecipeId);
@@ -1196,13 +1207,9 @@ async function saveImportedRecipe(
     !localRecipe.id.startsWith("local-")
   ) {
     try {
-      await client.updateRecipe(
-        toCookbookRecipe(
-          await prepareRecipeForNextcloud(
-            getNextcloudImportRecipe(localRecipe, originalRecipe),
-            client
-          )
-        )
+      await updateRecipeOnNextcloud(
+        getNextcloudImportRecipe(localRecipe, originalRecipe),
+        client
       );
       return saveLocalRecipe(localRecipe, false);
     } catch (error) {
@@ -1242,10 +1249,63 @@ function getNextcloudImportRecipe(localRecipe: Recipe, originalRecipe: Recipe) {
   });
 }
 
+async function updateRecipeOnNextcloud(recipe: Recipe, client: CookbookClient) {
+  const serverRecipeBeforeUpdate =
+    hasRecipeImageRemovalIntent(recipe) && recipe.id
+      ? await client.getRecipe(recipe.id).catch(() => null)
+      : null;
+
+  await client.updateRecipe(
+    toCookbookRecipe(await prepareRecipeForNextcloud(recipe, client))
+  );
+
+  if (hasRecipeImageRemovalIntent(recipe)) {
+    await deleteRemovedRecipeImagesFromNextcloud(
+      recipe,
+      client,
+      serverRecipeBeforeUpdate
+    );
+    await reindexRecipes(client);
+  }
+}
+
+async function deleteRemovedRecipeImagesFromNextcloud(
+  recipe: Recipe,
+  client: CookbookClient,
+  serverRecipeBeforeUpdate: Recipe | null
+) {
+  try {
+    await client.deleteCookbookRecipeImages(recipe.name);
+  } catch {
+    // The Cookbook update already requests image removal. This WebDAV cleanup
+    // handles stale recipe-folder files when a server keeps them around.
+  }
+
+  await Promise.all(
+    getAvoCookImagePaths(serverRecipeBeforeUpdate ?? recipe).map((path) =>
+      client.deleteWebDavFile(path).catch(() => undefined)
+    )
+  );
+}
+
+function getAvoCookImagePaths(recipe: Recipe) {
+  return Array.from(
+    new Set(
+      [recipe.image, recipe.imageUrl, recipe.imagePlaceholderUrl].filter(
+        (value) => value.startsWith("/AvoCook Images/")
+      )
+    )
+  );
+}
+
 async function prepareRecipeForNextcloud(
   recipe: Recipe,
   client?: CookbookClient | null
 ) {
+  if (hasRecipeImageRemovalIntent(recipe)) {
+    return sanitizeRecipeImagesForNextcloud(withoutRecipeImages(recipe));
+  }
+
   if (getExternalRecipeImageSource(recipe)) {
     return sanitizeRecipeImagesForNextcloud(recipe);
   }
@@ -1288,6 +1348,16 @@ function mergeServerRecipeWithLocalImages(
   serverRecipe: Recipe,
   localRecipe: Recipe
 ) {
+  if (hasRecipeImageRemovalIntent(localRecipe)) {
+    return normalizeRecipe({
+      ...serverRecipe,
+      image: "",
+      imageUrl: "",
+      imagePlaceholderUrl: "",
+      localMeta: localRecipe.localMeta
+    });
+  }
+
   const externalImage =
     getExternalRecipeImageSource(localRecipe) ||
     getExternalRecipeImageSource(serverRecipe);
@@ -1311,6 +1381,10 @@ export async function cacheRecipePhoto(
   recipe: Recipe,
   options?: { headers?: Record<string, string> }
 ) {
+  if (hasRecipeImageRemovalIntent(recipe)) {
+    return withoutRecipeImages(recipe);
+  }
+
   const image = recipe.image || recipe.imageUrl || recipe.imagePlaceholderUrl;
   if (!image) {
     return recipe;
