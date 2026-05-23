@@ -26,7 +26,23 @@ export const resources = {
         online: "Connecté",
         retry: "Réessayer",
         close: "Fermer",
-        continue: "Continuer"
+        continue: "Continuer",
+        longActionNotice:
+          "{{action}} est bien en cours. Inutile de relancer, cela peut prendre un peu de temps."
+      },
+      longActions: {
+        sync: "La synchronisation",
+        saveRecipe: "L'enregistrement",
+        deleteRecipe: "La suppression",
+        importRecipe: "L'import de recette",
+        exportBackup: "L'export de sauvegarde",
+        importBackup: "L'import de sauvegarde",
+        mergeDuplicates: "La fusion des doublons",
+        updateFromSource: "La mise à jour depuis la source",
+        reindex: "La réindexation",
+        exportRecipe: "L'export de recette",
+        printRecipe: "L'impression",
+        shareRecipe: "Le partage"
       },
       auth: {
         title: "AvoCook",
@@ -445,7 +461,23 @@ export const resources = {
         online: "Connected",
         retry: "Retry",
         close: "Close",
-        continue: "Continue"
+        continue: "Continue",
+        longActionNotice:
+          "{{action}} is running. No need to tap again; it may take a little time."
+      },
+      longActions: {
+        sync: "Sync",
+        saveRecipe: "Saving",
+        deleteRecipe: "Deletion",
+        importRecipe: "Recipe import",
+        exportBackup: "Backup export",
+        importBackup: "Backup import",
+        mergeDuplicates: "Duplicate merge",
+        updateFromSource: "Source refresh",
+        reindex: "Reindexing",
+        exportRecipe: "Recipe export",
+        printRecipe: "Printing",
+        shareRecipe: "Sharing"
       },
       auth: {
         title: "AvoCook",
@@ -855,7 +887,23 @@ export const resources = {
         online: "Verbunden",
         retry: "Wiederholen",
         close: "Schließen",
-        continue: "Weiter"
+        continue: "Weiter",
+        longActionNotice:
+          "{{action}} läuft. Kein erneutes Tippen nötig; es kann etwas dauern."
+      },
+      longActions: {
+        sync: "Die Synchronisierung",
+        saveRecipe: "Das Speichern",
+        deleteRecipe: "Das Löschen",
+        importRecipe: "Der Rezeptimport",
+        exportBackup: "Der Sicherungsexport",
+        importBackup: "Der Sicherungsimport",
+        mergeDuplicates: "Das Zusammenführen von Duplikaten",
+        updateFromSource: "Die Aktualisierung aus der Quelle",
+        reindex: "Die Neuindizierung",
+        exportRecipe: "Der Rezeptexport",
+        printRecipe: "Das Drucken",
+        shareRecipe: "Das Teilen"
       },
       auth: {
         title: "AvoCook",
@@ -1272,7 +1320,23 @@ export const resources = {
         online: "Conectado",
         retry: "Reintentar",
         close: "Cerrar",
-        continue: "Continuar"
+        continue: "Continuar",
+        longActionNotice:
+          "{{action}} está en curso. No hace falta tocar de nuevo; puede tardar un poco."
+      },
+      longActions: {
+        sync: "La sincronización",
+        saveRecipe: "El guardado",
+        deleteRecipe: "La eliminación",
+        importRecipe: "La importación de receta",
+        exportBackup: "La exportación de copia",
+        importBackup: "La importación de copia",
+        mergeDuplicates: "La fusión de duplicados",
+        updateFromSource: "La actualización desde la fuente",
+        reindex: "La reindexación",
+        exportRecipe: "La exportación de receta",
+        printRecipe: "La impresión",
+        shareRecipe: "El uso compartido"
       },
       auth: {
         title: "AvoCook",
@@ -1680,7 +1744,23 @@ export const resources = {
         online: "Connesso",
         retry: "Riprova",
         close: "Chiudi",
-        continue: "Continua"
+        continue: "Continua",
+        longActionNotice:
+          "{{action}} è in corso. Non serve toccare di nuovo; può richiedere un po' di tempo."
+      },
+      longActions: {
+        sync: "La sincronizzazione",
+        saveRecipe: "Il salvataggio",
+        deleteRecipe: "L'eliminazione",
+        importRecipe: "L'importazione della ricetta",
+        exportBackup: "L'esportazione del backup",
+        importBackup: "L'importazione del backup",
+        mergeDuplicates: "L'unione dei duplicati",
+        updateFromSource: "L'aggiornamento dalla fonte",
+        reindex: "La reindicizzazione",
+        exportRecipe: "L'esportazione della ricetta",
+        printRecipe: "La stampa",
+        shareRecipe: "La condivisione"
       },
       auth: {
         title: "AvoCook",
