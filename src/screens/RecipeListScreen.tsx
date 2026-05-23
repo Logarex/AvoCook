@@ -52,6 +52,7 @@ import {
   shareRecipePdf,
   type RecipePrintLabels
 } from "../features/recipes/recipeSharing";
+import { canUseRemoteRecipeImageFallback } from "../features/recipes/recipeImageReferences";
 import { checkForUpdates, type UpdateInfo } from "../features/updates/updateService";
 import type { Recipe } from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
@@ -185,7 +186,8 @@ export function RecipeListScreen({ navigation }: Props) {
   }, [category, query, recipes]);
 
   const connected = Boolean(credentials || isLocalMode);
-  const imageHeaders = credentials ? getClient()?.getImageHeaders() : undefined;
+  const imageClient = credentials ? getClient() : null;
+  const imageHeaders = imageClient?.getImageHeaders();
   const statusLabel = isLocalMode
     ? t("settings.localMode")
     : credentials
@@ -528,6 +530,11 @@ export function RecipeListScreen({ navigation }: Props) {
           }
           renderItem={({ item }) => (
             <RecipeCard
+              fallbackImageUri={
+                imageClient && canUseRemoteRecipeImageFallback(item)
+                  ? imageClient.getRecipeImageUrl(item.id, "thumb")
+                  : undefined
+              }
               imageHeaders={imageHeaders}
               recipe={item}
               onLongPress={() => handleRecipeLongPress(item)}

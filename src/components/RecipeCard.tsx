@@ -13,18 +13,20 @@ import { humanDuration } from "../utils/duration";
 import { AppText } from "./AppText";
 
 export function RecipeCard({
+  fallbackImageUri,
   imageHeaders,
   recipe,
   onLongPress,
   onPress
 }: {
+  fallbackImageUri?: string;
   imageHeaders?: Record<string, string>;
   recipe: Recipe;
   onLongPress?: () => void;
   onPress: () => void;
 }) {
   const { colors } = useAppTheme();
-  const imageUri = getPreferredDisplayRecipeImage(recipe);
+  const imageUri = getPreferredDisplayRecipeImage(recipe) || fallbackImageUri;
   const imageSource = imageUri
     ? {
         uri: imageUri,
