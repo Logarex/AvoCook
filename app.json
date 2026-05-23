@@ -3,7 +3,7 @@
     "name": "AvoCook",
     "slug": "avocook",
     "scheme": "avocook",
-    "version": "2.0.2",
+    "version": "2.0.3",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
@@ -97,6 +97,7 @@
         }
       ],
       "./plugins/withAndroidNetworkSecurity",
+      "./plugins/withAndroidSplitsAndOptimizations",
       "expo-font"
     ],
     "extra": {
