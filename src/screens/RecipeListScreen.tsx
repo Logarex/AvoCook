@@ -31,6 +31,7 @@ import {
   View
 } from "react-native";
 import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "../components/AppText";
 import { BottomNavigation } from "../components/BottomNavigation";
 import { ConnectionStatus } from "../components/ConnectionStatus";
@@ -59,6 +60,7 @@ import type { Recipe } from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { getScreenBottomPadding } from "../utils/safeArea";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Recipes">;
 
@@ -717,6 +719,7 @@ function RecipeActionsModal({
 }) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
   const busy = action !== null;
 
@@ -735,7 +738,12 @@ function RecipeActionsModal({
           onPress={onClose}
           style={styles.modalScrim}
         />
-        <GlassPanel style={styles.recipeActionSheet}>
+        <GlassPanel
+          style={[
+            styles.recipeActionSheet,
+            { paddingBottom: getScreenBottomPadding(insets.bottom) }
+          ]}
+        >
           <View style={styles.modalHeader}>
             <View style={styles.recipeActionTitle}>
               <AppText variant="subtitle" numberOfLines={1}>
@@ -816,6 +824,7 @@ function CategoryPickerModal({
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const reducedMotion = useReducedMotion();
+  const insets = useSafeAreaInsets();
   const customCategorySet = useMemo(
     () => new Set(customCategories),
     [customCategories]
@@ -834,7 +843,12 @@ function CategoryPickerModal({
           style={styles.modalScrim}
           onPress={onClose}
         />
-        <GlassPanel style={styles.modalSheet}>
+        <GlassPanel
+          style={[
+            styles.modalSheet,
+            { paddingBottom: getScreenBottomPadding(insets.bottom) }
+          ]}
+        >
           <View style={styles.modalHeader}>
             <AppText variant="subtitle">{title}</AppText>
             <IconButton icon={X} label={t("common.close")} onPress={onClose} />
