@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { getBottomNavigationPadding } from "../utils/safeArea";
 import { AppText } from "./AppText";
 
 export type BottomNavigationTab = "recipes" | "shoppingList";
@@ -34,10 +35,7 @@ export function BottomNavigation({
         styles.wrap,
         {
           backgroundColor: colors.background,
-          paddingBottom: Math.max(
-            insets.bottom > 0 ? insets.bottom - 18 : 0,
-            spacing.xxs
-          )
+          paddingBottom: getBottomNavigationPadding(insets.bottom)
         }
       ]}
     >
