@@ -14,10 +14,11 @@ import {
 } from "react-native";
 import { ArrowUp } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useReducedMotion } from "../features/accessibility/useReducedMotion";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { getFloatingBottomOffset, getScreenBottomPadding } from "../utils/safeArea";
 
 type ScreenProps = {
   children: React.ReactNode;
@@ -38,9 +39,18 @@ export function Screen({
   const [scrolledPastTop, setScrolledPastTop] = React.useState(false);
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
   const content = (
-    <View style={[styles.content, contentStyle]}>{children}</View>
+    <View
+      style={[
+        styles.content,
+        { paddingBottom: getScreenBottomPadding(insets.bottom) },
+        contentStyle
+      ]}
+    >
+      {children}
+    </View>
   );
   const canScroll = contentHeight > viewportHeight + spacing.lg;
   const showBackToTop = showScrollTop && canScroll && scrolledPastTop;
@@ -91,6 +101,7 @@ export function Screen({
                   {
                     backgroundColor: colors.surfaceGlassStrong,
                     borderColor: colors.border,
+                    bottom: getFloatingBottomOffset(insets.bottom),
                     opacity: pressed ? 0.74 : 0.92,
                     shadowColor: colors.shadow
                   }
