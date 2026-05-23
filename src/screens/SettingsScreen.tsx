@@ -27,6 +27,7 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { LanguagePicker } from "../components/LanguagePicker";
 import { SegmentedControl } from "../components/SegmentedControl";
+import { useLongActionToast } from "../components/LongActionToast";
 import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
@@ -45,6 +46,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Settings">;
 export function SettingsScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors, mode, setMode } = useAppTheme();
+  const { watchLongAction } = useLongActionToast();
   const { credentials, getClient, isLocalMode, logout } = useAuth();
   const {
     exportBackup,
@@ -102,10 +104,12 @@ export function SettingsScreen({ navigation }: Props) {
       {
         text: t("settings.reindex"),
         onPress: () => {
+          const stopLongActionNotice = watchLongAction("longActions.reindex");
           void client
             .reindex()
             .then(sync)
-            .then(() => setMessage(t("settings.reindexDone")));
+            .then(() => setMessage(t("settings.reindexDone")))
+            .finally(stopLongActionNotice);
         }
       }
     ]);

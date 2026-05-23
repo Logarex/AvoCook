@@ -37,6 +37,7 @@ import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
+import { useLongActionToast } from "../components/LongActionToast";
 import { Pill } from "../components/Pill";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
@@ -209,6 +210,7 @@ function RecipeDetailContent({
 }) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const { watchLongAction } = useLongActionToast();
   const { width: windowWidth } = useWindowDimensions();
   const [shareAction, setShareAction] = useState<
     "print" | "pdf" | "file" | "source" | null
@@ -425,6 +427,7 @@ function RecipeDetailContent({
       return;
     }
     setShareAction("print");
+    const stopLongActionNotice = watchLongAction("longActions.printRecipe");
     try {
       const result = await printRecipe(recipe, getPrintLabels(t), getClient());
       showShareWarning(result.skippedImageCount);
@@ -434,6 +437,7 @@ function RecipeDetailContent({
       }
       Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
     } finally {
+      stopLongActionNotice();
       setShareAction(null);
     }
   }
@@ -443,6 +447,7 @@ function RecipeDetailContent({
       return;
     }
     setShareAction("pdf");
+    const stopLongActionNotice = watchLongAction("longActions.exportRecipe");
     try {
       const result = await shareRecipePdf(recipe, getPrintLabels(t), getClient());
       showShareWarning(result.skippedImageCount);
@@ -452,6 +457,7 @@ function RecipeDetailContent({
       }
       Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
     } finally {
+      stopLongActionNotice();
       setShareAction(null);
     }
   }
@@ -461,6 +467,7 @@ function RecipeDetailContent({
       return;
     }
     setShareAction("file");
+    const stopLongActionNotice = watchLongAction("longActions.shareRecipe");
     try {
       const result = await shareRecipeFile(recipe, getClient());
       showShareWarning(result.skippedImageCount);
@@ -470,6 +477,7 @@ function RecipeDetailContent({
       }
       Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
     } finally {
+      stopLongActionNotice();
       setShareAction(null);
     }
   }
