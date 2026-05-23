@@ -116,22 +116,26 @@ describe("recipe manual photo sync deletion", () => {
       // Mock database calls
       // 1st database call: loadAnyLocalRecipeById
       // 2nd database call: loadLocalRecipes (all recipes to check for duplicates)
-      mockDb.getAllAsync.mockImplementation(async (query, ..._args) => {
-        if (query.includes("recipes WHERE id = ?")) {
-          return [{
-            id: "recipe-123",
-            payload: JSON.stringify(mockRecipe),
-            dirty: 0,
-            deleted: 0,
-            updated_at: "2026"
-          }];
-        }
-        if (query.includes("recipes WHERE deleted = 0")) {
-          // No duplicate recipe exists referencing this photo
+      mockDb.getAllAsync.mockImplementation(
+        async (query: string, ..._args: unknown[]) => {
+          if (query.includes("recipes WHERE id = ?")) {
+            return [
+              {
+                id: "recipe-123",
+                payload: JSON.stringify(mockRecipe),
+                dirty: 0,
+                deleted: 0,
+                updated_at: "2026"
+              }
+            ];
+          }
+          if (query.includes("recipes WHERE deleted = 0")) {
+            // No duplicate recipe exists referencing this photo
+            return [];
+          }
           return [];
         }
-        return [];
-      });
+      );
 
       const client = new CookbookClient({
         serverUrl: "https://cloud.example.com",
@@ -139,9 +143,9 @@ describe("recipe manual photo sync deletion", () => {
         appPassword: "app-password"
       });
 
-      const deleteRecipeSpy = vi.spyOn(client, "deleteRecipe").mockResolvedValue(true);
+      const deleteRecipeSpy = vi.spyOn(client, "deleteRecipe").mockResolvedValue("");
       const getRecipeSpy = vi.spyOn(client, "getRecipe").mockResolvedValue(mockRecipe);
-      const deleteWebDavFileSpy = vi.spyOn(client, "deleteWebDavFile").mockResolvedValue(undefined as any);
+      const deleteWebDavFileSpy = vi.spyOn(client, "deleteWebDavFile").mockResolvedValue(undefined);
 
       await deleteRecipe("recipe-123", client);
 
@@ -173,22 +177,26 @@ describe("recipe manual photo sync deletion", () => {
       };
 
       // Mock database calls
-      mockDb.getAllAsync.mockImplementation(async (query, ..._args) => {
-        if (query.includes("recipes WHERE id = ?")) {
-          return [{
-            id: "recipe-123",
-            payload: JSON.stringify(mockRecipe),
-            dirty: 0,
-            deleted: 0,
-            updated_at: "2026"
-          }];
+      mockDb.getAllAsync.mockImplementation(
+        async (query: string, ..._args: unknown[]) => {
+          if (query.includes("recipes WHERE id = ?")) {
+            return [
+              {
+                id: "recipe-123",
+                payload: JSON.stringify(mockRecipe),
+                dirty: 0,
+                deleted: 0,
+                updated_at: "2026"
+              }
+            ];
+          }
+          if (query.includes("recipes WHERE deleted = 0")) {
+            // Duplicate recipe exists referencing this photo
+            return [mockDuplicateRecipe];
+          }
+          return [];
         }
-        if (query.includes("recipes WHERE deleted = 0")) {
-          // Duplicate recipe exists referencing this photo
-          return [mockDuplicateRecipe];
-        }
-        return [];
-      });
+      );
 
       const client = new CookbookClient({
         serverUrl: "https://cloud.example.com",
@@ -196,9 +204,9 @@ describe("recipe manual photo sync deletion", () => {
         appPassword: "app-password"
       });
 
-      const deleteRecipeSpy = vi.spyOn(client, "deleteRecipe").mockResolvedValue(true);
+      const deleteRecipeSpy = vi.spyOn(client, "deleteRecipe").mockResolvedValue("");
       const getRecipeSpy = vi.spyOn(client, "getRecipe").mockResolvedValue(mockRecipe);
-      const deleteWebDavFileSpy = vi.spyOn(client, "deleteWebDavFile").mockResolvedValue(undefined as any);
+      const deleteWebDavFileSpy = vi.spyOn(client, "deleteWebDavFile").mockResolvedValue(undefined);
 
       await deleteRecipe("recipe-123", client);
 
