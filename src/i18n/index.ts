@@ -379,15 +379,20 @@ export const resources = {
       logs: {
         title: "Journaux",
         refresh: "Actualiser",
-        count: "{{count}} entrée(s)",
+        count: "{{count}} entrées",
+        count_zero: "Aucune entrée",
+        count_one: "{{count}} entrée",
+        count_other: "{{count}} entrées",
         anonymize: "Anonymiser",
         anonymizedNotice:
           "Le rapport masque domaines, IP, e-mails, chemins locaux et identifiants WebDAV.",
         rawNotice:
           "Les secrets restent masqués, mais les détails personnels peuvent rester visibles.",
         detailed: "Journaux détaillés",
-        detailedNotice: "Enregistre tous les événements (limité aux 50 derniers).",
-        errorsOnlyNotice: "Seuls les erreurs et échecs sont conservés.",
+        detailedNotice:
+          "Affiche tous les événements enregistrés (25 erreurs/avertissements et 25 traces détaillées).",
+        errorsOnlyNotice:
+          "Affiche les 25 derniers avertissements et erreurs.",
         share: "Exporter",
         shareAnonymized: "Envoyer anonymisé",
         clear: "Vider",
@@ -786,15 +791,19 @@ export const resources = {
       logs: {
         title: "Logs",
         refresh: "Refresh",
-        count: "{{count}} entry/entries",
+        count: "{{count}} entries",
+        count_zero: "No entries",
+        count_one: "{{count}} entry",
+        count_other: "{{count}} entries",
         anonymize: "Anonymize",
         anonymizedNotice:
           "The report masks domains, IPs, emails, local paths, and WebDAV user IDs.",
         rawNotice:
           "Secrets stay redacted, but personal details may remain visible.",
         detailed: "Detailed logs",
-        detailedNotice: "Saves all events (limited to the last 50).",
-        errorsOnlyNotice: "Only errors and failures are kept.",
+        detailedNotice:
+          "Shows all saved events (25 warnings/errors and 25 detailed traces).",
+        errorsOnlyNotice: "Shows the last 25 warnings and errors.",
         share: "Export",
         shareAnonymized: "Send anonymized",
         clear: "Clear",
@@ -1199,15 +1208,19 @@ export const resources = {
       logs: {
         title: "Protokolle",
         refresh: "Aktualisieren",
-        count: "{{count}} Eintrag/Einträge",
+        count: "{{count}} Einträge",
+        count_zero: "Keine Einträge",
+        count_one: "{{count}} Eintrag",
+        count_other: "{{count}} Einträge",
         anonymize: "Anonymisieren",
         anonymizedNotice:
           "Der Bericht maskiert Domains, IPs, E-Mails, lokale Pfade und WebDAV-Benutzer-IDs.",
         rawNotice:
           "Geheimnisse bleiben geschwärzt, persönliche Details können jedoch sichtbar bleiben.",
         detailed: "Detaillierte Protokolle",
-        detailedNotice: "Speichert alle Ereignisse (begrenzt auf die letzten 50).",
-        errorsOnlyNotice: "Es werden nur Fehler und Fehlerfälle gespeichert.",
+        detailedNotice:
+          "Zeigt alle gespeicherten Ereignisse (25 Warnungen/Fehler und 25 Detailspuren).",
+        errorsOnlyNotice: "Zeigt die letzten 25 Warnungen und Fehler.",
         share: "Exportieren",
         shareAnonymized: "Anonymisiert senden",
         clear: "Löschen",
@@ -1606,15 +1619,19 @@ export const resources = {
       logs: {
         title: "Registros",
         refresh: "Actualizar",
-        count: "{{count}} entrada/s",
+        count: "{{count}} entradas",
+        count_zero: "Ninguna entrada",
+        count_one: "{{count}} entrada",
+        count_other: "{{count}} entradas",
         anonymize: "Anonimizar",
         anonymizedNotice:
           "El informe oculta dominios, IPs, correos electrónicos, rutas locales e IDs de usuario de WebDAV.",
         rawNotice:
           "Los secretos permanecen ocultos, pero los datos personales pueden ser visibles.",
         detailed: "Registros detallados",
-        detailedNotice: "Guarda todos los eventos (limitado a los últimos 50).",
-        errorsOnlyNotice: "Solo se conservan errores y fallos.",
+        detailedNotice:
+          "Muestra todos los eventos guardados (25 avisos/errores y 25 trazas detalladas).",
+        errorsOnlyNotice: "Muestra los últimos 25 avisos y errores.",
         share: "Exportar",
         shareAnonymized: "Enviar anonimizado",
         clear: "Limpiar",
@@ -2010,15 +2027,19 @@ export const resources = {
       logs: {
         title: "Registri",
         refresh: "Aggiorna",
-        count: "{{count}} voce/voci",
+        count: "{{count}} voci",
+        count_zero: "Nessuna voce",
+        count_one: "{{count}} voce",
+        count_other: "{{count}} voci",
         anonymize: "Anonimizza",
         anonymizedNotice:
           "Il rapporto nasconde domini, IP, e-mail, percorsi locali e ID utente WebDAV.",
         rawNotice:
           "I segreti rimangono oscurati, ma i dettagli personali potrebbero rimanere visibili.",
         detailed: "Registri dettagliati",
-        detailedNotice: "Salva tutti gli eventi (limitato agli ultimi 50).",
-        errorsOnlyNotice: "Vengono conservati solo errori e guasti.",
+        detailedNotice:
+          "Mostra tutti gli eventi salvati (25 avvisi/errori e 25 tracce dettagliate).",
+        errorsOnlyNotice: "Mostra gli ultimi 25 avvisi ed errori.",
         share: "Esporta",
         shareAnonymized: "Invia anonimizzato",
         clear: "Cancella",
