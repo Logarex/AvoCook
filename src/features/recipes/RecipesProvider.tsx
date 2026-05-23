@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import { Alert } from "react-native";
 import { useTranslation } from "react-i18next";
+import { useLongActionToast } from "../../components/LongActionToast";
 import { useAuth } from "../auth/AuthProvider";
 import { usePreferences } from "../preferences/PreferencesProvider";
 import {
@@ -79,6 +80,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
   const { credentials, getClient, isLocalMode } = useAuth();
   const { keepRecipesLocal } = usePreferences();
+  const { watchLongAction } = useLongActionToast();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -149,6 +151,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     }
 
     syncInFlightRef.current = true;
+    const stopLongActionNotice = watchLongAction("longActions.sync");
     setSyncing(true);
     try {
       setRecipes(await syncRecipes(client, keepRecipesLocal, repositoryOptions));
@@ -157,10 +160,11 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       setLastError(error instanceof Error ? error.message : String(error));
       setRecipes(await initialiseRecipeStore());
     } finally {
+      stopLongActionNotice();
       syncInFlightRef.current = false;
       setSyncing(false);
     }
-  }, [getClient, keepRecipesLocal, repositoryOptions]);
+  }, [getClient, keepRecipesLocal, repositoryOptions, watchLongAction]);
 
   useEffect(() => {
     if (credentials) {
@@ -176,41 +180,56 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
 
   const createRecipe = useCallback(
     async (recipe: Recipe) => {
-      const saved = await createRecipeInRepository(
-        recipe,
-        getClient(),
-        repositoryOptions
-      );
-      setRecipes(await initialiseRecipeStore());
-      return saved;
+      const stopLongActionNotice = watchLongAction("longActions.saveRecipe");
+      try {
+        const saved = await createRecipeInRepository(
+          recipe,
+          getClient(),
+          repositoryOptions
+        );
+        setRecipes(await initialiseRecipeStore());
+        return saved;
+      } finally {
+        stopLongActionNotice();
+      }
     },
-    [getClient, repositoryOptions]
+    [getClient, repositoryOptions, watchLongAction]
   );
 
   const updateRecipe = useCallback(
     async (recipe: Recipe) => {
-      const saved = await updateRecipeInRepository(
-        recipe,
-        getClient(),
-        repositoryOptions
-      );
-      setRecipes(await initialiseRecipeStore());
-      return saved;
+      const stopLongActionNotice = watchLongAction("longActions.saveRecipe");
+      try {
+        const saved = await updateRecipeInRepository(
+          recipe,
+          getClient(),
+          repositoryOptions
+        );
+        setRecipes(await initialiseRecipeStore());
+        return saved;
+      } finally {
+        stopLongActionNotice();
+      }
     },
-    [getClient, repositoryOptions]
+    [getClient, repositoryOptions, watchLongAction]
   );
 
   const updateRecipeFromSource = useCallback(
     async (recipe: Recipe) => {
-      const saved = await updateRecipeFromSourceInRepository(
-        recipe,
-        getClient(),
-        repositoryOptions
-      );
-      setRecipes(await initialiseRecipeStore());
-      return saved;
+      const stopLongActionNotice = watchLongAction("longActions.updateFromSource");
+      try {
+        const saved = await updateRecipeFromSourceInRepository(
+          recipe,
+          getClient(),
+          repositoryOptions
+        );
+        setRecipes(await initialiseRecipeStore());
+        return saved;
+      } finally {
+        stopLongActionNotice();
+      }
     },
-    [getClient, repositoryOptions]
+    [getClient, repositoryOptions, watchLongAction]
   );
 
   const updateRecipePreferences = useCallback(async (recipe: Recipe) => {
@@ -230,71 +249,108 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
 
   const deleteRecipe = useCallback(
     async (id: string) => {
-      await deleteRecipeInRepository(id, getClient());
-      setRecipes(await initialiseRecipeStore());
+      const stopLongActionNotice = watchLongAction("longActions.deleteRecipe");
+      try {
+        await deleteRecipeInRepository(id, getClient());
+        setRecipes(await initialiseRecipeStore());
+      } finally {
+        stopLongActionNotice();
+      }
     },
-    [getClient]
+    [getClient, watchLongAction]
   );
 
   const importRecipe = useCallback(
     async (url: string) => {
-      const saved = await importRecipeInRepository(
-        url,
-        getClient(),
-        recipes,
-        repositoryOptions
-      );
-      setRecipes(await initialiseRecipeStore());
-      return saved;
+      const stopLongActionNotice = watchLongAction("longActions.importRecipe");
+      try {
+        const saved = await importRecipeInRepository(
+          url,
+          getClient(),
+          recipes,
+          repositoryOptions
+        );
+        setRecipes(await initialiseRecipeStore());
+        return saved;
+      } finally {
+        stopLongActionNotice();
+      }
     },
-    [getClient, recipes, repositoryOptions]
+    [getClient, recipes, repositoryOptions, watchLongAction]
   );
 
   const exportBackup = useCallback(async () => {
-    const result = await exportRecipeBackup(
-      {
-        client: getClient(),
-        customCategories,
-        isLocalMode
-      },
-      repositoryOptions
-    );
-    const fileUri = await writeRecipeBackupToPickedDirectory(result.backup);
-    setRecipes(await initialiseRecipeStore());
-    return { ...result, fileUri };
-  }, [customCategories, getClient, isLocalMode, repositoryOptions]);
+    const stopLongActionNotice = watchLongAction("longActions.exportBackup");
+    try {
+      const result = await exportRecipeBackup(
+        {
+          client: getClient(),
+          customCategories,
+          isLocalMode
+        },
+        repositoryOptions
+      );
+      stopLongActionNotice();
+      const fileUri = await writeRecipeBackupToPickedDirectory(result.backup);
+      setRecipes(await initialiseRecipeStore());
+      return { ...result, fileUri };
+    } finally {
+      stopLongActionNotice();
+    }
+  }, [
+    customCategories,
+    getClient,
+    isLocalMode,
+    repositoryOptions,
+    watchLongAction
+  ]);
 
   const importBackup = useCallback(async () => {
     const backup = await pickRecipeBackupFile();
-    const result = await importRecipeBackup(backup, getClient(), repositoryOptions);
-    setRecipes(result.recipes);
-    setCustomCategories(await loadCustomCategories());
-    return result;
-  }, [getClient, repositoryOptions]);
-
-  const importBackupFile = useCallback(
-    async (uri: string) => {
-      const result = await importRecipeBackupFile(
-        uri,
-        getClient(),
-        repositoryOptions
-      );
+    const stopLongActionNotice = watchLongAction("longActions.importBackup");
+    try {
+      const result = await importRecipeBackup(backup, getClient(), repositoryOptions);
       setRecipes(result.recipes);
       setCustomCategories(await loadCustomCategories());
       return result;
+    } finally {
+      stopLongActionNotice();
+    }
+  }, [getClient, repositoryOptions, watchLongAction]);
+
+  const importBackupFile = useCallback(
+    async (uri: string) => {
+      const stopLongActionNotice = watchLongAction("longActions.importBackup");
+      try {
+        const result = await importRecipeBackupFile(
+          uri,
+          getClient(),
+          repositoryOptions
+        );
+        setRecipes(result.recipes);
+        setCustomCategories(await loadCustomCategories());
+        return result;
+      } finally {
+        stopLongActionNotice();
+      }
     },
-    [getClient, repositoryOptions]
+    [getClient, repositoryOptions, watchLongAction]
   );
 
   const findDuplicateGroups = useCallback(() => findDuplicateRecipes(), []);
 
   const mergeDuplicateGroup = useCallback(
     async (group: RecipeDuplicateGroup) => {
-      const result = await mergeDuplicateRecipes(group, getClient());
-      setRecipes(result.recipes);
-      return result;
+      const stopLongActionNotice = watchLongAction("longActions.mergeDuplicates");
+      try {
+        const result = await mergeDuplicateRecipes(group, getClient());
+        setRecipes(result.recipes);
+        return result;
+      } finally {
+        stopLongActionNotice();
+      }
     },
-    [getClient]
+    [getClient, watchLongAction]
   );
 
   const createCategory = useCallback(async (category: string) => {
