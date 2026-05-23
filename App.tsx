@@ -8,6 +8,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import "./src/i18n";
 import { AppText } from "./src/components/AppText";
+import { LongActionToastProvider } from "./src/components/LongActionToast";
 import { AuthProvider, useAuth } from "./src/features/auth/AuthProvider";
 import { logInfo } from "./src/features/logging/appLogger";
 import { installNetworkLogger } from "./src/features/logging/networkLogger";
@@ -44,13 +45,15 @@ export default function App() {
         <AppThemeProvider>
           <PreferencesProvider>
             <AuthProvider>
-              <RecipesProvider>
-                <ShoppingListProvider>
-                  <TimersProvider>
-                    <RootNavigator />
-                  </TimersProvider>
-                </ShoppingListProvider>
-              </RecipesProvider>
+              <LongActionToastProvider>
+                <RecipesProvider>
+                  <ShoppingListProvider>
+                    <TimersProvider>
+                      <RootNavigator />
+                    </TimersProvider>
+                  </ShoppingListProvider>
+                </RecipesProvider>
+              </LongActionToastProvider>
             </AuthProvider>
           </PreferencesProvider>
         </AppThemeProvider>

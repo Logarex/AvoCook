@@ -37,6 +37,7 @@ import { ConnectionStatus } from "../components/ConnectionStatus";
 import { EmptyState } from "../components/EmptyState";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
+import { useLongActionToast } from "../components/LongActionToast";
 import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { RecipeCard } from "../components/RecipeCard";
@@ -70,6 +71,7 @@ type CategoryOption = {
 export function RecipeListScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const { watchLongAction } = useLongActionToast();
   const reducedMotion = useReducedMotion();
   const { credentials, getClient, isLocalMode } = useAuth();
   const {
@@ -263,6 +265,7 @@ export function RecipeListScreen({ navigation }: Props) {
 
   async function handlePrintRecipe(recipe: Recipe) {
     setRecipeAction("print");
+    const stopLongActionNotice = watchLongAction("longActions.printRecipe");
     try {
       const result = await printRecipe(recipe, getPrintLabels(t), getClient());
       showShareWarning(result.skippedImageCount);
@@ -272,6 +275,7 @@ export function RecipeListScreen({ navigation }: Props) {
       }
       Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
     } finally {
+      stopLongActionNotice();
       setRecipeAction(null);
       setSelectedRecipe(null);
     }
@@ -279,6 +283,7 @@ export function RecipeListScreen({ navigation }: Props) {
 
   async function handleShareRecipePdf(recipe: Recipe) {
     setRecipeAction("pdf");
+    const stopLongActionNotice = watchLongAction("longActions.exportRecipe");
     try {
       const result = await shareRecipePdf(recipe, getPrintLabels(t), getClient());
       showShareWarning(result.skippedImageCount);
@@ -288,6 +293,7 @@ export function RecipeListScreen({ navigation }: Props) {
       }
       Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
     } finally {
+      stopLongActionNotice();
       setRecipeAction(null);
       setSelectedRecipe(null);
     }
@@ -295,6 +301,7 @@ export function RecipeListScreen({ navigation }: Props) {
 
   async function handleShareRecipeFile(recipe: Recipe) {
     setRecipeAction("file");
+    const stopLongActionNotice = watchLongAction("longActions.shareRecipe");
     try {
       const result = await shareRecipeFile(recipe, getClient());
       showShareWarning(result.skippedImageCount);
@@ -304,6 +311,7 @@ export function RecipeListScreen({ navigation }: Props) {
       }
       Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
     } finally {
+      stopLongActionNotice();
       setRecipeAction(null);
       setSelectedRecipe(null);
     }
