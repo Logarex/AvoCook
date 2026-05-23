@@ -1444,7 +1444,8 @@ function getAvoCookImagePaths(recipe: Recipe) {
   return Array.from(
     new Set(
       [recipe.image, recipe.imageUrl, recipe.imagePlaceholderUrl].filter(
-        (value) => value.startsWith("/AvoCook Images/")
+        (value): value is string =>
+          typeof value === "string" && value.startsWith("/AvoCook Images/")
       )
     )
   );
