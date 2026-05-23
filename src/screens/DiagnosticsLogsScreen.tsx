@@ -47,9 +47,14 @@ export function DiagnosticsLogsScreen({ navigation }: Props) {
     void getLogMode().then((mode) => setDetailed(mode === "all"));
   }, []);
 
+  const displayedEntries = useMemo(
+    () => (detailed ? entries : entries.filter(isWarningOrErrorEntry)),
+    [detailed, entries]
+  );
+
   const visibleEntries = useMemo(
-    () => entries.slice(-VISIBLE_LOG_LIMIT).reverse(),
-    [entries]
+    () => displayedEntries.slice(-VISIBLE_LOG_LIMIT).reverse(),
+    [displayedEntries]
   );
 
   async function refreshLogs() {
@@ -108,7 +113,7 @@ export function DiagnosticsLogsScreen({ navigation }: Props) {
           <View style={styles.headerTitle}>
             <FileText color={colors.primary} size={20} />
             <AppText variant="label">
-              {t("logs.count", { count: entries.length })}
+              {t("logs.count", { count: displayedEntries.length })}
             </AppText>
           </View>
           <PrimaryButton
@@ -214,6 +219,10 @@ export function DiagnosticsLogsScreen({ navigation }: Props) {
       />
     </Screen>
   );
+}
+
+function isWarningOrErrorEntry(entry: AppLogEntry) {
+  return entry.level === "error" || entry.level === "warn";
 }
 
 function getLogBorderColor(

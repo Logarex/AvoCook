@@ -215,5 +215,61 @@ describe("recipe manual photo sync deletion", () => {
       expect(deleteWebDavFileSpy).not.toHaveBeenCalled(); // Image preserved!
       expect(deleteRecipeSpy).toHaveBeenCalledWith("recipe-123");
     });
+
+    it("ignores missing image fields when checking stale manual images", async () => {
+      const localRecipePayload = {
+        ...normalizeRecipe({
+          id: "recipe-123",
+          name: "Test Recipe",
+          image: "/AvoCook Images/photo-123.jpg"
+        }),
+        imageUrl: undefined,
+        imagePlaceholderUrl: undefined
+      };
+
+      mockDb.getAllAsync.mockImplementation(
+        async (query: string, ..._args: unknown[]) => {
+          if (query.includes("recipes WHERE id = ?")) {
+            return [
+              {
+                id: "recipe-123",
+                payload: JSON.stringify(localRecipePayload),
+                dirty: 0,
+                deleted: 0,
+                updated_at: "2026"
+              }
+            ];
+          }
+          if (query.includes("recipes WHERE deleted = 0")) {
+            return [];
+          }
+          return [];
+        }
+      );
+
+      const client = new CookbookClient({
+        serverUrl: "https://cloud.example.com",
+        username: "reedstrm",
+        appPassword: "app-password"
+      });
+
+      const malformedServerRecipe = {
+        ...localRecipePayload,
+        image: undefined
+      } as unknown as ReturnType<typeof normalizeRecipe>;
+
+      const deleteRecipeSpy = vi.spyOn(client, "deleteRecipe").mockResolvedValue("");
+      vi.spyOn(client, "getRecipe").mockResolvedValue(malformedServerRecipe);
+      const deleteWebDavFileSpy = vi
+        .spyOn(client, "deleteWebDavFile")
+        .mockResolvedValue(undefined);
+
+      await deleteRecipe("recipe-123", client);
+
+      expect(deleteWebDavFileSpy).toHaveBeenCalledWith(
+        "/AvoCook Images/photo-123.jpg"
+      );
+      expect(deleteRecipeSpy).toHaveBeenCalledWith("recipe-123");
+    });
   });
 });
