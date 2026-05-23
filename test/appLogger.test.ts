@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   formatLogEntry,
   getLogMode,
@@ -24,6 +24,14 @@ vi.mock("@react-native-async-storage/async-storage", () => ({
     })
   }
 }));
+
+beforeEach(async () => {
+  for (const key of Object.keys(mockStorage)) {
+    delete mockStorage[key];
+  }
+  await clearLogEntries();
+  await setLogMode("errors");
+});
 
 describe("appLogger diagnostics anonymization", () => {
   it("redacts Nextcloud profile fields without mangling HTTP dates", () => {
@@ -80,8 +88,8 @@ describe("appLogger modes", () => {
 
   it("returns enabled log levels correctly based on mode", async () => {
     await setLogMode("errors");
-    expect(isLogLevelEnabled("debug")).toBe(false);
-    expect(isLogLevelEnabled("info")).toBe(false);
+    expect(isLogLevelEnabled("debug")).toBe(true);
+    expect(isLogLevelEnabled("info")).toBe(true);
     expect(isLogLevelEnabled("warn")).toBe(true);
     expect(isLogLevelEnabled("error")).toBe(true);
 
@@ -92,14 +100,12 @@ describe("appLogger modes", () => {
     expect(isLogLevelEnabled("error")).toBe(true);
   });
 
-  it("prioritizes error and warning logs when pruning in detailed mode", async () => {
+  it("keeps warning/error logs when detailed logs overflow", async () => {
     await setLogMode("all");
     await clearLogEntries();
 
-    // Log an error first
     logError("app", "Initial Error");
 
-    // Log 60 info logs
     for (let i = 0; i < 60; i++) {
       logInfo("app", `Info ${i}`);
     }
@@ -108,16 +114,52 @@ describe("appLogger modes", () => {
     await setLogMode("all");
 
     const entries = await loadLogEntries();
-    
-    // Total entries should be capped at 50
-    expect(entries.length).toBe(50);
-    
-    // The "Initial Error" should still be present in the entries
+
+    // The one warning/error entry keeps its own quota, and detailed entries
+    // are capped independently.
+    expect(entries.length).toBe(26);
+
     const hasError = entries.some((e) => e.message === "Initial Error");
     expect(hasError).toBe(true);
-    
-    // And some info logs must have been pruned (e.g. Info 0 should be pruned because we prioritized the error)
+
     const hasInfo0 = entries.some((e) => e.message === "Info 0");
     expect(hasInfo0).toBe(false);
+  });
+
+  it("stores detailed logs even when detailed mode is disabled", async () => {
+    await setLogMode("errors");
+
+    logInfo("app", "Background info");
+
+    // Flush the writeQueue by setting the mode.
+    await setLogMode("errors");
+
+    const entries = await loadLogEntries();
+    expect(entries).toHaveLength(1);
+    expect(entries[0]?.message).toBe("Background info");
+  });
+
+  it("caps warning/error and detailed logs independently", async () => {
+    await clearLogEntries();
+
+    for (let i = 0; i < 30; i++) {
+      logError("app", `Error ${i}`);
+      logInfo("app", `Info ${i}`);
+    }
+
+    // Flush the writeQueue by setting the mode.
+    await setLogMode("all");
+
+    const entries = await loadLogEntries();
+    const errorEntries = entries.filter((entry) => entry.level === "error");
+    const infoEntries = entries.filter((entry) => entry.level === "info");
+
+    expect(entries).toHaveLength(50);
+    expect(errorEntries).toHaveLength(25);
+    expect(infoEntries).toHaveLength(25);
+    expect(entries.some((entry) => entry.message === "Error 0")).toBe(false);
+    expect(entries.some((entry) => entry.message === "Info 0")).toBe(false);
+    expect(entries.some((entry) => entry.message === "Error 29")).toBe(true);
+    expect(entries.some((entry) => entry.message === "Info 29")).toBe(true);
   });
 });

@@ -20,7 +20,8 @@ export type AppLogEntry = {
 };
 
 const LOG_STORAGE_KEY = "diagnostics.appLogs.v1";
-const MAX_LOG_ENTRIES = 50;
+const MAX_WARNING_ERROR_LOG_ENTRIES = 25;
+const MAX_DETAILED_LOG_ENTRIES = 25;
 const MAX_CONTEXT_STRING_LENGTH = 5000;
 const SECRET_KEY_PATTERN =
   /authorization|appPassword|password|passwd|token|cookie|secret|session/i;
@@ -104,55 +105,37 @@ export async function getLogMode(): Promise<AppLogMode> {
 export async function setLogMode(mode: AppLogMode) {
   cachedLogMode = mode;
   await AsyncStorage.setItem(LOG_MODE_KEY, mode);
-  await pruneLogs(mode);
+  await pruneLogs();
 }
 
 export function isLogLevelEnabled(level: AppLogLevel): boolean {
-  const mode = cachedLogMode ?? "errors";
-  if (mode === "errors") {
-    return level === "error" || level === "warn";
-  }
-  return true;
+  return Boolean(level);
 }
 
 function pruneLogEntries(entries: AppLogEntry[]): AppLogEntry[] {
-  if (entries.length <= MAX_LOG_ENTRIES) {
-    return entries;
-  }
-
-  const errorOrWarnEntries = entries.filter(
-    (e) => e.level === "error" || e.level === "warn"
+  const warningErrorEntries = entries.filter(isWarningOrErrorLogEntry);
+  const detailedEntries = entries.filter(
+    (entry) => !isWarningOrErrorLogEntry(entry)
   );
 
-  if (errorOrWarnEntries.length >= MAX_LOG_ENTRIES) {
-    return errorOrWarnEntries.slice(-MAX_LOG_ENTRIES);
-  }
-
-  const allowedNonErrorCount = MAX_LOG_ENTRIES - errorOrWarnEntries.length;
-  const debugOrInfoEntries = entries.filter(
-    (e) => e.level !== "error" && e.level !== "warn"
-  );
-  const debugOrInfoToKeep = new Set(
-    debugOrInfoEntries.slice(-allowedNonErrorCount)
+  const entriesToKeep = new Set(
+    [
+      ...warningErrorEntries.slice(-MAX_WARNING_ERROR_LOG_ENTRIES),
+      ...detailedEntries.slice(-MAX_DETAILED_LOG_ENTRIES)
+    ].map((entry) => entry.id)
   );
 
-  return entries.filter(
-    (e) =>
-      e.level === "error" ||
-      e.level === "warn" ||
-      debugOrInfoToKeep.has(e)
-  );
+  return entries.filter((entry) => entriesToKeep.has(entry.id));
 }
 
-async function pruneLogs(mode: AppLogMode) {
+function isWarningOrErrorLogEntry(entry: AppLogEntry) {
+  return entry.level === "error" || entry.level === "warn";
+}
+
+async function pruneLogs() {
   writeQueue = writeQueue
     .then(async () => {
       let entries = await ensureEntries();
-      if (mode === "errors") {
-        entries = entries.filter(
-          (e) => e.level === "error" || e.level === "warn"
-        );
-      }
       entries = pruneLogEntries(entries);
       cachedEntries = entries;
       await AsyncStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(entries));
@@ -267,10 +250,6 @@ function appendAppLog(
   message: string,
   context?: unknown
 ) {
-  if (!isLogLevelEnabled(level)) {
-    return;
-  }
-
   const entry: AppLogEntry = {
     id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
     timestamp: new Date().toISOString(),
@@ -282,11 +261,6 @@ function appendAppLog(
 
   writeQueue = writeQueue
     .then(async () => {
-      const mode = await getLogMode();
-      if (mode === "errors" && level !== "error" && level !== "warn") {
-        return;
-      }
-
       let entries = await ensureEntries();
       entries.push(entry);
       entries = pruneLogEntries(entries);
@@ -307,12 +281,6 @@ async function ensureEntries() {
     const parsed = stored ? JSON.parse(stored) : [];
     let entries = Array.isArray(parsed) ? parsed.filter(isLogEntry) : [];
 
-    const mode = await getLogMode();
-    if (mode === "errors") {
-      entries = entries.filter(
-        (e) => e.level === "error" || e.level === "warn"
-      );
-    }
     entries = pruneLogEntries(entries);
     cachedEntries = entries;
   } catch {
