@@ -1,6 +1,22 @@
 import { Platform } from "react-native";
 
 type ExpoNotificationsModule = typeof import("expo-notifications");
+type AndroidTimerNotificationsModule = {
+  cancelAsync: (notificationId: string) => Promise<void>;
+  configureAsync: () => Promise<boolean>;
+  dismissAsync: (notificationId: string) => Promise<void>;
+  getPermissionStateAsync: () => Promise<TimerNotificationState>;
+  requestPermissionAsync: () => Promise<TimerNotificationState>;
+  scheduleAsync: (
+    notificationId: string,
+    title: string,
+    body: string,
+    triggerAtMillis: number,
+    channelId: string,
+    recipeId: string,
+    timerId: string
+  ) => Promise<string>;
+};
 type TimerStopEvent = {
   notificationId: string;
   recipeId: string;
@@ -18,6 +34,26 @@ const TIMER_NOTIFICATION_CHANNEL = "recipe-timers";
 
 let configured = false;
 let notificationsPromise: Promise<ExpoNotificationsModule | null> | null = null;
+let androidNotificationsPromise: Promise<AndroidTimerNotificationsModule | null> | null =
+  null;
+
+async function getAndroidNotifications() {
+  if (Platform.OS !== "android") {
+    return null;
+  }
+
+  if (!androidNotificationsPromise) {
+    androidNotificationsPromise = import("expo-modules-core")
+      .then(({ requireNativeModule }) =>
+        requireNativeModule<AndroidTimerNotificationsModule>(
+          "AvoCookTimerNotifications"
+        )
+      )
+      .catch(() => null);
+  }
+
+  return androidNotificationsPromise;
+}
 
 async function getNotifications() {
   if (!notificationsPromise) {
@@ -28,6 +64,23 @@ async function getNotifications() {
 }
 
 export async function configureTimerNotifications() {
+  if (Platform.OS === "android") {
+    const notifications = await getAndroidNotifications();
+    if (!notifications || configured) {
+      return Boolean(notifications);
+    }
+
+    try {
+      await notifications.configureAsync();
+    } catch {
+      androidNotificationsPromise = Promise.resolve(null);
+      return false;
+    }
+
+    configured = true;
+    return true;
+  }
+
   const notifications = await getNotifications();
   if (!notifications || configured) {
     return Boolean(notifications);
@@ -56,18 +109,6 @@ export async function configureTimerNotifications() {
       ]
     );
 
-    if (Platform.OS === "android") {
-      await notifications.setNotificationChannelAsync(
-        TIMER_NOTIFICATION_CHANNEL,
-        {
-          name: "Minuteurs",
-          importance: notifications.AndroidImportance.MAX,
-          sound: "default",
-          vibrationPattern: [0, 500, 250, 500],
-          enableVibrate: true
-        }
-      );
-    }
   } catch {
     notificationsPromise = Promise.resolve(null);
     return false;
@@ -78,6 +119,20 @@ export async function configureTimerNotifications() {
 }
 
 export async function requestTimerNotificationPermission(): Promise<TimerNotificationState> {
+  if (Platform.OS === "android") {
+    const notifications = await getAndroidNotifications();
+    if (!notifications || !(await configureTimerNotifications())) {
+      return "unavailable";
+    }
+
+    try {
+      return await notifications.requestPermissionAsync();
+    } catch {
+      androidNotificationsPromise = Promise.resolve(null);
+      return "unavailable";
+    }
+  }
+
   const notifications = await getNotifications();
   if (!notifications || !(await configureTimerNotifications())) {
     return "unavailable";
@@ -105,6 +160,20 @@ export async function requestTimerNotificationPermission(): Promise<TimerNotific
 }
 
 export async function getTimerNotificationState(): Promise<TimerNotificationState> {
+  if (Platform.OS === "android") {
+    const notifications = await getAndroidNotifications();
+    if (!notifications || !(await configureTimerNotifications())) {
+      return "unavailable";
+    }
+
+    try {
+      return await notifications.getPermissionStateAsync();
+    } catch {
+      androidNotificationsPromise = Promise.resolve(null);
+      return "unavailable";
+    }
+  }
+
   const notifications = await getNotifications();
   if (!notifications || !(await configureTimerNotifications())) {
     return "unavailable";
@@ -132,6 +201,31 @@ export async function scheduleTimerNotification({
   timerId: string;
   title: string;
 }): Promise<{ notificationId: string | null; state: TimerNotificationState }> {
+  if (Platform.OS === "android") {
+    const notifications = await getAndroidNotifications();
+    const state = await requestTimerNotificationPermission();
+    if (!notifications || state !== "ready") {
+      return { notificationId: null, state };
+    }
+
+    try {
+      const notificationId = `timer-${recipeId}-${timerId}-${Date.now()}`;
+      await notifications.scheduleAsync(
+        notificationId,
+        title,
+        body,
+        Date.now() + Math.max(1, seconds) * 1000,
+        TIMER_NOTIFICATION_CHANNEL,
+        recipeId,
+        timerId
+      );
+      return { notificationId, state };
+    } catch {
+      androidNotificationsPromise = Promise.resolve(null);
+      return { notificationId: null, state: "unavailable" as const };
+    }
+  }
+
   const notifications = await getNotifications();
   const state = await requestTimerNotificationPermission();
   if (!notifications || state !== "ready") {
@@ -170,6 +264,17 @@ export async function cancelTimerNotification(notificationId?: string | null) {
     return;
   }
 
+  if (Platform.OS === "android") {
+    const notifications = await getAndroidNotifications();
+    if (!notifications) {
+      return;
+    }
+
+    await notifications.cancelAsync(notificationId).catch(() => undefined);
+    await notifications.dismissAsync(notificationId).catch(() => undefined);
+    return;
+  }
+
   const notifications = await getNotifications();
   if (!notifications) {
     return;
@@ -186,6 +291,10 @@ export async function cancelTimerNotification(notificationId?: string | null) {
 export async function addTimerStopListener(
   onStop: (event: TimerStopEvent) => void
 ): Promise<TimerNotificationSubscription | null> {
+  if (Platform.OS === "android") {
+    return null;
+  }
+
   const notifications = await getNotifications();
   if (!notifications) {
     return null;
