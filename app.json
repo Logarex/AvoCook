@@ -97,6 +97,7 @@
           "microphonePermission": false
         }
       ],
+      "./plugins/withAndroidFossCompatibility",
       "./plugins/withAndroidNetworkSecurity",
       "./plugins/withAndroidSplitsAndOptimizations",
       "expo-font"

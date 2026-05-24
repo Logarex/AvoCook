@@ -1,0 +1,6 @@
+{
+  "platforms": ["android"],
+  "android": {
+    "modules": ["app.avocook.timers.AvoCookTimerNotificationsModule"]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "avocook-timer-notifications",
+  "version": "1.0.0",
+  "private": true,
+  "expo-module": "expo-module.config.json"
+}
