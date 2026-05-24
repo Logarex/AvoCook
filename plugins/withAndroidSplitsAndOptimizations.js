@@ -21,6 +21,18 @@ function withAndroidSplitsAndOptimizations(config) {
   config = withAppBuildGradle(config, (nextConfig) => {
     let buildGradle = nextConfig.modResults.contents;
 
+    if (!buildGradle.includes("dependenciesInfo {")) {
+      buildGradle = buildGradle.replace(
+        "android {",
+        `android {
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+`
+      );
+    }
+
     if (!buildGradle.includes("splits {")) {
       const targetString = "buildTypes {";
       
