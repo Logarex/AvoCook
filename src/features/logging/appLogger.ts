@@ -109,7 +109,10 @@ export async function setLogMode(mode: AppLogMode) {
 }
 
 export function isLogLevelEnabled(level: AppLogLevel): boolean {
-  return Boolean(level);
+  if (level === "error" || level === "warn") {
+    return true;
+  }
+  return cachedLogMode === "all";
 }
 
 function pruneLogEntries(entries: AppLogEntry[]): AppLogEntry[] {
