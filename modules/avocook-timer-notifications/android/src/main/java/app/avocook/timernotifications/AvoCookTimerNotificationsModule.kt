@@ -3,6 +3,7 @@ package app.avocook.timernotifications
 import android.Manifest
 import android.content.Context
 import android.os.Build
+import android.util.Log
 import expo.modules.interfaces.permissions.PermissionsResponseListener
 import expo.modules.interfaces.permissions.PermissionsStatus
 import expo.modules.kotlin.Promise
@@ -12,6 +13,10 @@ import expo.modules.kotlin.modules.Module
 import expo.modules.kotlin.modules.ModuleDefinition
 
 class AvoCookTimerNotificationsModule : Module() {
+  private companion object {
+    private const val TAG = "AvoCookTimers"
+  }
+
   private val context: Context
     get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
 
@@ -74,7 +79,9 @@ class AvoCookTimerNotificationsModule : Module() {
     }
 
     val permissions = appContext.permissions ?: run {
-      promise.resolve("unavailable")
+      Log.w(TAG, "Expo permissions service is unavailable.")
+      TimerNotificationScheduler.requestExactAlarmSettingsIfNeeded(context)
+      promise.resolve(TimerNotificationScheduler.getState(context))
       return
     }
 

@@ -36,10 +36,17 @@ let configured = false;
 
 function getTimerNotificationsModule() {
   try {
-    return requireOptionalNativeModule<NativeTimerNotificationsModule>(
+    const notifications = requireOptionalNativeModule<NativeTimerNotificationsModule>(
       "AvoCookTimerNotifications"
     );
-  } catch {
+
+    if (!notifications) {
+      console.warn("[AvoCookTimers] Native timer notifications module is unavailable.");
+    }
+
+    return notifications;
+  } catch (error) {
+    console.warn("[AvoCookTimers] Native timer notifications lookup failed.", error);
     return null;
   }
 }
@@ -59,7 +66,8 @@ export async function configureTimerNotifications() {
       t("recipes.timers.stopAction"),
       t("recipes.timers.title")
     );
-  } catch {
+  } catch (error) {
+    console.warn("[AvoCookTimers] Timer notification configuration failed.", error);
     return false;
   }
 
@@ -75,7 +83,8 @@ export async function requestTimerNotificationPermission(): Promise<TimerNotific
 
   try {
     return await notifications.requestTimerNotificationPermission();
-  } catch {
+  } catch (error) {
+    console.warn("[AvoCookTimers] Timer notification permission request failed.", error);
     return "unavailable";
   }
 }
@@ -88,7 +97,8 @@ export async function getTimerNotificationState(): Promise<TimerNotificationStat
 
   try {
     return await notifications.getTimerNotificationState();
-  } catch {
+  } catch (error) {
+    console.warn("[AvoCookTimers] Timer notification state lookup failed.", error);
     return "unavailable";
   }
 }
@@ -121,7 +131,8 @@ export async function scheduleTimerNotification({
       Math.max(1, seconds)
     );
     return { notificationId, state };
-  } catch {
+  } catch (error) {
+    console.warn("[AvoCookTimers] Timer notification scheduling failed.", error);
     return { notificationId: null, state: "unavailable" as const };
   }
 }

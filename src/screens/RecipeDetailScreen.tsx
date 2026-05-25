@@ -413,7 +413,13 @@ function RecipeDetailContent({
           nextNotificationStatus === "unavailable"
             ? "recipes.timers.notificationsUnavailableBody"
             : "recipes.timers.notificationsRequiredBody"
-        )
+        ),
+        nextNotificationStatus === "denied"
+          ? [
+              { text: t("common.cancel"), style: "cancel" },
+              { text: t("common.settings"), onPress: () => void Linking.openSettings() }
+            ]
+          : undefined
       );
     }
   }
