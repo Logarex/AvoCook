@@ -170,6 +170,7 @@ export const resources = {
           pause: "Mettre en pause",
           reset: "Réinitialiser",
           stop: "Arrêter",
+          stopAction: "Arrêter",
           done: "Terminé",
           notificationTitle: "{{timer}} terminé",
           notificationHint:
@@ -180,9 +181,9 @@ export const resources = {
             "Notifications indisponibles dans ce runtime. Installez un vrai build pour utiliser les minuteurs.",
           notificationsRequiredTitle: "Notifications nécessaires",
           notificationsRequiredBody:
-            "Activez les notifications pour AvoCook dans les réglages du téléphone. Sans elles, le minuteur ne peut pas sonner quand l'iPhone est verrouillé.",
+            "Activez les notifications pour AvoCook dans les réglages du téléphone. Sans elles, le minuteur ne peut pas sonner quand le téléphone est verrouillé.",
           notificationsUnavailableBody:
-            "Ce build ne contient pas encore le module natif de notifications. Installez un vrai build iOS reconstruit pour utiliser les minuteurs."
+            "Ce build ne contient pas encore le module natif de notifications. Installez un vrai build natif reconstruit pour utiliser les minuteurs."
         },
         share: {
           print: "Imprimer la recette",
@@ -604,6 +605,7 @@ export const resources = {
           pause: "Pause",
           reset: "Reset",
           stop: "Stop",
+          stopAction: "Stop",
           done: "Done",
           notificationTitle: "{{timer}} done",
           notificationHint:
@@ -613,9 +615,9 @@ export const resources = {
             "Notifications are unavailable in this runtime. Install a real build to use timers.",
           notificationsRequiredTitle: "Notifications required",
           notificationsRequiredBody:
-            "Enable notifications for AvoCook in phone settings. Without them, the timer cannot ring when the iPhone is locked.",
+            "Enable notifications for AvoCook in phone settings. Without them, the timer cannot ring when the phone is locked.",
           notificationsUnavailableBody:
-            "This build does not include the native notifications module yet. Install a rebuilt real iOS build to use timers."
+            "This build does not include the native notifications module yet. Install a rebuilt native build to use timers."
         },
         share: {
           print: "Print recipe",
@@ -1032,6 +1034,7 @@ export const resources = {
           pause: "Pausieren",
           reset: "Zurücksetzen",
           stop: "Stoppen",
+          stopAction: "Stoppen",
           done: "Fertig",
           notificationTitle: "{{timer}} abgeschlossen",
           notificationHint:
@@ -1042,9 +1045,9 @@ export const resources = {
             "Benachrichtigungen in dieser Laufzeitumgebung nicht verfügbar. Installiere einen echten Build für Timer.",
           notificationsRequiredTitle: "Benachrichtigungen erforderlich",
           notificationsRequiredBody:
-            "Aktiviere Benachrichtigungen für AvoCook in den Telefoneinstellungen. Ohne sie kann der Timer nicht klingeln, wenn das iPhone gesperrt ist.",
+            "Aktiviere Benachrichtigungen für AvoCook in den Telefoneinstellungen. Ohne sie kann der Timer nicht klingeln, wenn das Telefon gesperrt ist.",
           notificationsUnavailableBody:
-            "Dieser Build enthält noch kein natives Benachrichtigungsmodul. Installiere einen neu erstellten iOS-Build für Timer."
+            "Dieser Build enthält noch kein natives Benachrichtigungsmodul. Installiere einen neu erstellten nativen Build für Timer."
         },
         share: {
           print: "Rezept drucken",
@@ -1460,7 +1463,8 @@ export const resources = {
           pause: "Pausar",
           reset: "Reiniciar",
           stop: "Detener",
-          done: "Listo",
+          stopAction: "Detener",
+          done: "Hecho",
           notificationTitle: "{{timer}} finalizado",
           notificationHint:
             "Los temporizadores suenan mediante notificaciones. Las notificaciones deben estar activadas.",
@@ -1469,9 +1473,9 @@ export const resources = {
             "Las notificaciones no están disponibles en este entorno. Instala una build real para usar temporizadores.",
           notificationsRequiredTitle: "Notificaciones necesarias",
           notificationsRequiredBody:
-            "Activa las notificaciones para AvoCook en los ajustes del teléfono. Sin ellas, el temporizador no puede sonar con el iPhone bloqueado.",
+            "Activa las notificaciones para AvoCook en los ajustes del teléfono. Sin ellas, el temporizador no puede sonar con el teléfono bloqueado.",
           notificationsUnavailableBody:
-            "Esta build aún no incluye el módulo nativo de notificaciones. Instala una build iOS real para usar temporizadores."
+            "Esta build aún no incluye el módulo nativo de notificaciones. Instala una build nativa real para usar temporizadores."
         },
         share: {
           print: "Imprimir receta",
@@ -1884,7 +1888,8 @@ export const resources = {
           pause: "Pausa",
           reset: "Reimposta",
           stop: "Ferma",
-          done: "Fatto",
+          stopAction: "Ferma",
+          done: "Completato",
           notificationTitle: "{{timer}} completato",
           notificationHint:
             "I timer suonano tramite notifiche. Le notifiche devono essere abilitate.",
@@ -1893,9 +1898,9 @@ export const resources = {
             "Le notifiche non sono disponibili in questo ambiente. Installa una build reale per usare i timer.",
           notificationsRequiredTitle: "Notifiche necessarie",
           notificationsRequiredBody:
-            "Abilita le notifiche per AvoCook nelle impostazioni del telefono. Senza di esse, il timer non può suonare con l'iPhone bloccato.",
+            "Abilita le notifiche per AvoCook nelle impostazioni del telefono. Senza di esse, il timer non può suonare con il telefono bloccato.",
           notificationsUnavailableBody:
-            "Questa build non include ancora il modulo nativo delle notifiche. Installa una build iOS reale per usare i timer."
+            "Questa build non include ancora il modulo nativo delle notifiche. Installa una build nativa reale per usare i timer."
         },
         share: {
           print: "Stampa ricetta",

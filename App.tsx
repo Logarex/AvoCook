@@ -31,8 +31,6 @@ import { AppThemeProvider, useAppTheme } from "./src/theme/ThemeProvider";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-installNetworkLogger();
-
 export default function App() {
   React.useEffect(() => {
     installNetworkLogger();

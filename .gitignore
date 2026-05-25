@@ -28,6 +28,8 @@ coverage/
 # Native
 /android/
 /ios/
+/modules/*/android/.gradle/
+/modules/*/android/build/
 
 # IDEs
 .idea/
