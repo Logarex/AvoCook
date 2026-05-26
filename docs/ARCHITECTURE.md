@@ -1,42 +1,40 @@
 # Architecture
 
-Ces notes servent surtout à retrouver rapidement où se trouve quoi dans le
-projet.
+These notes are mainly meant to help quickly find where things live in the
+project.
 
-## Dossiers principaux
+## Main folders
 
-- `src/screens` : écrans React Navigation.
-- `src/components` : composants visuels réutilisés dans l'app.
-- `src/features/auth` : connexion Nextcloud et stockage des identifiants.
-- `src/features/nextcloud` : appels HTTP vers l'API Cookbook.
-- `src/features/recipes` : modèle recette, SQLite, sauvegarde, partage et sync.
-- `src/features/import` : lecture des recettes depuis les pages web.
-- `src/features/shopping` : liste de courses.
-- `src/features/timers` : minuteurs et notifications.
-- `modules/avocook-timer-notifications` : module natif Expo pour les alarmes.
+- `src/screens`: React Navigation screens.
+- `src/components`: reusable UI components used across the app.
+- `src/features/auth`: Nextcloud login and credential storage.
+- `src/features/nextcloud`: HTTP calls to the Cookbook API.
+- `src/features/recipes`: recipe model, SQLite, backup, sharing, and sync.
+- `src/features/import`: reading recipes from web pages.
+- `src/features/shopping`: shopping list.
+- `src/features/timers`: timers and notifications.
+- `modules/avocook-timer-notifications`: native Expo module for alarms.
 
-## Données locales
+## Local data
 
-SQLite est la source locale. Le mode local utilise uniquement cette base.
+SQLite is the local source of truth. Local mode uses only this database.
 
-En mode Nextcloud, les recettes sont aussi gardées localement pour pouvoir les
-lire hors ligne. Les créations et modifications sont écrites localement avant
-d'être envoyées au serveur.
+In Nextcloud mode, recipes are also kept locally so they can be read offline.
+Creates and edits are written locally before being sent to the server.
 
 ## Synchronisation
 
-Au démarrage, l'app charge SQLite. Si un client Nextcloud est connecté, elle
-essaie ensuite de pousser les changements en attente puis de récupérer l'état du
-serveur Cookbook.
+On startup the app loads SQLite. If a Nextcloud client is connected, it then
+tries to push pending changes and fetch the current state from the Cookbook
+server.
 
-Quand une opération serveur échoue, elle reste dans `sync_queue` pour être
-retentée plus tard.
+When a server operation fails, it stays in `sync_queue` to be retried later.
 
-## Import web
+## Web import
 
-L'import commence par chercher un bloc JSON-LD `schema.org/Recipe` dans la page.
-S'il est trouvé, l'app en extrait le nom, les ingrédients, les étapes, les temps,
-les portions, l'image et quelques infos nutritionnelles.
+Import starts by looking for a `schema.org/Recipe` JSON-LD block in the page.
+If one is found, the app extracts the name, ingredients, steps, times, servings,
+image, and some nutritional information.
 
-Quand le parser local n'arrive pas à lire la page et qu'un compte Nextcloud est
-connecté, l'app tente l'import serveur de Cookbook.
+When the local parser cannot read the page and a Nextcloud account is connected,
+the app falls back to Cookbook's server-side import.

@@ -1,20 +1,20 @@
 # Release
 
-Checklist courte pour éviter les oublis avant de publier une version.
+Short checklist to avoid oversights before publishing a version.
 
-## Avant de builder
+## Before building
 
-- Mettre à jour la version dans `app.json`.
-- Vérifier que les icônes et le splash sont les bons.
-- Relire `PRIVACY.md` si une fonctionnalité réseau ou stockage a changé.
-- Tester le mode local sans compte.
-- Tester une connexion Nextcloud avec un mot de passe d'application.
-- Tester l'import d'une recette depuis au moins Marmiton, 750g ou BBC Good Food.
-- Tester une création, une édition et une suppression en mode avion.
-- Tester les minuteurs sur un vrai téléphone.
-- Vérifier clair/sombre et au moins français/anglais.
+- Update the version in `app.json`.
+- Check that icons and splash screen are correct.
+- Re-read `PRIVACY.md` if a network or storage feature has changed.
+- Test local mode without an account.
+- Test a Nextcloud connection with an app password.
+- Test recipe import from at least Marmiton, 750g, or BBC Good Food.
+- Test creating, editing, and deleting a recipe in airplane mode.
+- Test timers on a real device.
+- Check light/dark mode and at least French/English.
 
-## Vérifications locales
+## Local checks
 
 ```bash
 npm run typecheck
@@ -22,13 +22,13 @@ npm test
 npm run lint
 ```
 
-Pour un import précis :
+For a precise import check:
 
 ```bash
 npm run import:check -- <url>
 ```
 
-## Builds EAS
+## EAS builds
 
 ```bash
 npx eas build --platform ios --profile preview
@@ -38,25 +38,25 @@ npx eas build --platform all --profile production
 
 ## iOS
 
-L'app est configurée pour iPhone et iPad. Elle n'utilise pas de push distant,
-pas de localisation et pas de Bluetooth.
+The app is configured for iPhone and iPad. It does not use remote push
+notifications, location services, or Bluetooth.
 
-La permission réseau local sert uniquement aux serveurs Nextcloud sur le même
-réseau, ou au client Expo pendant le développement.
+The local network permission is used only for Nextcloud servers on the same
+network, or for the Expo client during development.
 
 ## Android
 
-La config Android principale est dans `app.json`.
+The main Android configuration is in `app.json`.
 
-Pour le détail des APK GitHub, IzzyOnDroid et F-Droid, voir
+For details on the GitHub APK, IzzyOnDroid, and F-Droid, see
 [`ANDROID_DISTRIBUTION.md`](ANDROID_DISTRIBUTION.md).
 
-## Soumission
+## Submission
 
 ```bash
 npx eas submit --platform ios
 npx eas submit --platform android
 ```
 
-AvoCook est un client indépendant compatible avec Nextcloud Cookbook. Il ne doit
-pas être présenté comme une application officielle Nextcloud.
+AvoCook is an independent client compatible with Nextcloud Cookbook. It must not
+be presented as an official Nextcloud application.

@@ -1,31 +1,32 @@
-# Sécurité
+# Security
 
-Notes rapides sur les choix actuels.
+Quick notes on current design decisions.
 
-## Identifiants
+## Credentials
 
-Les mots de passe d'application Nextcloud sont stockés avec Expo SecureStore.
-Ils ne sont pas écrits dans SQLite.
+Nextcloud app passwords are stored with Expo SecureStore. They are never written
+to SQLite.
 
-Les logs ne doivent jamais afficher l'en-tête `Authorization`.
+Logs must never display the `Authorization` header.
 
-## Réseau
+## Network
 
-Les serveurs distants doivent utiliser HTTPS. HTTP est accepté uniquement pour
-`localhost`, `127.0.0.1` et `::1` pendant le développement.
+Remote servers must use HTTPS. HTTP is accepted only for `localhost`,
+`127.0.0.1`, and `::1` during development.
 
-L'app utilise Basic Auth avec l'identifiant Nextcloud et le mot de passe
-d'application. Elle ne gère pas de session web Nextcloud.
+The app uses Basic Auth with the Nextcloud username and app password. It does
+not manage a Nextcloud web session.
 
-## Import web
+## Web import
 
-L'import lit seulement les métadonnées de recette disponibles dans la page. Il
-ne contourne pas les paywalls et ne cherche pas à imiter un navigateur complet.
+Import only reads recipe metadata available in the page. It does not bypass
+paywalls or attempt to emulate a full browser.
 
-## Stockage local
+## Local storage
 
-SQLite contient les recettes en clair dans le stockage de l'application. C'est
-acceptable pour l'objectif actuel du projet, mais ce n'est pas un coffre chiffré.
+SQLite stores recipes in plain text within the application's storage. This is
+acceptable for the current scope of the project, but it is not an encrypted
+vault.
 
-Pour un besoin plus sensible, il faudrait ajouter un chiffrement natif de la
-base ou limiter davantage la copie locale des recettes synchronisées.
+For more sensitive use cases, native database encryption or tighter restrictions
+on the local copy of synced recipes would be needed.
