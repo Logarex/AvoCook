@@ -88,8 +88,8 @@ describe("appLogger modes", () => {
 
   it("returns enabled log levels correctly based on mode", async () => {
     await setLogMode("errors");
-    expect(isLogLevelEnabled("debug")).toBe(true);
-    expect(isLogLevelEnabled("info")).toBe(true);
+    expect(isLogLevelEnabled("debug")).toBe(false);
+    expect(isLogLevelEnabled("info")).toBe(false);
     expect(isLogLevelEnabled("warn")).toBe(true);
     expect(isLogLevelEnabled("error")).toBe(true);
 
