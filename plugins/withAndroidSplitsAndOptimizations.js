@@ -1,7 +1,6 @@
 const { withAppBuildGradle, withGradleProperties } = require("@expo/config-plugins");
 
 function withAndroidSplitsAndOptimizations(config) {
-  // 1. Activer la minification Proguard/R8 et le shrink de ressources dans gradle.properties
   config = withGradleProperties(config, (nextConfig) => {
     const setProperty = (key, value) => {
       const existingIdx = nextConfig.modResults.findIndex(p => p.key === key);
@@ -17,13 +16,11 @@ function withAndroidSplitsAndOptimizations(config) {
     return nextConfig;
   });
 
-  // 2. Activer la séparation des APKs (splits) et ajuster les codes de version
   config = withAppBuildGradle(config, (nextConfig) => {
     let buildGradle = nextConfig.modResults.contents;
 
+    // Per-ABI splits so IzzyOnDroid can distribute a smaller arm64-only APK
     if (!buildGradle.includes("splits {")) {
-      const targetString = "buildTypes {";
-      
       const splitsConfig = `
     splits {
         abi {
@@ -38,7 +35,6 @@ function withAndroidSplitsAndOptimizations(config) {
         variant.outputs.each { output ->
             def abi = output.getFilter(com.android.build.OutputFile.ABI)
             if (abi != null) {
-                // Version code unique par architecture pour éviter les conflits d'installation
                 def versionCodes = ["armeabi-v7a": 1, "arm64-v8a": 2, "x86_64": 3]
                 output.versionCodeOverride = versionCodes.get(abi) * 1048576 + defaultConfig.versionCode
             }
@@ -46,8 +42,44 @@ function withAndroidSplitsAndOptimizations(config) {
     }
 
     `;
+      buildGradle = buildGradle.replace("buildTypes {", splitsConfig + "buildTypes {");
+    }
 
-      buildGradle = buildGradle.replace(targetString, splitsConfig + targetString);
+    // Required by IzzyOnDroid/F-Droid: removes the Google-encrypted dependency metadata blob
+    if (!buildGradle.includes("dependenciesInfo {")) {
+      const androidBlockMatch = buildGradle.match(/android\s*\{/);
+      if (androidBlockMatch) {
+        const insertPos = androidBlockMatch.index + androidBlockMatch[0].length;
+        buildGradle =
+          buildGradle.slice(0, insertPos) +
+          `
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
+    }
+` +
+          buildGradle.slice(insertPos);
+      }
+    }
+
+    // Guard IzzyOnDroid/F-Droid builds against accidental Firebase/GMS reintroduction.
+    if (!buildGradle.includes("configurations.all")) {
+      const dependenciesMatch = buildGradle.match(/dependencies\s*\{/);
+      if (dependenciesMatch) {
+        const insertPos = dependenciesMatch.index;
+        buildGradle =
+          buildGradle.slice(0, insertPos) +
+          `configurations.all {
+    exclude group: "com.google.firebase"
+    exclude group: "com.google.android.gms", module: "play-services-base"
+    exclude group: "com.google.android.gms", module: "play-services-basement"
+    exclude group: "com.google.android.gms", module: "play-services-tasks"
+    exclude group: "com.google.android.gms", module: "play-services-stats"
+}
+
+` +
+          buildGradle.slice(insertPos);
+      }
     }
 
     nextConfig.modResults.contents = buildGradle;

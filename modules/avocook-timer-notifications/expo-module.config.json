@@ -1,0 +1,19 @@
+{
+  "platforms": [
+    "apple",
+    "android"
+  ],
+  "apple": {
+    "modules": [
+      "AvoCookTimerNotificationsModule"
+    ],
+    "appDelegateSubscribers": [
+      "AvoCookTimerNotificationsAppDelegateSubscriber"
+    ]
+  },
+  "android": {
+    "modules": [
+      "app.avocook.timernotifications.AvoCookTimerNotificationsModule"
+    ]
+  }
+}
