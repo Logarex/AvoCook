@@ -1,4 +1,4 @@
-const { withAppBuildGradle, withGradleProperties } = require("@expo/config-plugins");
+const { withAndroidManifest, withAppBuildGradle, withGradleProperties } = require("@expo/config-plugins");
 
 function withAndroidSplitsAndOptimizations(config) {
   config = withGradleProperties(config, (nextConfig) => {
@@ -83,6 +83,34 @@ function withAndroidSplitsAndOptimizations(config) {
     }
 
     nextConfig.modResults.contents = buildGradle;
+    return nextConfig;
+  });
+
+  config = withAndroidManifest(config, (nextConfig) => {
+    const manifest = nextConfig.modResults.manifest;
+    const application = manifest.application?.[0];
+    if (!application) {
+      return nextConfig;
+    }
+
+    const services = application.service ?? [];
+    const alreadyRemoved = services.some(service =>
+      service.$?.["android:name"] === "com.google.android.gms.metadata.ModuleDependencies" &&
+      service.$?.["tools:node"] === "remove"
+    );
+
+    if (!alreadyRemoved) {
+      application.service = [
+        {
+          $: {
+            "android:name": "com.google.android.gms.metadata.ModuleDependencies",
+            "tools:node": "remove",
+          },
+        },
+        ...services,
+      ];
+    }
+
     return nextConfig;
   });
 

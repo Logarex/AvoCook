@@ -87,8 +87,36 @@ After creating the issue:
 
 1. Watch for maintainer questions.
 2. If they ask for a smaller APK, produce an `arm64-v8a` APK and attach it to the same GitHub Release.
-3. If they ask about permissions, explain that the app uses local storage, local notifications, network access for Nextcloud/GitHub, and optional photo access for recipe images.
+3. If they ask about permissions, use the scanner output from the release APK. The release build should not request `READ_EXTERNAL_STORAGE` or `SYSTEM_ALERT_WINDOW`; they are explicitly blocked. Current expected release permissions are network access for Nextcloud, recipe import and update checks; notification, vibration and exact alarm permissions for cooking timers; and biometric/fingerprint permissions from SecureStore-backed credential protection.
 4. For future updates, keep publishing GitHub Releases with APK assets and increasing version tags.
+
+## IzzyOnDroid follow-up notes
+
+If IzzyOnDroid asks about the previous scanner findings, answer with the exact APK you rebuilt and scanned.
+
+```text
+I rebuilt the APK after removing the previously reported issues.
+
+- READ_EXTERNAL_STORAGE and SYSTEM_ALERT_WINDOW are blocked in app.json and removed from the release manifest.
+- Firebase and Firebase Installations are not direct dependencies and are excluded from the Android release Gradle configuration.
+- Google Play Services base/basement/tasks/stats are excluded from the Android release Gradle configuration.
+- Android dependency metadata is disabled with dependenciesInfo.includeInApk=false and includeInBundle=false.
+- Per-ABI APKs are produced; the arm64-v8a APK is the intended IzzyOnDroid artifact.
+
+The remaining Android permissions are used as follows:
+- INTERNET: optional Nextcloud synchronization, public recipe import, and GitHub release update checks.
+- ACCESS_NETWORK_STATE: network-aware image/request handling from Android libraries.
+- POST_NOTIFICATIONS, SCHEDULE_EXACT_ALARM and VIBRATE: local cooking timers.
+- USE_BIOMETRIC and USE_FINGERPRINT: Expo SecureStore credential protection.
+```
+
+If they ask how LLMs were used, keep the answer concrete and limited to development-time assistance:
+
+```text
+LLMs were used only as development assistants, not as runtime app functionality.
+
+They helped draft and revise React Native / Expo boilerplate and routine project code: screen/component scaffolding, TypeScript typing, navigation wiring, test drafts, documentation wording, and Android release configuration suggestions. The generated changes were reviewed, edited, tested and committed by the human maintainer. The app does not include an LLM model, does not call any LLM API, and does not send user data to an AI service.
+```
 
 ## Official F-Droid request
 
