@@ -1,71 +1,42 @@
 # Architecture
 
-[Français](#français) | [English](#english)
+Ces notes servent surtout à retrouver rapidement où se trouve quoi dans le
+projet.
 
----
+## Dossiers principaux
 
-## Français
+- `src/screens` : écrans React Navigation.
+- `src/components` : composants visuels réutilisés dans l'app.
+- `src/features/auth` : connexion Nextcloud et stockage des identifiants.
+- `src/features/nextcloud` : appels HTTP vers l'API Cookbook.
+- `src/features/recipes` : modèle recette, SQLite, sauvegarde, partage et sync.
+- `src/features/import` : lecture des recettes depuis les pages web.
+- `src/features/shopping` : liste de courses.
+- `src/features/timers` : minuteurs et notifications.
+- `modules/avocook-timer-notifications` : module natif Expo pour les alarmes.
 
-### Couches principales
+## Données locales
 
-- `src/screens`: écrans de navigation, sans logique serveur lourde.
-- `src/components`: design system mobile réutilisable.
-- `src/features/auth`: connexion Nextcloud et stockage sécurisé.
-- `src/features/nextcloud`: client HTTP Cookbook.
-- `src/features/recipes`: modèle recette, repository offline-first, SQLite et provider React.
-- `src/features/import`: import schema.org Recipe depuis URL.
-- `src/features/preferences`: langue, thème et option anti-verrouillage.
+SQLite est la source locale. Le mode local utilise uniquement cette base.
 
-### Flux de synchronisation
+En mode Nextcloud, les recettes sont aussi gardées localement pour pouvoir les
+lire hors ligne. Les créations et modifications sont écrites localement avant
+d'être envoyées au serveur.
 
-1. L'utilisateur se connecte avec une URL Nextcloud, un identifiant et un app password, ou choisit le mode local.
-2. L'app valide l'app password avec `/ocs/v2.php/cloud/user?format=json`.
-3. L'app teste ensuite `/ocs/v2.php/cloud/capabilities?format=json`.
-4. Au démarrage, les recettes locales sont lues depuis SQLite.
-5. Si le serveur est disponible, la file `sync_queue` est poussée.
-6. L'app récupère la liste Cookbook puis les détails de chaque recette.
-7. Les recettes sont sauvegardées localement selon l'option de copie locale.
+## Synchronisation
 
-### Offline-first
+Au démarrage, l'app charge SQLite. Si un client Nextcloud est connecté, elle
+essaie ensuite de pousser les changements en attente puis de récupérer l'état du
+serveur Cookbook.
 
-Les créations et modifications sont sauvegardées immédiatement en local. Si l'appel serveur échoue, une opération est ajoutée à `sync_queue`. La prochaine synchronisation rejoue la file dans l'ordre.
+Quand une opération serveur échoue, elle reste dans `sync_queue` pour être
+retentée plus tard.
 
-### Import
+## Import web
 
-L'import parse d'abord les blocs JSON-LD `application/ld+json` côté mobile, cherche un objet `@type: Recipe`, puis normalise les ingrédients, étapes, temps, portions, image et nutrition. Cette étape permet de détecter les doublons avant toute création. Si le parser mobile échoue en mode connecté, l'app utilise `POST /apps/cookbook/api/v1/import`, puis réconcilie la recette créée avec les recettes existantes.
+L'import commence par chercher un bloc JSON-LD `schema.org/Recipe` dans la page.
+S'il est trouvé, l'app en extrait le nom, les ingrédients, les étapes, les temps,
+les portions, l'image et quelques infos nutritionnelles.
 
-Les images importées depuis des sites peuvent être copiées dans le stockage de l'app pour rester disponibles hors ligne.
-
----
-
-## English
-
-### Main Layers
-
-- `src/screens`: navigation screens, without heavy server logic.
-- `src/components`: reusable mobile design system.
-- `src/features/auth`: Nextcloud connection and secure storage.
-- `src/features/nextcloud`: Cookbook HTTP client.
-- `src/features/recipes`: recipe model, offline-first repository, SQLite, and React provider.
-- `src/features/import`: schema.org Recipe import from URL.
-- `src/features/preferences`: language, theme, and anti-lock option.
-
-### Sync Flow
-
-1. User logs in with a Nextcloud URL, username, and app password, or chooses local mode.
-2. The app validates the app password with `/ocs/v2.php/cloud/user?format=json`.
-3. The app then tests `/ocs/v2.php/cloud/capabilities?format=json`.
-4. On startup, local recipes are read from SQLite.
-5. If the server is available, the `sync_queue` is pushed.
-6. The app fetches the Cookbook list and then the details for each recipe.
-7. Recipes are saved locally according to the local copy option.
-
-### Offline-first
-
-Creations and modifications are saved immediately locally. If the server call fails, an operation is added to `sync_queue`. The next synchronization replays the queue in order.
-
-### Import
-
-Import first parses `application/ld+json` JSON-LD blocks on the mobile side, looks for a `@type: Recipe` object, then normalizes ingredients, steps, times, servings, image, and nutrition. This lets the app detect duplicates before creating anything. If the mobile parser fails while connected, the app uses `POST /apps/cookbook/api/v1/import`, then reconciles the created recipe with existing recipes.
-
-Images imported from sites can be copied to the app's storage to remain available offline.
+Quand le parser local n'arrive pas à lire la page et qu'un compte Nextcloud est
+connecté, l'app tente l'import serveur de Cookbook.

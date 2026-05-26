@@ -1,1 +1,1 @@
-Cookbook app with local recipes and Nextcloud Cookbook sync.
+Offline recipes with optional Nextcloud sync.
