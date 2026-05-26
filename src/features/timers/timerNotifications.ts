@@ -1,8 +1,8 @@
-import { t } from "i18next";
 import {
   requireOptionalNativeModule,
   type EventSubscription
 } from "expo-modules-core";
+import i18n from "../../i18n";
 
 type TimerStopEvent = {
   notificationId: string;
@@ -34,6 +34,11 @@ export type TimerNotificationState = "denied" | "ready" | "unavailable";
 
 let configured = false;
 
+function timerTranslation(key: string, fallback: string) {
+  const value = i18n.t(key, { defaultValue: fallback });
+  return typeof value === "string" && value.trim() ? value : fallback;
+}
+
 function getTimerNotificationsModule() {
   try {
     const notifications = requireOptionalNativeModule<NativeTimerNotificationsModule>(
@@ -63,8 +68,8 @@ export async function configureTimerNotifications() {
 
   try {
     await notifications.configureTimerNotifications(
-      t("recipes.timers.stopAction"),
-      t("recipes.timers.title")
+      timerTranslation("recipes.timers.stopAction", "Stop"),
+      timerTranslation("recipes.timers.title", "Timers")
     );
   } catch (error) {
     console.warn("[AvoCookTimers] Timer notification configuration failed.", error);
