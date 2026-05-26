@@ -1,40 +1,33 @@
-# Politique de Confidentialité / Privacy Policy - AvoCook
+# Politique de confidentialité
 
-*(Version française suivie de la version anglaise)*
+## Français
 
----
+AvoCook ne collecte pas de données pour mon compte et n'intègre pas de publicité
+ou d'analytics.
 
-## FR - Politique de Confidentialité
+En mode local, les recettes, images et réglages restent sur l'appareil.
 
-L'application AvoCook est conçue pour respecter votre vie privée.
+Si l'utilisateur connecte un serveur Nextcloud, les recettes sont synchronisées
+directement entre l'application et ce serveur. Les identifiants sont stockés dans
+le stockage sécurisé du système via Expo SecureStore.
 
-### Collecte de données
-AvoCook ne collecte, ne stocke, ni ne transmet aucune donnée personnelle à des serveurs tiers gérés par les développeurs de l'application.
+L'import depuis une URL télécharge la page demandée afin d'y lire les données de
+recette disponibles publiquement.
 
-### Mode Local
-Toutes les données (recettes, images, réglages) créées en mode local sont stockées exclusivement sur votre appareil et ne sont jamais partagées.
+## English
 
-### Mode Nextcloud
-Si vous choisissez de connecter l'application à votre propre serveur Nextcloud :
-- Vos identifiants (nom d'utilisateur, mot de passe) sont stockés de manière sécurisée dans le trousseau d'accès (Keychain) de votre iPhone.
-- Les données des recettes sont synchronisées directement entre votre iPhone et votre serveur Nextcloud via une connexion HTTPS sécurisée.
+AvoCook does not collect data for me and does not include ads or analytics.
 
----
+In local mode, recipes, images and settings stay on the device.
 
-## EN - Privacy Policy
+If the user connects a Nextcloud server, recipes are synchronized directly
+between the app and that server. Credentials are stored in the system secure
+storage through Expo SecureStore.
 
-AvoCook is designed to respect your privacy.
+Importing from a URL downloads the requested page to read publicly available
+recipe data.
 
-### Data Collection
-AvoCook does not collect, store, or transmit any personal data to third-party servers managed by the app developers.
+## Contact
 
-### Local Mode
-All data (recipes, images, settings) created in local mode is stored exclusively on your device and is never shared.
-
-### Nextcloud Mode
-If you choose to connect the app to your own Nextcloud server:
-- Your credentials (username, password) are stored securely in your iPhone's Keychain.
-- Recipe data is synchronized directly between your iPhone and your Nextcloud server via a secure HTTPS connection.
-
----
-**Contact**: For any questions, please open an issue on the [GitHub repository](https://github.com/Logarex/AvoCook).
+Questions and issues can be opened on the
+[GitHub repository](https://github.com/Logarex/AvoCook).

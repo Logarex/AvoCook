@@ -110,13 +110,10 @@ describe("appLogger modes", () => {
       logInfo("app", `Info ${i}`);
     }
 
-    // Flush the writeQueue by setting the mode
     await setLogMode("all");
 
     const entries = await loadLogEntries();
 
-    // The one warning/error entry keeps its own quota, and detailed entries
-    // are capped independently.
     expect(entries.length).toBe(26);
 
     const hasError = entries.some((e) => e.message === "Initial Error");
@@ -131,7 +128,6 @@ describe("appLogger modes", () => {
 
     logInfo("app", "Background info");
 
-    // Flush the writeQueue by setting the mode.
     await setLogMode("errors");
 
     const entries = await loadLogEntries();
@@ -147,7 +143,6 @@ describe("appLogger modes", () => {
       logInfo("app", `Info ${i}`);
     }
 
-    // Flush the writeQueue by setting the mode.
     await setLogMode("all");
 
     const entries = await loadLogEntries();

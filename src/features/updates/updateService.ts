@@ -7,7 +7,6 @@ export interface UpdateInfo {
   apkUrl: string | null;
 }
 
-// Semver comparison: returns true if latest is newer than current
 function isNewerVersion(current: string, latest: string): boolean {
   const cleanCurrent = current.replace(/^v/i, "").trim();
   const cleanLatest = latest.replace(/^v/i, "").trim();
@@ -56,7 +55,6 @@ export async function checkForUpdates(): Promise<UpdateInfo | null> {
     const updateAvailable = isNewerVersion(currentVersion, latestVersion);
     const releaseUrl = data.html_url;
 
-    // Look for an APK asset
     let apkUrl: string | null = null;
     if (data.assets && Array.isArray(data.assets)) {
       const apkAsset = data.assets.find(
@@ -75,7 +73,6 @@ export async function checkForUpdates(): Promise<UpdateInfo | null> {
       apkUrl
     };
   } catch (error) {
-    // Fail silently so it doesn't crash the app if the user is offline or GitHub is down
     console.warn("Failed to check for updates:", error);
     return null;
   }
