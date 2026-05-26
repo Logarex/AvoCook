@@ -192,7 +192,6 @@ async function getPrintImageUri(
   recipe: Recipe,
   client: CookbookClient | null
 ): Promise<{ uri: string; isTemp: boolean }> {
-  // 1. If local cached/persisted image is present, use its file:/// URI directly
   const localImage = getCachedRecipeImage(recipe) || getLocalRecipeImage(recipe);
   if (localImage) {
     const file = new File(localImage);
@@ -201,8 +200,6 @@ async function getPrintImageUri(
     }
   }
 
-  // 2. Remote images are downloaded with a short timeout so PDF generation
-  // does not wait indefinitely on the WebView image loader.
   const externalImage = getExternalRecipeImageSource(recipe);
   if (externalImage) {
     const downloaded = await downloadTempPrintImage(externalImage);
@@ -211,7 +208,6 @@ async function getPrintImageUri(
     }
   }
 
-  // 3. If it's a Nextcloud endpoint, we download it to a temp file once using auth headers
   if (client && canUseRemoteRecipeImageFallback(recipe)) {
     const imageUrl = client.getRecipeImageUrl(recipe.id, "full");
     const downloaded = await downloadTempPrintImage(imageUrl, {
