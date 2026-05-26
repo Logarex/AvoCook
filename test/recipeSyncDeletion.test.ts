@@ -5,14 +5,12 @@ import { deleteRecipe } from "../src/features/recipes/recipeRepository";
 import { CookbookClient } from "../src/features/nextcloud/cookbookClient";
 import { normalizeRecipe } from "../src/features/recipes/types";
 
-// Mock expo-crypto
 vi.mock("expo-crypto", () => ({
   CryptoDigestAlgorithm: { SHA256: "SHA-256" },
   digestStringAsync: vi.fn(async () => "digest"),
   randomUUID: vi.fn(() => "uuid")
 }));
 
-// Mock expo-file-system
 vi.mock("expo-file-system", () => ({
   Directory: class {
     uri = "file:///cache/";
@@ -42,7 +40,6 @@ vi.mock("expo-file-system", () => ({
   }
 }));
 
-// Mock expo-sqlite
 vi.mock("expo-sqlite", () => {
   const dbInstance = {
     execAsync: vi.fn(),
@@ -113,9 +110,6 @@ describe("recipe manual photo sync deletion", () => {
         imagePlaceholderUrl: "/AvoCook Images/photo-123.jpg"
       });
 
-      // Mock database calls
-      // 1st database call: loadAnyLocalRecipeById
-      // 2nd database call: loadLocalRecipes (all recipes to check for duplicates)
       mockDb.getAllAsync.mockImplementation(
         async (query: string, ..._args: unknown[]) => {
           if (query.includes("recipes WHERE id = ?")) {
@@ -130,7 +124,6 @@ describe("recipe manual photo sync deletion", () => {
             ];
           }
           if (query.includes("recipes WHERE deleted = 0")) {
-            // No duplicate recipe exists referencing this photo
             return [];
           }
           return [];
@@ -149,11 +142,9 @@ describe("recipe manual photo sync deletion", () => {
 
       await deleteRecipe("recipe-123", client);
 
-      // Verify server calls
       expect(getRecipeSpy).toHaveBeenCalledWith("recipe-123");
       expect(deleteWebDavFileSpy).toHaveBeenCalledWith("/AvoCook Images/photo-123.jpg");
       expect(deleteRecipeSpy).toHaveBeenCalledWith("recipe-123");
-      // Verify local recipe is deleted
       expect(mockDb.runAsync).toHaveBeenCalledWith("DELETE FROM recipes WHERE id = ?", "recipe-123");
     });
 
@@ -176,7 +167,6 @@ describe("recipe manual photo sync deletion", () => {
         updated_at: "2026"
       };
 
-      // Mock database calls
       mockDb.getAllAsync.mockImplementation(
         async (query: string, ..._args: unknown[]) => {
           if (query.includes("recipes WHERE id = ?")) {
@@ -191,7 +181,6 @@ describe("recipe manual photo sync deletion", () => {
             ];
           }
           if (query.includes("recipes WHERE deleted = 0")) {
-            // Duplicate recipe exists referencing this photo
             return [mockDuplicateRecipe];
           }
           return [];
@@ -210,9 +199,8 @@ describe("recipe manual photo sync deletion", () => {
 
       await deleteRecipe("recipe-123", client);
 
-      // Verify duplicate protection works
       expect(getRecipeSpy).toHaveBeenCalledWith("recipe-123");
-      expect(deleteWebDavFileSpy).not.toHaveBeenCalled(); // Image preserved!
+      expect(deleteWebDavFileSpy).not.toHaveBeenCalled();
       expect(deleteRecipeSpy).toHaveBeenCalledWith("recipe-123");
     });
 

@@ -84,7 +84,6 @@ export async function createRecipeBackup({
   const assets: Record<string, RecipeBackupImageAsset> = {};
   let skippedImageCount = 0;
 
-  // Process recipe assets concurrently with a limit of 4
   const entries = await mapWithConcurrency(recipes, 4, async (recipe) => {
     const normalizedRecipe = normalizeRecipe(recipe);
     const imageAsset = await collectRecipeImageAsset(

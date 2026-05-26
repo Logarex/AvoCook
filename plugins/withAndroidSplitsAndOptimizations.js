@@ -1,9 +1,13 @@
-const { withAppBuildGradle, withGradleProperties } = require("@expo/config-plugins");
+const {
+  withAndroidManifest,
+  withAppBuildGradle,
+  withGradleProperties
+} = require("@expo/config-plugins");
 
 function withAndroidSplitsAndOptimizations(config) {
   config = withGradleProperties(config, (nextConfig) => {
     const setProperty = (key, value) => {
-      const existingIdx = nextConfig.modResults.findIndex(p => p.key === key);
+      const existingIdx = nextConfig.modResults.findIndex((p) => p.key === key);
       if (existingIdx !== -1) {
         nextConfig.modResults[existingIdx].value = value;
       } else {
@@ -19,7 +23,6 @@ function withAndroidSplitsAndOptimizations(config) {
   config = withAppBuildGradle(config, (nextConfig) => {
     let buildGradle = nextConfig.modResults.contents;
 
-    // Per-ABI splits so IzzyOnDroid can distribute a smaller arm64-only APK
     if (!buildGradle.includes("splits {")) {
       const splitsConfig = `
     splits {
@@ -45,7 +48,6 @@ function withAndroidSplitsAndOptimizations(config) {
       buildGradle = buildGradle.replace("buildTypes {", splitsConfig + "buildTypes {");
     }
 
-    // Required by IzzyOnDroid/F-Droid: removes the Google-encrypted dependency metadata blob
     if (!buildGradle.includes("dependenciesInfo {")) {
       const androidBlockMatch = buildGradle.match(/android\s*\{/);
       if (androidBlockMatch) {
@@ -62,7 +64,6 @@ function withAndroidSplitsAndOptimizations(config) {
       }
     }
 
-    // Guard IzzyOnDroid/F-Droid builds against accidental Firebase/GMS reintroduction.
     if (!buildGradle.includes("configurations.all")) {
       const dependenciesMatch = buildGradle.match(/dependencies\s*\{/);
       if (dependenciesMatch) {
@@ -83,6 +84,36 @@ function withAndroidSplitsAndOptimizations(config) {
     }
 
     nextConfig.modResults.contents = buildGradle;
+    return nextConfig;
+  });
+
+  config = withAndroidManifest(config, (nextConfig) => {
+    const manifest = nextConfig.modResults.manifest;
+    const application = manifest.application?.[0];
+    if (!application) {
+      return nextConfig;
+    }
+
+    const services = application.service ?? [];
+    const alreadyRemoved = services.some(
+      (service) =>
+        service.$?.["android:name"] ===
+          "com.google.android.gms.metadata.ModuleDependencies" &&
+        service.$?.["tools:node"] === "remove"
+    );
+
+    if (!alreadyRemoved) {
+      application.service = [
+        {
+          $: {
+            "android:name": "com.google.android.gms.metadata.ModuleDependencies",
+            "tools:node": "remove",
+          },
+        },
+        ...services,
+      ];
+    }
+
     return nextConfig;
   });
 
