@@ -1,86 +1,84 @@
 # AvoCook
 
-AvoCook est une application mobile de recettes que je développe pour mon usage
-personnel et pour apprendre à mener un projet React Native complet.
+AvoCook is a mobile recipe app I'm building for personal use and to learn how to
+run a complete React Native project end to end.
 
-L'idée est simple : garder ses recettes au même endroit, pouvoir les utiliser
-hors ligne, et synchroniser avec Nextcloud Cookbook si on a déjà un serveur.
+The idea is simple: keep your recipes in one place, use them offline, and sync
+with Nextcloud Cookbook if you already have a server.
 
 [App Store](https://apps.apple.com/app/avocook/id6769012665) ·
-[APK Android](https://github.com/Logarex/AvoCook/releases/latest)
+[Android APK](https://github.com/Logarex/AvoCook/releases/latest)
 
 <p align="center">
-  <img src="assets/screenshots/login.png" width="280" alt="Connexion AvoCook" />
-  <img src="assets/screenshots/recipe.png" width="280" alt="Détail d'une recette" />
+  <img src="assets/screenshots/login.png" width="280" alt="AvoCook login" />
+  <img src="assets/screenshots/recipe.png" width="280" alt="Recipe detail" />
 </p>
 
-## Ce que l'app sait faire
+## What the app can do
 
-- créer et modifier des recettes en local ;
-- classer les recettes par catégories ;
-- ajouter des photos ;
-- importer une recette depuis une URL quand le site expose des données
-  `schema.org/Recipe` ;
-- ajuster les quantités selon le nombre de portions ;
-- lancer des minuteurs de cuisine ;
-- exporter une recette en PDF ou l'imprimer ;
-- sauvegarder/restaurer les recettes dans un fichier JSON ;
-- synchroniser avec Nextcloud Cookbook, si l'utilisateur le souhaite.
+- create and edit recipes locally;
+- organise recipes by category;
+- add photos;
+- import a recipe from a URL when the site exposes `schema.org/Recipe` data;
+- adjust quantities based on the number of servings;
+- start cooking timers;
+- export a recipe as PDF or print it;
+- back up / restore recipes to a JSON file;
+- sync with Nextcloud Cookbook, if the user wants to.
 
-Le mode local ne demande aucun compte. Les données restent sur le téléphone.
+Local mode requires no account. Data stays on the device.
 
-## Installation pour développer
+## Development setup
 
-Le projet utilise Expo, React Native et TypeScript.
+The project uses Expo, React Native and TypeScript.
 
 ```bash
 npm install
 npm run start
 ```
 
-Ensuite, il suffit d'ouvrir l'app avec Expo Go ou avec un build de
-développement.
+Then open the app with Expo Go or a development build.
 
-Commandes utiles :
+Useful commands:
 
 ```bash
 npm run typecheck
 npm test
 npm run lint
-npm run import:check -- <url-de-recette>
+npm run import:check -- <recipe-url>
 ```
 
 ## Nextcloud Cookbook
 
-Pour tester la synchronisation :
+To test synchronisation:
 
-1. installer l'application Cookbook sur une instance Nextcloud ;
-2. créer un mot de passe d'application dans les paramètres de sécurité ;
-3. renseigner l'URL du serveur, l'identifiant et ce mot de passe dans AvoCook.
+1. Install the Cookbook app on a Nextcloud instance.
+2. Create an app password in the security settings.
+3. Enter the server URL, username, and that password in AvoCook.
 
-L'app refuse les serveurs distants en HTTP. HTTP reste accepté pour `localhost`
-pendant le développement.
+The app rejects remote servers over HTTP. HTTP is accepted for `localhost`
+during development.
 
 ## Android
 
-Les APK sont publiés dans les releases GitHub. Le fichier principal à installer
-est `avocook.apk`.
+APKs are published in the GitHub releases. The main file to install is
+`avocook.apk`.
 
-Les notes de publication Android sont dans
+Android release notes are in
 [`docs/ANDROID_DISTRIBUTION.md`](docs/ANDROID_DISTRIBUTION.md).
 
-## Structure du projet
+## Project structure
 
-- `src/screens` : les écrans de l'application ;
-- `src/components` : les composants réutilisables ;
-- `src/features/recipes` : stockage local, synchronisation et logique recette ;
-- `src/features/nextcloud` : client HTTP pour Cookbook ;
-- `src/features/import` : import de recettes depuis une page web ;
-- `modules/avocook-timer-notifications` : petit module natif pour les
-  notifications de minuteur.
+- `src/screens`: application screens;
+- `src/components`: reusable components;
+- `src/features/recipes`: local storage, sync, and recipe logic;
+- `src/features/nextcloud`: HTTP client for Cookbook;
+- `src/features/import`: recipe import from web pages;
+- `modules/avocook-timer-notifications`: small native module for timer
+  notifications.
 
-Des notes plus détaillées sont dans [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+More detailed notes are in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Licence
 
-Le projet est sous licence [MIT](LICENSE).
+This project is licenced under the [MIT](LICENSE) licence.

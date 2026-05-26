@@ -1,12 +1,12 @@
-# Compatibilité d'import
+# Import Compatibility
 
-L'import web dépend surtout des données `schema.org/Recipe` présentes dans les
-pages. Les sites changent souvent leur HTML, donc cette liste est un repère, pas
-une garantie permanente.
+Web import relies mainly on `schema.org/Recipe` data present in pages. Sites
+often change their HTML, so this list is a reference point, not a permanent
+guarantee.
 
-## Dernier test noté
+## Last recorded test
 
-Commandes lancées le 13 mai 2026 :
+Commands run on 13 May 2026:
 
 ```bash
 npm run import:check -- https://www.marmiton.org/recettes/recette_gateau-leger-au-chocolat_15680.aspx https://www.750g.com/gateau-au-chocolat-r37574.htm
@@ -14,32 +14,32 @@ npm run import:check -- https://www.cuisineaz.com/recettes/gateau-au-chocolat-si
 npm run import:check -- https://www.bbcgoodfood.com/recipes/easy-chocolate-cake https://www.allrecipes.com/recipe/17528/extreme-chocolate-cake/
 ```
 
-Résultat :
+Results:
 
-- Marmiton : OK ;
-- 750g : OK ;
-- CuisineAZ : OK ;
-- BBC Good Food : OK ;
-- Allrecipes : bloqué côté site pendant ce test (`HTTP 402`).
+- Marmiton: OK;
+- 750g: OK;
+- CuisineAZ: OK;
+- BBC Good Food: OK;
+- Allrecipes: blocked by the site during this test (`HTTP 402`).
 
-## À retester avant une version publique
+## Sites to retest before a public release
 
 ```bash
 npm run import:check -- <url>
 ```
 
-Sites utiles à garder dans les tests manuels :
+Sites worth keeping in manual tests:
 
-- Marmiton ;
-- CuisineAZ ;
-- 750g ;
-- Journal des Femmes Cuisine ;
-- Papilles et Pupilles ;
-- Hervé Cuisine ;
-- Chefkoch ;
-- BBC Good Food ;
-- Allrecipes ;
+- Marmiton;
+- CuisineAZ;
+- 750g;
+- Journal des Femmes Cuisine;
+- Papilles et Pupilles;
+- Hervé Cuisine;
+- Chefkoch;
+- BBC Good Food;
+- Allrecipes;
 - GialloZafferano.
 
-Si un site échoue mais expose encore les données de recette dans son HTML, le
-bon endroit pour corriger est `src/features/import/`.
+If a site fails but still exposes recipe data in its HTML, the right place to
+fix it is `src/features/import/`.
