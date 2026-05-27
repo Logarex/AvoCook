@@ -129,8 +129,10 @@ export async function enqueueSyncOperation(
   const db = await dbPromise;
 
   if (operation === "delete") {
+    // a delete cancels everything else that was queued for this recipe
     await db.runAsync("DELETE FROM sync_queue WHERE recipe_id = ?", recipeId);
   } else if (operation === "create") {
+    // a new create cancels previous creates or updates
     await db.runAsync(
       "DELETE FROM sync_queue WHERE recipe_id = ? AND operation IN ('create', 'update')",
       recipeId
@@ -216,6 +218,7 @@ export async function clearLocalRecipeCache() {
 
   for (const row of rows) {
     const recipe = normalizeRecipe(JSON.parse(row.payload) as Recipe);
+    // don't delete if we have local timers or notes not synced yet
     if (!hasLocalMetadata(recipe)) {
       await db.runAsync("DELETE FROM recipes WHERE id = ?", row.id);
     }

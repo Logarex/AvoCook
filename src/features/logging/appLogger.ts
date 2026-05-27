@@ -128,6 +128,7 @@ function pruneLogEntries(entries: AppLogEntry[]): AppLogEntry[] {
     ].map((entry) => entry.id)
   );
 
+  // keep them in their original order instead of grouping errors then detailed
   return entries.filter((entry) => entriesToKeep.has(entry.id));
 }
 
@@ -244,6 +245,7 @@ export function normalizeLogError(error: unknown) {
     };
   }
 
+  // fallback for string errors or weird objects
   return sanitizeForStorage(error);
 }
 
