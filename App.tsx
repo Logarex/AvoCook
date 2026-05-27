@@ -38,6 +38,8 @@ export default function App() {
   }, []);
 
   return (
+    // Warning: all those providers are probably making the app slower
+    // but I didn't find a better way to structure this without Redux
     <GestureHandlerRootView style={styles.flex}>
       <SafeAreaProvider>
         <AppThemeProvider>
@@ -69,6 +71,7 @@ function RootNavigator() {
     : require("./assets/logo.png");
 
   if (!hydrated) {
+    // simple splash screen while we load the db and stuff
     return (
       <View style={[styles.loading, { backgroundColor: colors.background }]}>
         <Image

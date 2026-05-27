@@ -97,6 +97,7 @@ export async function clearSyncedLocalRecipes() {
 
 export async function updateRecipeLocalPreferences(recipe: Recipe) {
   await migrateDatabase();
+  // only save locally, don't mark as dirty because it's just app preferences
   return saveLocalRecipe(recipe, false, false);
 }
 
@@ -124,6 +125,8 @@ export async function mergeDuplicateRecipes(
   );
 
   if (currentRecipes.length < 2) {
+    // it's possible one of the duplicates was deleted in the meantime, 
+    // nothing to merge if less than 2
     return {
       recipe: currentRecipes[0] ?? null,
       recipes: replaceLocalRecipeImageReferences(await loadLocalRecipes()),
@@ -131,6 +134,7 @@ export async function mergeDuplicateRecipes(
     };
   }
 
+  // merge all data into the first one, then try to guess category
   const mergedRecipe = withInferredCategory(
     replaceLocalRecipeImageReferencesWithRemote(
       mergeDuplicateRecipeData(currentRecipes)

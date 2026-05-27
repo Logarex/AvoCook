@@ -22,7 +22,7 @@ import {
   Square,
   Timer,
   Trash2,
-  Users
+  Users,
 } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -31,8 +31,32 @@ import {
   Pressable,
   StyleSheet,
   useWindowDimensions,
-  View
+  View,
 } from "react-native";
+import { ServingsControl } from "./recipeDetail/ServingsControl";
+import { TimerSection } from "./recipeDetail/TimerSection";
+import { IngredientSection } from "./recipeDetail/IngredientSection";
+import { InstructionSection } from "./recipeDetail/InstructionSection";
+import { HealthSection } from "./recipeDetail/HealthSection";
+import { RecipeSection } from "./recipeDetail/RecipeSection";
+import { styles } from "./recipeDetail/recipeDetailStyles";
+import {
+  formatTimerSeconds,
+  getTimerPresets,
+  normalizeNutrition,
+  getPrintLabels,
+  getImageSource,
+  getToolbarColumnCount,
+  getToolbarActionsWidth,
+  chunkToolbarActions,
+  isUserDismissedShareOrPrint,
+  type ToolbarAction,
+  type DetailRecipe,
+  TOOLBAR_ICON_SIZE,
+  TOOLBAR_HORIZONTAL_PADDING,
+  TOOLBAR_BACK_ACTION_GAP,
+} from "./recipeDetail/recipeDetailHelpers";
+
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -49,13 +73,13 @@ import { getRecipeHealthProfile } from "../features/recipes/health";
 import {
   canUseRemoteRecipeImageFallback,
   getPreferredDisplayRecipeImage,
-  isCookbookImageEndpoint
+  isCookbookImageEndpoint,
 } from "../features/recipes/recipeImageReferences";
 import {
   printRecipe,
   shareRecipeFile,
   shareRecipePdf,
-  type RecipePrintLabels
+  type RecipePrintLabels,
 } from "../features/recipes/recipeSharing";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { useShoppingList } from "../features/shopping/ShoppingListProvider";
@@ -63,12 +87,12 @@ import {
   useRecipeTimers,
   type TimerNotificationStatus,
   type TimerPreset,
-  type TimerState
+  type TimerState,
 } from "../features/timers/TimersProvider";
 import {
   normalizeRecipe,
   type NutriScoreGrade,
-  type Nutrition
+  type Nutrition,
 } from "../features/recipes/types";
 import { isExternalRecipeSourceUrl } from "../features/recipes/recipeSource";
 import type { RootStackParamList } from "../navigation/types";
@@ -78,31 +102,6 @@ import { humanDuration, isoDurationToMinutes } from "../utils/duration";
 import { scaleIngredientLine } from "../utils/servings";
 
 type Props = NativeStackScreenProps<RootStackParamList, "RecipeDetail">;
-type DetailRecipe = ReturnType<typeof useRecipes>["recipes"][number];
-type ToolbarAction = {
-  id: string;
-  icon: LucideIcon;
-  label: string;
-  onPress: () => void;
-  tone?: "default" | "primary" | "danger";
-  disabled?: boolean;
-};
-
-const TOOLBAR_ICON_SIZE = 44;
-const TOOLBAR_HORIZONTAL_PADDING = spacing.md * 2;
-const TOOLBAR_BACK_ACTION_GAP = spacing.sm;
-
-const nutriScoreColors: Record<NutriScoreGrade, string> = {
-  A: "#1B8F4B",
-  B: "#70B744",
-  C: "#F2C84B",
-  D: "#EE8E2F",
-  E: "#D64545",
-  "?": "#8A8177"
-};
-
-const nutriScoreGrades: NutriScoreGrade[] = ["A", "B", "C", "D", "E"];
-
 export function RecipeDetailScreen({ navigation, route }: Props) {
   const { getClient } = useAuth();
   const { keepScreenAwake } = usePreferences();
@@ -110,7 +109,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
     deleteRecipe,
     getRecipe,
     updateRecipeFromSource,
-    updateRecipePreferences
+    updateRecipePreferences,
   } = useRecipes();
   const { addIngredients } = useShoppingList();
   const recipe = getRecipe(route.params.id);
@@ -159,7 +158,11 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
   );
 }
 
-function RecipeDetailFallback({ navigation }: { navigation: Props["navigation"] }) {
+function RecipeDetailFallback({
+  navigation,
+}: {
+  navigation: Props["navigation"];
+}) {
   const { t } = useTranslation();
   return (
     <Screen>
@@ -196,15 +199,21 @@ function RecipeDetailContent({
   updateRecipePreferences,
   addIngredientsToShoppingList,
   getClient,
-  getImageSource
+  getImageSource,
 }: {
   navigation: Props["navigation"];
   recipeId: string;
   recipe: ReturnType<typeof useRecipes>["recipes"][number] | undefined;
   deleteRecipe: (id: string) => Promise<void>;
-  updateRecipeFromSource: ReturnType<typeof useRecipes>["updateRecipeFromSource"];
-  updateRecipePreferences: ReturnType<typeof useRecipes>["updateRecipePreferences"];
-  addIngredientsToShoppingList: ReturnType<typeof useShoppingList>["addIngredients"];
+  updateRecipeFromSource: ReturnType<
+    typeof useRecipes
+  >["updateRecipeFromSource"];
+  updateRecipePreferences: ReturnType<
+    typeof useRecipes
+  >["updateRecipePreferences"];
+  addIngredientsToShoppingList: ReturnType<
+    typeof useShoppingList
+  >["addIngredients"];
   getClient: ReturnType<typeof useAuth>["getClient"];
   getImageSource: () => ImageSource | null;
 }) {
@@ -219,13 +228,13 @@ function RecipeDetailContent({
     Set<number>
   >(() => new Set());
   const [checkedStepIndexes, setCheckedStepIndexes] = useState<Set<number>>(
-    () => new Set()
+    () => new Set(),
   );
   const source = getImageSource();
   const canUpdateFromSource = isExternalRecipeSourceUrl(recipe?.url);
   const nutrition = useMemo(
     () => normalizeNutrition(recipe?.nutrition),
-    [recipe?.nutrition]
+    [recipe?.nutrition],
   );
   const baseServings = Math.max(1, recipe?.recipeYield || 1);
   const selectedServings = recipe?.localMeta?.servingOverride ?? baseServings;
@@ -233,9 +242,9 @@ function RecipeDetailContent({
   const scaledIngredients = useMemo(
     () =>
       recipe?.recipeIngredient.map((ingredient) =>
-        scaleIngredientLine(ingredient, servingFactor)
+        scaleIngredientLine(ingredient, servingFactor),
       ) ?? [],
-    [recipe?.recipeIngredient, servingFactor]
+    [recipe?.recipeIngredient, servingFactor],
   );
   useEffect(() => {
     setCheckedIngredientIndexes(new Set());
@@ -245,9 +254,9 @@ function RecipeDetailContent({
       scaledIngredients.reduce(
         (count, _ingredient, index) =>
           checkedIngredientIndexes.has(index) ? count + 1 : count,
-        0
+        0,
       ),
-    [checkedIngredientIndexes, scaledIngredients]
+    [checkedIngredientIndexes, scaledIngredients],
   );
   useEffect(() => {
     setCheckedStepIndexes(new Set());
@@ -257,17 +266,17 @@ function RecipeDetailContent({
       recipe?.recipeInstructions.reduce(
         (count, _step, index) =>
           checkedStepIndexes.has(index) ? count + 1 : count,
-        0
+        0,
       ) ?? 0,
-    [checkedStepIndexes, recipe?.recipeInstructions]
+    [checkedStepIndexes, recipe?.recipeInstructions],
   );
   const healthProfile = useMemo(
     () => (recipe ? getRecipeHealthProfile(recipe) : null),
-    [recipe]
+    [recipe],
   );
   const timerPresets = useMemo(
     () => (recipe ? getTimerPresets(recipe, t) : []),
-    [recipe, t]
+    [recipe, t],
   );
   const metricItems = useMemo(() => {
     if (!recipe) {
@@ -284,7 +293,7 @@ function RecipeDetailContent({
             id: "prep",
             icon: Clock,
             label: t("recipes.prepTime"),
-            value: prepDuration
+            value: prepDuration,
           }
         : null,
       cookDuration
@@ -292,7 +301,7 @@ function RecipeDetailContent({
             id: "cook",
             icon: Clock,
             label: t("recipes.cookTime"),
-            value: cookDuration
+            value: cookDuration,
           }
         : null,
       totalDuration
@@ -300,7 +309,7 @@ function RecipeDetailContent({
             id: "total",
             icon: Clock,
             label: t("recipes.totalTime"),
-            value: totalDuration
+            value: totalDuration,
           }
         : null,
       recipe.recipeYield
@@ -308,25 +317,25 @@ function RecipeDetailContent({
             id: "yield",
             icon: Users,
             label: t("recipes.yield"),
-            value: String(selectedServings)
+            value: String(selectedServings),
           }
-        : null
+        : null,
     ].filter(
       (
-        item
+        item,
       ): item is {
         id: string;
         icon: LucideIcon;
         label: string;
         value: string;
-      } => Boolean(item)
+      } => Boolean(item),
     );
   }, [recipe, selectedServings, t]);
   const {
     notificationStatus: timerNotificationStatus,
     resetTimer,
     timers,
-    toggleTimer
+    toggleTimer,
   } = useRecipeTimers(recipeId, timerPresets);
 
   if (!recipe) {
@@ -361,8 +370,8 @@ function RecipeDetailContent({
             navigation.navigate("Recipes");
           }
           void deleteRecipe(recipeId);
-        }
-      }
+        },
+      },
     ]);
   }
 
@@ -382,8 +391,8 @@ function RecipeDetailContent({
     await updateRecipePreferences(
       normalizeRecipe({
         ...recipe,
-        localMeta: Object.keys(localMeta).length ? localMeta : undefined
-      })
+        localMeta: Object.keys(localMeta).length ? localMeta : undefined,
+      }),
     );
   }
 
@@ -397,14 +406,14 @@ function RecipeDetailContent({
     if (timer.running) {
       await toggleTimer(timerId, {
         body: recipe.name,
-        title: t("recipes.timers.notificationTitle", { timer: preset.label })
+        title: t("recipes.timers.notificationTitle", { timer: preset.label }),
       });
       return;
     }
 
     const nextNotificationStatus = await toggleTimer(timerId, {
       body: recipe.name,
-      title: t("recipes.timers.notificationTitle", { timer: preset.label })
+      title: t("recipes.timers.notificationTitle", { timer: preset.label }),
     });
     if (nextNotificationStatus !== "ready") {
       Alert.alert(
@@ -412,14 +421,17 @@ function RecipeDetailContent({
         t(
           nextNotificationStatus === "unavailable"
             ? "recipes.timers.notificationsUnavailableBody"
-            : "recipes.timers.notificationsRequiredBody"
+            : "recipes.timers.notificationsRequiredBody",
         ),
         nextNotificationStatus === "denied"
           ? [
               { text: t("common.cancel"), style: "cancel" },
-              { text: t("common.settings"), onPress: () => void Linking.openSettings() }
+              {
+                text: t("common.settings"),
+                onPress: () => void Linking.openSettings(),
+              },
             ]
-          : undefined
+          : undefined,
       );
     }
   }
@@ -441,7 +453,10 @@ function RecipeDetailContent({
       if (isUserDismissedShareOrPrint(error)) {
         return;
       }
-      Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
+      Alert.alert(
+        t("recipes.share.failedTitle"),
+        t("recipes.share.failedBody"),
+      );
     } finally {
       stopLongActionNotice();
       setShareAction(null);
@@ -455,13 +470,20 @@ function RecipeDetailContent({
     setShareAction("pdf");
     const stopLongActionNotice = watchLongAction("longActions.exportRecipe");
     try {
-      const result = await shareRecipePdf(recipe, getPrintLabels(t), getClient());
+      const result = await shareRecipePdf(
+        recipe,
+        getPrintLabels(t),
+        getClient(),
+      );
       showShareWarning(result.skippedImageCount);
     } catch (error) {
       if (isUserDismissedShareOrPrint(error)) {
         return;
       }
-      Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
+      Alert.alert(
+        t("recipes.share.failedTitle"),
+        t("recipes.share.failedBody"),
+      );
     } finally {
       stopLongActionNotice();
       setShareAction(null);
@@ -481,7 +503,10 @@ function RecipeDetailContent({
       if (isUserDismissedShareOrPrint(error)) {
         return;
       }
-      Alert.alert(t("recipes.share.failedTitle"), t("recipes.share.failedBody"));
+      Alert.alert(
+        t("recipes.share.failedTitle"),
+        t("recipes.share.failedBody"),
+      );
     } finally {
       stopLongActionNotice();
       setShareAction(null);
@@ -501,9 +526,9 @@ function RecipeDetailContent({
           text: t("recipes.share.updateFromSource"),
           onPress: () => {
             void updateFromSource(recipe);
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   }
 
@@ -513,12 +538,12 @@ function RecipeDetailContent({
       await updateRecipeFromSource(recipeToUpdate);
       Alert.alert(
         t("recipes.share.updateFromSourceSuccessTitle"),
-        t("recipes.share.updateFromSourceSuccessBody")
+        t("recipes.share.updateFromSourceSuccessBody"),
       );
     } catch {
       Alert.alert(
         t("recipes.share.updateFromSourceFailedTitle"),
-        t("recipes.share.updateFromSourceFailedBody")
+        t("recipes.share.updateFromSourceFailedBody"),
       );
     } finally {
       setShareAction(null);
@@ -532,7 +557,7 @@ function RecipeDetailContent({
 
     const result = await addIngredientsToShoppingList(scaledIngredients, {
       recipeId,
-      recipeName: recipe.name
+      recipeName: recipe.name,
     });
     showShoppingListAddResult(result.added.length);
   }
@@ -544,7 +569,7 @@ function RecipeDetailContent({
 
     const result = await addIngredientsToShoppingList([ingredient], {
       recipeId,
-      recipeName: recipe.name
+      recipeName: recipe.name,
     });
     showShoppingListAddResult(result.added.length);
   }
@@ -588,7 +613,7 @@ function RecipeDetailContent({
         : t("shoppingList.alreadyAddedTitle"),
       addedCount
         ? t("shoppingList.addedBody", { count: addedCount })
-        : t("shoppingList.alreadyAddedBody")
+        : t("shoppingList.alreadyAddedBody"),
     );
   }
 
@@ -596,7 +621,7 @@ function RecipeDetailContent({
     if (skippedImageCount > 0) {
       Alert.alert(
         t("recipes.share.partialTitle"),
-        t("recipes.share.partialBody", { count: skippedImageCount })
+        t("recipes.share.partialBody", { count: skippedImageCount }),
       );
     }
   }
@@ -607,7 +632,7 @@ function RecipeDetailContent({
       icon: Printer,
       label: t("recipes.share.print"),
       onPress: () => void handlePrint(),
-      disabled: shareAction !== null
+      disabled: shareAction !== null,
     },
     {
       id: "share-pdf",
@@ -615,14 +640,14 @@ function RecipeDetailContent({
       label: t("recipes.share.sharePdf"),
       onPress: () => void handleSharePdf(),
       disabled: shareAction !== null,
-      tone: "primary"
+      tone: "primary",
     },
     {
       id: "share-file",
       icon: FileUp,
       label: t("recipes.share.shareFile"),
       onPress: () => void handleShareFile(),
-      disabled: shareAction !== null
+      disabled: shareAction !== null,
     },
     ...(canUpdateFromSource
       ? [
@@ -631,8 +656,8 @@ function RecipeDetailContent({
             icon: RefreshCw,
             label: t("recipes.share.updateFromSource"),
             onPress: () => void handleUpdateFromSource(),
-            disabled: shareAction !== null
-          }
+            disabled: shareAction !== null,
+          },
         ]
       : []),
     {
@@ -640,19 +665,19 @@ function RecipeDetailContent({
       icon: Pencil,
       label: t("common.edit"),
       onPress: () => navigation.navigate("RecipeEditor", { id: recipeId }),
-      tone: "primary"
+      tone: "primary",
     },
     {
       id: "delete",
       icon: Trash2,
       label: t("common.delete"),
       onPress: () => void handleDelete(),
-      tone: "danger"
-    }
+      tone: "danger",
+    },
   ];
   const toolbarColumnCount = getToolbarColumnCount(
     toolbarActions.length,
-    windowWidth
+    windowWidth,
   );
   const toolbarRows = chunkToolbarActions(toolbarActions, toolbarColumnCount);
   const toolbarActionsWidth = getToolbarActionsWidth(toolbarColumnCount);
@@ -706,7 +731,9 @@ function RecipeDetailContent({
 
       <View style={styles.titleBlock}>
         <AppText variant="title">{recipe.name}</AppText>
-        {recipe.description ? <AppText muted>{recipe.description}</AppText> : null}
+        {recipe.description ? (
+          <AppText muted>{recipe.description}</AppText>
+        ) : null}
       </View>
 
       <View style={styles.pills}>
@@ -813,7 +840,9 @@ function RecipeDetailContent({
         />
       ) : null}
 
-      {healthProfile?.hasNutrition ? <HealthSection profile={healthProfile} /> : null}
+      {healthProfile?.hasNutrition ? (
+        <HealthSection profile={healthProfile} />
+      ) : null}
     </Screen>
   );
 }
@@ -821,7 +850,7 @@ function RecipeDetailContent({
 function Metric({
   icon: Icon,
   label,
-  value
+  value,
 }: {
   icon: LucideIcon;
   label: string;
@@ -838,872 +867,3 @@ function Metric({
     </GlassPanel>
   );
 }
-
-function ServingsControl({
-  baseServings,
-  selectedServings,
-  onChange
-}: {
-  baseServings: number;
-  selectedServings: number;
-  onChange: (servings: number) => void;
-}) {
-  const { t } = useTranslation();
-  const { colors } = useAppTheme();
-  return (
-    <GlassPanel style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Users color={colors.primary} size={21} />
-        <AppText variant="subtitle">{t("recipes.servings.title")}</AppText>
-      </View>
-      <View style={styles.servingsRow}>
-        <IconButton
-          disabled={selectedServings <= 1}
-          icon={Minus}
-          label={t("recipes.servings.decrease")}
-          onPress={() => onChange(selectedServings - 1)}
-        />
-        <View style={styles.servingValue}>
-          <AppText variant="title">{selectedServings}</AppText>
-          <AppText muted variant="caption">
-            {t("recipes.servings.people")}
-          </AppText>
-        </View>
-        <IconButton
-          icon={Plus}
-          label={t("recipes.servings.increase")}
-          onPress={() => onChange(selectedServings + 1)}
-          tone="primary"
-        />
-      </View>
-      <View style={styles.servingFooter}>
-        <AppText muted variant="caption">
-          {t("recipes.servings.original", { count: baseServings })}
-        </AppText>
-        {selectedServings !== baseServings ? (
-          <PrimaryButton
-            icon={RotateCcw}
-            label={t("recipes.servings.reset")}
-            onPress={() => onChange(baseServings)}
-            variant="ghost"
-          />
-        ) : null}
-      </View>
-    </GlassPanel>
-  );
-}
-
-function TimerSection({
-  presets,
-  timers,
-  notificationStatus,
-  onReset,
-  onToggle
-}: {
-  presets: TimerPreset[];
-  timers: Record<string, TimerState>;
-  notificationStatus: TimerNotificationStatus;
-  onReset: (timerId: string) => void;
-  onToggle: (timerId: string) => void;
-}) {
-  const { t } = useTranslation();
-  const { colors } = useAppTheme();
-  if (!presets.length) {
-    return null;
-  }
-
-  return (
-    <GlassPanel style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Timer color={colors.primary} size={21} />
-        <AppText variant="subtitle">{t("recipes.timers.title")}</AppText>
-      </View>
-      <AppText
-        muted={notificationStatus !== "denied" && notificationStatus !== "unavailable"}
-        variant="caption"
-        style={
-          notificationStatus === "denied" ||
-          notificationStatus === "unavailable"
-            ? { color: colors.danger }
-            : undefined
-        }
-      >
-        {notificationStatus === "unavailable"
-          ? t("recipes.timers.notificationsUnavailable")
-          : notificationStatus === "denied"
-            ? t("recipes.timers.notificationsOff")
-            : t("recipes.timers.notificationHint")}
-      </AppText>
-      <View style={styles.timerList}>
-        {presets.map((preset) => {
-          const timer = timers[preset.id];
-          const running = Boolean(timer?.running);
-          const finished = Boolean(timer && timer.remainingSeconds === 0);
-          return (
-            <View
-              key={preset.id}
-              style={[
-                styles.timerCard,
-                {
-                  backgroundColor: colors.chip,
-                  borderColor: colors.border
-                }
-              ]}
-            >
-              <View style={styles.timerInfo}>
-                <AppText variant="label">{preset.label}</AppText>
-                <AppText variant="subtitle">
-                  {formatTimerSeconds(
-                    timer?.remainingSeconds ?? preset.minutes * 60
-                  )}
-                </AppText>
-                {finished ? (
-                  <AppText muted variant="caption">
-                    {t("recipes.timers.done")}
-                  </AppText>
-                ) : null}
-              </View>
-              <View style={styles.timerActions}>
-                <IconButton
-                  icon={running ? Pause : Play}
-                  label={
-                    running
-                      ? `${preset.label}, ${t("recipes.timers.pause")}`
-                      : `${preset.label}, ${t("recipes.timers.start")}`
-                  }
-                  onPress={() => onToggle(preset.id)}
-                  tone="primary"
-                />
-                <IconButton
-                  icon={running || finished ? Square : RotateCcw}
-                  label={
-                    running || finished
-                      ? `${preset.label}, ${t("recipes.timers.stop")}`
-                      : `${preset.label}, ${t("recipes.timers.reset")}`
-                  }
-                  onPress={() => onReset(preset.id)}
-                />
-              </View>
-            </View>
-          );
-        })}
-      </View>
-    </GlassPanel>
-  );
-}
-
-function IngredientSection({
-  title,
-  items,
-  checkedIndexes,
-  checkedCount,
-  onAddAll,
-  onAddItem,
-  onResetChecked,
-  onToggleItem
-}: {
-  title: string;
-  items: string[];
-  checkedIndexes: Set<number>;
-  checkedCount: number;
-  onAddAll: () => void;
-  onAddItem: (ingredient: string) => void;
-  onResetChecked: () => void;
-  onToggleItem: (index: number) => void;
-}) {
-  const { t } = useTranslation();
-  const { colors } = useAppTheme();
-  if (!items.length) {
-    return null;
-  }
-
-  return (
-    <GlassPanel style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <View style={styles.sectionTitleBlock}>
-          <AppText variant="subtitle">{title}</AppText>
-          {checkedCount > 0 ? (
-            <AppText muted variant="caption">
-              {t("recipes.ingredientsChecked", {
-                checked: checkedCount,
-                total: items.length
-              })}
-            </AppText>
-          ) : null}
-        </View>
-        <View style={styles.ingredientHeaderActions}>
-          {checkedCount > 0 ? (
-            <PrimaryButton
-              icon={RotateCcw}
-              label={t("recipes.resetIngredientChecks")}
-              onPress={onResetChecked}
-              style={styles.ingredientHeaderButton}
-              variant="ghost"
-            />
-          ) : null}
-          <PrimaryButton
-            icon={ShoppingCart}
-            label={t("shoppingList.addFromRecipe")}
-            onPress={onAddAll}
-            style={styles.ingredientHeaderButton}
-            variant="ghost"
-          />
-        </View>
-      </View>
-      <View style={styles.sectionItems}>
-        {items.map((item, index) => {
-          const checked = checkedIndexes.has(index);
-          return (
-            <View key={`${item}-${index}`} style={styles.ingredientRow}>
-              <Pressable
-                accessibilityLabel={t(
-                  checked
-                    ? "recipes.unmarkIngredientReady"
-                    : "recipes.markIngredientReady",
-                  { ingredient: item }
-                )}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked }}
-                onPress={() => onToggleItem(index)}
-                style={({ pressed }) => [
-                  styles.ingredientCheckTarget,
-                  { opacity: pressed ? 0.72 : 1 }
-                ]}
-              >
-                <View
-                  style={[
-                    styles.checkCircle,
-                    {
-                      backgroundColor: checked ? colors.success : "transparent",
-                      borderColor: checked ? colors.success : colors.border
-                    }
-                  ]}
-                >
-                  {checked ? (
-                    <Check
-                      color={colors.textInverted}
-                      size={15}
-                      strokeWidth={3}
-                    />
-                  ) : null}
-                </View>
-                <AppText
-                  style={[
-                    styles.rowText,
-                    checked
-                      ? [
-                          styles.checkedItemText,
-                          { color: colors.textMuted }
-                        ]
-                      : undefined
-                  ]}
-                >
-                  {item}
-                </AppText>
-              </Pressable>
-              <IconButton
-                icon={ShoppingCart}
-                label={t("shoppingList.addIngredientFromRecipe", {
-                  ingredient: item
-                })}
-                onPress={() => onAddItem(item)}
-                tone="primary"
-                style={styles.ingredientAction}
-              />
-            </View>
-          );
-        })}
-      </View>
-    </GlassPanel>
-  );
-}
-
-function InstructionSection({
-  title,
-  items,
-  checkedIndexes,
-  checkedCount,
-  onResetChecked,
-  onToggleItem
-}: {
-  title: string;
-  items: string[];
-  checkedIndexes: Set<number>;
-  checkedCount: number;
-  onResetChecked: () => void;
-  onToggleItem: (index: number) => void;
-}) {
-  const { t } = useTranslation();
-  const { colors } = useAppTheme();
-  if (!items.length) {
-    return null;
-  }
-
-  return (
-    <GlassPanel style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <View style={styles.sectionTitleBlock}>
-          <AppText variant="subtitle">{title}</AppText>
-          {checkedCount > 0 ? (
-            <AppText muted variant="caption">
-              {t("recipes.stepsChecked", {
-                checked: checkedCount,
-                total: items.length
-              })}
-            </AppText>
-          ) : null}
-        </View>
-        {checkedCount > 0 ? (
-          <View style={styles.stepHeaderActions}>
-            <PrimaryButton
-              icon={RotateCcw}
-              label={t("recipes.resetStepChecks")}
-              onPress={onResetChecked}
-              style={styles.stepHeaderButton}
-              variant="ghost"
-            />
-          </View>
-        ) : null}
-      </View>
-      <View style={styles.sectionItems}>
-        {items.map((item, index) => {
-          const checked = checkedIndexes.has(index);
-          return (
-            <Pressable
-              key={`${item}-${index}`}
-              accessibilityLabel={t(
-                checked ? "recipes.unmarkStepDone" : "recipes.markStepDone",
-                { step: index + 1 }
-              )}
-              accessibilityRole="checkbox"
-              accessibilityState={{ checked }}
-              onPress={() => onToggleItem(index)}
-              style={({ pressed }) => [
-                styles.stepCheckRow,
-                { opacity: pressed ? 0.72 : 1 }
-              ]}
-            >
-              <AppText muted variant="label" style={styles.rowIndex}>
-                {index + 1}
-              </AppText>
-              <AppText
-                style={[
-                  styles.rowText,
-                  checked
-                    ? [styles.checkedItemText, { color: colors.textMuted }]
-                    : undefined
-                ]}
-              >
-                {item}
-              </AppText>
-              <View
-                style={[
-                  styles.checkCircle,
-                  {
-                    backgroundColor: checked ? colors.success : "transparent",
-                    borderColor: checked ? colors.success : colors.border
-                  }
-                ]}
-              >
-                {checked ? (
-                  <Check
-                    color={colors.textInverted}
-                    size={15}
-                    strokeWidth={3}
-                  />
-                ) : null}
-              </View>
-            </Pressable>
-          );
-        })}
-      </View>
-    </GlassPanel>
-  );
-}
-
-function HealthSection({ profile }: { profile: HealthProfile }) {
-  const { t } = useTranslation();
-  const { colors } = useAppTheme();
-  return (
-    <GlassPanel style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <HeartPulse color={colors.primary} size={21} />
-        <AppText variant="subtitle">{t("recipes.health.title")}</AppText>
-      </View>
-      <View style={styles.healthHeader}>
-        <View
-          style={[
-            styles.nutriBadge,
-            { backgroundColor: profile.backgroundColor }
-          ]}
-        >
-          <AppText variant="title" style={{ color: profile.color }}>
-            {profile.grade}
-          </AppText>
-        </View>
-        <View style={styles.healthCopy}>
-          <AppText variant="label">
-            {profile.hasNutrition
-              ? t("recipes.health.estimated")
-              : t("recipes.health.missingTitle")}
-          </AppText>
-          <AppText muted variant="caption">
-            {t("recipes.health.localNote")}
-          </AppText>
-          <AppText muted variant="caption">
-            {t("recipes.health.calculation")}
-          </AppText>
-        </View>
-      </View>
-      <View style={styles.nutriScale}>
-        {nutriScoreGrades.map((grade) => (
-          <View
-            key={grade}
-            style={[
-              styles.nutriScaleItem,
-              {
-                backgroundColor: nutriScoreColors[grade],
-                opacity: profile.grade === grade ? 1 : 0.42
-              }
-            ]}
-          >
-            <AppText
-              variant="label"
-              style={{
-                color: grade === "C" || grade === "D" ? "#251A05" : "#FFFFFF"
-              }}
-            >
-              {grade}
-            </AppText>
-          </View>
-        ))}
-      </View>
-      {profile.facts.length ? (
-        <View style={styles.healthFacts}>
-          {profile.facts.map((fact) => (
-            <View key={fact.labelKey} style={styles.healthFact}>
-              <AppText muted variant="caption">
-                {t(fact.labelKey)}
-              </AppText>
-              <AppText variant="label">{fact.value}</AppText>
-            </View>
-          ))}
-        </View>
-      ) : null}
-    </GlassPanel>
-  );
-}
-
-function RecipeSection({
-  title,
-  items,
-  ordered = false
-}: {
-  title: string;
-  items: string[];
-  ordered?: boolean;
-}) {
-  if (!items.length) {
-    return null;
-  }
-
-  return (
-    <GlassPanel style={styles.section}>
-      <AppText variant="subtitle">{title}</AppText>
-      <View style={styles.sectionItems}>
-        {items.map((item, index) => (
-          <View key={`${item}-${index}`} style={styles.row}>
-            <AppText muted variant="label" style={styles.rowIndex}>
-              {ordered ? `${index + 1}` : "•"}
-            </AppText>
-            <AppText style={styles.rowText}>{item}</AppText>
-          </View>
-        ))}
-      </View>
-    </GlassPanel>
-  );
-}
-
-function getTimerPresets(
-  recipe: DetailRecipe,
-  t: (key: string) => string
-): TimerPreset[] {
-  const presets: TimerPreset[] = [
-    {
-      id: "prep",
-      label: t("recipes.timers.prep"),
-      minutes: isoDurationToMinutes(recipe.prepTime) ?? 0
-    },
-    {
-      id: "cook",
-      label: t("recipes.timers.cook"),
-      minutes: isoDurationToMinutes(recipe.cookTime) ?? 0
-    },
-    {
-      id: "total",
-      label: t("recipes.timers.total"),
-      minutes: isoDurationToMinutes(recipe.totalTime) ?? 0
-    }
-  ];
-
-  return presets.filter((preset) => preset.minutes > 0);
-}
-
-function formatTimerSeconds(seconds: number) {
-  const safeSeconds = Math.max(0, Math.floor(seconds));
-  const hours = Math.floor(safeSeconds / 3600);
-  const minutes = Math.floor((safeSeconds % 3600) / 60);
-  const remainingSeconds = safeSeconds % 60;
-  const paddedMinutes = String(minutes).padStart(hours > 0 ? 2 : 1, "0");
-  const paddedSeconds = String(remainingSeconds).padStart(2, "0");
-
-  if (hours > 0) {
-    return `${hours}:${paddedMinutes}:${paddedSeconds}`;
-  }
-
-  return `${paddedMinutes}:${paddedSeconds}`;
-}
-
-function getPrintLabels(t: (key: string) => string): RecipePrintLabels {
-  return {
-    appName: "AvoCook",
-    calories: t("editor.caloriesKcal"),
-    category: t("recipes.category"),
-    cookTime: t("recipes.cookTime"),
-    carbs: t("editor.carbsGrams"),
-    fat: t("editor.fatGrams"),
-    fiber: t("editor.fiberGrams"),
-    ingredients: t("recipes.ingredients"),
-    instructions: t("recipes.instructions"),
-    keywords: t("recipes.share.keywords"),
-    nutrition: t("recipes.nutrition"),
-    nutriScore: "Nutri-Score",
-    prepTime: t("recipes.prepTime"),
-    protein: t("editor.proteinGrams"),
-    saturatedFat: t("editor.saturatedFatGrams"),
-    servingSize: t("recipes.share.servingSize"),
-    source: t("recipes.source"),
-    sodium: t("editor.sodiumMg"),
-    sugar: t("editor.sugarGrams"),
-    tools: t("recipes.tools"),
-    totalTime: t("recipes.totalTime"),
-    yield: t("recipes.yield")
-  };
-}
-
-function normalizeNutrition(
-  nutrition?: Nutrition | Nutrition[] | null
-): [string, string][] {
-  const node = Array.isArray(nutrition) ? nutrition[0] : nutrition;
-  if (!node || typeof node !== "object") {
-    return [];
-  }
-
-  return Object.entries(node)
-    .filter(([key, value]) => key !== "@type" && Boolean(value))
-    .map(([key, value]) => [key.replace(/Content$/, ""), String(value)]);
-}
-
-function isUserDismissedShareOrPrint(error: unknown) {
-  if (!(error instanceof Error)) {
-    return false;
-  }
-
-  return /printing did not complete|cancel|dismiss|abort/i.test(error.message);
-}
-
-function getImageSource(
-  recipe: ReturnType<typeof useRecipes>["recipes"][number] | undefined,
-  client: ReturnType<typeof useAuth>["getClient"] extends () => infer T ? T : never
-): ImageSource | null {
-  if (!recipe) {
-    return null;
-  }
-
-  const publicImage = getPreferredDisplayRecipeImage(recipe);
-  if (publicImage) {
-    return {
-      uri: publicImage,
-      headers:
-        client && isCookbookImageEndpoint(publicImage)
-          ? client.getImageHeaders()
-          : undefined
-    };
-  }
-
-  if (client && canUseRemoteRecipeImageFallback(recipe)) {
-    return {
-      uri: client.getRecipeImageUrl(recipe.id, "full"),
-      headers: client.getImageHeaders()
-    };
-  }
-
-  return null;
-}
-
-function getToolbarColumnCount(actionCount: number, windowWidth: number) {
-  const availableActionsWidth =
-    windowWidth -
-    TOOLBAR_HORIZONTAL_PADDING -
-    TOOLBAR_ICON_SIZE -
-    TOOLBAR_BACK_ACTION_GAP;
-
-  if (getToolbarActionsWidth(actionCount) <= availableActionsWidth) {
-    return actionCount;
-  }
-
-  return Math.max(1, Math.ceil(actionCount / 2));
-}
-
-function getToolbarActionsWidth(columnCount: number) {
-  return (
-    columnCount * TOOLBAR_ICON_SIZE +
-    Math.max(0, columnCount - 1) * spacing.xs
-  );
-}
-
-function chunkToolbarActions(actions: ToolbarAction[], columnCount: number) {
-  const rows: ToolbarAction[][] = [];
-  for (let index = 0; index < actions.length; index += columnCount) {
-    rows.push(actions.slice(index, index + columnCount));
-  }
-  return rows;
-}
-
-const styles = StyleSheet.create({
-  heroImage: {
-    alignItems: "center",
-    aspectRatio: 1.25,
-    borderRadius: radius.lg,
-    justifyContent: "center",
-    overflow: "hidden"
-  },
-  image: {
-    height: "100%",
-    width: "100%"
-  },
-  healthCopy: {
-    flex: 1,
-    gap: spacing.xxs
-  },
-  healthFact: {
-    minWidth: "30%"
-  },
-  healthFacts: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm
-  },
-  healthHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.md
-  },
-  ingredientAction: {
-    height: 40,
-    width: 40
-  },
-  checkCircle: {
-    alignItems: "center",
-    borderRadius: radius.pill,
-    borderWidth: 1.6,
-    height: 26,
-    justifyContent: "center",
-    width: 26
-  },
-  checkedItemText: {
-    opacity: 0.68,
-    textDecorationLine: "line-through"
-  },
-  ingredientCheckTarget: {
-    alignItems: "center",
-    flex: 1,
-    flexDirection: "row",
-    gap: spacing.sm,
-    minHeight: 44,
-    minWidth: 0
-  },
-  ingredientHeaderActions: {
-    alignItems: "center",
-    flexBasis: "100%",
-    flexDirection: "row",
-    flexGrow: 1,
-    flexWrap: "wrap",
-    gap: spacing.xs
-  },
-  ingredientHeaderButton: {
-    flexBasis: 190,
-    flexGrow: 1,
-    minWidth: 190
-  },
-  ingredientRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: spacing.sm,
-    minHeight: 44
-  },
-  metric: {
-    alignItems: "flex-start",
-    flex: 1,
-    gap: spacing.xxs,
-    minWidth: 104,
-    padding: spacing.sm
-  },
-  metrics: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm
-  },
-  nutritionGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm
-  },
-  nutritionItem: {
-    minWidth: "44%"
-  },
-  nutriBadge: {
-    alignItems: "center",
-    borderRadius: radius.md,
-    height: 64,
-    justifyContent: "center",
-    width: 64
-  },
-  nutriScale: {
-    flexDirection: "row",
-    gap: spacing.xxs
-  },
-  nutriScaleItem: {
-    alignItems: "center",
-    borderRadius: radius.sm,
-    flex: 1,
-    height: 28,
-    justifyContent: "center"
-  },
-  pills: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.xs
-  },
-  recommendationDot: {
-    borderRadius: radius.pill,
-    height: 8,
-    marginTop: 7,
-    width: 8
-  },
-  recommendationRow: {
-    flexDirection: "row",
-    gap: spacing.xs
-  },
-  recommendationText: {
-    flex: 1
-  },
-  recommendations: {
-    gap: spacing.xs
-  },
-  row: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm
-  },
-  rowIndex: {
-    width: 24
-  },
-  rowText: {
-    flex: 1,
-    minWidth: 0
-  },
-  section: {
-    gap: spacing.md
-  },
-  sectionHeader: {
-    alignItems: "center",
-    flexWrap: "wrap",
-    flexDirection: "row",
-    gap: spacing.xs
-  },
-  sectionItems: {
-    gap: spacing.sm
-  },
-  sectionTitleBlock: {
-    flex: 1,
-    gap: spacing.xxs,
-    minWidth: 150
-  },
-  servingFooter: {
-    alignItems: "center",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm,
-    justifyContent: "space-between"
-  },
-  servingValue: {
-    alignItems: "center",
-    flex: 1,
-    gap: spacing.xxs
-  },
-  servingsRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: spacing.md
-  },
-  stepCheckRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: spacing.sm,
-    minHeight: 44
-  },
-  stepHeaderActions: {
-    alignItems: "center",
-    flexBasis: "100%",
-    flexDirection: "row",
-    flexGrow: 1,
-    flexWrap: "wrap",
-    gap: spacing.xs
-  },
-  stepHeaderButton: {
-    flexBasis: 190,
-    flexGrow: 1,
-    minWidth: 190
-  },
-  timerActions: {
-    flexDirection: "row",
-    gap: spacing.xs
-  },
-  timerCard: {
-    alignItems: "center",
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.md,
-    justifyContent: "space-between",
-    padding: spacing.sm
-  },
-  timerInfo: {
-    flex: 1,
-    gap: spacing.xxs
-  },
-  timerList: {
-    gap: spacing.sm
-  },
-  titleBlock: {
-    gap: spacing.xs
-  },
-  toolbar: {
-    alignItems: "flex-start",
-    gap: spacing.sm,
-    flexDirection: "row",
-    justifyContent: "space-between"
-  },
-  toolbarActions: {
-    alignItems: "stretch",
-    gap: spacing.xs
-  },
-  toolbarActionRow: {
-    flexDirection: "row",
-    gap: spacing.xs,
-    justifyContent: "flex-end"
-  }
-});

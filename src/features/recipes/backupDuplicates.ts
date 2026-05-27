@@ -228,6 +228,8 @@ function makeImportedCopyName(name: string, existingRecipes: Recipe[]) {
   const existingNames = new Set(
     existingRecipes.map((recipe) => normalizeTextKey(recipe.name))
   );
+  // French students love English but sometimes leave little tracks
+  // like "importee" instead of imported :)
   let candidate = `${cleanName} (import)`;
   let index = 2;
 

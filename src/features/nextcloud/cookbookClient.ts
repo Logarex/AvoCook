@@ -129,10 +129,12 @@ export class CookbookClient {
   async validateConnection() {
     try {
       const user = await this.getCurrentUser();
+      // fetch recipes just to make sure the Cookbook app is actually installed
       await this.listRecipes();
       return user;
     } catch (userError) {
       try {
+        // sometimes getting user fails but recipes works? fallback to just testing recipes
         await this.listRecipes();
         return null;
       } catch (cookbookError) {
@@ -350,6 +352,8 @@ export class CookbookClient {
     headers: HeadersInit
   ) {
     try {
+      // try to put the file directly. Nextcloud supports auto mkcol
+      // but not all endpoints do, so we might need a fallback
       await this.requestWebDav(path, {
         method: "PUT",
         body,
@@ -364,6 +368,7 @@ export class CookbookClient {
         throw error;
       }
 
+      // fallback: explicit MKCOL if auto failed
       logWarn(
         "sync",
         "WebDAV auto directory creation failed; trying explicit MKCOL",
@@ -428,6 +433,9 @@ export class CookbookClient {
                 resolvedAuthorization &&
                 !triedAuthorizations.has(resolvedAuthorization)
               ) {
+                // The user id and the login username can differ on Nextcloud
+                // (e.g. "john@example.com" login but "john" user id for WebDAV paths).
+                // We try the login first, then fall back to the resolved user id.
                 logWarn(
                   "sync",
                   "WebDAV auth rejected login; retrying with resolved user id",
