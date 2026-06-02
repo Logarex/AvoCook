@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   addIngredientsToShoppingList,
   clearCheckedShoppingListItems,
+  moveShoppingListItem,
   normalizeShoppingListItems,
-  setShoppingListItemChecked
+  setShoppingListItemChecked,
+  updateShoppingListItemLabel
 } from "../src/features/shopping/shoppingList";
 
 describe("shopping list helpers", () => {
@@ -71,5 +73,49 @@ describe("shopping list helpers", () => {
         checked: item.checked
       }))
     ).toEqual([{ id: "item-1", label: "eggs", checked: true }]);
+  });
+
+  it("updates item labels and preserves blank edits defensively", () => {
+    const { items } = addIngredientsToShoppingList(
+      [],
+      ["flour"],
+      {},
+      {
+        createId: () => "item-1",
+        now: "2026-05-19T00:00:00.000Z"
+      }
+    );
+
+    expect(
+      updateShoppingListItemLabel(
+        items,
+        "item-1",
+        "  bread flour  ",
+        "2026-05-19T01:00:00.000Z"
+      )[0]
+    ).toMatchObject({
+      label: "bread flour",
+      updatedAt: "2026-05-19T01:00:00.000Z"
+    });
+    expect(updateShoppingListItemLabel(items, "item-1", "   ")).toBe(items);
+  });
+
+  it("moves items within the persisted array order", () => {
+    const { items } = addIngredientsToShoppingList(
+      [],
+      ["flour", "milk", "eggs"],
+      {},
+      {
+        createId: (() => {
+          let nextId = 0;
+          return () => `item-${++nextId}`;
+        })(),
+        now: "2026-05-19T00:00:00.000Z"
+      }
+    );
+
+    expect(moveShoppingListItem(items, "item-2", -1).map((item) => item.label))
+      .toEqual(["milk", "flour", "eggs"]);
+    expect(moveShoppingListItem(items, "item-3", 1)).toBe(items);
   });
 });

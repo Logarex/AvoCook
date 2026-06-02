@@ -237,8 +237,11 @@ function RecipeDetailContent({
     [recipe?.nutrition],
   );
   const baseServings = Math.max(1, recipe?.recipeYield || 1);
-  const selectedServings = recipe?.localMeta?.servingOverride ?? baseServings;
-  const servingFactor = selectedServings / baseServings;
+  const showServings = !recipe?.localMeta?.hideServings;
+  const selectedServings = showServings
+    ? recipe?.localMeta?.servingOverride ?? baseServings
+    : baseServings;
+  const servingFactor = showServings ? selectedServings / baseServings : 1;
   const scaledIngredients = useMemo(
     () =>
       recipe?.recipeIngredient.map((ingredient) =>
@@ -312,7 +315,7 @@ function RecipeDetailContent({
             value: totalDuration,
           }
         : null,
-      recipe.recipeYield
+      showServings && recipe.recipeYield
         ? {
             id: "yield",
             icon: Users,
@@ -330,7 +333,7 @@ function RecipeDetailContent({
         value: string;
       } => Boolean(item),
     );
-  }, [recipe, selectedServings, t]);
+  }, [recipe, selectedServings, showServings, t]);
   const {
     notificationStatus: timerNotificationStatus,
     resetTimer,
@@ -738,7 +741,7 @@ function RecipeDetailContent({
 
       <View style={styles.pills}>
         {recipe.recipeCategory ? <Pill label={recipe.recipeCategory} /> : null}
-        {recipe.recipeYield ? (
+        {showServings && recipe.recipeYield ? (
           <Pill label={`${selectedServings} ${t("recipes.yield")}`} />
         ) : null}
         {recipe.keywords
@@ -764,11 +767,13 @@ function RecipeDetailContent({
         </View>
       ) : null}
 
-      <ServingsControl
-        baseServings={baseServings}
-        selectedServings={selectedServings}
-        onChange={(nextServings) => void handleServingsChange(nextServings)}
-      />
+      {showServings ? (
+        <ServingsControl
+          baseServings={baseServings}
+          selectedServings={selectedServings}
+          onChange={(nextServings) => void handleServingsChange(nextServings)}
+        />
+      ) : null}
 
       <TimerSection
         presets={timerPresets}

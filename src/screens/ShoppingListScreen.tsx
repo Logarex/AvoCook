@@ -1,5 +1,13 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Check, Plus, ShoppingCart, Trash2, X } from "lucide-react-native";
+import {
+  Check,
+  ChevronDown,
+  ChevronUp,
+  Plus,
+  ShoppingCart,
+  Trash2,
+  X
+} from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -7,6 +15,7 @@ import {
   FlatList,
   Pressable,
   StyleSheet,
+  TextInput,
   View
 } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -34,8 +43,10 @@ export function ShoppingListScreen({ navigation }: Props) {
     clearChecked,
     items,
     loading,
+    moveItem,
     removeItem,
-    toggleItem
+    toggleItem,
+    updateItem
   } = useShoppingList();
   const [newItem, setNewItem] = useState("");
   const remainingCount = useMemo(
@@ -174,11 +185,16 @@ export function ShoppingListScreen({ navigation }: Props) {
               body={t("shoppingList.emptyBody")}
             />
           }
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
             <ShoppingListRow
+              canMoveDown={index < items.length - 1}
+              canMoveUp={index > 0}
               item={item}
+              onMoveDown={() => void moveItem(item.id, 1)}
+              onMoveUp={() => void moveItem(item.id, -1)}
               onRemove={() => void removeItem(item.id)}
               onToggle={() => void toggleItem(item.id)}
+              onUpdate={(label) => void updateItem(item.id, label)}
             />
           )}
           showsVerticalScrollIndicator={false}
@@ -199,16 +215,43 @@ export function ShoppingListScreen({ navigation }: Props) {
 }
 
 function ShoppingListRow({
+  canMoveDown,
+  canMoveUp,
   item,
+  onMoveDown,
+  onMoveUp,
   onRemove,
-  onToggle
+  onToggle,
+  onUpdate
 }: {
+  canMoveDown: boolean;
+  canMoveUp: boolean;
   item: ShoppingListItem;
+  onMoveDown: () => void;
+  onMoveUp: () => void;
   onRemove: () => void;
   onToggle: () => void;
+  onUpdate: (label: string) => void;
 }) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const [draftLabel, setDraftLabel] = useState(item.label);
+
+  React.useEffect(() => {
+    setDraftLabel(item.label);
+  }, [item.label]);
+
+  function commitLabel() {
+    const label = draftLabel.trim();
+    if (!label) {
+      setDraftLabel(item.label);
+      return;
+    }
+    if (label !== item.label) {
+      onUpdate(label);
+    }
+  }
+
   return (
     <View
       style={[
@@ -242,20 +285,49 @@ function ShoppingListRow({
             <Check color={colors.textInverted} size={15} strokeWidth={3} />
           ) : null}
         </View>
-        <View style={styles.itemText}>
-          <AppText
-            style={item.checked ? styles.checkedText : undefined}
-            variant="label"
-          >
-            {item.label}
-          </AppText>
-          {item.recipeName ? (
-            <AppText muted variant="caption">
-              {item.recipeName}
-            </AppText>
-          ) : null}
-        </View>
       </Pressable>
+      <View style={styles.itemText}>
+        <TextInput
+          accessibilityLabel={t("shoppingList.editItem")}
+          onBlur={commitLabel}
+          onChangeText={setDraftLabel}
+          onSubmitEditing={commitLabel}
+          placeholderTextColor={colors.textMuted}
+          returnKeyType="done"
+          selectionColor={colors.primary}
+          style={[
+            styles.itemInput,
+            {
+              backgroundColor: colors.input,
+              borderColor: colors.border,
+              color: colors.text
+            },
+            item.checked ? styles.checkedText : undefined
+          ]}
+          value={draftLabel}
+        />
+        {item.recipeName ? (
+          <AppText muted variant="caption">
+            {item.recipeName}
+          </AppText>
+        ) : null}
+      </View>
+      <View style={styles.itemMoveActions}>
+        <IconButton
+          disabled={!canMoveUp}
+          icon={ChevronUp}
+          label={t("shoppingList.moveItemUp")}
+          onPress={onMoveUp}
+          style={styles.itemMoveAction}
+        />
+        <IconButton
+          disabled={!canMoveDown}
+          icon={ChevronDown}
+          label={t("shoppingList.moveItemDown")}
+          onPress={onMoveDown}
+          style={styles.itemMoveAction}
+        />
+      </View>
       <IconButton
         icon={Trash2}
         label={t("shoppingList.deleteItem")}
@@ -310,6 +382,21 @@ const styles = StyleSheet.create({
     height: 40,
     width: 40
   },
+  itemInput: {
+    borderRadius: radius.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    fontSize: 16,
+    minHeight: 44,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs
+  },
+  itemMoveAction: {
+    height: 34,
+    width: 34
+  },
+  itemMoveActions: {
+    gap: spacing.xxs
+  },
   itemRow: {
     alignItems: "center",
     borderRadius: radius.md,
@@ -325,11 +412,7 @@ const styles = StyleSheet.create({
   },
   itemToggle: {
     alignItems: "center",
-    flex: 1,
-    flexDirection: "row",
-    gap: spacing.sm,
-    minHeight: 44,
-    minWidth: 0
+    minHeight: 44
   },
   listContent: {
     gap: spacing.xs,

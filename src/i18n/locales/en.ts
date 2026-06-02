@@ -245,6 +245,9 @@ export default {
       clearAllConfirmTitle: "Clear the whole list?",
       clearAllConfirmBody: "Every item in the shopping list will be removed.",
       deleteItem: "Delete item",
+      editItem: "Edit item",
+      moveItemDown: "Move item down",
+      moveItemUp: "Move item up",
     },
     editor: {
       newRecipe: "New recipe",
@@ -285,6 +288,9 @@ export default {
       sodiumMg: "Sodium / salt (mg)",
       fiberGrams: "Fiber (g)",
       proteinGrams: "Protein (g)",
+      showServings: "Show servings",
+      showServingsHelp:
+        "Turn off to hide the people calculator on this recipe.",
       requiredName: "Recipe name is required.",
     },
     importRecipe: {
