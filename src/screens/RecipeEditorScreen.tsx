@@ -12,7 +12,7 @@ import {
   X
 } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, Switch, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "../components/AppText";
@@ -72,6 +72,9 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const [keywords, setKeywords] = useState(initialRecipe.keywords);
   const [recipeYield, setRecipeYield] = useState(
     String(initialRecipe.recipeYield || 1)
+  );
+  const [showServings, setShowServings] = useState(
+    !initialRecipe.localMeta?.hideServings
   );
   const [prepMinutes, setPrepMinutes] = useState(
     minutesToString(initialRecipe.prepTime)
@@ -148,6 +151,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
     setCategory(initialRecipe.recipeCategory);
     setKeywords(initialRecipe.keywords);
     setRecipeYield(String(initialRecipe.recipeYield || 1));
+    setShowServings(!initialRecipe.localMeta?.hideServings);
     setPrepMinutes(minutesToString(initialRecipe.prepTime));
     setCookMinutes(minutesToString(initialRecipe.cookTime));
     setTotalMinutes(minutesToString(initialRecipe.totalTime));
@@ -186,10 +190,14 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
               imageUrl: photoUrl,
               imagePlaceholderUrl: photoUrl
             };
-      const localMeta =
+      const photoLocalMeta =
         photoUrl === initialPhotoUrl
           ? initialRecipe.localMeta
           : getLocalMetaAfterPhotoChange(initialRecipe.localMeta, photoUrl);
+      const localMeta = getLocalMetaAfterServingsVisibilityChange(
+        photoLocalMeta,
+        showServings
+      );
       const recipe = normalizeRecipe({
         ...initialRecipe,
         name,
@@ -356,12 +364,41 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         />
         <TextField
           containerStyle={styles.rowItem}
+          editable={showServings}
           keyboardType="number-pad"
           label={t("recipes.yield")}
           onChangeText={setRecipeYield}
+          style={!showServings ? styles.disabledInput : undefined}
           value={recipeYield}
         />
       </View>
+      <Pressable
+        accessibilityLabel={t("editor.showServings")}
+        accessibilityRole="switch"
+        accessibilityState={{ checked: showServings }}
+        onPress={() => setShowServings((current) => !current)}
+        style={({ pressed }) => [
+          styles.switchRow,
+          {
+            backgroundColor: colors.surfaceGlassStrong,
+            borderColor: colors.border,
+            opacity: pressed ? 0.76 : 1
+          }
+        ]}
+      >
+        <View style={styles.switchText}>
+          <AppText variant="label">{t("editor.showServings")}</AppText>
+          <AppText muted variant="caption">
+            {t("editor.showServingsHelp")}
+          </AppText>
+        </View>
+        <Switch
+          onValueChange={setShowServings}
+          thumbColor={showServings ? colors.primary : colors.textMuted}
+          trackColor={{ false: colors.border, true: colors.chip }}
+          value={showServings}
+        />
+      </Pressable>
       {categorySuggestions.length ? (
         <View style={styles.suggestionList}>
           {categorySuggestions.map((suggestion) => (
@@ -668,6 +705,24 @@ function getLocalMetaAfterPhotoChange(
   return Object.keys(nextLocalMeta).length ? nextLocalMeta : undefined;
 }
 
+function getLocalMetaAfterServingsVisibilityChange(
+  localMeta: ReturnType<typeof normalizeRecipe>["localMeta"],
+  showServings: boolean
+) {
+  const nextLocalMeta: NonNullable<
+    ReturnType<typeof normalizeRecipe>["localMeta"]
+  > = { ...(localMeta ?? {}) };
+
+  if (showServings) {
+    delete nextLocalMeta.hideServings;
+  } else {
+    nextLocalMeta.hideServings = true;
+    delete nextLocalMeta.servingOverride;
+  }
+
+  return Object.keys(nextLocalMeta).length ? nextLocalMeta : undefined;
+}
+
 function normalizeNutritionInput(value?: NutritionValue | null) {
   if (value === null || value === undefined) {
     return "";
@@ -714,6 +769,9 @@ const styles = StyleSheet.create({
   compactInput: {
     minHeight: 48
   },
+  disabledInput: {
+    opacity: 0.55
+  },
   instructionInput: {
     minHeight: 68,
     textAlignVertical: "top"
@@ -732,6 +790,20 @@ const styles = StyleSheet.create({
   },
   lineRemoveButton: {
     marginBottom: 0
+  },
+  switchRow: {
+    alignItems: "center",
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: "row",
+    gap: spacing.sm,
+    justifyContent: "space-between",
+    padding: spacing.sm
+  },
+  switchText: {
+    flex: 1,
+    gap: spacing.xxs,
+    minWidth: 0
   },
   toolbar: {
     alignItems: "center",

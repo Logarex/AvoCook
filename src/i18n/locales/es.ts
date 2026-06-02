@@ -248,6 +248,11 @@ export default {
       clearAllConfirmBody:
         "Se eliminarán todos los productos de la lista de compras.",
       deleteItem: "Eliminar producto",
+      doneReordering: "Terminar orden",
+      editItem: "Editar producto",
+      moveItemDown: "Bajar producto",
+      moveItemUp: "Subir producto",
+      reorderItems: "Reordenar productos",
     },
     editor: {
       newRecipe: "Nueva receta",
@@ -288,6 +293,9 @@ export default {
       sodiumMg: "Sodio / sal (mg)",
       fiberGrams: "Fibra (g)",
       proteinGrams: "Proteína (g)",
+      showServings: "Mostrar porciones",
+      showServingsHelp:
+        "Desactívalo para ocultar el calculador de personas en esta receta.",
       requiredName: "El nombre de la receta es obligatorio.",
     },
     importRecipe: {

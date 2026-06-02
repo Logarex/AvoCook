@@ -249,6 +249,11 @@ export default {
       clearAllConfirmTitle: "Ganze Liste leeren?",
       clearAllConfirmBody: "Alle Einträge der Einkaufsliste werden entfernt.",
       deleteItem: "Eintrag löschen",
+      doneReordering: "Sortieren beenden",
+      editItem: "Eintrag bearbeiten",
+      moveItemDown: "Eintrag nach unten",
+      moveItemUp: "Eintrag nach oben",
+      reorderItems: "Einträge sortieren",
     },
     editor: {
       newRecipe: "Neues Rezept",
@@ -289,6 +294,9 @@ export default {
       sodiumMg: "Natrium / Salz (mg)",
       fiberGrams: "Ballaststoffe (g)",
       proteinGrams: "Eiweiß (g)",
+      showServings: "Portionen anzeigen",
+      showServingsHelp:
+        "Deaktivieren, um den Personenrechner fuer dieses Rezept auszublenden.",
       requiredName: "Rezeptname ist erforderlich.",
     },
     importRecipe: {
