@@ -38,6 +38,12 @@ import type { RootStackParamList } from "../navigation/types";
 import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { isoDurationToMinutes, minutesToIsoDuration } from "../utils/duration";
+import {
+  applyKeywordSuggestion,
+  expandEditableListItem,
+  getKeywordSuggestions,
+  normalizeSuggestionSearch
+} from "./recipeEditorHelpers";
 
 type Props = NativeStackScreenProps<RootStackParamList, "RecipeEditor">;
 
@@ -110,7 +116,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const categorySuggestions = useMemo(() => {
-    const normalizedCategory = normalizeCategorySearch(category);
+    const normalizedCategory = normalizeSuggestionSearch(category);
     const existingCategories = Array.from(
       new Set(
         [
@@ -126,7 +132,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
 
     return existingCategories
       .filter((item) => {
-        const normalizedItem = normalizeCategorySearch(item);
+        const normalizedItem = normalizeSuggestionSearch(item);
         return (
           normalizedItem !== normalizedCategory &&
           (!normalizedCategory || normalizedItem.includes(normalizedCategory))
@@ -136,6 +142,10 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
       .sort((left, right) => left.label.localeCompare(right.label))
       .slice(0, 6);
   }, [category, customCategories, recipes, t]);
+  const keywordSuggestions = useMemo(
+    () => getKeywordSuggestions(keywords, recipes),
+    [keywords, recipes]
+  );
   const photoClient = isCookbookImageEndpoint(photoUrl) ? getClient() : null;
   const photoSource = photoUrl
     ? {
@@ -429,6 +439,32 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         onChangeText={setKeywords}
         value={keywords}
       />
+      {keywordSuggestions.length ? (
+        <View style={styles.suggestionList}>
+          {keywordSuggestions.map((suggestion) => (
+            <Pressable
+              key={suggestion}
+              accessibilityLabel={suggestion}
+              accessibilityRole="button"
+              onPress={() =>
+                setKeywords((currentKeywords) =>
+                  applyKeywordSuggestion(currentKeywords, suggestion)
+                )
+              }
+              style={({ pressed }) => [
+                styles.suggestionChip,
+                {
+                  backgroundColor: colors.chip,
+                  borderColor: colors.border,
+                  opacity: pressed ? 0.76 : 1
+                }
+              ]}
+            >
+              <AppText variant="caption">{suggestion}</AppText>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
       <View style={styles.row}>
         <TextField
           containerStyle={styles.rowItem}
@@ -458,6 +494,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         onChange={setIngredients}
         placeholder={t("editor.ingredientPlaceholder")}
         removeLabel={t("editor.removeIngredient")}
+        splitPastedLines
         values={ingredients}
       />
       <EditableLineList
@@ -572,6 +609,7 @@ function EditableLineList({
   onChange,
   placeholder,
   removeLabel,
+  splitPastedLines = false,
   values
 }: {
   addLabel: string;
@@ -581,10 +619,15 @@ function EditableLineList({
   onChange: (values: string[]) => void;
   placeholder: string;
   removeLabel: string;
+  splitPastedLines?: boolean;
   values: string[];
 }) {
   function updateItem(index: number, value: string) {
-    onChange(values.map((item, itemIndex) => (itemIndex === index ? value : item)));
+    onChange(
+      splitPastedLines
+        ? expandEditableListItem(values, index, value)
+        : values.map((item, itemIndex) => (itemIndex === index ? value : item))
+    );
   }
 
   function removeItem(index: number) {
@@ -600,7 +643,7 @@ function EditableLineList({
           <TextField
             containerStyle={styles.lineInput}
             label={itemLabel(index)}
-            multiline={multiline}
+            multiline={multiline || splitPastedLines}
             onChangeText={(nextValue) => updateItem(index, nextValue)}
             placeholder={placeholder}
             style={multiline ? styles.instructionInput : styles.compactInput}
@@ -652,14 +695,6 @@ function sanitizeIntegerInput(value: string) {
 
 function sanitizeDecimalInput(value: string) {
   return value.replace(/[^\d,.+-]/g, "");
-}
-
-function normalizeCategorySearch(value: string) {
-  return value
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .trim();
 }
 
 function normalizeNutritionForEditor(
