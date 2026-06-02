@@ -22,6 +22,7 @@ import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import { getRecipeCategoryLabel } from "../features/recipes/categories";
 import { persistRecipeImage } from "../features/recipes/recipeImages";
 import {
   getEditableRecipeImageSource,
@@ -131,8 +132,10 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           (!normalizedCategory || normalizedItem.includes(normalizedCategory))
         );
       })
+      .map((id) => ({ id, label: getRecipeCategoryLabel(id, t) }))
+      .sort((left, right) => left.label.localeCompare(right.label))
       .slice(0, 6);
-  }, [category, customCategories, recipes]);
+  }, [category, customCategories, recipes, t]);
   const photoClient = isCookbookImageEndpoint(photoUrl) ? getClient() : null;
   const photoSource = photoUrl
     ? {
@@ -403,10 +406,10 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         <View style={styles.suggestionList}>
           {categorySuggestions.map((suggestion) => (
             <Pressable
-              key={suggestion}
-              accessibilityLabel={suggestion}
+              key={suggestion.id}
+              accessibilityLabel={suggestion.label}
               accessibilityRole="button"
-              onPress={() => setCategory(suggestion)}
+              onPress={() => setCategory(suggestion.id)}
               style={({ pressed }) => [
                 styles.suggestionChip,
                 {
@@ -416,7 +419,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
                 }
               ]}
             >
-              <AppText variant="caption">{suggestion}</AppText>
+              <AppText variant="caption">{suggestion.label}</AppText>
             </Pressable>
           ))}
         </View>

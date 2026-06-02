@@ -7,6 +7,7 @@ import {
   getRemoteRecipeImage,
   hasRecipeImageRemovalIntent,
   normalizeCookbookImageEndpointReference,
+  mergeRecipeImageReferences,
   replaceLocalRecipeImageReferencesWithRemote,
   sanitizeRecipeImagesForNextcloud,
   withRecipeImageRemovalIntent,
@@ -225,6 +226,35 @@ describe("recipe image references", () => {
 
     expect(repaired.image).toBe("file:///documents/recipe-images/photo.jpg");
     expect(getEditableRecipeImageSource(repaired)).toBe(
+      "file:///documents/recipe-images/photo.jpg"
+    );
+  });
+
+  it("keeps the cached local image when sync returns a server recipe without image fields", () => {
+    const serverRecipe = normalizeRecipe({
+      id: "12",
+      name: "Photo maison",
+      image: "",
+      imageUrl: "",
+      imagePlaceholderUrl: ""
+    });
+    const localRecipe = normalizeRecipe({
+      id: "12",
+      name: "Photo maison",
+      image: "file:///documents/recipe-images/photo.jpg",
+      localMeta: {
+        cachedImage: "file:///documents/recipe-images/photo.jpg"
+      }
+    });
+
+    const merged = mergeRecipeImageReferences(serverRecipe, localRecipe);
+
+    expect(merged.image).toBe("file:///documents/recipe-images/photo.jpg");
+    expect(merged.imageUrl).toBe("file:///documents/recipe-images/photo.jpg");
+    expect(merged.imagePlaceholderUrl).toBe(
+      "file:///documents/recipe-images/photo.jpg"
+    );
+    expect(merged.localMeta?.cachedImage).toBe(
       "file:///documents/recipe-images/photo.jpg"
     );
   });
