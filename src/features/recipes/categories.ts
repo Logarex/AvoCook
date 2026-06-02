@@ -18,6 +18,24 @@ export const DEFAULT_RECIPE_CATEGORIES = [
   "Sauce"
 ];
 
+const defaultRecipeCategoryTranslationKeys: Record<string, string> = {
+  Apéritif: "recipes.defaultCategories.appetizer",
+  Entrée: "recipes.defaultCategories.starter",
+  "Plat principal": "recipes.defaultCategories.mainCourse",
+  Dessert: "recipes.defaultCategories.dessert",
+  Viande: "recipes.defaultCategories.meat",
+  Poisson: "recipes.defaultCategories.fish",
+  Volaille: "recipes.defaultCategories.poultry",
+  Végétarien: "recipes.defaultCategories.vegetarian",
+  Soupe: "recipes.defaultCategories.soup",
+  Salade: "recipes.defaultCategories.salad",
+  Pâtes: "recipes.defaultCategories.pasta",
+  Riz: "recipes.defaultCategories.rice",
+  Gâteau: "recipes.defaultCategories.cake",
+  Boisson: "recipes.defaultCategories.drink",
+  Sauce: "recipes.defaultCategories.sauce"
+};
+
 const categoryRules: { category: string; keywords: string[] }[] = [
   {
     category: "Apéritif",
@@ -145,6 +163,22 @@ export function inferRecipeCategory(recipe: Pick<
 export function withInferredCategory(recipe: Recipe) {
   const recipeCategory = inferRecipeCategory(recipe);
   return recipeCategory ? { ...recipe, recipeCategory } : recipe;
+}
+
+export function isDefaultRecipeCategory(category: string) {
+  return DEFAULT_RECIPE_CATEGORIES.includes(category);
+}
+
+export function getDefaultRecipeCategoryTranslationKey(category: string) {
+  return defaultRecipeCategoryTranslationKeys[category] ?? "";
+}
+
+export function getRecipeCategoryLabel(
+  category: string,
+  t: (key: string, options?: Record<string, unknown>) => string
+) {
+  const key = getDefaultRecipeCategoryTranslationKey(category);
+  return key ? t(key, { defaultValue: category }) : category;
 }
 
 function normalizeSearchText(value: string) {

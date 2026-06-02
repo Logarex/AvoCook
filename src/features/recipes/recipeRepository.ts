@@ -46,6 +46,7 @@ import {
   hasRecipeImageRemovalIntent,
   isCookbookImageEndpoint,
   isRemoteImageReference,
+  mergeRecipeImageReferences,
   preferRecipeImageUrls,
   replaceLocalRecipeImageReferencesWithRemote,
   sanitizeRecipeImagesForNextcloud,
@@ -1551,47 +1552,7 @@ function mergeServerRecipeWithLocalImages(
   serverRecipe: Recipe,
   localRecipe: Recipe
 ) {
-  if (hasRecipeImageRemovalIntent(localRecipe)) {
-    return normalizeRecipe({
-      ...serverRecipe,
-      image: "",
-      imageUrl: "",
-      imagePlaceholderUrl: "",
-      localMeta: localRecipe.localMeta
-    });
-  }
-
-  const externalImage =
-    getExternalRecipeImageSource(localRecipe) ||
-    getExternalRecipeImageSource(serverRecipe);
-  const localImage =
-    getLocalRecipeImage(localRecipe) || getCachedRecipeImage(localRecipe);
-  const nextcloudFileImage =
-    getNextcloudFileRecipeImage(localRecipe) ||
-    getNextcloudFileRecipeImage(serverRecipe);
-  const localRemoteImage = getRemoteRecipeImage(localRecipe);
-  const serverRemoteImage = getRemoteRecipeImage(serverRecipe);
-  const displayImage =
-    externalImage || localRemoteImage || serverRemoteImage || nextcloudFileImage;
-
-  const mergedRecipe = normalizeRecipe({
-    ...serverRecipe,
-    image:
-      externalImage ||
-      nextcloudFileImage ||
-      serverRecipe.image ||
-      localImage,
-    imageUrl: externalImage || displayImage || serverRecipe.imageUrl,
-    imagePlaceholderUrl:
-      externalImage || displayImage || serverRecipe.imagePlaceholderUrl,
-    localMeta: localRecipe.localMeta
-  });
-
-  if (localImage) {
-    return withCachedRecipeImage(mergedRecipe, localImage);
-  }
-
-  return replaceLocalRecipeImageReferencesWithRemote(mergedRecipe);
+  return mergeRecipeImageReferences(serverRecipe, localRecipe);
 }
 
 function getRecipeImageDebugState(recipe: Recipe) {
