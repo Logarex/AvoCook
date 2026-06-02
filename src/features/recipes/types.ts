@@ -26,6 +26,7 @@ export type RecipeLocalTimer = {
 
 export type RecipeLocalMeta = {
   cachedImage?: string;
+  hideServings?: boolean;
   imageRemoved?: boolean;
   nutriScoreOverride?: NutriScoreGrade;
   servingOverride?: number;
@@ -162,6 +163,7 @@ export function hasLocalMetadata(recipe: Recipe) {
 
   return Boolean(
     meta.nutriScoreOverride ||
+      meta.hideServings ||
       meta.imageRemoved ||
       meta.servingOverride ||
       (meta.timers && meta.timers.length > 0)
@@ -272,6 +274,10 @@ function normalizeLocalMeta(
     normalized.imageRemoved = true;
   }
 
+  if (localMeta.hideServings) {
+    normalized.hideServings = true;
+  }
+
   if (localMeta.nutriScoreOverride) {
     normalized.nutriScoreOverride = localMeta.nutriScoreOverride;
   }
@@ -300,6 +306,7 @@ function normalizeLocalMeta(
 function hasMeaningfulLocalMeta(localMeta: RecipeLocalMeta) {
   return Boolean(
     localMeta.nutriScoreOverride ||
+      localMeta.hideServings ||
       localMeta.imageRemoved ||
       localMeta.servingOverride ||
       (localMeta.timers && localMeta.timers.length > 0)

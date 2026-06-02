@@ -85,6 +85,45 @@ export function setShoppingListItemChecked(
   );
 }
 
+export function updateShoppingListItemLabel(
+  items: ShoppingListItem[],
+  itemId: string,
+  label: string,
+  now = new Date().toISOString()
+) {
+  const normalizedLabel = normalizeShoppingText(label);
+  if (!normalizedLabel) {
+    return items;
+  }
+
+  return items.map((item) =>
+    item.id === itemId
+      ? { ...item, label: normalizedLabel, updatedAt: now }
+      : item
+  );
+}
+
+export function moveShoppingListItem(
+  items: ShoppingListItem[],
+  itemId: string,
+  direction: -1 | 1
+) {
+  const currentIndex = items.findIndex((item) => item.id === itemId);
+  const nextIndex = currentIndex + direction;
+  if (
+    currentIndex < 0 ||
+    nextIndex < 0 ||
+    nextIndex >= items.length
+  ) {
+    return items;
+  }
+
+  const nextItems = [...items];
+  const [item] = nextItems.splice(currentIndex, 1);
+  nextItems.splice(nextIndex, 0, item);
+  return nextItems;
+}
+
 export function removeShoppingListItem(
   items: ShoppingListItem[],
   itemId: string

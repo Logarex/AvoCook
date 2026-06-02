@@ -10,8 +10,10 @@ import React, {
 import {
   addIngredientsToShoppingList,
   clearCheckedShoppingListItems,
+  moveShoppingListItem,
   removeShoppingListItem,
   setShoppingListItemChecked,
+  updateShoppingListItemLabel,
   type ShoppingListAddResult,
   type ShoppingListItem,
   type ShoppingListSource
@@ -32,8 +34,10 @@ type ShoppingListContextValue = {
   ) => Promise<ShoppingListAddResult>;
   clearAll: () => Promise<void>;
   clearChecked: () => Promise<number>;
+  moveItem: (itemId: string, direction: -1 | 1) => Promise<void>;
   removeItem: (itemId: string) => Promise<void>;
   toggleItem: (itemId: string) => Promise<void>;
+  updateItem: (itemId: string, label: string) => Promise<void>;
 };
 
 const ShoppingListContext = createContext<ShoppingListContextValue | undefined>(
@@ -117,6 +121,22 @@ export function ShoppingListProvider({
     [persistItems]
   );
 
+  const updateItem = useCallback(
+    async (itemId: string, label: string) => {
+      await persistItems(
+        updateShoppingListItemLabel(itemsRef.current, itemId, label)
+      );
+    },
+    [persistItems]
+  );
+
+  const moveItem = useCallback(
+    async (itemId: string, direction: -1 | 1) => {
+      await persistItems(moveShoppingListItem(itemsRef.current, itemId, direction));
+    },
+    [persistItems]
+  );
+
   const clearChecked = useCallback(async () => {
     const checkedCount = itemsRef.current.filter((item) => item.checked).length;
     await persistItems(clearCheckedShoppingListItems(itemsRef.current));
@@ -135,8 +155,10 @@ export function ShoppingListProvider({
       addIngredients,
       clearAll,
       clearChecked,
+      moveItem,
       removeItem,
-      toggleItem
+      toggleItem,
+      updateItem
     }),
     [
       items,
@@ -145,8 +167,10 @@ export function ShoppingListProvider({
       addIngredients,
       clearAll,
       clearChecked,
+      moveItem,
       removeItem,
-      toggleItem
+      toggleItem,
+      updateItem
     ]
   );
 
