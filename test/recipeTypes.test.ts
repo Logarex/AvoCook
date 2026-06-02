@@ -112,4 +112,21 @@ describe("normalizeRecipe", () => {
       calories: "455"
     });
   });
+
+  it("keeps hidden servings as local-only recipe metadata", () => {
+    const recipe = normalizeRecipe({
+      id: "local-meta",
+      name: "No serving calculator",
+      localMeta: {
+        hideServings: true,
+        servingOverride: 4
+      }
+    });
+
+    expect(recipe.localMeta).toEqual({
+      hideServings: true,
+      servingOverride: 4
+    });
+    expect(toCookbookRecipe(recipe).localMeta).toBeUndefined();
+  });
 });
