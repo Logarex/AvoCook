@@ -1,23 +1,21 @@
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useReducedMotion } from "../../features/accessibility/useReducedMotion";
 import { getScreenBottomPadding } from "../../utils/safeArea";
-export type CategoryOption = { count: number; id: string | null; label: string; };
-import { Check, FolderPlus, FolderX, X, Trash2 } from "lucide-react-native";
-import React, { useState, useMemo } from "react";
-import { Alert, Modal, Pressable, ScrollView, View } from "react-native";
+import { Check, Trash2, X } from "lucide-react-native";
+import React from "react";
+import { Modal, Pressable, ScrollView, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../../components/AppText";
 import { GlassPanel } from "../../components/GlassPanel";
 import { IconButton } from "../../components/IconButton";
-import { TextField as Input } from "../../components/TextField";
-import { PrimaryButton } from "../../components/PrimaryButton";
 import { useAppTheme } from "../../theme/ThemeProvider";
 import { styles } from "./recipeListStyles";
+
+export type CategoryOption = { count: number; id: string | null; label: string; };
 
 export function CategoryPickerModal({
   category,
   categoryOptions,
-  customCategories,
   onClose,
   onDeleteCategory,
   onSelect,
@@ -26,7 +24,6 @@ export function CategoryPickerModal({
 }: {
   category: string | null;
   categoryOptions: CategoryOption[];
-  customCategories: string[];
   onClose: () => void;
   onDeleteCategory: (category: string, count: number) => void;
   onSelect: (category: string | null) => void;
@@ -37,10 +34,6 @@ export function CategoryPickerModal({
   const { colors } = useAppTheme();
   const reducedMotion = useReducedMotion();
   const insets = useSafeAreaInsets();
-  const customCategorySet = useMemo(
-    () => new Set(customCategories),
-    [customCategories],
-  );
   return (
     <Modal
       animationType={reducedMotion ? "none" : "slide"}
@@ -122,7 +115,7 @@ export function CategoryPickerModal({
                     {item.count}
                   </AppText>
                 </Pressable>
-                {item.id && customCategorySet.has(item.id) ? (
+                {item.id ? (
                   <IconButton
                     icon={Trash2}
                     label={t("recipes.deleteCategory")}

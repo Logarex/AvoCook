@@ -62,6 +62,7 @@ import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
 import { useReducedMotion } from "../features/accessibility/useReducedMotion";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import { getRecipeCategoryLabel } from "../features/recipes/categories";
 import {
   printRecipe,
   shareRecipeFile,
@@ -155,8 +156,12 @@ export function RecipeListScreen({ navigation }: Props) {
     }
 
     const options = Array.from(counts.entries())
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([label, count]) => ({ id: label, label, count }));
+      .map(([id, count]) => ({
+        id,
+        label: getRecipeCategoryLabel(id, t),
+        count
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label));
 
     return [
       { id: null, label: t("recipes.allCategories"), count: recipes.length },
@@ -234,17 +239,18 @@ export function RecipeListScreen({ navigation }: Props) {
   }
 
   function handleDeleteCategory(categoryName: string, count: number) {
+    const categoryLabel = getRecipeCategoryLabel(categoryName, t);
     if (count > 0) {
       Alert.alert(
         t("recipes.categoryHasRecipesTitle"),
-        t("recipes.categoryHasRecipesBody", { category: categoryName, count }),
+        t("recipes.categoryHasRecipesBody", { category: categoryLabel, count }),
       );
       return;
     }
 
     Alert.alert(
       t("recipes.deleteCategoryConfirmTitle"),
-      t("recipes.deleteCategoryConfirmBody", { category: categoryName }),
+      t("recipes.deleteCategoryConfirmBody", { category: categoryLabel }),
       [
         { text: t("common.cancel"), style: "cancel" },
         {
@@ -630,7 +636,6 @@ export function RecipeListScreen({ navigation }: Props) {
         <CategoryPickerModal
           category={category}
           categoryOptions={categoryOptions}
-          customCategories={customCategories}
           onClose={() => setShowCategoryPicker(false)}
           onDeleteCategory={handleDeleteCategory}
           onSelect={(nextCategory) => {
