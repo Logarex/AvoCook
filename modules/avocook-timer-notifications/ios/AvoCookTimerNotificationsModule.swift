@@ -34,7 +34,7 @@ public class AvoCookTimerNotificationsModule: Module {
     AsyncFunction("requestTimerNotificationPermission") { (promise: Promise) in
       UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
         if let error {
-          promise.reject("ERR_TIMER_NOTIFICATION_PERMISSION", error.localizedDescription, error)
+          promise.reject("ERR_TIMER_NOTIFICATION_PERMISSION", error.localizedDescription)
           return
         }
 
@@ -78,7 +78,7 @@ public class AvoCookTimerNotificationsModule: Module {
 
       UNUserNotificationCenter.current().add(request) { error in
         if let error {
-          promise.reject("ERR_TIMER_NOTIFICATION_SCHEDULE", error.localizedDescription, error)
+          promise.reject("ERR_TIMER_NOTIFICATION_SCHEDULE", error.localizedDescription)
           return
         }
 
