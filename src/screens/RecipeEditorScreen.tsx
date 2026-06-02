@@ -370,7 +370,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           editable={showServings}
           keyboardType="number-pad"
           label={t("recipes.yield")}
-          onChangeText={setRecipeYield}
+          onChangeText={(value) => setRecipeYield(sanitizeIntegerInput(value))}
           style={!showServings ? styles.disabledInput : undefined}
           value={recipeYield}
         />
@@ -434,21 +434,21 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           containerStyle={styles.rowItem}
           keyboardType="number-pad"
           label={t("editor.prepMinutes")}
-          onChangeText={setPrepMinutes}
+          onChangeText={(value) => setPrepMinutes(sanitizeIntegerInput(value))}
           value={prepMinutes}
         />
         <TextField
           containerStyle={styles.rowItem}
           keyboardType="number-pad"
           label={t("editor.cookMinutes")}
-          onChangeText={setCookMinutes}
+          onChangeText={(value) => setCookMinutes(sanitizeIntegerInput(value))}
           value={cookMinutes}
         />
       </View>
       <TextField
         keyboardType="number-pad"
         label={t("editor.totalMinutes")}
-        onChangeText={setTotalMinutes}
+        onChangeText={(value) => setTotalMinutes(sanitizeIntegerInput(value))}
         value={totalMinutes}
       />
       <EditableLineList
@@ -488,14 +488,14 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           containerStyle={styles.rowItem}
           keyboardType="decimal-pad"
           label={t("editor.caloriesKcal")}
-          onChangeText={setCalories}
+          onChangeText={(value) => setCalories(sanitizeDecimalInput(value))}
           value={calories}
         />
         <TextField
           containerStyle={styles.rowItem}
           keyboardType="decimal-pad"
           label={t("editor.carbsGrams")}
-          onChangeText={setCarbohydrates}
+          onChangeText={(value) => setCarbohydrates(sanitizeDecimalInput(value))}
           value={carbohydrates}
         />
       </View>
@@ -504,14 +504,14 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           containerStyle={styles.rowItem}
           keyboardType="decimal-pad"
           label={t("editor.sugarGrams")}
-          onChangeText={setSugar}
+          onChangeText={(value) => setSugar(sanitizeDecimalInput(value))}
           value={sugar}
         />
         <TextField
           containerStyle={styles.rowItem}
           keyboardType="decimal-pad"
           label={t("editor.fatGrams")}
-          onChangeText={setFat}
+          onChangeText={(value) => setFat(sanitizeDecimalInput(value))}
           value={fat}
         />
       </View>
@@ -520,14 +520,14 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           containerStyle={styles.rowItem}
           keyboardType="decimal-pad"
           label={t("editor.saturatedFatGrams")}
-          onChangeText={setSaturatedFat}
+          onChangeText={(value) => setSaturatedFat(sanitizeDecimalInput(value))}
           value={saturatedFat}
         />
         <TextField
           containerStyle={styles.rowItem}
           keyboardType="decimal-pad"
           label={t("editor.sodiumMg")}
-          onChangeText={setSodium}
+          onChangeText={(value) => setSodium(sanitizeDecimalInput(value))}
           value={sodium}
         />
       </View>
@@ -536,14 +536,14 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           containerStyle={styles.rowItem}
           keyboardType="decimal-pad"
           label={t("editor.fiberGrams")}
-          onChangeText={setFiber}
+          onChangeText={(value) => setFiber(sanitizeDecimalInput(value))}
           value={fiber}
         />
         <TextField
           containerStyle={styles.rowItem}
           keyboardType="decimal-pad"
           label={t("editor.proteinGrams")}
-          onChangeText={setProtein}
+          onChangeText={(value) => setProtein(sanitizeDecimalInput(value))}
           value={protein}
         />
       </View>
@@ -644,6 +644,14 @@ function splitLines(value: string) {
 function minutesToString(value: string | null) {
   const minutes = isoDurationToMinutes(value);
   return minutes ? String(minutes) : "";
+}
+
+function sanitizeIntegerInput(value: string) {
+  return value.replace(/\D/g, "");
+}
+
+function sanitizeDecimalInput(value: string) {
+  return value.replace(/[^\d,.+-]/g, "");
 }
 
 function normalizeCategorySearch(value: string) {
