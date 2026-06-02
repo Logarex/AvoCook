@@ -82,6 +82,7 @@ import {
   type RecipePrintLabels,
 } from "../features/recipes/recipeSharing";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import { getRecipeCategoryLabel } from "../features/recipes/categories";
 import { useShoppingList } from "../features/shopping/ShoppingListProvider";
 import {
   useRecipeTimers,
@@ -740,7 +741,9 @@ function RecipeDetailContent({
       </View>
 
       <View style={styles.pills}>
-        {recipe.recipeCategory ? <Pill label={recipe.recipeCategory} /> : null}
+        {recipe.recipeCategory ? (
+          <Pill label={getRecipeCategoryLabel(recipe.recipeCategory, t)} />
+        ) : null}
         {showServings && recipe.recipeYield ? (
           <Pill label={`${selectedServings} ${t("recipes.yield")}`} />
         ) : null}
