@@ -247,9 +247,11 @@ export default {
       clearAllConfirmBody:
         "Tutti i prodotti della lista della spesa saranno rimossi.",
       deleteItem: "Elimina prodotto",
+      doneReordering: "Termina riordino",
       editItem: "Modifica prodotto",
       moveItemDown: "Sposta prodotto giu",
       moveItemUp: "Sposta prodotto su",
+      reorderItems: "Riordina prodotti",
     },
     editor: {
       newRecipe: "Nuova ricetta",

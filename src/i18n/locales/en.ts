@@ -245,9 +245,11 @@ export default {
       clearAllConfirmTitle: "Clear the whole list?",
       clearAllConfirmBody: "Every item in the shopping list will be removed.",
       deleteItem: "Delete item",
+      doneReordering: "Finish reordering",
       editItem: "Edit item",
       moveItemDown: "Move item down",
       moveItemUp: "Move item up",
+      reorderItems: "Reorder items",
     },
     editor: {
       newRecipe: "New recipe",
