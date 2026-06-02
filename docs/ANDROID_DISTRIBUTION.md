@@ -7,7 +7,7 @@ Store just yet.
 
 For now, the simplest approach is to publish a universal APK in GitHub releases:
 
-- Git tag in `v2.0.3` format;
+- Git tag in `v2.0.4` format;
 - public release, not a draft;
 - attached file named `avocook.apk`.
 
