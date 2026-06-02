@@ -249,9 +249,11 @@ export default {
       clearAllConfirmTitle: "Vider toute la liste ?",
       clearAllConfirmBody: "Tous les produits de la liste seront supprimés.",
       deleteItem: "Supprimer le produit",
+      doneReordering: "Terminer le rangement",
       editItem: "Modifier le produit",
       moveItemDown: "Descendre le produit",
       moveItemUp: "Monter le produit",
+      reorderItems: "Réorganiser les produits",
     },
     editor: {
       newRecipe: "Nouvelle recette",
