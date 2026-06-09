@@ -36,9 +36,7 @@ jobs:
             "schemaVersion": 1,
             "label": "APK downloads",
             "message": "${{ steps.count.outputs.total }}",
-            "color": "3ddc84",
-            "namedLogo": "android",
-            "logoColor": "white"
+            "color": "3ddc84"
           }
           EOF
 
