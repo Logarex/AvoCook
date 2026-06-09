@@ -1,0 +1,55 @@
+name: Update APK downloads badge
+
+on:
+  release:
+    types: [published]
+  schedule:
+    # Refresh every day at 06:00 UTC
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  update-badge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Fetch total APK download count
+        id: count
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TOTAL=$(gh api \
+            --paginate \
+            "repos/${{ github.repository }}/releases" \
+            --jq '[.[].assets[] | select(.name == "avocook.apk") | .download_count] | add // 0' \
+            | paste -sd+ - | bc)
+          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+
+      - name: Generate badge JSON
+        run: |
+          mkdir -p badge
+          cat > badge/apk-downloads.json <<EOF
+          {
+            "schemaVersion": 1,
+            "label": "APK downloads",
+            "message": "${{ steps.count.outputs.total }}",
+            "color": "3ddc84",
+            "logoSvg": "<svg role=\"img\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><title>Android</title><path d=\"M17.523 15.341...\" fill=\"#fff\"/></svg>",
+            "namedLogo": "android"
+          }
+          EOF
+
+      - name: Push badge JSON to badges branch
+        run: |
+          cd badge
+          git init
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b badges
+          git add apk-downloads.json
+          git commit -m "chore: update APK downloads badge [skip ci]"
+          git push --force \
+            "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" \
+            badges
