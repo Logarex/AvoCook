@@ -20,10 +20,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # Count all .apk assets across all releases (case-insensitive)
           TOTAL=$(gh api \
             --paginate \
             "repos/${{ github.repository }}/releases" \
-            --jq '[.[].assets[] | select(.name == "avocook.apk") | .download_count] | add // 0' \
+            --jq '[.[].assets[] | select(.name | ascii_downcase | endswith(".apk")) | .download_count] | add // 0' \
             | paste -sd+ - | bc)
           echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
 
@@ -36,8 +37,8 @@ jobs:
             "label": "APK downloads",
             "message": "${{ steps.count.outputs.total }}",
             "color": "3ddc84",
-            "logoSvg": "<svg role=\"img\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><title>Android</title><path d=\"M17.523 15.341...\" fill=\"#fff\"/></svg>",
-            "namedLogo": "android"
+            "namedLogo": "android",
+            "logoColor": "white"
           }
           EOF
 

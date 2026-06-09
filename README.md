@@ -8,7 +8,7 @@ with Nextcloud Cookbook if you already have a server.
 
 [App Store](https://apps.apple.com/app/avocook/id6769012665) ·
 [Android APK](https://github.com/Logarex/AvoCook/releases/latest) ·
-[![APK downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
+[![APK downloads](https://img.shields.io/endpoint?url=https://cdn.jsdelivr.net/gh/Logarex/AvoCook@badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
 
 <p align="center">
   <img src="assets/screenshots/login.png" width="280" alt="AvoCook login" />
