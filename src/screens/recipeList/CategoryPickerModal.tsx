@@ -1,7 +1,7 @@
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useReducedMotion } from "../../features/accessibility/useReducedMotion";
 import { getScreenBottomPadding } from "../../utils/safeArea";
-import { Check, Trash2, X } from "lucide-react-native";
+import { Check, Pencil, Trash2, X } from "lucide-react-native";
 import React from "react";
 import { Modal, Pressable, ScrollView, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -18,6 +18,7 @@ export function CategoryPickerModal({
   categoryOptions,
   onClose,
   onDeleteCategory,
+  onRenameCategory,
   onSelect,
   title,
   visible,
@@ -26,6 +27,7 @@ export function CategoryPickerModal({
   categoryOptions: CategoryOption[];
   onClose: () => void;
   onDeleteCategory: (category: string, count: number) => void;
+  onRenameCategory: (category: string) => void;
   onSelect: (category: string | null) => void;
   title: string;
   visible: boolean;
@@ -116,13 +118,21 @@ export function CategoryPickerModal({
                   </AppText>
                 </Pressable>
                 {item.id ? (
-                  <IconButton
-                    icon={Trash2}
-                    label={t("recipes.deleteCategory")}
-                    onPress={() => onDeleteCategory(item.id ?? "", item.count)}
-                    tone="danger"
-                    style={styles.categoryDeleteButton}
-                  />
+                  <View style={styles.categoryGridActions}>
+                    <IconButton
+                      icon={Pencil}
+                      label={t("recipes.renameCategory")}
+                      onPress={() => onRenameCategory(item.id ?? "")}
+                      style={styles.categoryActionButton}
+                    />
+                    <IconButton
+                      icon={Trash2}
+                      label={t("recipes.deleteCategory")}
+                      onPress={() => onDeleteCategory(item.id ?? "", item.count)}
+                      tone="danger"
+                      style={styles.categoryActionButton}
+                    />
+                  </View>
                 ) : null}
               </View>
             ))}

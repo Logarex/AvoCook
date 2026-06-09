@@ -29,7 +29,7 @@ const LongActionToastContext =
   createContext<LongActionToastContextValue | null>(null);
 
 const LONG_ACTION_DELAY_MS = 1800;
-const LONG_ACTION_VISIBLE_MS = 5600;
+const LONG_ACTION_VISIBLE_MS = 4800;
 
 export function LongActionToastProvider({
   children

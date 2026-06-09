@@ -100,6 +100,7 @@ export function RecipeListScreen({ navigation }: Props) {
     deleteCategory,
     deleteRecipe,
     recipes,
+    renameCategory,
     loading,
     syncing,
     sync,
@@ -110,6 +111,7 @@ export function RecipeListScreen({ navigation }: Props) {
   const [showCategoryCreator, setShowCategoryCreator] = useState(false);
   const [showListScrollTop, setShowListScrollTop] = useState(false);
   const [newCategory, setNewCategory] = useState("");
+  const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [recipeAction, setRecipeAction] = useState<
     "print" | "pdf" | "file" | "delete" | null
@@ -231,11 +233,29 @@ export function RecipeListScreen({ navigation }: Props) {
     if (!normalized) {
       return;
     }
-    await createCategory(normalized);
+    if (editingCategory) {
+      await renameCategory(editingCategory, normalized);
+    } else {
+      await createCategory(normalized);
+    }
     setCategory(normalized);
     setShowCategoryPicker(false);
     setNewCategory("");
+    setEditingCategory(null);
     setShowCategoryCreator(false);
+  }
+
+  function handleStartRenameCategory(categoryName: string) {
+    setEditingCategory(categoryName);
+    setNewCategory(categoryName);
+    setShowCategoryCreator(true);
+    setShowCategoryPicker(false);
+  }
+
+  function handleCloseCategoryEditor() {
+    setShowCategoryCreator(false);
+    setNewCategory("");
+    setEditingCategory(null);
   }
 
   function handleDeleteCategory(categoryName: string, count: number) {
@@ -461,7 +481,15 @@ export function RecipeListScreen({ navigation }: Props) {
             <IconButton
               icon={ListPlus}
               label={t("recipes.newCategory")}
-              onPress={() => setShowCategoryCreator((visible) => !visible)}
+              onPress={() => {
+                if (showCategoryCreator && !editingCategory) {
+                  handleCloseCategoryEditor();
+                  return;
+                }
+                setEditingCategory(null);
+                setNewCategory("");
+                setShowCategoryCreator(true);
+              }}
               tone="primary"
               style={styles.headerIcon}
             />
@@ -471,16 +499,32 @@ export function RecipeListScreen({ navigation }: Props) {
         {showCategoryCreator ? (
           <GlassPanel style={styles.inlineEditor}>
             <TextField
-              label={t("recipes.categoryName")}
+              label={
+                editingCategory
+                  ? t("recipes.renameCategory")
+                  : t("recipes.categoryName")
+              }
               onChangeText={setNewCategory}
               value={newCategory}
             />
-            <PrimaryButton
-              disabled={!newCategory.trim()}
-              icon={Check}
-              label={t("recipes.createCategory")}
-              onPress={() => void handleCreateCategory()}
-            />
+            <View style={styles.inlineEditorActions}>
+              <PrimaryButton
+                disabled={!newCategory.trim()}
+                icon={Check}
+                label={
+                  editingCategory ? t("common.save") : t("recipes.createCategory")
+                }
+                onPress={() => void handleCreateCategory()}
+                style={styles.inlineEditorActionButton}
+              />
+              <PrimaryButton
+                icon={X}
+                label={t("common.cancel")}
+                onPress={handleCloseCategoryEditor}
+                style={styles.inlineEditorActionButton}
+                variant="ghost"
+              />
+            </View>
           </GlassPanel>
         ) : null}
 
@@ -638,6 +682,7 @@ export function RecipeListScreen({ navigation }: Props) {
           categoryOptions={categoryOptions}
           onClose={() => setShowCategoryPicker(false)}
           onDeleteCategory={handleDeleteCategory}
+          onRenameCategory={handleStartRenameCategory}
           onSelect={(nextCategory) => {
             setCategory(nextCategory);
             setShowCategoryPicker(false);

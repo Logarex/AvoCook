@@ -7,7 +7,16 @@ import {
   normalizeLogError
 } from "../logging/appLogger";
 import { CookbookApiError, type CookbookClient } from "../nextcloud/cookbookClient";
-import { saveCustomCategories } from "./categoryStore";
+import {
+  clearCategoryRenames,
+  loadCategoryRenames,
+  normalizeCategoryName,
+  recordCategoryRename,
+  renameCustomCategory,
+  resolveCategoryRename,
+  type CategoryRename,
+  saveCustomCategories
+} from "./categoryStore";
 import {
   findDuplicateRecipeGroups,
   mergeDuplicateRecipeData,
@@ -347,6 +356,55 @@ export async function deleteRecipe(id: string, client: CookbookClient | null) {
   } catch {
     await enqueueSyncOperation("delete", id, null);
   }
+}
+
+export async function renameRecipeCategory(
+  category: string,
+  nextCategory: string,
+  client: CookbookClient | null,
+  options: RecipeRepositoryOptions = {},
+  knownRecipes: Recipe[] = []
+) {
+  await migrateDatabase();
+  const normalized = normalizeCategoryName(category);
+  const nextNormalized = normalizeCategoryName(nextCategory);
+
+  if (!normalized || !nextNormalized || normalized === nextNormalized) {
+    return {
+      recipes: replaceLocalRecipeImageReferences(
+        mergeRecipeLists([...knownRecipes, ...(await loadLocalRecipes())])
+      ),
+      updated: 0
+    };
+  }
+
+  await renameCustomCategory(normalized, nextNormalized);
+
+  const localRecipes = await loadLocalRecipes();
+  const candidateRecipes = mergeRecipeLists([...knownRecipes, ...localRecipes]);
+  const recipesToUpdate = candidateRecipes.filter(
+    (recipe) => normalizeCategoryName(recipe.recipeCategory) === normalized
+  );
+  let recipes = candidateRecipes;
+
+  for (const recipe of recipesToUpdate) {
+    const saved = await updateRecipe(
+      normalizeRecipe({
+        ...recipe,
+        recipeCategory: nextNormalized
+      }),
+      client,
+      options
+    );
+    recipes = upsertRecipeInList(recipes, saved);
+  }
+
+  return {
+    recipes: replaceLocalRecipeImageReferences(
+      mergeRecipeLists([...recipes, ...(await loadLocalRecipes())])
+    ),
+    updated: recipesToUpdate.length
+  };
 }
 
 async function saveMergedDuplicateRecipe(

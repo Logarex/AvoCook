@@ -22,7 +22,6 @@ import {
   Square,
   Timer,
   Trash2,
-  Users,
 } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -314,14 +313,6 @@ function RecipeDetailContent({
             icon: Clock,
             label: t("recipes.totalTime"),
             value: totalDuration,
-          }
-        : null,
-      showServings && recipe.recipeYield
-        ? {
-            id: "yield",
-            icon: Users,
-            label: t("recipes.yield"),
-            value: String(selectedServings),
           }
         : null,
     ].filter(
@@ -744,9 +735,7 @@ function RecipeDetailContent({
         {recipe.recipeCategory ? (
           <Pill label={getRecipeCategoryLabel(recipe.recipeCategory, t)} />
         ) : null}
-        {showServings && recipe.recipeYield ? (
-          <Pill label={`${selectedServings} ${t("recipes.yield")}`} />
-        ) : null}
+
         {recipe.keywords
           .split(",")
           .map((keyword) => keyword.trim())
