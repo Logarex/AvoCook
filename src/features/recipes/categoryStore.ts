@@ -6,6 +6,12 @@ import {
 
 const CUSTOM_CATEGORIES_KEY = "recipes.customCategories";
 const HIDDEN_DEFAULT_CATEGORIES_KEY = "recipes.hiddenDefaultCategories";
+const CATEGORY_RENAMES_KEY = "recipes.categoryRenames";
+
+export type CategoryRename = {
+  from: string;
+  to: string;
+};
 
 export async function loadCustomCategories() {
   const hiddenDefaults = new Set(await loadHiddenDefaultCategories());
@@ -98,6 +104,74 @@ export async function renameCustomCategory(
   return loadCustomCategories();
 }
 
+export async function recordCategoryRename(
+  category: string,
+  nextCategory: string
+) {
+  const normalized = normalizeCategoryName(category);
+  const nextNormalized = normalizeCategoryName(nextCategory);
+  if (!normalized || !nextNormalized || normalized === nextNormalized) {
+    return loadCategoryRenames();
+  }
+
+  const existingRenames = await loadCategoryRenames();
+  const destination = resolveCategoryRename(nextNormalized, existingRenames);
+  const nextRenames = compactCategoryRenames([
+    ...existingRenames
+      .filter((rename) => rename.from !== normalized)
+      .filter((rename) => rename.from !== destination)
+      .map((rename) => ({
+        from: rename.from,
+        to: rename.to === normalized ? destination : rename.to
+      })),
+    { from: normalized, to: destination }
+  ]);
+
+  await saveCategoryRenames(nextRenames);
+  return nextRenames;
+}
+
+export async function loadCategoryRenames() {
+  const renames = parseStoredCategoryRenames(
+    await AsyncStorage.getItem(CATEGORY_RENAMES_KEY)
+  );
+  return compactCategoryRenames(renames);
+}
+
+export async function clearCategoryRenames(categories: string[]) {
+  const normalizedCategories = new Set(
+    categories.map(normalizeCategoryName).filter(Boolean)
+  );
+  if (!normalizedCategories.size) {
+    return loadCategoryRenames();
+  }
+
+  const nextRenames = (await loadCategoryRenames()).filter(
+    (rename) => !normalizedCategories.has(rename.from)
+  );
+  await saveCategoryRenames(nextRenames);
+  return nextRenames;
+}
+
+export function resolveCategoryRename(
+  category: string,
+  renames: CategoryRename[]
+) {
+  let current = normalizeCategoryName(category);
+  const visited = new Set<string>();
+
+  while (current && !visited.has(current)) {
+    visited.add(current);
+    const rename = renames.find((item) => item.from === current);
+    if (!rename) {
+      return current;
+    }
+    current = rename.to;
+  }
+
+  return current;
+}
+
 export async function saveCustomCategories(categories: string[]) {
   const storedCategories = await loadStoredCustomCategories();
   const hiddenDefaults = await loadHiddenDefaultCategories();
@@ -157,6 +231,13 @@ async function saveHiddenDefaultCategories(categories: string[]) {
   );
 }
 
+async function saveCategoryRenames(renames: CategoryRename[]) {
+  await AsyncStorage.setItem(
+    CATEGORY_RENAMES_KEY,
+    JSON.stringify(compactCategoryRenames(renames))
+  );
+}
+
 function parseStoredCategories(stored: string | null) {
   if (!stored) {
     return [];
@@ -171,4 +252,56 @@ function parseStoredCategories(stored: string | null) {
     .filter((item): item is string => typeof item === "string")
     .map(normalizeCategoryName)
     .filter(Boolean);
+}
+
+function parseStoredCategoryRenames(stored: string | null) {
+  if (!stored) {
+    return [];
+  }
+
+  const parsed = JSON.parse(stored) as unknown;
+  if (!Array.isArray(parsed)) {
+    return [];
+  }
+
+  return parsed
+    .map((item) => {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+      const rename = item as Partial<CategoryRename>;
+      const from = normalizeCategoryName(rename.from ?? "");
+      const to = normalizeCategoryName(rename.to ?? "");
+      return from && to && from !== to ? { from, to } : null;
+    })
+    .filter((item): item is CategoryRename => Boolean(item));
+}
+
+function compactCategoryRenames(renames: CategoryRename[]) {
+  const renamesBySource = new Map<string, string>();
+
+  for (const rename of renames) {
+    const from = normalizeCategoryName(rename.from);
+    const to = normalizeCategoryName(rename.to);
+    if (from && to && from !== to) {
+      renamesBySource.set(from, to);
+    }
+  }
+
+  const compacted = Array.from(renamesBySource.entries())
+    .map(([from, to]) => ({
+      from,
+      to: resolveCategoryRename(
+        to,
+        Array.from(renamesBySource.entries()).map(([source, target]) => ({
+          from: source,
+          to: target
+        }))
+      )
+    }))
+    .filter((rename) => rename.from !== rename.to);
+
+  return Array.from(
+    new Map(compacted.map((rename) => [rename.from, rename])).values()
+  ).sort((a, b) => a.from.localeCompare(b.from));
 }

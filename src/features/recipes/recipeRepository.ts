@@ -8,8 +8,13 @@ import {
 } from "../logging/appLogger";
 import { CookbookApiError, type CookbookClient } from "../nextcloud/cookbookClient";
 import {
+  clearCategoryRenames,
+  loadCategoryRenames,
   normalizeCategoryName,
+  recordCategoryRename,
   renameCustomCategory,
+  resolveCategoryRename,
+  type CategoryRename,
   saveCustomCategories
 } from "./categoryStore";
 import {
