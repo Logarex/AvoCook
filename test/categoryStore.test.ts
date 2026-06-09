@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   deleteCustomCategory,
   loadCustomCategories,
+  renameCustomCategory,
   saveCustomCategory
 } from "../src/features/recipes/categoryStore";
 import {
@@ -40,6 +41,22 @@ describe("categoryStore", () => {
 
     expect(categories).toContain("Favoris");
     expect(categories).toContain(DEFAULT_RECIPE_CATEGORIES[0]);
+  });
+
+  it("renames custom categories", async () => {
+    await saveCustomCategory("Favoris");
+
+    const categories = await renameCustomCategory("Favoris", "A tester");
+
+    expect(categories).toContain("A tester");
+    expect(categories).not.toContain("Favoris");
+  });
+
+  it("renames visible default categories as custom categories", async () => {
+    const categories = await renameCustomCategory("Dessert", "Sucré");
+
+    expect(categories).toContain("Sucré");
+    expect(categories).not.toContain("Dessert");
   });
 });
 

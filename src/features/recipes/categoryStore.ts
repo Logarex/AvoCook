@@ -66,6 +66,38 @@ export async function deleteCustomCategory(category: string) {
   return loadCustomCategories();
 }
 
+export async function renameCustomCategory(
+  category: string,
+  nextCategory: string
+) {
+  const normalized = normalizeCategoryName(category);
+  const nextNormalized = normalizeCategoryName(nextCategory);
+  if (!normalized || !nextNormalized || normalized === nextNormalized) {
+    return loadCustomCategories();
+  }
+
+  const customCategories = await loadStoredCustomCategories();
+  const hiddenDefaults = await loadHiddenDefaultCategories();
+  const nextHiddenDefaults = new Set(hiddenDefaults);
+  const nextCustomCategories = customCategories.filter(
+    (categoryName) => categoryName !== normalized
+  );
+
+  if (isDefaultRecipeCategory(normalized)) {
+    nextHiddenDefaults.add(normalized);
+  }
+
+  if (isDefaultRecipeCategory(nextNormalized)) {
+    nextHiddenDefaults.delete(nextNormalized);
+  } else {
+    nextCustomCategories.push(nextNormalized);
+  }
+
+  await saveHiddenDefaultCategories(Array.from(nextHiddenDefaults));
+  await saveStoredCustomCategories(nextCustomCategories);
+  return loadCustomCategories();
+}
+
 export async function saveCustomCategories(categories: string[]) {
   const storedCategories = await loadStoredCustomCategories();
   const hiddenDefaults = await loadHiddenDefaultCategories();

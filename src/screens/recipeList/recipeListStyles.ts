@@ -58,9 +58,13 @@ export const styles = StyleSheet.create({
     justifyContent: "center",
     minWidth: 0,
   },
-  categoryDeleteButton: {
+  categoryActionButton: {
     height: 38,
     width: 38,
+  },
+  categoryGridActions: {
+    gap: spacing.xxs,
+    justifyContent: "center",
   },
   header: {
     alignItems: "center",
@@ -88,6 +92,14 @@ export const styles = StyleSheet.create({
   inlineEditor: {
     gap: spacing.sm,
     padding: spacing.sm,
+  },
+  inlineEditorActionButton: {
+    flex: 1,
+  },
+  inlineEditorActions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.sm,
   },
   organizerActions: {
     flexDirection: "row",
