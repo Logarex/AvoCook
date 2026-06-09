@@ -3,6 +3,8 @@ import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import {
   ArrowLeft,
+  ArrowDown,
+  ArrowUp,
   Check,
   ImagePlus,
   Link,
@@ -502,8 +504,11 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         itemLabel={(index) => t("editor.instructionItem", { count: index + 1 })}
         label={t("editor.instructions")}
         multiline
+        moveDownLabel={t("editor.moveInstructionDown")}
+        moveUpLabel={t("editor.moveInstructionUp")}
         onChange={setInstructions}
         placeholder={t("editor.instructionPlaceholder")}
+        reorderable
         removeLabel={t("editor.removeInstruction")}
         values={instructions}
       />
@@ -606,8 +611,11 @@ function EditableLineList({
   itemLabel,
   label,
   multiline = false,
+  moveDownLabel,
+  moveUpLabel,
   onChange,
   placeholder,
+  reorderable = false,
   removeLabel,
   splitPastedLines = false,
   values
@@ -616,8 +624,11 @@ function EditableLineList({
   itemLabel: (index: number) => string;
   label: string;
   multiline?: boolean;
+  moveDownLabel?: string;
+  moveUpLabel?: string;
   onChange: (values: string[]) => void;
   placeholder: string;
+  reorderable?: boolean;
   removeLabel: string;
   splitPastedLines?: boolean;
   values: string[];
@@ -635,6 +646,18 @@ function EditableLineList({
     onChange(nextValues.length ? nextValues : [""]);
   }
 
+  function moveItem(index: number, direction: -1 | 1) {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= values.length) {
+      return;
+    }
+
+    const nextValues = [...values];
+    const [item] = nextValues.splice(index, 1);
+    nextValues.splice(nextIndex, 0, item);
+    onChange(nextValues);
+  }
+
   return (
     <View style={styles.lineList}>
       <AppText variant="label">{label}</AppText>
@@ -649,14 +672,34 @@ function EditableLineList({
             style={multiline ? styles.instructionInput : styles.compactInput}
             value={value}
           />
-          <IconButton
-            disabled={values.length === 1 && !value.trim()}
-            icon={Trash2}
-            label={removeLabel}
-            onPress={() => removeItem(index)}
-            tone="danger"
-            style={styles.lineRemoveButton}
-          />
+          <View style={styles.lineActions}>
+            {reorderable ? (
+              <>
+                <IconButton
+                  disabled={index === 0}
+                  icon={ArrowUp}
+                  label={moveUpLabel ?? ""}
+                  onPress={() => moveItem(index, -1)}
+                  style={styles.lineActionButton}
+                />
+                <IconButton
+                  disabled={index === values.length - 1}
+                  icon={ArrowDown}
+                  label={moveDownLabel ?? ""}
+                  onPress={() => moveItem(index, 1)}
+                  style={styles.lineActionButton}
+                />
+              </>
+            ) : null}
+            <IconButton
+              disabled={values.length === 1 && !value.trim()}
+              icon={Trash2}
+              label={removeLabel}
+              onPress={() => removeItem(index)}
+              tone="danger"
+              style={styles.lineActionButton}
+            />
+          </View>
         </View>
       ))}
       <PrimaryButton
@@ -826,6 +869,13 @@ const styles = StyleSheet.create({
     flex: 1,
     minWidth: 0
   },
+  lineActionButton: {
+    height: 38,
+    width: 38
+  },
+  lineActions: {
+    gap: spacing.xxs
+  },
   lineItem: {
     alignItems: "flex-end",
     flexDirection: "row",
@@ -833,9 +883,6 @@ const styles = StyleSheet.create({
   },
   lineList: {
     gap: spacing.sm
-  },
-  lineRemoveButton: {
-    marginBottom: 0
   },
   switchRow: {
     alignItems: "center",

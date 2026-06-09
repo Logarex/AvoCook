@@ -28,6 +28,7 @@ import {
   importRecipe as importRecipeInRepository,
   initialiseRecipeStore,
   mergeDuplicateRecipes,
+  renameRecipeCategory as renameRecipeCategoryInRepository,
   syncRecipes,
   updateRecipeFromSource as updateRecipeFromSourceInRepository,
   updateRecipeLocalPreferences,
@@ -70,6 +71,7 @@ type RecipesContextValue = {
   ) => Promise<RecipeDuplicateMergeResult>;
   createCategory: (category: string) => Promise<string[]>;
   deleteCategory: (category: string) => Promise<string[]>;
+  renameCategory: (category: string, nextCategory: string) => Promise<string[]>;
 };
 
 const RecipesContext = createContext<RecipesContextValue | undefined>(
@@ -365,6 +367,28 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     return nextCategories;
   }, []);
 
+  const renameCategory = useCallback(
+    async (category: string, nextCategory: string) => {
+      const stopLongActionNotice = watchLongAction("longActions.renameCategory");
+      try {
+        const result = await renameRecipeCategoryInRepository(
+          category,
+          nextCategory,
+          getClient(),
+          repositoryOptions,
+          recipes
+        );
+        const nextCategories = await loadCustomCategories();
+        setRecipes(result.recipes);
+        setCustomCategories(nextCategories);
+        return nextCategories;
+      } finally {
+        stopLongActionNotice();
+      }
+    },
+    [getClient, recipes, repositoryOptions, watchLongAction]
+  );
+
   const getRecipe = useCallback(
     (id: string) => recipes.find((recipe) => recipe.id === id),
     [recipes]
@@ -392,7 +416,8 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       findDuplicateGroups,
       mergeDuplicateGroup,
       createCategory,
-      deleteCategory
+      deleteCategory,
+      renameCategory
     }),
     [
       recipes,
@@ -415,7 +440,8 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       findDuplicateGroups,
       mergeDuplicateGroup,
       createCategory,
-      deleteCategory
+      deleteCategory,
+      renameCategory
     ]
   );
 
