@@ -15,6 +15,11 @@ jobs:
       contents: write
 
     steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
       - name: Fetch total APK download count
         id: count
         env:
@@ -28,10 +33,10 @@ jobs:
             | paste -sd+ - | bc)
           echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
 
-      - name: Generate badge JSON
+      - name: Write badge JSON
         run: |
-          mkdir -p badge
-          cat > badge/apk-downloads.json <<EOF
+          mkdir -p .github/badges
+          cat > .github/badges/apk-downloads.json << EOF
           {
             "schemaVersion": 1,
             "label": "APK downloads",
@@ -40,15 +45,11 @@ jobs:
           }
           EOF
 
-      - name: Push badge JSON to badges branch
+      - name: Commit and push
         run: |
-          cd badge
-          git init
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git checkout -b badges
-          git add apk-downloads.json
+          git add .github/badges/apk-downloads.json
+          git diff --cached --quiet && echo "No change" && exit 0
           git commit -m "chore: update APK downloads badge [skip ci]"
-          git push --force \
-            "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" \
-            badges
+          git push
