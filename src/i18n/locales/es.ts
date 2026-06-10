@@ -277,7 +277,7 @@ export default {
         "Vincula tu lista de compras con la app Recordatorios de tu iPhone. Los cambios en AvoCook aparecen en tus recordatorios, y los cambios hechos en Recordatorios se recogen automáticamente cuando vuelves a abrir AvoCook.",
       syncEnable: "Activar sincronización",
       syncDisable: "Desactivar",
-      syncLinked: "Sincronizado con «{{name}}»",
+      syncLinked: "Sincronizado",
       syncPermissionDeniedTitle: "Acceso denegado",
       syncPermissionDeniedBody:
         "Permite el acceso a Recordatorios en los ajustes de tu iPhone para activar esta función.",

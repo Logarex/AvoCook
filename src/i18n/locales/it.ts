@@ -276,7 +276,7 @@ export default {
         "Collega la tua lista della spesa all'app Promemoria del tuo iPhone. Le modifiche in AvoCook compaiono nei tuoi promemoria, e le modifiche fatte in Promemoria vengono riprese automaticamente quando riapri AvoCook.",
       syncEnable: "Attiva sincronizzazione",
       syncDisable: "Disattiva",
-      syncLinked: "Sincronizzato con «{{name}}»",
+      syncLinked: "Sincronizzato",
       syncPermissionDeniedTitle: "Accesso negato",
       syncPermissionDeniedBody:
         "Consenti l'accesso ai Promemoria nelle impostazioni del tuo iPhone per attivare questa funzione.",

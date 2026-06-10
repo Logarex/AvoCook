@@ -274,7 +274,7 @@ export default {
         "Link your shopping list to the iPhone Reminders app. Changes in AvoCook appear in your reminders, and changes made in Reminders are picked up automatically when you reopen AvoCook.",
       syncEnable: "Enable sync",
       syncDisable: "Disable",
-      syncLinked: "Synced with \"{{name}}\"",
+      syncLinked: "Synced",
       syncPermissionDeniedTitle: "Access denied",
       syncPermissionDeniedBody:
         "Allow access to Reminders in your iPhone settings to enable this feature.",
