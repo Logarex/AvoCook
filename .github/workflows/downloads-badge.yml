@@ -1,0 +1,40 @@
+name: Update Downloads Badge
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run daily at midnight
+  release:
+    types: [published]
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-badge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to push to the branch
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Get Total Downloads
+        id: downloads
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TOTAL=$(gh api repos/${{ github.repository }}/releases -q '[.[] | .assets[] | .download_count] | add')
+          TOTAL=${TOTAL:-0}
+          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Badge SVG
+        run: |
+          mkdir -p output_badges
+          curl -s "https://img.shields.io/badge/APK_downloads-${{ steps.downloads.outputs.total }}-3DDC84?logo=android" -o output_badges/downloads.svg
+
+      - name: Deploy to badges branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: badges
+          publish_dir: ./output_badges
+          force_orphan: true

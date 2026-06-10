@@ -8,7 +8,7 @@ with Nextcloud Cookbook if you already have a server.
 
 [App Store](https://apps.apple.com/app/avocook/id6769012665) ·
 [Android APK](https://github.com/Logarex/AvoCook/releases/latest) ·
-[![APK downloads](https://img.shields.io/github/downloads/Logarex/AvoCook/total?logo=android)](https://github.com/Logarex/AvoCook/releases)
+[![APK downloads](https://raw.githubusercontent.com/Logarex/AvoCook/badges/downloads.svg)](https://github.com/Logarex/AvoCook/releases)
 
 <p align="center">
   <img src="assets/screenshots/login.png" width="280" alt="AvoCook login" />
@@ -25,7 +25,8 @@ with Nextcloud Cookbook if you already have a server.
 - start cooking timers;
 - export a recipe as PDF or print it;
 - back up / restore recipes to a JSON file;
-- sync with Nextcloud Cookbook, if the user wants to.
+- sync with Nextcloud Cookbook, if the user wants to;
+- sync with the iOS Reminders app to leverage Apple's sharing features.
 
 Local mode requires no account. Data stays on the device.
 
