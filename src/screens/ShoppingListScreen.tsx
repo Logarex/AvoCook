@@ -1,5 +1,8 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useFocusEffect } from "@react-navigation/native";
 import {
+  Bell,
+  BellOff,
   Check,
   ChevronDown,
   ChevronUp,
@@ -11,12 +14,15 @@ import {
   Trash2,
   X
 } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef, useCallback, useEffect } from "react";
 import {
   ActivityIndicator,
   Alert,
+  AppState,
+  type AppStateStatus,
   FlatList,
   Pressable,
+  RefreshControl,
   StyleSheet,
   TextInput,
   View
@@ -25,11 +31,14 @@ import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { BottomNavigation } from "../components/BottomNavigation";
 import { EmptyState } from "../components/EmptyState";
+import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
 import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
 import { useShoppingList } from "../features/shopping/ShoppingListProvider";
+import { useRemindersSync } from "../features/shopping/useRemindersSync";
+import { registerReminderMappings } from "../features/shopping/remindersSync";
 import type { ShoppingListItem } from "../features/shopping/shoppingList";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
@@ -41,6 +50,7 @@ export function ShoppingListScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const {
+    addIngredients,
     addItem,
     clearAll,
     clearChecked,
@@ -51,14 +61,25 @@ export function ShoppingListScreen({ navigation }: Props) {
     toggleItem,
     updateItem
   } = useShoppingList();
+  const sync = useRemindersSync();
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [newItem, setNewItem] = useState("");
   const [reorderMode, setReorderMode] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const remainingCount = useMemo(
     () => items.filter((item) => !item.checked).length,
     [items]
   );
   const checkedCount = items.length - remainingCount;
+
+  // Track whether we came from background to trigger a pull
+  const wasInBackground = useRef(false);
+
+  // Keep a stable ref of items for use inside callbacks
+  const itemsRef = useRef(items);
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   const openRecipes = React.useCallback(() => {
     if (navigation.canGoBack()) {
@@ -68,14 +89,127 @@ export function ShoppingListScreen({ navigation }: Props) {
     navigation.navigate("Recipes", { tabTransition: "fromShopping" });
   }, [navigation]);
 
+  // ── Pull helper ───────────────────────────────────────────────────────────────
+  //
+  // Key design: pullFromSystem is stored in a ref so that doPull never depends
+  // on the `sync` object (which changes on every render). This prevents
+  // useFocusEffect from re-firing on every render, which would create a
+  // tight loop of pull → state update → re-render → pull → ...
+  const pullFromSystemRef = useRef(sync.pullFromSystem);
+  useEffect(() => {
+    pullFromSystemRef.current = sync.pullFromSystem;
+  }, [sync.pullFromSystem]);
+
+  // Same pattern for push: always use the latest version without making it a dep.
+  const pushToSystemRef = useRef(sync.pushToSystem);
+  useEffect(() => {
+    pushToSystemRef.current = sync.pushToSystem;
+  }, [sync.pushToSystem]);
+
+  const doPull = useCallback(async () => {
+    const result = await pullFromSystemRef.current(itemsRef.current);
+    if (!result) return;
+
+    // Apply updates to existing items (user changed them in Rappels)
+    for (const item of result.updatedItems) {
+      const original = itemsRef.current.find((i) => i.id === item.id);
+      if (!original) continue;
+      if (original.checked !== item.checked) await toggleItem(item.id);
+      if (original.label !== item.label) await updateItem(item.id, item.label);
+    }
+
+    // Add items that were created directly in the Rappels app
+    if (result.newReminderItems.length > 0) {
+      const addResult = await addIngredients(
+        result.newReminderItems.map((r) => r.label)
+      );
+      // Register the reminderId ↔ avocookId mapping so the next push
+      // updates (not re-creates) these reminders.
+      const mappings = result.newReminderItems
+        .map((r, idx) => {
+          const added = addResult.added[idx];
+          return added ? { avocookId: added.id, reminderId: r.reminderId } : null;
+        })
+        .filter((m): m is { avocookId: string; reminderId: string } => m !== null);
+      if (mappings.length > 0) await registerReminderMappings(mappings);
+
+      // If any of the new reminders were already completed, mark them checked in AvoCook
+      for (let i = 0; i < result.newReminderItems.length; i++) {
+        const added = addResult.added[i];
+        const r = result.newReminderItems[i];
+        if (added && r.checked) {
+          await toggleItem(added.id);
+        }
+      }
+    }
+
+    // Remove items that were deleted in Rappels
+    if (result.deletedItemIds.length > 0) {
+      for (const id of result.deletedItemIds) {
+        await removeItem(id);
+      }
+    }
+  }, [toggleItem, updateItem, addIngredients, removeItem]); // ← no `sync` dependency: stable!
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await doPull();
+    setRefreshing(false);
+  }, [doPull]);
+
+  // ── AppState listener: pull on app foreground ───────────────────────────────
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (next: AppStateStatus) => {
+      if (next === "background" || next === "inactive") {
+        wasInBackground.current = true;
+      } else if (next === "active" && wasInBackground.current) {
+        wasInBackground.current = false;
+        void doPull();
+      }
+    });
+    return () => sub.remove();
+  }, [doPull]);
+
+  // ── Focus pull: pull when screen gains focus ────────────────────────────────
+  useFocusEffect(
+    useCallback(() => {
+      void doPull();
+    }, [doPull])
+  );
+
+  // ── Handlers: compute next state before push for correct timing ──────────────
+  //
+  // React state (and itemsRef) updates AFTER the current render cycle.
+  // By computing the expected next state locally, we can push immediately
+  // with accurate data — no stale reads, no need to wait for a re-render.
+  async function handleToggleItem(id: string) {
+    const nextItems = itemsRef.current.map((item) =>
+      item.id === id ? { ...item, checked: !item.checked } : item
+    );
+    await toggleItem(id);
+    void pushToSystemRef.current(nextItems);
+  }
+  async function handleRemoveItem(id: string) {
+    const nextItems = itemsRef.current.filter((item) => item.id !== id);
+    await removeItem(id);
+    void pushToSystemRef.current(nextItems);
+  }
+  async function handleUpdateItem(id: string, label: string) {
+    const nextItems = itemsRef.current.map((item) =>
+      item.id === id ? { ...item, label } : item
+    );
+    await updateItem(id, label);
+    void pushToSystemRef.current(nextItems);
+  }
+
   async function handleAddItem() {
     const label = newItem.trim();
-    if (!label) {
-      return;
-    }
+    if (!label) return;
     const result = await addItem(label);
     if (result.added.length) {
       setNewItem("");
+      // result.items is the canonical complete list after the add
+      void pushToSystemRef.current(result.items);
     }
   }
 
@@ -92,7 +226,11 @@ export function ShoppingListScreen({ navigation }: Props) {
         {
           text: t("shoppingList.clearChecked"),
           style: "destructive",
-          onPress: () => void clearChecked()
+          onPress: async () => {
+            const nextItems = itemsRef.current.filter((i) => !i.checked);
+            await clearChecked();
+            void pushToSystemRef.current(nextItems);
+          }
         }
       ]
     );
@@ -111,7 +249,10 @@ export function ShoppingListScreen({ navigation }: Props) {
         {
           text: t("shoppingList.clearAll"),
           style: "destructive",
-          onPress: () => void clearAll()
+          onPress: async () => {
+            await clearAll();
+            void pushToSystemRef.current([]);
+          }
         }
       ]
     );
@@ -139,8 +280,39 @@ export function ShoppingListScreen({ navigation }: Props) {
               ? ` - ${t("shoppingList.checkedCount", { count: checkedCount })}`
               : ""}
           </AppText>
+          {sync.linked && sync.listName ? (
+            <AppText muted variant="caption" style={{ color: colors.primary }}>
+              {t("shoppingList.syncLinked", { name: sync.listName })}
+            </AppText>
+          ) : null}
         </View>
         <View style={styles.headerActions}>
+          {sync.available ? (
+            <IconButton
+              disabled={sync.syncing}
+              icon={sync.linked ? Bell : BellOff}
+              label={
+                sync.linked
+                  ? t("shoppingList.syncDisable")
+                  : t("shoppingList.syncEnable")
+              }
+              onPress={() =>
+                sync.linked
+                  ? void sync.disableSync()
+                  : void sync.enableSync(itemsRef.current)
+              }
+              tone={sync.linked ? "primary" : "default"}
+              style={[
+                styles.headerIcon,
+                sync.linked
+                  ? {
+                      backgroundColor: colors.chip,
+                      borderColor: colors.primary
+                    }
+                  : null
+              ]}
+            />
+          ) : null}
           <IconButton
             disabled={!items.length}
             icon={ListOrdered}
@@ -179,6 +351,31 @@ export function ShoppingListScreen({ navigation }: Props) {
           />
         </View>
       </View>
+
+      {/* Sync banner: shown when feature is available but not yet linked */}
+      {sync.available && !sync.linked ? (
+        <GlassPanel style={styles.syncBanner}>
+          <View style={styles.syncBannerText}>
+            <AppText variant="label">{t("shoppingList.syncBannerTitle")}</AppText>
+            <AppText muted variant="caption" style={styles.syncBannerBody}>
+              {t("shoppingList.syncBannerBody")}
+            </AppText>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => void sync.enableSync(itemsRef.current)}
+            style={({ pressed }) => [
+              styles.syncBannerButton,
+              { backgroundColor: colors.primary, opacity: pressed ? 0.8 : 1 }
+            ]}
+          >
+            <Bell color="#fff" size={14} strokeWidth={2.5} />
+            <AppText style={styles.syncBannerButtonText}>
+              {t("shoppingList.syncEnable")}
+            </AppText>
+          </Pressable>
+        </GlassPanel>
+      ) : null}
 
       <View style={styles.addRow}>
         <TextField
@@ -223,21 +420,26 @@ export function ShoppingListScreen({ navigation }: Props) {
               item={item}
               onMoveDown={() => void moveItem(item.id, 1)}
               onMoveUp={() => void moveItem(item.id, -1)}
-              onRemove={() => void removeItem(item.id)}
+              onRemove={() => void handleRemoveItem(item.id)}
               onStartEditing={() => {
                 setReorderMode(false);
                 setEditingItemId(item.id);
               }}
               onStopEditing={() => setEditingItemId(null)}
-              onToggle={() => void toggleItem(item.id)}
+              onToggle={() => void handleToggleItem(item.id)}
               onUpdate={(label) => {
-                void updateItem(item.id, label);
+                void handleUpdateItem(item.id, label);
                 setEditingItemId(null);
               }}
               reorderMode={reorderMode}
             />
           )}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            sync.linked ? (
+              <RefreshControl refreshing={refreshing} onRefresh={() => void handleRefresh()} tintColor={colors.primary} />
+            ) : undefined
+          }
         />
       )}
 
@@ -565,6 +767,29 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     paddingBottom: 0,
     paddingTop: spacing.sm
+  },
+  syncBanner: {
+    gap: spacing.sm
+  },
+  syncBannerText: {
+    gap: spacing.xxs
+  },
+  syncBannerBody: {
+    lineHeight: 18
+  },
+  syncBannerButton: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    borderRadius: radius.pill,
+    flexDirection: "row",
+    gap: spacing.xxs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs
+  },
+  syncBannerButtonText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "600"
   },
   reorderAction: {
     alignItems: "center",
