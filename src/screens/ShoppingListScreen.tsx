@@ -38,7 +38,6 @@ import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
 import { useShoppingList } from "../features/shopping/ShoppingListProvider";
-import { useRemindersSync } from "../features/shopping/useRemindersSync";
 import { registerReminderMappings } from "../features/shopping/remindersSync";
 import type { ShoppingListItem } from "../features/shopping/shoppingList";
 import type { RootStackParamList } from "../navigation/types";
@@ -60,9 +59,9 @@ export function ShoppingListScreen({ navigation }: Props) {
     moveItem,
     removeItem,
     toggleItem,
-    updateItem
+    updateItem,
+    sync
   } = useShoppingList();
-  const sync = useRemindersSync();
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [newItem, setNewItem] = useState("");
   const [reorderMode, setReorderMode] = useState(false);
@@ -101,12 +100,6 @@ export function ShoppingListScreen({ navigation }: Props) {
     pullFromSystemRef.current = sync.pullFromSystem;
   }, [sync.pullFromSystem]);
 
-  // Same pattern for push: always use the latest version without making it a dep.
-  const pushToSystemRef = useRef(sync.pushToSystem);
-  useEffect(() => {
-    pushToSystemRef.current = sync.pushToSystem;
-  }, [sync.pushToSystem]);
-
   const doPull = useCallback(async () => {
     const result = await pullFromSystemRef.current(itemsRef.current);
     if (!result) return;
@@ -115,8 +108,8 @@ export function ShoppingListScreen({ navigation }: Props) {
     for (const item of result.updatedItems) {
       const original = itemsRef.current.find((i) => i.id === item.id);
       if (!original) continue;
-      if (original.checked !== item.checked) await toggleItem(item.id);
-      if (original.label !== item.label) await updateItem(item.id, item.label);
+      if (original.checked !== item.checked) await toggleItem(item.id, { skipSync: true });
+      if (original.label !== item.label) await updateItem(item.id, item.label, { skipSync: true });
     }
 
     // Add items that were created directly in the Rappels app
@@ -124,7 +117,7 @@ export function ShoppingListScreen({ navigation }: Props) {
       const addResult = await addIngredients(
         result.newReminderItems.map((r) => r.label),
         {},
-        { allowDuplicates: true }
+        { allowDuplicates: true, skipSync: true }
       );
       // Register the reminderId ↔ avocookId mapping so the next push
       // updates (not re-creates) these reminders.
@@ -141,7 +134,7 @@ export function ShoppingListScreen({ navigation }: Props) {
         const added = addResult.added[i];
         const r = result.newReminderItems[i];
         if (added && r.checked) {
-          await toggleItem(added.id);
+          await toggleItem(added.id, { skipSync: true });
         }
       }
     }
@@ -149,7 +142,7 @@ export function ShoppingListScreen({ navigation }: Props) {
     // Remove items that were deleted in Rappels
     if (result.deletedItemIds.length > 0) {
       for (const id of result.deletedItemIds) {
-        await removeItem(id);
+        await removeItem(id, { skipSync: true });
       }
     }
   }, [toggleItem, updateItem, addIngredients, removeItem]); // ← no `sync` dependency: stable!
@@ -186,23 +179,13 @@ export function ShoppingListScreen({ navigation }: Props) {
   // By computing the expected next state locally, we can push immediately
   // with accurate data — no stale reads, no need to wait for a re-render.
   async function handleToggleItem(id: string) {
-    const nextItems = itemsRef.current.map((item) =>
-      item.id === id ? { ...item, checked: !item.checked } : item
-    );
     await toggleItem(id);
-    void pushToSystemRef.current(nextItems);
   }
   async function handleRemoveItem(id: string) {
-    const nextItems = itemsRef.current.filter((item) => item.id !== id);
     await removeItem(id);
-    void pushToSystemRef.current(nextItems);
   }
   async function handleUpdateItem(id: string, label: string) {
-    const nextItems = itemsRef.current.map((item) =>
-      item.id === id ? { ...item, label } : item
-    );
     await updateItem(id, label);
-    void pushToSystemRef.current(nextItems);
   }
 
   async function handleAddItem() {
@@ -211,8 +194,6 @@ export function ShoppingListScreen({ navigation }: Props) {
     const result = await addItem(label);
     if (result.added.length) {
       setNewItem("");
-      // result.items is the canonical complete list after the add
-      void pushToSystemRef.current(result.items);
     }
   }
 
@@ -220,19 +201,19 @@ export function ShoppingListScreen({ navigation }: Props) {
     if (!checkedCount) {
       return;
     }
-
     Alert.alert(
-      t("shoppingList.clearCheckedConfirmTitle"),
-      t("shoppingList.clearCheckedConfirmBody", { count: checkedCount }),
+      t("common.delete"),
+      t("shoppingList.clearCheckedConfirm", { count: checkedCount }),
       [
-        { text: t("common.cancel"), style: "cancel" },
         {
-          text: t("shoppingList.clearChecked"),
+          text: t("common.cancel"),
+          style: "cancel"
+        },
+        {
+          text: t("common.delete"),
           style: "destructive",
-          onPress: async () => {
-            const nextItems = itemsRef.current.filter((i) => !i.checked);
-            await clearChecked();
-            void pushToSystemRef.current(nextItems);
+          onPress: () => {
+            void clearChecked();
           }
         }
       ]
@@ -240,21 +221,22 @@ export function ShoppingListScreen({ navigation }: Props) {
   }
 
   function handleClearAll() {
-    if (!items.length) {
+    if (items.length === 0) {
       return;
     }
-
     Alert.alert(
-      t("shoppingList.clearAllConfirmTitle"),
-      t("shoppingList.clearAllConfirmBody"),
+      t("shoppingList.clearAll"),
+      t("shoppingList.clearAllConfirm", { count: items.length }),
       [
-        { text: t("common.cancel"), style: "cancel" },
         {
-          text: t("shoppingList.clearAll"),
+          text: t("common.cancel"),
+          style: "cancel"
+        },
+        {
+          text: t("common.delete"),
           style: "destructive",
-          onPress: async () => {
-            await clearAll();
-            void pushToSystemRef.current([]);
+          onPress: () => {
+            void clearAll();
           }
         }
       ]
