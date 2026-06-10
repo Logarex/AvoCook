@@ -271,6 +271,23 @@ export default {
       moveItemDown: "Sposta prodotto giu",
       moveItemUp: "Sposta prodotto su",
       reorderItems: "Riordina prodotti",
+      syncBannerTitle: "Sincronizza con Promemoria",
+      syncBannerBody:
+        "Collega la tua lista della spesa all'app Promemoria del tuo iPhone. Le modifiche in AvoCook compaiono nei tuoi promemoria, e le modifiche fatte in Promemoria vengono riprese automaticamente quando riapri AvoCook.",
+      syncEnable: "Attiva sincronizzazione",
+      syncDisable: "Disattiva",
+      syncLinked: "Sincronizzato",
+      syncPermissionDeniedTitle: "Accesso negato",
+      syncPermissionDeniedBody:
+        "Consenti l'accesso ai Promemoria nelle impostazioni del tuo iPhone per attivare questa funzione.",
+      syncErrorTitle: "Sincronizzazione non riuscita",
+      syncErrorBody:
+        "Si è verificato un errore durante la connessione all'app Promemoria. Controlla i permessi e riprova.",
+      syncDisableConfirmTitle: "Disattivare la sincronizzazione?",
+      syncDisableConfirmKeep: "Mantieni i promemoria",
+      syncDisableConfirmDelete: "Elimina i promemoria",
+      syncUnavailable:
+        "La sincronizzazione con i promemoria nativi non è disponibile su Android.",
     },
     editor: {
       newRecipe: "Nuova ricetta",

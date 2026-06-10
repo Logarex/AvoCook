@@ -272,6 +272,23 @@ export default {
       moveItemDown: "Bajar producto",
       moveItemUp: "Subir producto",
       reorderItems: "Reordenar productos",
+      syncBannerTitle: "Sincronizar con Recordatorios",
+      syncBannerBody:
+        "Vincula tu lista de compras con la app Recordatorios de tu iPhone. Los cambios en AvoCook aparecen en tus recordatorios, y los cambios hechos en Recordatorios se recogen automáticamente cuando vuelves a abrir AvoCook.",
+      syncEnable: "Activar sincronización",
+      syncDisable: "Desactivar",
+      syncLinked: "Sincronizado",
+      syncPermissionDeniedTitle: "Acceso denegado",
+      syncPermissionDeniedBody:
+        "Permite el acceso a Recordatorios en los ajustes de tu iPhone para activar esta función.",
+      syncErrorTitle: "Error de sincronización",
+      syncErrorBody:
+        "Algo salió mal al conectar con la app Recordatorios. Comprueba los permisos e inténtalo de nuevo.",
+      syncDisableConfirmTitle: "¿Desactivar sincronización?",
+      syncDisableConfirmKeep: "Conservar recordatorios",
+      syncDisableConfirmDelete: "Eliminar recordatorios",
+      syncUnavailable:
+        "La sincronización con recordatorios nativos no está disponible en Android.",
     },
     editor: {
       newRecipe: "Nueva receta",

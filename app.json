@@ -54,6 +54,13 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      [
+        "expo-calendar",
+        {
+          "calendarPermission": "Autoriser AvoCook à accéder à votre calendrier pour synchroniser la liste de courses.",
+          "remindersPermission": "Autoriser AvoCook à accéder à vos rappels pour synchroniser la liste de courses avec l'app Rappels."
+        }
+      ],
       "expo-secure-store",
       "expo-sqlite",
       [
