@@ -278,7 +278,7 @@ export default {
         "Liez votre liste de courses à l'app Rappels de votre iPhone. Les modifications dans AvoCook apparaissent dans vos rappels, et les changements faits dans Rappels sont repris automatiquement dès que vous rouvrez AvoCook.",
       syncEnable: "Activer la synchronisation",
       syncDisable: "Désactiver",
-      syncLinked: "Synchronisé avec « {{name}} »",
+      syncLinked: "Synchronisé",
       syncPermissionDeniedTitle: "Accès refusé",
       syncPermissionDeniedBody:
         "Autorisez l'accès aux Rappels dans les réglages de votre iPhone pour activer cette fonctionnalité.",

@@ -278,7 +278,7 @@ export default {
         "Verknüpfe deine Einkaufsliste mit der Erinnerungen-App deines iPhones. Änderungen in AvoCook erscheinen in deinen Erinnerungen, und Änderungen in der Erinnerungen-App werden automatisch übernommen, wenn du AvoCook wieder öffnest.",
       syncEnable: "Synchronisierung aktivieren",
       syncDisable: "Deaktivieren",
-      syncLinked: "Synchronisiert mit \"{{name}}\"",
+      syncLinked: "Synchronisiert",
       syncPermissionDeniedTitle: "Zugriff verweigert",
       syncPermissionDeniedBody:
         "Erlaube den Zugriff auf Erinnerungen in den iPhone-Einstellungen, um diese Funktion zu nutzen.",

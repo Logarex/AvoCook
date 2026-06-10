@@ -30,7 +30,8 @@ type ShoppingListContextValue = {
   addItem: (label: string) => Promise<ShoppingListAddResult>;
   addIngredients: (
     ingredients: string[],
-    source?: ShoppingListSource
+    source?: ShoppingListSource,
+    options?: { allowDuplicates?: boolean }
   ) => Promise<ShoppingListAddResult>;
   clearAll: () => Promise<void>;
   clearChecked: () => Promise<number>;
@@ -81,12 +82,16 @@ export function ShoppingListProvider({
   }, []);
 
   const addIngredients = useCallback(
-    async (ingredients: string[], source: ShoppingListSource = {}) => {
+    async (
+      ingredients: string[], 
+      source: ShoppingListSource = {},
+      options: { allowDuplicates?: boolean } = {}
+    ) => {
       const result = addIngredientsToShoppingList(
         itemsRef.current,
         ingredients,
         source,
-        { createId: createShoppingListItemId }
+        { createId: createShoppingListItemId, allowDuplicates: options.allowDuplicates }
       );
       if (result.added.length) {
         await persistItems(result.items);

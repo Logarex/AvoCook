@@ -30,6 +30,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { BottomNavigation } from "../components/BottomNavigation";
+import { ConnectionStatus } from "../components/ConnectionStatus";
 import { EmptyState } from "../components/EmptyState";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
@@ -121,7 +122,9 @@ export function ShoppingListScreen({ navigation }: Props) {
     // Add items that were created directly in the Rappels app
     if (result.newReminderItems.length > 0) {
       const addResult = await addIngredients(
-        result.newReminderItems.map((r) => r.label)
+        result.newReminderItems.map((r) => r.label),
+        {},
+        { allowDuplicates: true }
       );
       // Register the reminderId ↔ avocookId mapping so the next push
       // updates (not re-creates) these reminders.
@@ -274,16 +277,16 @@ export function ShoppingListScreen({ navigation }: Props) {
               {t("shoppingList.title")}
             </AppText>
           </View>
-          <AppText muted variant="caption">
-            {t("shoppingList.remainingCount", { count: remainingCount })}
-            {checkedCount > 0
-              ? ` - ${t("shoppingList.checkedCount", { count: checkedCount })}`
-              : ""}
-          </AppText>
-          {sync.linked && sync.listName ? (
-            <AppText muted variant="caption" style={{ color: colors.primary }}>
-              {t("shoppingList.syncLinked", { name: sync.listName })}
-            </AppText>
+          {sync.available ? (
+            <ConnectionStatus
+              connected={sync.linked}
+              label={
+                sync.linked
+                  ? t("shoppingList.syncLinked")
+                  : t("shoppingList.syncEnable")
+              }
+              loading={sync.syncing}
+            />
           ) : null}
         </View>
         <View style={styles.headerActions}>
@@ -402,7 +405,16 @@ export function ShoppingListScreen({ navigation }: Props) {
           <ActivityIndicator color={colors.primary} />
         </View>
       ) : (
-        <FlatList
+        <>
+          <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.surfaceGlass }}>
+            <AppText muted variant="caption" style={{ fontWeight: "600" }}>
+              {t("shoppingList.remainingCount", { count: remainingCount })}
+              {checkedCount > 0
+                ? ` • ${t("shoppingList.checkedCount", { count: checkedCount })}`
+                : ""}
+            </AppText>
+          </View>
+          <FlatList
           data={items}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
@@ -441,6 +453,7 @@ export function ShoppingListScreen({ navigation }: Props) {
             ) : undefined
           }
         />
+        </>
       )}
 
       <BottomNavigation

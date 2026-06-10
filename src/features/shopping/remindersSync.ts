@@ -331,25 +331,7 @@ async function _executePull(
   // ── Update or delete existing items ──────────────────────────────────────
   for (const item of currentItems) {
     const reminderId = itemMap[item.id];
-    let matchedReminder = reminderId ? reminders.find((r) => r.id === reminderId) : undefined;
-
-    // Fallback: name matching
-    if (!matchedReminder) {
-      matchedReminder = reminders.find(
-        (r) =>
-          r.id &&
-          !knownReminderIds.has(r.id) &&
-          r.title?.trim().toLowerCase() === item.label.trim().toLowerCase()
-      );
-      if (matchedReminder) {
-        logInfo("sync", `Pulled item matched by name: ${item.label}`, {
-          avocookId: item.id,
-          reminderId: matchedReminder.id,
-        });
-        nextMap[item.id] = matchedReminder.id!;
-        knownReminderIds.add(matchedReminder.id!);
-      }
-    }
+    const matchedReminder = reminderId ? reminders.find((r) => r.id === reminderId) : undefined;
 
     if (matchedReminder && matchedReminder.id) {
       // Both exist. Reminders wins -> update AvoCook item to match reminder.
