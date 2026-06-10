@@ -21,6 +21,7 @@ export type ShoppingListAddResult = {
 type AddOptions = {
   createId?: () => string;
   now?: string;
+  allowDuplicates?: boolean;
 };
 
 export function normalizeShoppingListItems(value: unknown): ShoppingListItem[] {
@@ -60,7 +61,7 @@ export function addIngredientsToShoppingList(
       updatedAt: now
     };
     const duplicateKey = getDuplicateKey(item);
-    if (existingKeys.has(duplicateKey)) {
+    if (!options.allowDuplicates && existingKeys.has(duplicateKey)) {
       continue;
     }
 

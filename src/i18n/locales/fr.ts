@@ -273,6 +273,23 @@ export default {
       moveItemDown: "Descendre le produit",
       moveItemUp: "Monter le produit",
       reorderItems: "Réorganiser les produits",
+      syncBannerTitle: "Synchroniser avec les Rappels",
+      syncBannerBody:
+        "Liez votre liste de courses à l'app Rappels de votre iPhone. Les modifications dans AvoCook apparaissent dans vos rappels, et les changements faits dans Rappels sont repris automatiquement dès que vous rouvrez AvoCook.",
+      syncEnable: "Activer la synchronisation",
+      syncDisable: "Désactiver",
+      syncLinked: "Synchronisé",
+      syncPermissionDeniedTitle: "Accès refusé",
+      syncPermissionDeniedBody:
+        "Autorisez l'accès aux Rappels dans les réglages de votre iPhone pour activer cette fonctionnalité.",
+      syncErrorTitle: "Synchronisation impossible",
+      syncErrorBody:
+        "Une erreur est survenue lors de la connexion à l'app Rappels. Vérifiez les autorisations et réessayez.",
+      syncDisableConfirmTitle: "Désactiver la synchronisation ?",
+      syncDisableConfirmKeep: "Conserver les rappels",
+      syncDisableConfirmDelete: "Supprimer les rappels",
+      syncUnavailable:
+        "La synchronisation avec les rappels natifs n'est pas disponible sur Android.",
     },
     editor: {
       newRecipe: "Nouvelle recette",

@@ -273,6 +273,23 @@ export default {
       moveItemDown: "Eintrag nach unten",
       moveItemUp: "Eintrag nach oben",
       reorderItems: "Einträge sortieren",
+      syncBannerTitle: "Mit Erinnerungen synchronisieren",
+      syncBannerBody:
+        "Verknüpfe deine Einkaufsliste mit der Erinnerungen-App deines iPhones. Änderungen in AvoCook erscheinen in deinen Erinnerungen, und Änderungen in der Erinnerungen-App werden automatisch übernommen, wenn du AvoCook wieder öffnest.",
+      syncEnable: "Synchronisierung aktivieren",
+      syncDisable: "Deaktivieren",
+      syncLinked: "Synchronisiert",
+      syncPermissionDeniedTitle: "Zugriff verweigert",
+      syncPermissionDeniedBody:
+        "Erlaube den Zugriff auf Erinnerungen in den iPhone-Einstellungen, um diese Funktion zu nutzen.",
+      syncErrorTitle: "Synchronisierung fehlgeschlagen",
+      syncErrorBody:
+        "Beim Verbinden mit der Erinnerungen-App ist ein Fehler aufgetreten. Prüfe die Berechtigungen und versuche es erneut.",
+      syncDisableConfirmTitle: "Synchronisierung deaktivieren?",
+      syncDisableConfirmKeep: "Erinnerungen behalten",
+      syncDisableConfirmDelete: "Erinnerungen löschen",
+      syncUnavailable:
+        "Die Synchronisierung mit nativen Erinnerungen ist auf Android nicht verfügbar.",
     },
     editor: {
       newRecipe: "Neues Rezept",

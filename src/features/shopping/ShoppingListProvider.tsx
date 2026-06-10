@@ -23,21 +23,25 @@ import {
   loadShoppingListItems,
   saveShoppingListItems
 } from "./shoppingStore";
+import { useRemindersSync } from "./useRemindersSync";
+import type { UseRemindersSyncReturn } from "./useRemindersSync";
 
 type ShoppingListContextValue = {
   items: ShoppingListItem[];
   loading: boolean;
-  addItem: (label: string) => Promise<ShoppingListAddResult>;
+  addItem: (label: string, options?: { skipSync?: boolean }) => Promise<ShoppingListAddResult>;
   addIngredients: (
     ingredients: string[],
-    source?: ShoppingListSource
+    source?: ShoppingListSource,
+    options?: { allowDuplicates?: boolean; skipSync?: boolean }
   ) => Promise<ShoppingListAddResult>;
-  clearAll: () => Promise<void>;
-  clearChecked: () => Promise<number>;
-  moveItem: (itemId: string, direction: -1 | 1) => Promise<void>;
-  removeItem: (itemId: string) => Promise<void>;
-  toggleItem: (itemId: string) => Promise<void>;
-  updateItem: (itemId: string, label: string) => Promise<void>;
+  clearAll: (options?: { skipSync?: boolean }) => Promise<void>;
+  clearChecked: (options?: { skipSync?: boolean }) => Promise<number>;
+  moveItem: (itemId: string, direction: -1 | 1, options?: { skipSync?: boolean }) => Promise<void>;
+  removeItem: (itemId: string, options?: { skipSync?: boolean }) => Promise<void>;
+  toggleItem: (itemId: string, options?: { skipSync?: boolean }) => Promise<void>;
+  updateItem: (itemId: string, label: string, options?: { skipSync?: boolean }) => Promise<void>;
+  sync: UseRemindersSyncReturn;
 };
 
 const ShoppingListContext = createContext<ShoppingListContextValue | undefined>(
@@ -52,11 +56,20 @@ export function ShoppingListProvider({
   const [items, setItems] = useState<ShoppingListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const itemsRef = useRef(items);
+  const sync = useRemindersSync();
+  const syncRef = useRef(sync);
+  
+  useEffect(() => {
+    syncRef.current = sync;
+  }, [sync]);
 
-  const persistItems = useCallback(async (nextItems: ShoppingListItem[]) => {
+  const persistItems = useCallback(async (nextItems: ShoppingListItem[], skipSync?: boolean) => {
     itemsRef.current = nextItems;
     setItems(nextItems);
     await saveShoppingListItems(nextItems);
+    if (!skipSync && syncRef.current.linked) {
+      void syncRef.current.pushToSystem(nextItems);
+    }
   }, []);
 
   useEffect(() => {
@@ -81,15 +94,19 @@ export function ShoppingListProvider({
   }, []);
 
   const addIngredients = useCallback(
-    async (ingredients: string[], source: ShoppingListSource = {}) => {
+    async (
+      ingredients: string[], 
+      source: ShoppingListSource = {},
+      options: { allowDuplicates?: boolean; skipSync?: boolean } = {}
+    ) => {
       const result = addIngredientsToShoppingList(
         itemsRef.current,
         ingredients,
         source,
-        { createId: createShoppingListItemId }
+        { createId: createShoppingListItemId, allowDuplicates: options.allowDuplicates }
       );
       if (result.added.length) {
-        await persistItems(result.items);
+        await persistItems(result.items, options.skipSync);
       }
       return result;
     },
@@ -97,54 +114,56 @@ export function ShoppingListProvider({
   );
 
   const addItem = useCallback(
-    (label: string) => addIngredients([label]),
+    (label: string, options?: { skipSync?: boolean }) => addIngredients([label], {}, options),
     [addIngredients]
   );
 
   const toggleItem = useCallback(
-    async (itemId: string) => {
+    async (itemId: string, options?: { skipSync?: boolean }) => {
       const item = itemsRef.current.find((currentItem) => currentItem.id === itemId);
       if (!item) {
         return;
       }
       await persistItems(
-        setShoppingListItemChecked(itemsRef.current, itemId, !item.checked)
+        setShoppingListItemChecked(itemsRef.current, itemId, !item.checked),
+        options?.skipSync
       );
     },
     [persistItems]
   );
 
   const removeItem = useCallback(
-    async (itemId: string) => {
-      await persistItems(removeShoppingListItem(itemsRef.current, itemId));
+    async (itemId: string, options?: { skipSync?: boolean }) => {
+      await persistItems(removeShoppingListItem(itemsRef.current, itemId), options?.skipSync);
     },
     [persistItems]
   );
 
   const updateItem = useCallback(
-    async (itemId: string, label: string) => {
+    async (itemId: string, label: string, options?: { skipSync?: boolean }) => {
       await persistItems(
-        updateShoppingListItemLabel(itemsRef.current, itemId, label)
+        updateShoppingListItemLabel(itemsRef.current, itemId, label),
+        options?.skipSync
       );
     },
     [persistItems]
   );
 
   const moveItem = useCallback(
-    async (itemId: string, direction: -1 | 1) => {
-      await persistItems(moveShoppingListItem(itemsRef.current, itemId, direction));
+    async (itemId: string, direction: -1 | 1, options?: { skipSync?: boolean }) => {
+      await persistItems(moveShoppingListItem(itemsRef.current, itemId, direction), options?.skipSync);
     },
     [persistItems]
   );
 
-  const clearChecked = useCallback(async () => {
+  const clearChecked = useCallback(async (options?: { skipSync?: boolean }) => {
     const checkedCount = itemsRef.current.filter((item) => item.checked).length;
-    await persistItems(clearCheckedShoppingListItems(itemsRef.current));
+    await persistItems(clearCheckedShoppingListItems(itemsRef.current), options?.skipSync);
     return checkedCount;
   }, [persistItems]);
 
-  const clearAll = useCallback(async () => {
-    await persistItems([]);
+  const clearAll = useCallback(async (options?: { skipSync?: boolean }) => {
+    await persistItems([], options?.skipSync);
   }, [persistItems]);
 
   const value = useMemo(
@@ -158,7 +177,8 @@ export function ShoppingListProvider({
       moveItem,
       removeItem,
       toggleItem,
-      updateItem
+      updateItem,
+      sync
     }),
     [
       items,
@@ -170,7 +190,8 @@ export function ShoppingListProvider({
       moveItem,
       removeItem,
       toggleItem,
-      updateItem
+      updateItem,
+      sync
     ]
   );
 

@@ -269,6 +269,23 @@ export default {
       moveItemDown: "Move item down",
       moveItemUp: "Move item up",
       reorderItems: "Reorder items",
+      syncBannerTitle: "Sync with Reminders",
+      syncBannerBody:
+        "Link your shopping list to the iPhone Reminders app. Changes in AvoCook appear in your reminders, and changes made in Reminders are picked up automatically when you reopen AvoCook.",
+      syncEnable: "Enable sync",
+      syncDisable: "Disable",
+      syncLinked: "Synced",
+      syncPermissionDeniedTitle: "Access denied",
+      syncPermissionDeniedBody:
+        "Allow access to Reminders in your iPhone settings to enable this feature.",
+      syncErrorTitle: "Sync failed",
+      syncErrorBody:
+        "Something went wrong while connecting to the Reminders app. Check permissions and try again.",
+      syncDisableConfirmTitle: "Disable sync?",
+      syncDisableConfirmKeep: "Keep reminders",
+      syncDisableConfirmDelete: "Delete reminders",
+      syncUnavailable:
+        "Syncing with native reminders is not available on Android.",
     },
     editor: {
       newRecipe: "New recipe",
