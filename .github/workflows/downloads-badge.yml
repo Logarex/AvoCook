@@ -1,0 +1,51 @@
+name: Update Downloads Badge
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run daily at midnight
+  release:
+    types: [published]
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  update-badge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Needed to push to the branch
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Get Total Downloads
+        id: downloads
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          TOTAL=$(gh api repos/${{ github.repository }}/releases -q '[.[] | .assets[]? | .download_count?] | add' 2>/dev/null)
+          set -e
+          if [ -z "$TOTAL" ] || [ "$TOTAL" = "null" ]; then
+            TOTAL=0
+          fi
+          echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
+
+      - name: Generate Badge JSON
+        run: |
+          mkdir -p output_badges
+          cat <<EOF > output_badges/apk-downloads.json
+          {
+            "schemaVersion": 1,
+            "label": "APK downloads",
+            "message": "${{ steps.downloads.outputs.total }}",
+            "color": "3DDC84"
+          }
+          EOF
+
+      - name: Deploy to badges branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: badges
+          publish_dir: ./output_badges
+          force_orphan: true
