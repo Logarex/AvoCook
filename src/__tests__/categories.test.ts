@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { inferRecipeCategory } from "../src/features/recipes/categories";
+import { inferRecipeCategory } from "../features/recipes/categories";
 
 describe("inferRecipeCategory", () => {
   it("keeps an existing category", () => {

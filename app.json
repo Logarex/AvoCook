@@ -105,8 +105,8 @@
           "microphonePermission": false
         }
       ],
-      "./plugins/withAndroidNetworkSecurity",
-      "./plugins/withAndroidSplitsAndOptimizations",
+      "./tools/plugins/withAndroidNetworkSecurity",
+      "./tools/plugins/withAndroidSplitsAndOptimizations",
       "expo-font"
     ],
     "extra": {

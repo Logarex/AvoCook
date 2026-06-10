@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { scaleIngredientLine } from "../src/utils/servings";
+import { scaleIngredientLine } from "../utils/servings";
 
 describe("scaleIngredientLine", () => {
   it("scales simple quantities and decimals", () => {

@@ -3,7 +3,7 @@ import {
   humanDuration,
   isoDurationToMinutes,
   minutesToIsoDuration
-} from "../src/utils/duration";
+} from "../utils/duration";
 
 describe("duration utilities", () => {
   it("converts minutes to ISO-8601 duration", () => {

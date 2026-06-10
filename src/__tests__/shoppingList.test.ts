@@ -6,7 +6,7 @@ import {
   normalizeShoppingListItems,
   setShoppingListItemChecked,
   updateShoppingListItemLabel
-} from "../src/features/shopping/shoppingList";
+} from "../features/shopping/shoppingList";
 
 describe("shopping list helpers", () => {
   it("adds clean recipe ingredients and skips duplicates from the same recipe", () => {

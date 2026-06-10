@@ -3,7 +3,7 @@ import {
   applyKeywordSuggestion,
   expandEditableListItem,
   getKeywordSuggestions
-} from "../src/screens/recipeEditorHelpers";
+} from "../screens/recipeEditorHelpers";
 
 describe("recipe editor helpers", () => {
   it("suggests existing keywords for the keyword currently being typed", () => {

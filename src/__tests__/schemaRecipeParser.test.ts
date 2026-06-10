@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findRecipeJsonLd, jsonLdToRecipe } from "../src/features/import/schemaRecipeParser";
+import { findRecipeJsonLd, jsonLdToRecipe } from "../features/import/schemaRecipeParser";
 
 describe("schemaRecipeParser", () => {
   it("extracts a Recipe object from JSON-LD graph", () => {

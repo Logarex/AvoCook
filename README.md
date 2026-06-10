@@ -66,9 +66,6 @@ during development.
 APKs are published in the GitHub releases. The main file to install is
 `avocook.apk`.
 
-Android release notes are in
-[`docs/ANDROID_DISTRIBUTION.md`](docs/ANDROID_DISTRIBUTION.md).
-
 ## Project structure
 
 - `src/screens`: application screens;
@@ -76,10 +73,8 @@ Android release notes are in
 - `src/features/recipes`: local storage, sync, and recipe logic;
 - `src/features/nextcloud`: HTTP client for Cookbook;
 - `src/features/import`: recipe import from web pages;
-- `modules/avocook-timer-notifications`: small native module for timer
+- `src/modules/avocook-timer-notifications`: small native module for timer
   notifications.
-
-More detailed notes are in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ## Licence
 
