@@ -22,8 +22,12 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TOTAL=$(gh api repos/${{ github.repository }}/releases -q '[.[] | .assets[] | .download_count] | add')
-          TOTAL=${TOTAL:-0}
+          set +e
+          TOTAL=$(gh api repos/${{ github.repository }}/releases -q '[.[] | .assets[]? | .download_count?] | add' 2>/dev/null)
+          set -e
+          if [ -z "$TOTAL" ] || [ "$TOTAL" = "null" ]; then
+            TOTAL=0
+          fi
           echo "total=$TOTAL" >> "$GITHUB_OUTPUT"
 
       - name: Generate Badge SVG
