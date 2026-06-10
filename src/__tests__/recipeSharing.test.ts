@@ -50,9 +50,9 @@ import {
   createRecipePrintHtml,
   createRecipeShareBackup,
   type RecipePrintLabels
-} from "../src/features/recipes/recipeSharing";
-import { getRecipeShareFilename } from "../src/features/recipes/recipeShareFilenames";
-import { normalizeRecipe } from "../src/features/recipes/types";
+} from "../features/recipes/recipeSharing";
+import { getRecipeShareFilename } from "../features/recipes/recipeShareFilenames";
+import { normalizeRecipe } from "../features/recipes/types";
 
 const labels: RecipePrintLabels = {
   appName: "AvoCook",

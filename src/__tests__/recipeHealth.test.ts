@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { getRecipeHealthProfile } from "../src/features/recipes/health";
-import { createEmptyRecipe } from "../src/features/recipes/types";
+import { getRecipeHealthProfile } from "../features/recipes/health";
+import { createEmptyRecipe } from "../features/recipes/types";
 
 describe("getRecipeHealthProfile", () => {
   it("handles JSON-LD nutrition values imported as numbers", () => {

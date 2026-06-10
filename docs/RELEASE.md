@@ -48,9 +48,6 @@ network, or for the Expo client during development.
 
 The main Android configuration is in `app.json`.
 
-For details on the GitHub APK, IzzyOnDroid, and F-Droid, see
-[`ANDROID_DISTRIBUTION.md`](ANDROID_DISTRIBUTION.md).
-
 ## Submission
 
 ```bash

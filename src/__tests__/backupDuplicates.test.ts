@@ -3,8 +3,8 @@ import {
   findDuplicateRecipeGroups,
   mergeDuplicateRecipeData,
   resolveRecipeImport
-} from "../src/features/recipes/backupDuplicates";
-import { normalizeRecipe } from "../src/features/recipes/types";
+} from "../features/recipes/backupDuplicates";
+import { normalizeRecipe } from "../features/recipes/types";
 
 describe("resolveRecipeImport", () => {
   it("skips exact duplicates", () => {

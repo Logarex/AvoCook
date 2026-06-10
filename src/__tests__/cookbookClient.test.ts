@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { CookbookClient } from "../src/features/nextcloud/cookbookClient";
-import { normalizeRecipe } from "../src/features/recipes/types";
-import { base64Encode } from "../src/utils/base64";
+import { CookbookClient } from "../features/nextcloud/cookbookClient";
+import { normalizeRecipe } from "../features/recipes/types";
+import { base64Encode } from "../utils/base64";
 
 vi.mock("expo-file-system", () => ({
   File: class {

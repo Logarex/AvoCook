@@ -12,8 +12,8 @@ import {
   sanitizeRecipeImagesForNextcloud,
   withRecipeImageRemovalIntent,
   withCachedRecipeImage
-} from "../src/features/recipes/recipeImageReferences";
-import { normalizeRecipe } from "../src/features/recipes/types";
+} from "../features/recipes/recipeImageReferences";
+import { normalizeRecipe } from "../features/recipes/types";
 
 describe("recipe image references", () => {
   it("keeps the imported remote image URL as the primary image when caching a local copy", () => {

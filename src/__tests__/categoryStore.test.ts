@@ -4,11 +4,11 @@ import {
   loadCustomCategories,
   renameCustomCategory,
   saveCustomCategory
-} from "../src/features/recipes/categoryStore";
+} from "../features/recipes/categoryStore";
 import {
   DEFAULT_RECIPE_CATEGORIES,
   getRecipeCategoryLabel
-} from "../src/features/recipes/categories";
+} from "../features/recipes/categories";
 
 const storage = new Map<string, string>();
 

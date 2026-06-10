@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   isExternalRecipeSourceUrl,
   mergeRecipeUpdateFromSource
-} from "../src/features/recipes/recipeSource";
-import { normalizeRecipe } from "../src/features/recipes/types";
+} from "../features/recipes/recipeSource";
+import { normalizeRecipe } from "../features/recipes/types";
 
 describe("recipe source updates", () => {
   it("recognizes internet recipe source URLs", () => {

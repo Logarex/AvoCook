@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   normalizeRecipe,
   toCookbookRecipe
-} from "../src/features/recipes/types";
+} from "../features/recipes/types";
 
 describe("normalizeRecipe", () => {
   it("flattens structured Cookbook instructions before rendering", () => {

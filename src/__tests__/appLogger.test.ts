@@ -9,7 +9,7 @@ import {
   clearLogEntries,
   loadLogEntries,
   type AppLogEntry
-} from "../src/features/logging/appLogger";
+} from "../features/logging/appLogger";
 
 const mockStorage: Record<string, string> = {};
 
