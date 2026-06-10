@@ -33,14 +33,8 @@ jobs:
       - name: Generate Badge JSON
         run: |
           mkdir -p output_badges
-          cat <<EOF > output_badges/apk-downloads.json
-          {
-            "schemaVersion": 1,
-            "label": "APK downloads",
-            "message": "${{ steps.downloads.outputs.total }}",
-            "color": "3DDC84"
-          }
-          EOF
+          printf '{"schemaVersion":1,"label":"APK downloads","message":"%s","color":"3DDC84"}' \
+            "${{ steps.downloads.outputs.total }}" > output_badges/apk-downloads.json
 
       - name: Deploy to badges branch
         uses: peaceiris/actions-gh-pages@v4
