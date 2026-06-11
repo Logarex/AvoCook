@@ -255,7 +255,7 @@ export function ShoppingListScreen({ navigation }: Props) {
         <View style={styles.titleBlock}>
           <View style={styles.titleRow}>
             <ShoppingCart color={colors.primary} size={25} strokeWidth={2.5} />
-            <AppText variant="title" style={styles.title}>
+            <AppText variant="title" style={styles.title} numberOfLines={1} adjustsFontSizeToFit>
               {t("shoppingList.title")}
             </AppText>
           </View>
