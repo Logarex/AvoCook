@@ -28,6 +28,7 @@
     ],
     "ios": {
       "supportsTablet": true,
+      "buildNumber": "2",
       "bundleIdentifier": "org.epimac.avocook",
       "icon": {
         "light": "./assets/icon.png",
