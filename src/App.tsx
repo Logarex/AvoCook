@@ -7,6 +7,7 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { registerRootComponent } from "expo";
+import * as SplashScreen from "expo-splash-screen";
 import "./i18n";
 import { AppText } from "./components/AppText";
 import { LongActionToastProvider } from "./components/LongActionToast";
@@ -32,10 +33,15 @@ import { AppThemeProvider, useAppTheme } from "./theme/ThemeProvider";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+SplashScreen.preventAutoHideAsync().catch(() => {
+  // Ignore error if it's already prevented
+});
+
 export default function App() {
   React.useEffect(() => {
     installNetworkLogger();
     logInfo("app", "AvoCook mounted");
+    SplashScreen.hideAsync().catch(() => {});
   }, []);
 
   return (
