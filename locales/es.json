@@ -1,0 +1,11 @@
+{
+  "infoPlist": {
+    "NSCalendarsUsageDescription": "AvoCook requiere acceso al calendario porque comparte el mismo componente del sistema que los recordatorios, utilizados para sus listas de la compra.",
+    "NSCalendarsFullAccessUsageDescription": "AvoCook requiere acceso al calendario porque comparte el mismo componente del sistema que los recordatorios, utilizados para sus listas de la compra.",
+    "NSRemindersUsageDescription": "AvoCook utiliza sus recordatorios para exportar y sincronizar sus listas de la compra.",
+    "NSRemindersFullAccessUsageDescription": "AvoCook utiliza sus recordatorios para exportar y sincronizar sus listas de la compra.",
+    "NSPhotoLibraryUsageDescription": "Permita el acceso a las fotos para añadir una imagen a una receta.",
+    "NSPhotoLibraryAddUsageDescription": "Permita guardar imágenes de recetas si es necesario.",
+    "NSLocalNetworkUsageDescription": "Permita el acceso a la red local solo para conectarse a un servidor Nextcloud alojado en su red."
+  }
+}

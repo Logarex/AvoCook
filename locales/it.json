@@ -1,0 +1,11 @@
+{
+  "infoPlist": {
+    "NSCalendarsUsageDescription": "AvoCook richiede l'accesso al calendario perché condivide lo stesso componente di sistema dei promemoria, utilizzati per le tue liste della spesa.",
+    "NSCalendarsFullAccessUsageDescription": "AvoCook richiede l'accesso al calendario perché condivide lo stesso componente di sistema dei promemoria, utilizzati per le tue liste della spesa.",
+    "NSRemindersUsageDescription": "AvoCook utilizza i tuoi promemoria per esportare e sincronizzare le tue liste della spesa.",
+    "NSRemindersFullAccessUsageDescription": "AvoCook utilizza i tuoi promemoria per esportare e sincronizzare le tue liste della spesa.",
+    "NSPhotoLibraryUsageDescription": "Consenti l'accesso alle foto per aggiungere un'immagine a una ricetta.",
+    "NSPhotoLibraryAddUsageDescription": "Consenti il salvataggio delle immagini delle ricette se necessario.",
+    "NSLocalNetworkUsageDescription": "Consenti l'accesso alla rete locale solo per connetterti a un server Nextcloud ospitato sulla tua rete."
+  }
+}

@@ -4,6 +4,13 @@
     "slug": "avocook",
     "scheme": "avocook",
     "version": "2.1.0",
+    "locales": {
+      "en": "./locales/en.json",
+      "fr": "./locales/fr.json",
+      "de": "./locales/de.json",
+      "es": "./locales/es.json",
+      "it": "./locales/it.json"
+    },
     "orientation": "default",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
@@ -32,7 +39,11 @@
         "CFBundleAllowMixedLocalizations": true,
         "NSLocalNetworkUsageDescription": "Autoriser l'accès au réseau local uniquement pour se connecter à un serveur Nextcloud hébergé sur votre réseau.",
         "NSPhotoLibraryUsageDescription": "Autoriser l'accès aux photos pour ajouter une image à une recette.",
-        "NSPhotoLibraryAddUsageDescription": "Autoriser l'enregistrement d'images de recettes si nécessaire."
+        "NSPhotoLibraryAddUsageDescription": "Autoriser l'enregistrement d'images de recettes si nécessaire.",
+        "NSCalendarsUsageDescription": "Autoriser AvoCook à accéder à votre calendrier pour synchroniser la liste de courses.",
+        "NSCalendarsFullAccessUsageDescription": "Autoriser AvoCook à accéder à votre calendrier pour synchroniser la liste de courses.",
+        "NSRemindersUsageDescription": "Autoriser AvoCook à accéder à vos rappels pour synchroniser la liste de courses avec l'app Rappels.",
+        "NSRemindersFullAccessUsageDescription": "Autoriser AvoCook à accéder à vos rappels pour synchroniser la liste de courses avec l'app Rappels."
       }
     },
     "android": {
