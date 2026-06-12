@@ -78,4 +78,4 @@ APKs are published in the GitHub releases. The main file to install is
 
 ## Licence
 
-This project is licenced under the [MIT](LICENSE) licence.
+This project is licenced under the [GPLv3](LICENSE) licence.
