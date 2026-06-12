@@ -2,7 +2,7 @@
   "name": "avocook-timer-notifications",
   "version": "1.0.0",
   "description": "Local exact timer notifications for AvoCook.",
-  "license": "MIT",
+  "license": "GPL-3.0",
   "private": true,
   "expo-module": {
     "android": {
