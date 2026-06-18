@@ -7,8 +7,8 @@ Die Idee ist einfach: Behalte deine Rezepte an einem Ort, nutze sie offline und 
 [App Store](https://apps.apple.com/app/avocook/id6769012665) · [Android APK](https://github.com/Logarex/AvoCook/releases/latest) · [![APK-Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
 
 <p align="center">
-  <img src="assets/screenshots/login.png" width="280" alt="AvoCook Login" />
-  <img src="assets/screenshots/recipe.png" width="280" alt="Rezeptdetails" />
+  <img src="../../assets/screenshots/login.png" width="280" alt="AvoCook Login" />
+  <img src="../../assets/screenshots/recipe.png" width="280" alt="Rezeptdetails" />
 </p>
 
 ## Was die App kann
@@ -69,6 +69,13 @@ APKs werden in den GitHub-Releases veröffentlicht. Die Hauptdatei für die Inst
 - `src/features/import`: Rezept-Import von Webseiten;
 - `src/modules/avocook-timer-notifications`: kleines natives Modul für Timer-Benachrichtigungen.
 
+## Das Projekt unterstützen ☕
+
+Wenn dir AvoCook gefällt und du mir helfen möchtest, die Kosten zu decken, kannst du eine Spende machen:
+
+- [Spenden via Revolut](https://revolut.me/logarex)
+- [Spenden via PayPal](https://paypal.me/logarex31)
+
 ## Lizenz
 
-Dieses Projekt ist unter der [GPLv3](LICENSE)-Lizenz lizenziert.
+Dieses Projekt ist unter der [GPLv3](../../LICENSE)-Lizenz lizenziert.

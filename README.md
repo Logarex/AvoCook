@@ -76,6 +76,13 @@ APKs are published in the GitHub releases. The main file to install is
 - `src/modules/avocook-timer-notifications`: small native module for timer
   notifications.
 
+## Support the project ☕
+
+If you enjoy AvoCook and want to help me fund the costs, you can make a donation:
+
+- [Donate via Revolut](https://revolut.me/logarex)
+- [Donate via PayPal](https://paypal.me/logarex31)
+
 ## Licence
 
 This project is licenced under the [GPLv3](LICENSE) licence.
