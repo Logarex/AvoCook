@@ -119,6 +119,7 @@
       ],
       "./tools/plugins/withAndroidNetworkSecurity",
       "./tools/plugins/withAndroidSplitsAndOptimizations",
+      "./tools/plugins/withAndroidLint",
       "expo-font"
     ],
     "extra": {
