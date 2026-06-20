@@ -25,6 +25,7 @@ function withAndroidSplitsAndOptimizations(config) {
 
     if (!buildGradle.includes("splits {")) {
       const splitsConfig = `
+    /* 
     splits {
         abi {
             enable true
@@ -43,7 +44,7 @@ function withAndroidSplitsAndOptimizations(config) {
             }
         }
     }
-
+    */
     `;
       buildGradle = buildGradle.replace("buildTypes {", splitsConfig + "buildTypes {");
     }
