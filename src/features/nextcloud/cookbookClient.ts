@@ -289,26 +289,51 @@ export class CookbookClient {
       headers.set("Content-Type", "application/json");
     }
 
-    const response = await fetch(`${this.serverUrl}${path}`, {
-      ...options,
-      credentials: "omit",
-      headers
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const signal = options.signal ?? controller.signal;
 
-    const contentType = response.headers.get("content-type") ?? "";
-    const payload = contentType.includes("application/json")
-      ? await safeJson(response)
-      : await response.text();
+    try {
+      let response = await fetch(`${this.serverUrl}${path}`, {
+        ...options,
+        credentials: "omit",
+        headers,
+        signal
+      });
 
-    if (!response.ok) {
-      throw new CookbookApiError(
-        `Cookbook API returned ${response.status}`,
-        response.status,
-        payload
-      );
+      if (response.status === 404 && !this.serverUrl.endsWith("index.php")) {
+        const fallbackResponse = await fetch(`${this.serverUrl}/index.php${path}`, {
+          ...options,
+          credentials: "omit",
+          headers,
+          signal
+        });
+        if (
+          fallbackResponse.ok ||
+          fallbackResponse.status === 401 ||
+          fallbackResponse.status === 403
+        ) {
+          response = fallbackResponse;
+        }
+      }
+
+      const contentType = response.headers.get("content-type") ?? "";
+      const payload = contentType.includes("application/json")
+        ? await safeJson(response)
+        : await response.text();
+
+      if (!response.ok) {
+        throw new CookbookApiError(
+          `Cookbook API returned ${response.status}`,
+          response.status,
+          payload
+        );
+      }
+
+      return payload as T;
+    } finally {
+      clearTimeout(timeout);
     }
-
-    return payload as T;
   }
 
   private async rawRequest(
@@ -319,21 +344,30 @@ export class CookbookClient {
     const headers = new Headers(options.headers);
     headers.set("Authorization", authorization);
 
-    const response = await fetch(`${this.serverUrl}${path}`, {
-      ...options,
-      credentials: "omit",
-      headers
-    });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
+    const signal = options.signal ?? controller.signal;
 
-    if (!response.ok) {
-      throw new CookbookApiError(
-        `Nextcloud returned ${response.status}`,
-        response.status,
-        await response.text().catch(() => "")
-      );
+    try {
+      const response = await fetch(`${this.serverUrl}${path}`, {
+        ...options,
+        credentials: "omit",
+        headers,
+        signal
+      });
+
+      if (!response.ok) {
+        throw new CookbookApiError(
+          `Nextcloud returned ${response.status}`,
+          response.status,
+          await response.text().catch(() => "")
+        );
+      }
+
+      return response;
+    } finally {
+      clearTimeout(timeout);
     }
-
-    return response;
   }
 
   private async ensureWebDavDirectory(path: string) {
