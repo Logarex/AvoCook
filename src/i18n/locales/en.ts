@@ -50,8 +50,12 @@ export default {
       invalidUrl: "Invalid Nextcloud address.",
       insecureUrl: "Use HTTPS except localhost during development.",
       failed: "Unable to sign in. Check the server and app password.",
+      notFound:
+        "Server found, but the Cookbook app seems missing or disabled. Check the URL or install Cookbook on your Nextcloud.",
+      serverError:
+        "The server encountered an error (5xx). Please try again later.",
       certificateError:
-        "Network/TLS connection failed. If your server uses a self-signed certificate, install and trust its certificate authority on the device, or use a valid public certificate.",
+        "Network connection failed. The server is unreachable, offline, or there is a TLS/certificate issue.",
       useLocal: "Use without Nextcloud",
       showPassword: "Show password",
       hidePassword: "Hide password",

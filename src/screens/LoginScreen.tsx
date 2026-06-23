@@ -45,14 +45,22 @@ export function LoginScreen(_props: Props) {
     try {
       await login({ serverUrl, username, appPassword });
     } catch (caught) {
+      const statusMatch = caught instanceof Error ? caught.message.match(/\b(\d{3})\b/) : null;
+      const httpStatus = statusMatch ? statusMatch[1] : null;
       const message =
         caught instanceof Error && caught.message === "INSECURE_URL"
           ? t("auth.insecureUrl")
           : isLikelyTlsError(caught)
             ? t("auth.certificateError")
-          : caught instanceof Error && /401|997|credentials/i.test(caught.message)
+          : caught instanceof Error && /401|403|997|credentials/i.test(caught.message)
             ? t("auth.badCredentials")
-            : t("auth.failed");
+          : caught instanceof Error && /404/.test(caught.message)
+            ? t("auth.notFound")
+          : caught instanceof Error && /50\d/.test(caught.message)
+            ? t("auth.serverError")
+            : httpStatus
+              ? `${t("auth.failed")} (HTTP ${httpStatus})`
+              : t("auth.failed");
       setError(message);
     } finally {
       setSubmitting(false);
@@ -190,7 +198,7 @@ export function LoginScreen(_props: Props) {
 
 function isLikelyTlsError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
-  return /certificate|cert|ssl|tls|network request failed|trust anchor/i.test(
+  return /certificate|cert|ssl|tls|network request failed|trust anchor|timeout|aborted/i.test(
     message
   );
 }
