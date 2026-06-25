@@ -18,6 +18,7 @@ La idea es simple: mantén tus recetas en un solo lugar, úsalas sin conexión y
 - añadir fotos;
 - importar una receta desde una URL cuando el sitio expone datos `schema.org/Recipe`;
 - ajustar las cantidades según el número de porciones;
+- copiar los ingredientes al portapapeles;
 - iniciar temporizadores de cocina;
 - exportar una receta como PDF o imprimirla;
 - hacer copias de seguridad / restaurar recetas a un archivo JSON;

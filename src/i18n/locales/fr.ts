@@ -101,6 +101,7 @@ export default {
         "Cette recette contient des données inattendues. Elle reste conservée ; revenez à la liste puis relancez une synchronisation.",
       ingredients: "Ingrédients",
       ingredientsChecked: "{{checked}}/{{total}} cochés",
+      copyIngredients: "Copier les ingrédients",
       markIngredientReady: "Cocher {{ingredient}} comme prêt",
       unmarkIngredientReady: "Décocher {{ingredient}}",
       resetIngredientChecks: "Tout décocher",

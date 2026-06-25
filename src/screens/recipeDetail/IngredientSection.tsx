@@ -1,5 +1,6 @@
-import { Check, RotateCcw, ShoppingCart } from "lucide-react-native";
+import { Check, RotateCcw, ShoppingCart, Copy } from "lucide-react-native";
 import React from "react";
+import * as Clipboard from "expo-clipboard";
 import { Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../../components/AppText";
@@ -58,6 +59,13 @@ export function IngredientSection({
               variant="ghost"
             />
           ) : null}
+          <PrimaryButton
+            icon={Copy}
+            label={t("recipes.copyIngredients")}
+            onPress={() => void Clipboard.setStringAsync(items.join('\n'))}
+            style={styles.ingredientHeaderButton}
+            variant="ghost"
+          />
           <PrimaryButton
             icon={ShoppingCart}
             label={t("shoppingList.addFromRecipe")}

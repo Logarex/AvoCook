@@ -99,6 +99,7 @@ export default {
         "This recipe contains unexpected data. It has not been deleted; go back to the list and sync again.",
       ingredients: "Ingredients",
       ingredientsChecked: "{{checked}}/{{total}} checked",
+      copyIngredients: "Copy ingredients",
       markIngredientReady: "Mark {{ingredient}} as ready",
       unmarkIngredientReady: "Unmark {{ingredient}}",
       resetIngredientChecks: "Clear checks",

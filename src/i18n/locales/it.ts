@@ -100,6 +100,7 @@ export default {
         "Questa ricetta contiene dati inattesi. È stata conservata; torna all'elenco e avvia di nuovo la sincronizzazione.",
       ingredients: "Ingredienti",
       ingredientsChecked: "{{checked}}/{{total}} spuntati",
+      copyIngredients: "Copia ingredienti",
       markIngredientReady: "Segna {{ingredient}} come pronto",
       unmarkIngredientReady: "Deseleziona {{ingredient}}",
       resetIngredientChecks: "Deseleziona tutto",

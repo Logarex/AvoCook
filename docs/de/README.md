@@ -18,6 +18,7 @@ Die Idee ist einfach: Behalte deine Rezepte an einem Ort, nutze sie offline und 
 - Fotos hinzufügen;
 - ein Rezept über eine URL importieren, wenn die Website `schema.org/Recipe`-Daten bereitstellt;
 - Mengen basierend auf der Anzahl der Portionen anpassen;
+- Zutaten in die Zwischenablage kopieren;
 - Koch-Timer starten;
 - ein Rezept als PDF exportieren oder ausdrucken;
 - Rezepte in einer JSON-Datei sichern / wiederherstellen;
