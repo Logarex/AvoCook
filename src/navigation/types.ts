@@ -12,7 +12,11 @@ export type RootStackParamList = {
     id?: string;
     category?: string;
   };
-  ImportRecipe: undefined;
+  ImportRecipe:
+    | {
+        url?: string;
+      }
+    | undefined;
   ShoppingList:
     | {
         tabTransition?: "fromRecipes";

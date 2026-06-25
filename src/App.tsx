@@ -1,5 +1,6 @@
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { NavigationContainer, useNavigation } from "@react-navigation/native";
+import { createNativeStackNavigator, type NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useShareIntent } from "expo-share-intent";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
 import React from "react";
@@ -97,6 +98,7 @@ function RootNavigator() {
     <>
       <StatusBar style={isDark ? "light" : "dark"} />
       <NavigationContainer theme={navTheme}>
+        {credentials || isLocalMode ? <ShareIntentHandler /> : null}
         <Stack.Navigator
           screenOptions={({ route }) => ({
             animation: getStackAnimation(
@@ -128,6 +130,25 @@ function RootNavigator() {
       </NavigationContainer>
     </>
   );
+}
+
+function ShareIntentHandler() {
+  const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+
+  React.useEffect(() => {
+    if (hasShareIntent && shareIntent.type) {
+      if (shareIntent.type === "weburl" && shareIntent.webUrl) {
+        navigation.navigate("ImportRecipe", { url: shareIntent.webUrl });
+      } else if (shareIntent.type === "text" && shareIntent.text) {
+        // sometimes URLs are shared as plain text
+        navigation.navigate("ImportRecipe", { url: shareIntent.text });
+      }
+      resetShareIntent();
+    }
+  }, [hasShareIntent, shareIntent, navigation, resetShareIntent]);
+
+  return null;
 }
 
 function getStackAnimation(
