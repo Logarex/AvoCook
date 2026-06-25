@@ -510,6 +510,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         placeholder={t("editor.instructionPlaceholder")}
         reorderable
         removeLabel={t("editor.removeInstruction")}
+        splitPastedLines
         values={instructions}
       />
       <TextField
