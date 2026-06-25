@@ -117,6 +117,7 @@
           "microphonePermission": false
         }
       ],
+      "expo-share-intent",
       "./tools/plugins/withAndroidNetworkSecurity",
       "./tools/plugins/withAndroidSplitsAndOptimizations",
       "./tools/plugins/withAndroidLint",

@@ -16,13 +16,21 @@ import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ImportRecipe">;
 
-export function ImportRecipeScreen({ navigation }: Props) {
+export function ImportRecipeScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const { importBackup, importRecipe } = useRecipes();
-  const [url, setUrl] = useState("");
+  const [url, setUrl] = useState(route.params?.url ?? "");
   const [submitting, setSubmitting] = useState<"url" | "file" | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-submit if a URL was provided via navigation params
+  React.useEffect(() => {
+    if (route.params?.url) {
+      void handleImport();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route.params?.url]);
 
   async function handleImport() {
     setSubmitting("url");
@@ -114,7 +122,8 @@ export function ImportRecipeScreen({ navigation }: Props) {
           disabled={!url.trim() || submitting !== null}
           icon={Download}
           label={submitting === "url" ? t("common.loading") : t("importRecipe.action")}
-          onPress={() => void handleImport()}
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          onPress={handleImport}
         />
         <View style={styles.divider} />
         <AppText muted variant="caption">
@@ -128,7 +137,8 @@ export function ImportRecipeScreen({ navigation }: Props) {
               ? t("common.loading")
               : t("importRecipe.fileAction")
           }
-          onPress={() => void handlePickSharedFile()}
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          onPress={handlePickSharedFile}
           variant="ghost"
         />
         {submitting ? <ActivityIndicator color={colors.primary} /> : null}

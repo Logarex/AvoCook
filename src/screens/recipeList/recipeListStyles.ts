@@ -116,7 +116,7 @@ export const styles = StyleSheet.create({
     justifyContent: "flex-end",
   },
   modalScrim: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0,0,0,0.24)",
   },
   modalSheet: {
