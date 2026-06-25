@@ -100,6 +100,7 @@ export default {
         "Dieses Rezept enthält unerwartete Daten. Es wurde nicht gelöscht; gehe zurück zur Liste und synchronisiere erneut.",
       ingredients: "Zutaten",
       ingredientsChecked: "{{checked}}/{{total}} abgehakt",
+      copyIngredients: "Zutaten kopieren",
       markIngredientReady: "{{ingredient}} als bereit markieren",
       unmarkIngredientReady: "{{ingredient}} abwählen",
       resetIngredientChecks: "Alle abwählen",

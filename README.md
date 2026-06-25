@@ -22,6 +22,7 @@ with Nextcloud Cookbook if you already have a server.
 - add photos;
 - import a recipe from a URL when the site exposes `schema.org/Recipe` data;
 - adjust quantities based on the number of servings;
+- copy ingredients to the clipboard;
 - start cooking timers;
 - export a recipe as PDF or print it;
 - back up / restore recipes to a JSON file;

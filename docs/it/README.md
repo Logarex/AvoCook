@@ -18,6 +18,7 @@ L'idea è semplice: tieni le tue ricette in un unico posto, usale offline e sinc
 - aggiungere foto;
 - importare una ricetta da un URL quando il sito espone dati `schema.org/Recipe`;
 - adattare le quantità in base al numero di porzioni;
+- copiare gli ingredienti negli appunti;
 - avviare i timer di cottura;
 - esportare una ricetta in PDF o stamparla;
 - eseguire il backup / ripristinare le ricette su un file JSON;

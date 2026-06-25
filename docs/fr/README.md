@@ -18,6 +18,7 @@ L'idée est simple : gardez vos recettes au même endroit, utilisez-les hors lig
 - ajouter des photos ;
 - importer une recette depuis une URL lorsque le site expose des données `schema.org/Recipe` ;
 - ajuster les quantités en fonction du nombre de portions ;
+- copier les ingrédients dans le presse-papiers ;
 - lancer des minuteurs de cuisson ;
 - exporter une recette en PDF ou l'imprimer ;
 - sauvegarder / restaurer des recettes vers un fichier JSON ;
