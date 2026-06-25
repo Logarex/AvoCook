@@ -17,6 +17,7 @@ La idea es simple: mantén tus recetas en un solo lugar, úsalas sin conexión y
 - organizar recetas por categoría;
 - añadir fotos;
 - importar una receta desde una URL cuando el sitio expone datos `schema.org/Recipe`;
+- recibir URLs compartidas desde otras aplicaciones (como navegadores web) para importar recetas rápidamente;
 - ajustar las cantidades según el número de porciones;
 - copiar los ingredientes al portapapeles;
 - iniciar temporizadores de cocina;

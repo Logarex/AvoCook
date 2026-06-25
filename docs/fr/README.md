@@ -17,6 +17,7 @@ L'idée est simple : gardez vos recettes au même endroit, utilisez-les hors lig
 - organiser les recettes par catégorie ;
 - ajouter des photos ;
 - importer une recette depuis une URL lorsque le site expose des données `schema.org/Recipe` ;
+- recevoir des URL partagées depuis d'autres applications (comme les navigateurs web) pour importer rapidement des recettes ;
 - ajuster les quantités en fonction du nombre de portions ;
 - copier les ingrédients dans le presse-papiers ;
 - lancer des minuteurs de cuisson ;

@@ -17,6 +17,7 @@ L'idea è semplice: tieni le tue ricette in un unico posto, usale offline e sinc
 - organizzare le ricette per categoria;
 - aggiungere foto;
 - importare una ricetta da un URL quando il sito espone dati `schema.org/Recipe`;
+- ricevere URL condivisi da altre app (come i browser web) per importare rapidamente le ricette;
 - adattare le quantità in base al numero di porzioni;
 - copiare gli ingredienti negli appunti;
 - avviare i timer di cottura;
