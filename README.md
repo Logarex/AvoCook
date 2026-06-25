@@ -21,6 +21,7 @@ with Nextcloud Cookbook if you already have a server.
 - organise recipes by category;
 - add photos;
 - import a recipe from a URL when the site exposes `schema.org/Recipe` data;
+- receive shared URLs from other apps (like web browsers) to quickly import recipes;
 - adjust quantities based on the number of servings;
 - copy ingredients to the clipboard;
 - start cooking timers;

@@ -17,6 +17,7 @@ Die Idee ist einfach: Behalte deine Rezepte an einem Ort, nutze sie offline und 
 - Rezepte nach Kategorie organisieren;
 - Fotos hinzufügen;
 - ein Rezept über eine URL importieren, wenn die Website `schema.org/Recipe`-Daten bereitstellt;
+- geteilte URLs aus anderen Apps (wie Webbrowsern) empfangen, um Rezepte schnell zu importieren;
 - Mengen basierend auf der Anzahl der Portionen anpassen;
 - Zutaten in die Zwischenablage kopieren;
 - Koch-Timer starten;
