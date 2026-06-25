@@ -92,6 +92,7 @@ export function InstructionSection({
                   {
                     backgroundColor: checked ? colors.success : "transparent",
                     borderColor: checked ? colors.success : colors.border,
+                    marginTop: -2,
                   },
                 ]}
               >

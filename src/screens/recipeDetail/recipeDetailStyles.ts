@@ -140,6 +140,7 @@ export const styles = StyleSheet.create({
   },
   rowIndex: {
     width: 24,
+    marginTop: 3,
   },
   rowText: {
     flex: 1,
@@ -180,10 +181,11 @@ export const styles = StyleSheet.create({
     gap: spacing.md,
   },
   stepCheckRow: {
-    alignItems: "center",
+    alignItems: "flex-start",
     flexDirection: "row",
     gap: spacing.sm,
     minHeight: 44,
+    paddingVertical: 11,
   },
   stepHeaderActions: {
     alignItems: "center",
