@@ -89,9 +89,7 @@ export function jsonLdToRecipe(
     cookTime: toStringValue(jsonLd.cookTime) || null,
     totalTime: toStringValue(jsonLd.totalTime) || null,
     recipeYield: normalizeYield(jsonLd.recipeYield),
-    recipeCategory: Array.isArray(jsonLd.recipeCategory)
-      ? normalizeStringArray(jsonLd.recipeCategory)[0] ?? ""
-      : toStringValue(jsonLd.recipeCategory),
+    recipeCategory: "",
     recipeIngredient: ingredients,
     recipeInstructions: instructions,
     tool: tools,

@@ -134,30 +134,7 @@ export function inferRecipeCategory(recipe: Pick<
   Recipe,
   "description" | "keywords" | "name" | "recipeCategory" | "recipeIngredient"
 >) {
-  if (recipe.recipeCategory.trim()) {
-    return recipe.recipeCategory.trim();
-  }
-
-  const searchable = normalizeSearchText(
-    [
-      recipe.name,
-      recipe.description,
-      recipe.keywords,
-      recipe.recipeIngredient.join(" ")
-    ].join(" ")
-  );
-
-  for (const rule of categoryRules) {
-    if (
-      rule.keywords.some((keyword) =>
-        searchable.includes(normalizeSearchText(keyword))
-      )
-    ) {
-      return rule.category;
-    }
-  }
-
-  return "";
+  return recipe.recipeCategory.trim();
 }
 
 export function withInferredCategory(recipe: Recipe) {

@@ -136,7 +136,6 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
       .filter((item) => {
         const normalizedItem = normalizeSuggestionSearch(item);
         return (
-          normalizedItem !== normalizedCategory &&
           (!normalizedCategory || normalizedItem.includes(normalizedCategory))
         );
       })

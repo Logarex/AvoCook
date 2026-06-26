@@ -27,7 +27,6 @@ export function getKeywordSuggestions(
     .filter((keyword) => {
       const normalizedKeyword = normalizeSuggestionSearch(keyword);
       return (
-        normalizedKeyword !== normalizedSearch &&
         !selectedKeywords.has(normalizedKeyword) &&
         (!normalizedSearch || normalizedKeyword.includes(normalizedSearch))
       );

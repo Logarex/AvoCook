@@ -1,8 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import {
-  DEFAULT_RECIPE_CATEGORIES,
-  isDefaultRecipeCategory
-} from "./categories";
+
 
 const CUSTOM_CATEGORIES_KEY = "recipes.customCategories";
 const HIDDEN_DEFAULT_CATEGORIES_KEY = "recipes.hiddenDefaultCategories";
@@ -14,15 +11,9 @@ export type CategoryRename = {
 };
 
 export async function loadCustomCategories() {
-  const hiddenDefaults = new Set(await loadHiddenDefaultCategories());
   const storedCategories = await loadStoredCustomCategories();
 
-  return sortCategories([
-    ...DEFAULT_RECIPE_CATEGORIES.filter(
-      (category) => !hiddenDefaults.has(category)
-    ),
-    ...storedCategories
-  ]);
+  return sortCategories(storedCategories);
 }
 
 export async function saveCustomCategory(category: string) {
@@ -32,15 +23,6 @@ export async function saveCustomCategory(category: string) {
   }
 
   const customCategories = await loadStoredCustomCategories();
-
-  if (isDefaultRecipeCategory(normalized)) {
-    await saveHiddenDefaultCategories(
-      (await loadHiddenDefaultCategories()).filter(
-        (categoryName) => categoryName !== normalized
-      )
-    );
-    return loadCustomCategories();
-  }
 
   const nextCategories = sortCategories([
     ...customCategories,
@@ -53,14 +35,6 @@ export async function saveCustomCategory(category: string) {
 export async function deleteCustomCategory(category: string) {
   const normalized = normalizeCategoryName(category);
   if (!normalized) {
-    return loadCustomCategories();
-  }
-
-  if (isDefaultRecipeCategory(normalized)) {
-    await saveHiddenDefaultCategories([
-      ...(await loadHiddenDefaultCategories()),
-      normalized
-    ]);
     return loadCustomCategories();
   }
 
@@ -83,23 +57,12 @@ export async function renameCustomCategory(
   }
 
   const customCategories = await loadStoredCustomCategories();
-  const hiddenDefaults = await loadHiddenDefaultCategories();
-  const nextHiddenDefaults = new Set(hiddenDefaults);
   const nextCustomCategories = customCategories.filter(
     (categoryName) => categoryName !== normalized
   );
 
-  if (isDefaultRecipeCategory(normalized)) {
-    nextHiddenDefaults.add(normalized);
-  }
+  nextCustomCategories.push(nextNormalized);
 
-  if (isDefaultRecipeCategory(nextNormalized)) {
-    nextHiddenDefaults.delete(nextNormalized);
-  } else {
-    nextCustomCategories.push(nextNormalized);
-  }
-
-  await saveHiddenDefaultCategories(Array.from(nextHiddenDefaults));
   await saveStoredCustomCategories(nextCustomCategories);
   return loadCustomCategories();
 }
@@ -174,24 +137,14 @@ export function resolveCategoryRename(
 
 export async function saveCustomCategories(categories: string[]) {
   const storedCategories = await loadStoredCustomCategories();
-  const hiddenDefaults = await loadHiddenDefaultCategories();
   const importedCategories = categories
     .filter((item): item is string => typeof item === "string")
     .map(normalizeCategoryName)
     .filter(Boolean);
-  const importedDefaultSet = new Set(
-    importedCategories.filter(isDefaultRecipeCategory)
-  );
-  const importedCustomCategories = importedCategories.filter(
-    (categoryName) => !isDefaultRecipeCategory(categoryName)
-  );
 
-  await saveHiddenDefaultCategories(
-    hiddenDefaults.filter((categoryName) => !importedDefaultSet.has(categoryName))
-  );
   await saveStoredCustomCategories([
     ...storedCategories,
-    ...importedCustomCategories
+    ...importedCategories
   ]);
 
   return loadCustomCategories();
@@ -207,8 +160,7 @@ function sortCategories(categories: string[]) {
 }
 
 async function loadStoredCustomCategories() {
-  return parseStoredCategories(await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY))
-    .filter((categoryName) => !isDefaultRecipeCategory(categoryName));
+  return parseStoredCategories(await AsyncStorage.getItem(CUSTOM_CATEGORIES_KEY));
 }
 
 async function saveStoredCustomCategories(categories: string[]) {
@@ -218,18 +170,7 @@ async function saveStoredCustomCategories(categories: string[]) {
   );
 }
 
-async function loadHiddenDefaultCategories() {
-  return parseStoredCategories(
-    await AsyncStorage.getItem(HIDDEN_DEFAULT_CATEGORIES_KEY)
-  ).filter(isDefaultRecipeCategory);
-}
 
-async function saveHiddenDefaultCategories(categories: string[]) {
-  await AsyncStorage.setItem(
-    HIDDEN_DEFAULT_CATEGORIES_KEY,
-    JSON.stringify(sortCategories(categories.filter(isDefaultRecipeCategory)))
-  );
-}
 
 async function saveCategoryRenames(renames: CategoryRename[]) {
   await AsyncStorage.setItem(

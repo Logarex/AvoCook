@@ -70,10 +70,8 @@ export function CategoryPickerModal({
                 style={[
                   styles.categoryGridItem,
                   {
-                    backgroundColor:
-                      category === item.id ? colors.primary : colors.chip,
-                    borderColor:
-                      category === item.id ? colors.primary : colors.border,
+                    backgroundColor: category === item.id ? colors.primary : colors.chip,
+                    borderColor: category === item.id ? colors.primary : colors.border,
                   },
                 ]}
               >
@@ -84,54 +82,59 @@ export function CategoryPickerModal({
                   onPress={() => onSelect(item.id)}
                   style={({ pressed }) => [
                     styles.categoryGridSelect,
-                    { opacity: pressed ? 0.78 : 1 },
+                    { opacity: pressed ? 0.8 : 1 },
                   ]}
                 >
-                  {category === item.id ? (
-                    <Check
-                      color={colors.textInverted}
-                      size={17}
-                      strokeWidth={3}
-                    />
-                  ) : null}
                   <AppText
                     variant="label"
                     style={{
-                      color:
-                        category === item.id
-                          ? colors.textInverted
-                          : colors.text,
+                      flex: 1,
+                      color: category === item.id ? colors.textInverted : colors.text,
                     }}
+                    numberOfLines={1}
                   >
                     {item.label}
                   </AppText>
                   <AppText
                     variant="caption"
                     style={{
-                      color:
-                        category === item.id
-                          ? colors.textInverted
-                          : colors.textMuted,
+                      color: category === item.id ? colors.textInverted : colors.textMuted,
                     }}
                   >
                     {item.count}
                   </AppText>
+                  {category === item.id ? (
+                    <Check
+                      color={colors.textInverted}
+                      size={20}
+                      strokeWidth={3}
+                    />
+                  ) : null}
                 </Pressable>
                 {item.id ? (
                   <View style={styles.categoryGridActions}>
-                    <IconButton
-                      icon={Pencil}
-                      label={t("recipes.renameCategory")}
+                    <Pressable
+                      accessibilityLabel={t("recipes.renameCategory")}
+                      accessibilityRole="button"
                       onPress={() => onRenameCategory(item.id ?? "")}
-                      style={styles.categoryActionButton}
-                    />
-                    <IconButton
-                      icon={Trash2}
-                      label={t("recipes.deleteCategory")}
+                      style={({ pressed }) => [
+                        styles.categoryActionIcon,
+                        { opacity: pressed ? 0.6 : 1 }
+                      ]}
+                    >
+                      <Pencil color={category === item.id ? colors.textInverted : colors.text} size={20} />
+                    </Pressable>
+                    <Pressable
+                      accessibilityLabel={t("recipes.deleteCategory")}
+                      accessibilityRole="button"
                       onPress={() => onDeleteCategory(item.id ?? "", item.count)}
-                      tone="danger"
-                      style={styles.categoryActionButton}
-                    />
+                      style={({ pressed }) => [
+                        styles.categoryActionIcon,
+                        { opacity: pressed ? 0.6 : 1 }
+                      ]}
+                    >
+                      <Trash2 color={category === item.id ? colors.textInverted : colors.danger} size={20} />
+                    </Pressable>
                   </View>
                 ) : null}
               </View>

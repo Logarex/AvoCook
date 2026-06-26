@@ -142,10 +142,12 @@ export function RecipeListScreen({ navigation }: Props) {
 
   const categoryOptions = useMemo<CategoryOption[]>(() => {
     const counts = new Map<string, number>();
+    let uncategorizedCount = 0;
 
     for (const recipe of recipes) {
       const recipeCategory = recipe.recipeCategory.trim();
       if (!recipeCategory) {
+        uncategorizedCount++;
         continue;
       }
       counts.set(recipeCategory, (counts.get(recipeCategory) ?? 0) + 1);
@@ -165,23 +167,24 @@ export function RecipeListScreen({ navigation }: Props) {
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
 
-    return [
+    const result: CategoryOption[] = [
       { id: null, label: t("recipes.allCategories"), count: recipes.length },
-      ...options,
     ];
+
+    if (uncategorizedCount > 0) {
+      result.push({ id: "", label: t("recipes.uncategorized"), count: uncategorizedCount });
+    }
+
+    return [...result, ...options];
   }, [customCategories, recipes, t]);
 
   const visibleCategoryOptions = useMemo(() => {
-    const [allCategories, ...remaining] = categoryOptions;
+    const [allCategories] = categoryOptions;
     const selectedCategory = categoryOptions.find(
       (item) => item.id === category,
     );
-    const activeCategories = remaining
-      .filter((item) => item.count > 0)
-      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
-      .slice(0, 6);
 
-    const nextOptions = [allCategories, ...activeCategories];
+    const nextOptions = [allCategories];
     if (
       selectedCategory &&
       !nextOptions.some((item) => item.id === selectedCategory.id)
@@ -195,13 +198,18 @@ export function RecipeListScreen({ navigation }: Props) {
   const filteredRecipes = useMemo(() => {
     const normalizedQuery = normalizeSearchText(query);
     const matchingRecipes = recipes.filter((recipe) => {
-      const matchesCategory = !category || recipe.recipeCategory === category;
+      const recipeCategory = recipe.recipeCategory.trim();
+      const matchesCategory =
+        category === null ||
+        (category === "" ? !recipeCategory : recipeCategory === category);
       const searchable = normalizeSearchText(getRecipeSearchText(recipe));
       return matchesCategory && searchable.includes(normalizedQuery);
     });
 
     if (!normalizedQuery) {
-      return matchingRecipes;
+      return matchingRecipes.sort((left, right) =>
+        left.name.localeCompare(right.name, undefined, { sensitivity: "base" })
+      );
     }
 
     return matchingRecipes.sort((left, right) => {
