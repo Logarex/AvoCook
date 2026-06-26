@@ -118,7 +118,11 @@ export function normalizeRecipe(input: Partial<Recipe>): Recipe {
     ...empty,
     ...input,
     "@type": "Recipe",
-    id: raw.id === null || raw.id === undefined ? null : String(raw.id),
+    id: raw.id === null || raw.id === undefined
+      ? raw.recipe_id === null || raw.recipe_id === undefined
+        ? null
+        : String(raw.recipe_id)
+      : String(raw.id),
     name: toRecipeString(raw.name).trim() || empty.name,
     description: toRecipeString(raw.description),
     sourceName: toRecipeString(raw.sourceName),

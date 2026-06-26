@@ -844,6 +844,7 @@ export async function syncRecipes(
     count: dirtyLocalRecipes.length
   });
   const staleCleanup = await removeServerDeletedLocalRecipes(
+    client,
     rawExistingRecipes,
     recipes,
     dirtyLocalRecipes
@@ -869,6 +870,7 @@ export async function syncRecipes(
 }
 
 async function removeServerDeletedLocalRecipes(
+  client: CookbookClient | null,
   localRecipes: Recipe[],
   syncedRecipes: Recipe[],
   pendingLocalRecipes: Recipe[]
@@ -891,6 +893,23 @@ async function removeServerDeletedLocalRecipes(
       pendingRecipeIds.has(localRecipe.id)
     ) {
       continue;
+    }
+
+    if (client) {
+      const serverRecipe = await client.getRecipe(localRecipe.id).catch(() => null);
+      if (serverRecipe && serverRecipe.name) {
+        logInfo("sync", "Recipe missing from list but found on server, keeping", {
+          id: localRecipe.id
+        });
+        const keptRecipe = withInferredCategory(
+          replaceLocalRecipeImageReferencesWithRemote(
+            mergeServerRecipeWithLocalImages(serverRecipe, localRecipe)
+          )
+        );
+        syncedRecipes.push(keptRecipe);
+        syncedRecipeIds.add(localRecipe.id);
+        continue;
+      }
     }
 
     await deleteQueuedOperationsForRecipe(localRecipe.id);
