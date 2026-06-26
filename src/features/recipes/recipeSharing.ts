@@ -267,6 +267,21 @@ async function createRecipePrintDocument(
 ) {
   const normalizedRecipe = normalizeRecipe(recipe);
   const { uri: imageUri, isTemp } = await getPrintImageUri(normalizedRecipe, client);
+
+  let imageSrc = "";
+  if (imageUri) {
+    try {
+      const file = new File(imageUri);
+      const base64 = await file.base64();
+      const ext = getImageExtension(imageUri);
+      const mime = ext === "jpg" ? "jpeg" : ext;
+      imageSrc = `data:image/${mime};base64,${base64}`;
+    } catch (err) {
+      console.warn("Failed to convert print image to base64:", err);
+      imageSrc = imageUri;
+    }
+  }
+
   const nutritionEntries = getNutritionEntries(normalizedRecipe, labels);
   const healthProfile = getRecipeHealthProfile(normalizedRecipe);
   const keywords = normalizedRecipe.keywords
@@ -399,7 +414,7 @@ async function createRecipePrintDocument(
         ${normalizedRecipe.description ? `<p class="description">${escapeHtml(normalizedRecipe.description)}</p>` : ""}
         ${renderTags(keywords)}
       </div>
-      ${imageUri ? `<img class="photo" alt="${escapeHtml(normalizedRecipe.name)}" src="${escapeHtml(imageUri)}" />` : ""}
+      ${imageSrc ? `<img class="photo" alt="${escapeHtml(normalizedRecipe.name)}" src="${imageSrc.startsWith("data:") ? imageSrc : escapeHtml(imageSrc)}" />` : ""}
     </section>
 
     <section class="meta">
