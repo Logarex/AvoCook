@@ -25,6 +25,7 @@ export type RemindersSyncState = {
   linked: boolean;
   syncing: boolean;
   listName: string | null;
+  dismissed: boolean;
 };
 
 export type UseRemindersSyncReturn = RemindersSyncState & {
@@ -36,6 +37,7 @@ export type UseRemindersSyncReturn = RemindersSyncState & {
   disableSync: () => Promise<void>;
   pushToSystem: (items: ShoppingListItem[]) => Promise<void>;
   pullFromSystem: (currentItems: ShoppingListItem[]) => Promise<PullResult | null>;
+  dismissSyncBanner: () => Promise<void>;
 };
 
 export function useRemindersSync(): UseRemindersSyncReturn {
@@ -45,11 +47,15 @@ export function useRemindersSync(): UseRemindersSyncReturn {
   const [linked, setLinked] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [listName] = useState<string | null>(available ? "AvoCook" : null);
+  const [dismissed, setDismissed] = useState(false);
 
   // ── Load persisted linked state on mount ───────────────────────────────────
   useEffect(() => {
     void AsyncStorage.getItem(SYNC_ENABLED_KEY).then((stored) => {
       if (stored === "true") setLinked(true);
+    });
+    void AsyncStorage.getItem("shopping.reminders.dismissed.v1").then((stored) => {
+      if (stored === "true") setDismissed(true);
     });
   }, []);
 
@@ -162,5 +168,11 @@ export function useRemindersSync(): UseRemindersSyncReturn {
     [linked]
   );
 
-  return { available, linked, syncing, listName, enableSync, disableSync, pushToSystem, pullFromSystem };
+  // ── dismissSyncBanner ─────────────────────────────────────────────────────────
+  const dismissSyncBanner = useCallback(async () => {
+    setDismissed(true);
+    await AsyncStorage.setItem("shopping.reminders.dismissed.v1", "true");
+  }, []);
+
+  return { available, linked, syncing, listName, dismissed, enableSync, disableSync, pushToSystem, pullFromSystem, dismissSyncBanner };
 }

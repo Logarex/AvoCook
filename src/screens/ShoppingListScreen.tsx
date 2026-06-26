@@ -338,13 +338,21 @@ export function ShoppingListScreen({ navigation }: Props) {
       </View>
 
       {/* Sync banner: shown when feature is available but not yet linked */}
-      {sync.available && !sync.linked ? (
+      {sync.available && !sync.linked && !sync.dismissed ? (
         <GlassPanel style={styles.syncBanner}>
-          <View style={styles.syncBannerText}>
-            <AppText variant="label">{t("shoppingList.syncBannerTitle")}</AppText>
-            <AppText muted variant="caption" style={styles.syncBannerBody}>
-              {t("shoppingList.syncBannerBody")}
-            </AppText>
+          <View style={styles.syncBannerHeader}>
+            <View style={styles.syncBannerText}>
+              <AppText variant="label">{t("shoppingList.syncBannerTitle")}</AppText>
+              <AppText muted variant="caption" style={styles.syncBannerBody}>
+                {t("shoppingList.syncBannerBody")}
+              </AppText>
+            </View>
+            <IconButton
+              icon={X}
+              onPress={() => void sync.dismissSyncBanner()}
+              style={styles.syncBannerDismiss}
+              label={t("common.cancel")}
+            />
           </View>
           <Pressable
             accessibilityRole="button"
@@ -766,8 +774,21 @@ const styles = StyleSheet.create({
   syncBanner: {
     gap: spacing.sm
   },
+  syncBannerHeader: {
+    alignItems: "flex-start",
+    flexDirection: "row",
+    gap: spacing.sm,
+    justifyContent: "space-between"
+  },
   syncBannerText: {
+    flex: 1,
     gap: spacing.xxs
+  },
+  syncBannerDismiss: {
+    height: 32,
+    marginRight: -spacing.xs,
+    marginTop: -spacing.xs,
+    width: 32
   },
   syncBannerBody: {
     lineHeight: 18
