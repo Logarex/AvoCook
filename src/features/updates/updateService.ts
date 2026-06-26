@@ -1,4 +1,6 @@
 import Constants from "expo-constants";
+import DeviceInfo from "react-native-device-info";
+import { Platform } from "react-native";
 
 export interface UpdateInfo {
   updateAvailable: boolean;
@@ -29,6 +31,18 @@ function isNewerVersion(current: string, latest: string): boolean {
 }
 
 export async function checkForUpdates(): Promise<UpdateInfo | null> {
+  if (Platform.OS === "android") {
+    try {
+      const installer = await DeviceInfo.getInstallerPackageName();
+      if (installer === "com.android.vending") {
+        // L'application a été installée via le Play Store, on désactive la vérification des mises à jour
+        return null;
+      }
+    } catch (e) {
+      console.warn("Failed to get installer package name:", e);
+    }
+  }
+
   const currentVersion = Constants.expoConfig?.version ?? "0.1.0";
   try {
     const response = await fetch(
