@@ -388,7 +388,7 @@ export function ShoppingListScreen({ navigation }: Props) {
         </View>
       ) : (
         <>
-          <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.surfaceGlass }}>
+          <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.surfaceGlass, borderRadius: radius.md }}>
             <AppText muted variant="caption" style={{ fontWeight: "600" }}>
               {t("shoppingList.remainingCount", { count: remainingCount })}
               {checkedCount > 0
