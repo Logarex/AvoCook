@@ -269,7 +269,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       aspect: [4, 3],
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       quality: 0.86
     });
 
