@@ -29,13 +29,15 @@ type Props = {
   options?: readonly LanguageOption[];
   onChange: (value: AppLanguage) => void;
   style?: StyleProp<ViewStyle>;
+  variant?: "default" | "minimal";
 };
 
 export function LanguagePicker({
   value,
   options = SUPPORTED_LANGUAGES,
   onChange,
-  style
+  style,
+  variant = "default"
 }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -50,34 +52,52 @@ export function LanguagePicker({
 
   return (
     <>
-      <Pressable
-        accessibilityRole="combobox"
-        accessibilityState={{ expanded: open }}
-        style={[
-          styles.trigger,
-          { backgroundColor: colors.input, borderColor: colors.border },
-          style
-        ]}
-        onPress={() => setOpen(true)}
-      >
-        <View style={[styles.triggerIcon, { backgroundColor: colors.chip }]}>
-          <Globe color={colors.primary} size={18} />
-        </View>
-        <View style={styles.triggerText}>
-          <AppText muted variant="caption">
-            {t("settings.language")}
-          </AppText>
-          <AppText variant="label" numberOfLines={1}>
-            {selected?.nativeName ?? value.toUpperCase()}
-          </AppText>
-        </View>
-        <View style={[styles.codeBadge, { backgroundColor: colors.chip }]}>
-          <AppText variant="caption" style={{ color: colors.primary }}>
+      {variant === "minimal" ? (
+        <Pressable
+          accessibilityRole="combobox"
+          accessibilityState={{ expanded: open }}
+          style={({ pressed }) => [
+            styles.minimalTrigger,
+            { opacity: pressed ? 0.7 : 1 },
+            style
+          ]}
+          onPress={() => setOpen(true)}
+        >
+          <Globe color={colors.textMuted} size={16} />
+          <AppText muted variant="label">
             {selected?.shortLabel ?? value.toUpperCase()}
           </AppText>
-        </View>
-        <ChevronDown color={colors.textMuted} size={18} />
-      </Pressable>
+        </Pressable>
+      ) : (
+        <Pressable
+          accessibilityRole="combobox"
+          accessibilityState={{ expanded: open }}
+          style={[
+            styles.trigger,
+            { backgroundColor: colors.input, borderColor: colors.border },
+            style
+          ]}
+          onPress={() => setOpen(true)}
+        >
+          <View style={[styles.triggerIcon, { backgroundColor: colors.chip }]}>
+            <Globe color={colors.primary} size={18} />
+          </View>
+          <View style={styles.triggerText}>
+            <AppText muted variant="caption">
+              {t("settings.language")}
+            </AppText>
+            <AppText variant="label" numberOfLines={1}>
+              {selected?.nativeName ?? value.toUpperCase()}
+            </AppText>
+          </View>
+          <View style={[styles.codeBadge, { backgroundColor: colors.chip }]}>
+            <AppText variant="caption" style={{ color: colors.primary }}>
+              {selected?.shortLabel ?? value.toUpperCase()}
+            </AppText>
+          </View>
+          <ChevronDown color={colors.textMuted} size={18} />
+        </Pressable>
+      )}
 
       <Modal
         animationType="slide"
@@ -114,8 +134,6 @@ export function LanguagePicker({
                     style={({ pressed }) => [
                       styles.optionRow,
                       {
-                        backgroundColor: isSelected ? colors.primary : colors.input,
-                        borderColor: isSelected ? colors.primary : colors.border,
                         opacity: pressed ? 0.78 : 1
                       }
                     ]}
@@ -125,21 +143,13 @@ export function LanguagePicker({
                       <AppText
                         variant="label"
                         numberOfLines={1}
-                        style={{ color: isSelected ? colors.textInverted : colors.text }}
+                        style={{ color: isSelected ? colors.primary : colors.text }}
                       >
                         {option.nativeName}
                       </AppText>
-                      <AppText
-                        variant="caption"
-                        style={{
-                          color: isSelected ? colors.textInverted : colors.textMuted
-                        }}
-                      >
-                        {option.shortLabel}
-                      </AppText>
                     </View>
                     {isSelected ? (
-                      <Check color={colors.textInverted} size={19} strokeWidth={3} />
+                      <Check color={colors.primary} size={19} strokeWidth={3} />
                     ) : null}
                   </Pressable>
                 );
@@ -164,6 +174,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     width: "100%"
   },
+  minimalTrigger: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.xs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
   triggerIcon: {
     alignItems: "center",
     borderRadius: radius.sm,
@@ -186,7 +203,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end"
   },
   modalScrim: {
-    ...StyleSheet.absoluteFill,
+    ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.24)"
   },
   modalSheet: {
@@ -211,8 +228,6 @@ const styles = StyleSheet.create({
   },
   optionRow: {
     alignItems: "center",
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     justifyContent: "space-between",
     gap: spacing.sm,

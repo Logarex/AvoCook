@@ -41,7 +41,7 @@ export default {
     },
     auth: {
       title: "AvoCook",
-      subtitle: "Your cloud recipes, ready in the kitchen.",
+      subtitle: "Your personal recipe book.",
       server: "Nextcloud address",
       username: "Username",
       appPassword: "App password",
@@ -56,13 +56,16 @@ export default {
         "The server encountered an error (5xx). Please try again later.",
       certificateError:
         "Network connection failed. The server is unreachable, offline, or there is a TLS/certificate issue.",
-      useLocal: "Use without Nextcloud",
+      useLocal: "Start cooking",
+      nextcloudOption: "Connect Nextcloud account",
+      backToLocal: "Use locally instead",
       showPassword: "Show password",
       hidePassword: "Hide password",
       appPasswordHelp: "How do I create an app password?",
       localSubtitle: "Free local mode: your recipes stay only on this device.",
+      values: "Free, open-source, no ads and no trackers.",
       localDataWarning:
-        "Warning: in local mode, deleting the app also deletes recipes stored on this device. Export a backup before uninstalling.",
+        "Warning: in local mode, deleting the app also deletes recipes stored on this device. Make regular backups.",
       badCredentials:
         "Wrong username or app password. Create a dedicated Nextcloud app password.",
       tutorial: {

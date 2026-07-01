@@ -4,12 +4,13 @@ import {
   ChefHat,
   Eye,
   EyeOff,
+  Heart,
   HelpCircle,
   LockKeyhole
 } from "lucide-react-native";
 import { Image } from "expo-image";
 import React, { useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -21,7 +22,7 @@ import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import type { RootStackParamList } from "../navigation/types";
-import { spacing } from "../theme/colors";
+import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
@@ -36,6 +37,7 @@ export function LoginScreen(_props: Props) {
   const [appPassword, setAppPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordTutorial, setShowPasswordTutorial] = useState(false);
+  const [showNextcloud, setShowNextcloud] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,6 +71,16 @@ export function LoginScreen(_props: Props) {
 
   return (
     <Screen contentStyle={styles.screen} showScrollTop={false}>
+      <View style={styles.topArea}>
+        <LanguagePicker
+          variant="minimal"
+          value={language}
+          onChange={(value) => void setLanguage(value)}
+        />
+      </View>
+
+      <View style={styles.spacer} />
+
       <View style={styles.hero}>
         <Image
           accessible={false}
@@ -82,115 +94,153 @@ export function LoginScreen(_props: Props) {
         <AppText muted style={styles.center}>
           {t("auth.subtitle")}
         </AppText>
-      </View>
-
-      <GlassPanel style={styles.form}>
-        <TextField
-          autoCapitalize="none"
-          autoCorrect={false}
-          keyboardType="url"
-          label={t("auth.server")}
-          onChangeText={setServerUrl}
-          placeholder="https://cloud.example.com"
-          textContentType="URL"
-          value={serverUrl}
-        />
-        <TextField
-          autoCapitalize="none"
-          autoCorrect={false}
-          label={t("auth.username")}
-          onChangeText={setUsername}
-          textContentType="username"
-          value={username}
-        />
-        <TextField
-          autoCapitalize="none"
-          autoCorrect={false}
-          label={t("auth.appPassword")}
-          onChangeText={setAppPassword}
-          rightElement={
-            <IconButton
-              icon={showPassword ? EyeOff : Eye}
-              label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
-              onPress={() => setShowPassword((visible) => !visible)}
-              style={styles.passwordButton}
-            />
-          }
-          secureTextEntry={!showPassword}
-          textContentType="password"
-          value={appPassword}
-        />
-        <PrimaryButton
-          icon={HelpCircle}
-          label={t("auth.appPasswordHelp")}
-          onPress={() => setShowPasswordTutorial((visible) => !visible)}
-          variant="ghost"
-        />
-        {showPasswordTutorial ? (
-          <View style={styles.tutorial}>
-            <AppText variant="label">{t("auth.tutorial.title")}</AppText>
-            {[
-              "openNextcloud",
-              "openSettings",
-              "openSecurity",
-              "createPassword",
-              "copyPassword"
-            ].map((step, index) => (
-              <View key={step} style={styles.tutorialStep}>
-                <View style={[styles.stepBadge, { backgroundColor: colors.chip }]}>
-                  <AppText variant="caption" style={{ color: colors.primary }}>
-                    {index + 1}
-                  </AppText>
-                </View>
-                <AppText style={styles.stepText}>
-                  {t(`auth.tutorial.steps.${step}`)}
-                </AppText>
-              </View>
-            ))}
-            <AppText muted variant="caption">
-              {t("auth.tutorial.versionNote")}
+        {!showNextcloud && (
+          <View style={styles.heroBadge}>
+            <Heart color={colors.primary} size={14} />
+            <AppText variant="caption" style={{ color: colors.primary }}>
+              {t("auth.values")}
             </AppText>
           </View>
-        ) : null}
-        {error ? (
-          <AppText
-            accessibilityRole="alert"
-            style={{ color: colors.danger }}
-          >
-            {error}
-          </AppText>
-        ) : null}
-        <PrimaryButton
-          disabled={!serverUrl || !username || !appPassword || submitting}
-          icon={submitting ? undefined : LockKeyhole}
-          label={submitting ? t("common.loading") : t("auth.login")}
-          onPress={() => void handleLogin()}
-        />
-        <PrimaryButton
-          disabled={submitting}
-          icon={ChefHat}
-          label={t("auth.useLocal")}
-          onPress={() => void startLocalMode()}
-          variant="ghost"
-        />
-        <View style={styles.localWarning}>
-          <AlertTriangle color={colors.danger} size={18} />
-          <AppText muted variant="caption" style={styles.localWarningText}>
-            {t("auth.localDataWarning")}
-          </AppText>
-        </View>
-        {submitting ? <ActivityIndicator color={colors.primary} /> : null}
-      </GlassPanel>
+        )}
+      </View>
 
-      <AppText muted variant="caption" style={styles.center}>
-        {t("auth.secure")}{"\n"}{t("auth.localSubtitle")}
-      </AppText>
+      <View style={styles.spacer} />
 
-      <View style={styles.languagePicker}>
-        <LanguagePicker
-          value={language}
-          onChange={(value) => void setLanguage(value)}
-        />
+      <View style={styles.formContainer}>
+        {!showNextcloud ? (
+          <GlassPanel style={styles.form}>
+            <PrimaryButton
+              disabled={submitting}
+              icon={ChefHat}
+              label={t("auth.useLocal")}
+              onPress={() => void startLocalMode()}
+            />
+            <Pressable
+              disabled={submitting}
+              style={styles.textLink}
+              onPress={() => setShowNextcloud(true)}
+            >
+              <AppText variant="label" style={{ color: colors.primary, textAlign: "center" }}>
+                {t("auth.nextcloudOption")}
+              </AppText>
+            </Pressable>
+            {submitting ? <ActivityIndicator color={colors.primary} /> : null}
+          </GlassPanel>
+        ) : (
+          <GlassPanel style={styles.form}>
+            <TextField
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              label={t("auth.server")}
+              onChangeText={setServerUrl}
+              placeholder="https://cloud.example.com"
+              textContentType="URL"
+              value={serverUrl}
+            />
+            <TextField
+              autoCapitalize="none"
+              autoCorrect={false}
+              label={t("auth.username")}
+              onChangeText={setUsername}
+              textContentType="username"
+              value={username}
+            />
+            <TextField
+              autoCapitalize="none"
+              autoCorrect={false}
+              label={t("auth.appPassword")}
+              onChangeText={setAppPassword}
+              rightElement={
+                <IconButton
+                  icon={showPassword ? EyeOff : Eye}
+                  label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+                  onPress={() => setShowPassword((visible) => !visible)}
+                  style={styles.passwordButton}
+                />
+              }
+              secureTextEntry={!showPassword}
+              textContentType="password"
+              value={appPassword}
+            />
+            <Pressable
+              style={styles.helpLink}
+              onPress={() => setShowPasswordTutorial((visible) => !visible)}
+            >
+              <HelpCircle color={colors.textMuted} size={16} />
+              <AppText muted variant="caption">
+                {t("auth.appPasswordHelp")}
+              </AppText>
+            </Pressable>
+            {showPasswordTutorial ? (
+              <View style={styles.tutorial}>
+                <AppText variant="label">{t("auth.tutorial.title")}</AppText>
+                {[
+                  "openNextcloud",
+                  "openSettings",
+                  "openSecurity",
+                  "createPassword",
+                  "copyPassword"
+                ].map((step, index) => (
+                  <View key={step} style={styles.tutorialStep}>
+                    <View style={[styles.stepBadge, { backgroundColor: colors.chip }]}>
+                      <AppText variant="caption" style={{ color: colors.primary }}>
+                        {index + 1}
+                      </AppText>
+                    </View>
+                    <AppText style={styles.stepText}>
+                      {t(`auth.tutorial.steps.${step}` as any)}
+                    </AppText>
+                  </View>
+                ))}
+                <AppText muted variant="caption">
+                  {t("auth.tutorial.versionNote")}
+                </AppText>
+              </View>
+            ) : null}
+            {error ? (
+              <AppText
+                accessibilityRole="alert"
+                style={{ color: colors.danger }}
+              >
+                {error}
+              </AppText>
+            ) : null}
+            <PrimaryButton
+              disabled={!serverUrl || !username || !appPassword || submitting}
+              icon={submitting ? undefined : LockKeyhole}
+              label={submitting ? t("common.loading") : t("auth.login")}
+              onPress={() => void handleLogin()}
+            />
+            <Pressable
+              disabled={submitting}
+              style={styles.textLink}
+              onPress={() => setShowNextcloud(false)}
+            >
+              <AppText variant="label" style={{ color: colors.primary, textAlign: "center" }}>
+                {t("auth.backToLocal")}
+              </AppText>
+            </Pressable>
+            {submitting ? <ActivityIndicator color={colors.primary} /> : null}
+          </GlassPanel>
+        )}
+      </View>
+
+      <View style={styles.spacer} />
+
+      <View style={styles.bottomArea}>
+        {!showNextcloud ? (
+          <View style={styles.localWarning}>
+            <AlertTriangle color={colors.warning} size={16} style={styles.warningIcon} />
+            <AppText muted variant="caption" style={styles.localWarningText}>
+              {t("auth.localDataWarning")}
+            </AppText>
+          </View>
+        ) : (
+          <AppText muted variant="caption" style={styles.center}>
+            {t("auth.secure")}
+          </AppText>
+        )}
       </View>
     </Screen>
   );
@@ -205,12 +255,27 @@ function isLikelyTlsError(error: unknown) {
 
 const styles = StyleSheet.create({
   screen: {
-    justifyContent: "center"
+    gap: 0,
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.xxl,
+    minHeight: "100%"
+  },
+  topArea: {
+    alignItems: "flex-end"
+  },
+  spacer: {
+    flex: 1
   },
   hero: {
     alignItems: "center",
-    gap: spacing.sm,
-    marginBottom: spacing.sm
+    gap: spacing.sm
+  },
+  heroBadge: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.xs,
+    marginTop: spacing.xs
   },
   logo: {
     height: 86,
@@ -219,16 +284,27 @@ const styles = StyleSheet.create({
   center: {
     textAlign: "center"
   },
-  languagePicker: {
-    marginTop: spacing.md,
+  formContainer: {
     width: "100%"
   },
   form: {
     gap: spacing.md
   },
+  textLink: {
+    paddingVertical: spacing.sm,
+    alignItems: "center",
+    justifyContent: "center"
+  },
   passwordButton: {
     height: 36,
     width: 36
+  },
+  helpLink: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.xs,
+    justifyContent: "center",
+    paddingVertical: spacing.xs,
   },
   stepBadge: {
     alignItems: "center",
@@ -247,12 +323,20 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.sm
   },
+  bottomArea: {
+    minHeight: 48,
+    justifyContent: "center"
+  },
   localWarning: {
     alignItems: "flex-start",
     flexDirection: "row",
-    gap: spacing.xs
+    gap: spacing.sm
+  },
+  warningIcon: {
+    marginTop: 2
   },
   localWarningText: {
-    flex: 1
+    flex: 1,
+    lineHeight: 18
   }
 });
