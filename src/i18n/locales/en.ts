@@ -58,6 +58,7 @@ export default {
         "Network connection failed. The server is unreachable, offline, or there is a TLS/certificate issue.",
       useLocal: "Start cooking",
       nextcloudOption: "Connect Nextcloud account",
+      nextcloudLoginTitle: "Nextcloud Login",
       backToLocal: "Use locally instead",
       showPassword: "Show password",
       hidePassword: "Hide password",

@@ -1,6 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   AlertTriangle,
+  ChevronLeft,
   ChefHat,
   Eye,
   EyeOff,
@@ -81,30 +82,47 @@ export function LoginScreen(_props: Props) {
 
       <View style={styles.spacer} />
 
-      <View style={styles.hero}>
-        <Image
-          accessible={false}
-          source={require("../../assets/logo.png")}
-          style={styles.logo}
-          contentFit="contain"
-        />
-        <AppText variant="title" style={styles.center}>
-          {t("auth.title")}
-        </AppText>
-        <AppText muted style={styles.center}>
-          {t("auth.subtitle")}
-        </AppText>
-        {!showNextcloud && (
+      {!showNextcloud ? (
+        <View style={styles.hero}>
+          <Image
+            accessible={false}
+            source={require("../../assets/logo.png")}
+            style={styles.logo}
+            contentFit="contain"
+          />
+          <AppText variant="title" style={styles.center}>
+            {t("auth.title")}
+          </AppText>
+          <AppText muted style={styles.center}>
+            {t("auth.subtitle")}
+          </AppText>
           <View style={styles.heroBadge}>
             <Heart color={colors.primary} size={14} />
             <AppText variant="caption" style={{ color: colors.primary }}>
               {t("auth.values")}
             </AppText>
           </View>
-        )}
-      </View>
+        </View>
+      ) : (
+        <View style={styles.nextcloudHeader}>
+          <Pressable
+            accessibilityLabel={t("common.back")}
+            accessibilityRole="button"
+            onPress={() => setShowNextcloud(false)}
+            style={({ pressed }) => [
+              styles.backButton,
+              { opacity: pressed ? 0.7 : 1 }
+            ]}
+          >
+            <ChevronLeft color={colors.text} size={24} />
+          </Pressable>
+          <AppText variant="subtitle" style={styles.nextcloudTitle} numberOfLines={1}>
+            {t("auth.nextcloudLoginTitle" as any)}
+          </AppText>
+        </View>
+      )}
 
-      <View style={styles.spacer} />
+      <View style={{ height: 40 }} />
 
       <View style={styles.formContainer}>
         {!showNextcloud ? (
@@ -163,6 +181,12 @@ export function LoginScreen(_props: Props) {
               textContentType="password"
               value={appPassword}
             />
+            <View style={styles.secureBadge}>
+              <LockKeyhole color={colors.textMuted} size={14} />
+              <AppText muted variant="caption" style={{ flex: 1 }}>
+                {t("auth.secure")}
+              </AppText>
+            </View>
             <Pressable
               style={styles.helpLink}
               onPress={() => setShowPasswordTutorial((visible) => !visible)}
@@ -236,11 +260,7 @@ export function LoginScreen(_props: Props) {
               {t("auth.localDataWarning")}
             </AppText>
           </View>
-        ) : (
-          <AppText muted variant="caption" style={styles.center}>
-            {t("auth.secure")}
-          </AppText>
-        )}
+        ) : null}
       </View>
     </Screen>
   );
@@ -284,11 +304,33 @@ const styles = StyleSheet.create({
   center: {
     textAlign: "center"
   },
+  nextcloudHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.sm,
+    width: "100%",
+  },
+  backButton: {
+    padding: spacing.xs,
+    marginLeft: -spacing.xs
+  },
+  nextcloudTitle: {
+    fontSize: 22,
+    flex: 1
+  },
   formContainer: {
     width: "100%"
   },
   form: {
-    gap: spacing.md
+    gap: spacing.md,
+    paddingBottom: 20
+  },
+  secureBadge: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.xs,
+    marginTop: -spacing.xs,
+    paddingHorizontal: spacing.xs
   },
   textLink: {
     paddingVertical: spacing.sm,

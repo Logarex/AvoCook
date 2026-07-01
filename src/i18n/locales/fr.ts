@@ -59,6 +59,7 @@ export default {
         "Connexion réseau impossible. Le serveur est injoignable, hors ligne, ou il y a un problème de certificat TLS.",
       useLocal: "Commencer à cuisiner",
       nextcloudOption: "Connecter un compte Nextcloud",
+      nextcloudLoginTitle: "Connexion Nextcloud",
       backToLocal: "Utiliser en local",
       showPassword: "Afficher le mot de passe",
       hidePassword: "Masquer le mot de passe",

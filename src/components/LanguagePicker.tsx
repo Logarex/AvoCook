@@ -113,6 +113,7 @@ export function LanguagePicker({
             onPress={() => setOpen(false)}
           />
           <GlassPanel style={styles.modalSheet}>
+            <View style={[styles.grabber, { backgroundColor: colors.border }]} />
             <View style={styles.modalHeader}>
               <View style={styles.modalTitleGroup}>
                 <Globe color={colors.primary} size={22} />
@@ -124,36 +125,40 @@ export function LanguagePicker({
               contentContainerStyle={styles.optionList}
               showsVerticalScrollIndicator={false}
             >
-              {options.map((option) => {
-                const isSelected = option.value === value;
-                return (
-                  <Pressable
-                    key={option.value}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: isSelected }}
-                    style={({ pressed }) => [
-                      styles.optionRow,
-                      {
-                        opacity: pressed ? 0.78 : 1
-                      }
-                    ]}
-                    onPress={() => handleSelect(option.value)}
-                  >
-                    <View style={styles.optionText}>
-                      <AppText
-                        variant="label"
-                        numberOfLines={1}
-                        style={{ color: isSelected ? colors.primary : colors.text }}
+              <View style={[styles.optionsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+                {options.map((option, index) => {
+                  const isSelected = option.value === value;
+                  return (
+                    <View key={option.value}>
+                      {index > 0 && <View style={[styles.separator, { backgroundColor: colors.border }]} />}
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: isSelected }}
+                        style={({ pressed }) => [
+                          styles.optionRow,
+                          {
+                            opacity: pressed ? 0.78 : 1
+                          }
+                        ]}
+                        onPress={() => handleSelect(option.value)}
                       >
-                        {option.nativeName}
-                      </AppText>
+                        <View style={styles.optionText}>
+                          <AppText
+                            variant="label"
+                            numberOfLines={1}
+                            style={{ color: isSelected ? colors.primary : colors.text }}
+                          >
+                            {option.nativeName}
+                          </AppText>
+                        </View>
+                        {isSelected ? (
+                          <Check color={colors.primary} size={19} strokeWidth={3} />
+                        ) : null}
+                      </Pressable>
                     </View>
-                    {isSelected ? (
-                      <Check color={colors.primary} size={19} strokeWidth={3} />
-                    ) : null}
-                  </Pressable>
-                );
-              })}
+                  );
+                })}
+              </View>
             </ScrollView>
           </GlassPanel>
         </View>
@@ -204,7 +209,7 @@ const styles = StyleSheet.create({
   },
   modalScrim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.24)"
+    backgroundColor: "rgba(0,0,0,0.5)"
   },
   modalSheet: {
     borderBottomLeftRadius: 0,
@@ -223,18 +228,36 @@ const styles = StyleSheet.create({
     gap: spacing.xs
   },
   optionList: {
-    gap: spacing.xs,
     paddingBottom: spacing.md
+  },
+  optionsCard: {
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: "hidden"
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    width: "100%",
+    marginLeft: spacing.sm // optional: indents separator like iOS
   },
   optionRow: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
     gap: spacing.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.sm
+    paddingHorizontal: spacing.md,
+    paddingVertical: 14,
+    minHeight: 52
   },
   optionText: {
     flex: 1
+  },
+  grabber: {
+    width: 36,
+    height: 5,
+    borderRadius: 2.5,
+    alignSelf: "center",
+    marginBottom: spacing.xs,
+    marginTop: -8
   }
 });

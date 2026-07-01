@@ -59,6 +59,7 @@ export default {
         "Netzwerkverbindung fehlgeschlagen. Der Server ist nicht erreichbar, offline oder es gibt ein TLS-/Zertifikatsproblem.",
       useLocal: "Mit dem Kochen beginnen",
       nextcloudOption: "Nextcloud-Konto verbinden",
+      nextcloudLoginTitle: "Nextcloud Anmeldung",
       backToLocal: "Stattdessen lokal verwenden",
       showPassword: "Passwort anzeigen",
       hidePassword: "Passwort verbergen",
