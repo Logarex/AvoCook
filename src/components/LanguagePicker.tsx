@@ -125,7 +125,7 @@ export function LanguagePicker({
               contentContainerStyle={styles.optionList}
               showsVerticalScrollIndicator={false}
             >
-              <View style={[styles.optionsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+              <View style={[styles.optionsCard, { backgroundColor: colors.backgroundElevated, borderColor: colors.border }]}>
                 {options.map((option, index) => {
                   const isSelected = option.value === value;
                   return (
