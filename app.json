@@ -38,14 +38,14 @@
         "ITSAppUsesNonExemptEncryption": false,
         "UIRequiresFullScreen": false,
         "CFBundleAllowMixedLocalizations": true,
-        "NSLocalNetworkUsageDescription": "Autoriser l'accès au réseau local uniquement pour se connecter à un serveur Nextcloud hébergé sur votre réseau.",
-        "NSPhotoLibraryUsageDescription": "Autoriser l'accès aux photos pour ajouter une image à une recette.",
-        "NSPhotoLibraryAddUsageDescription": "Autoriser l'enregistrement d'images de recettes si nécessaire.",
-        "NSCameraUsageDescription": "Autoriser l'accès à l'appareil photo pour scanner une recette.",
-        "NSCalendarsUsageDescription": "Autoriser AvoCook à accéder à votre calendrier pour synchroniser la liste de courses.",
-        "NSCalendarsFullAccessUsageDescription": "Autoriser AvoCook à accéder à votre calendrier pour synchroniser la liste de courses.",
-        "NSRemindersUsageDescription": "Autoriser AvoCook à accéder à vos rappels pour synchroniser la liste de courses avec l'app Rappels.",
-        "NSRemindersFullAccessUsageDescription": "Autoriser AvoCook à accéder à vos rappels pour synchroniser la liste de courses con l'app Rappels."
+        "NSLocalNetworkUsageDescription": "Allow local network access only to connect to a Nextcloud server hosted on your network.",
+        "NSPhotoLibraryUsageDescription": "Allow access to photos to add an image to a recipe.",
+        "NSPhotoLibraryAddUsageDescription": "Allow saving recipe images if needed.",
+        "NSCameraUsageDescription": "Allow camera access to scan recipes from photos.",
+        "NSCalendarsUsageDescription": "AvoCook requires calendar access because it shares the same system component as reminders, which are used for your grocery lists.",
+        "NSCalendarsFullAccessUsageDescription": "AvoCook requires calendar access because it shares the same system component as reminders, which are used for your grocery lists.",
+        "NSRemindersUsageDescription": "AvoCook uses your reminders to export and synchronize your grocery lists.",
+        "NSRemindersFullAccessUsageDescription": "AvoCook uses your reminders to export and synchronize your grocery lists."
       }
     },
     "android": {
@@ -70,8 +70,8 @@
       [
         "expo-calendar",
         {
-          "calendarPermission": "Autoriser AvoCook à accéder à votre calendrier pour synchroniser la liste de courses.",
-          "remindersPermission": "Autoriser AvoCook à accéder à vos rappels pour synchroniser la liste de courses avec l'app Rappels."
+          "calendarPermission": "AvoCook requires calendar access because it shares the same system component as reminders, which are used for your grocery lists.",
+          "remindersPermission": "AvoCook uses your reminders to export and synchronize your grocery lists."
         }
       ],
       "expo-secure-store",
@@ -113,8 +113,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Autoriser l'accès aux photos pour ajouter une image à una recette.",
-          "cameraPermission": "Autoriser l'accès à l'appareil photo pour scanner une recette.",
+          "photosPermission": "Allow access to photos to add an image to a recipe.",
+          "cameraPermission": "Allow camera access to scan recipes from photos.",
           "microphonePermission": false
         }
       ],
