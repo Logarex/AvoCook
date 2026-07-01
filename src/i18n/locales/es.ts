@@ -101,6 +101,7 @@ export default {
       ingredients: "Ingredientes",
       ingredientsChecked: "{{checked}}/{{total}} marcados",
       copyIngredients: "Copiar ingredientes",
+      copyRemainingIngredients: "Copiar restantes",
       markIngredientReady: "Marcar {{ingredient}} como listo",
       unmarkIngredientReady: "Desmarcar {{ingredient}}",
       resetIngredientChecks: "Desmarcar todo",

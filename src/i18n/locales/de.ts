@@ -101,6 +101,7 @@ export default {
       ingredients: "Zutaten",
       ingredientsChecked: "{{checked}}/{{total}} abgehakt",
       copyIngredients: "Zutaten kopieren",
+      copyRemainingIngredients: "Verbleibende kopieren",
       markIngredientReady: "{{ingredient}} als bereit markieren",
       unmarkIngredientReady: "{{ingredient}} abwählen",
       resetIngredientChecks: "Alle abwählen",

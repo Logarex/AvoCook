@@ -102,6 +102,7 @@ export default {
       ingredients: "Ingrédients",
       ingredientsChecked: "{{checked}}/{{total}} cochés",
       copyIngredients: "Copier les ingrédients",
+      copyRemainingIngredients: "Copier les restants",
       markIngredientReady: "Cocher {{ingredient}} comme prêt",
       unmarkIngredientReady: "Décocher {{ingredient}}",
       resetIngredientChecks: "Tout décocher",

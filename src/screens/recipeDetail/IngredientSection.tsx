@@ -61,8 +61,18 @@ export function IngredientSection({
           ) : null}
           <PrimaryButton
             icon={Copy}
-            label={t("recipes.copyIngredients")}
-            onPress={() => void Clipboard.setStringAsync(items.join('\n'))}
+            label={t(
+              checkedCount > 0
+                ? "recipes.copyRemainingIngredients"
+                : "recipes.copyIngredients",
+            )}
+            onPress={() => {
+              const toCopy =
+                checkedCount > 0
+                  ? items.filter((_, index) => !checkedIndexes.has(index))
+                  : items;
+              void Clipboard.setStringAsync(toCopy.join("\n"));
+            }}
             style={styles.ingredientHeaderButton}
             variant="ghost"
           />
