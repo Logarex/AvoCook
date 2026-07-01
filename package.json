@@ -1,6 +1,6 @@
 {
   "name": "avocook-mobile",
-  "version": "2.1.3",
+  "version": "3.0.0",
   "private": true,
   "description": "Mobile recipe client compatible with Nextcloud Cookbook.",
   "license": "GPL-3.0",
