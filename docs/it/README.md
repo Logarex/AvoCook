@@ -16,6 +16,7 @@ L'idea è semplice: tieni le tue ricette in un unico posto, usale offline e sinc
 - creare e modificare ricette localmente;
 - organizzare le ricette per categoria;
 - aggiungere foto;
+- scansionare ricette da foto o generare ricette da foto di piatti utilizzando l'IA (richiede una chiave API);
 - importare una ricetta da un URL quando il sito espone dati `schema.org/Recipe`;
 - ricevere URL condivisi da altre app (come i browser web) per importare rapidamente le ricette;
 - adattare le quantità in base al numero di porzioni;

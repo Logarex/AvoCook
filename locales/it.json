@@ -5,5 +5,6 @@
   "NSRemindersFullAccessUsageDescription": "AvoCook utilizza i tuoi promemoria per esportare e sincronizzare le tue liste della spesa.",
   "NSPhotoLibraryUsageDescription": "Consenti l'accesso alle foto per aggiungere un'immagine a una ricetta.",
   "NSPhotoLibraryAddUsageDescription": "Consenti il salvataggio delle immagini delle ricette se necessario.",
-  "NSLocalNetworkUsageDescription": "Consenti l'accesso alla rete locale solo per connetterti a un server Nextcloud ospitato sulla tua rete."
+  "NSLocalNetworkUsageDescription": "Consenti l'accesso alla rete locale solo per connetterti a un server Nextcloud ospitato sulla tua rete.",
+  "NSCameraUsageDescription": "Consenti l'accesso alla fotocamera per scansionare il testo delle ricette dalle foto."
 }

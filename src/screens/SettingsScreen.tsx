@@ -5,20 +5,25 @@ import {
   ArrowLeft,
   Bell,
   BookOpen,
+  Bot,
+  ChevronDown,
   Database,
   Download,
+  Eye,
+  EyeOff,
   FileText,
   Globe,
   Info,
   Lock,
   LogOut,
   RefreshCw,
+  Save,
   ShieldCheck,
   Upload,
   User
 } from "lucide-react-native";
 import React, { useState } from "react";
-import { Alert, Linking, StyleSheet, Switch, View } from "react-native";
+import { Alert, Keyboard, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -27,10 +32,12 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { LanguagePicker } from "../components/LanguagePicker";
 import { SegmentedControl } from "../components/SegmentedControl";
+import { TextField } from "../components/TextField";
 import { useLongActionToast } from "../components/LongActionToast";
 import { useAuth } from "../features/auth/AuthProvider";
-import { usePreferences } from "../features/preferences/PreferencesProvider";
+import { usePreferences, type LlmSettings } from "../features/preferences/PreferencesProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import { LLM_PROVIDERS, type LlmProviderId, fetchAvailableModels } from "../features/import/photoRecipeImport";
 import type { RecipeDuplicateGroup } from "../features/recipes/backupDuplicates";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
@@ -60,9 +67,11 @@ export function SettingsScreen({ navigation }: Props) {
     keepRecipesLocal,
     keepScreenAwake,
     language,
+    llmSettings,
     setKeepRecipesLocal,
     setKeepScreenAwake,
-    setLanguage
+    setLanguage,
+    setLlmSettings
   } = usePreferences();
   const [message, setMessage] = useState<string | null>(null);
   const [backupAction, setBackupAction] = useState<"export" | "import" | null>(
@@ -71,6 +80,73 @@ export function SettingsScreen({ navigation }: Props) {
   const [duplicateAction, setDuplicateAction] = useState(false);
   const [notificationState, setNotificationState] =
     useState<TimerNotificationState>("unavailable");
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showApiKey, setShowApiKey] = useState(false);
+  const [llmDraft, setLlmDraft] = useState<LlmSettings | null>(null);
+  const currentLlm = llmDraft ?? llmSettings;
+  const [availableModels, setAvailableModels] = useState<string[] | null>(null);
+  const [fetchingModels, setFetchingModels] = useState(false);
+  const [fetchModelsError, setFetchModelsError] = useState<string | null>(null);
+
+  function handleSelectProvider(id: LlmProviderId) {
+    const preset = LLM_PROVIDERS.find((p) => p.id === id) ?? LLM_PROVIDERS[0];
+    const next: LlmSettings = {
+      providerId: id,
+      apiKey: currentLlm.apiKey,
+      baseUrl: preset.baseUrl,
+      model: preset.defaultModel
+    };
+    setLlmDraft(next);
+    void setLlmSettings(next);
+    // Reset model list when switching provider
+    setAvailableModels(null);
+    setFetchModelsError(null);
+  }
+
+  async function handleFetchModels() {
+    setFetchingModels(true);
+    setFetchModelsError(null);
+    try {
+      const models = await fetchAvailableModels(
+        currentLlm.apiKey,
+        currentLlm.providerId,
+        currentLlm.baseUrl
+      );
+      setAvailableModels(models);
+    } catch (err) {
+      setFetchModelsError(
+        err instanceof Error ? err.message : t("settings.llmFetchModelsFailed")
+      );
+    } finally {
+      setFetchingModels(false);
+    }
+  }
+
+  function handlePickModel(modelId: string) {
+    const next = { ...currentLlm, model: modelId };
+    setLlmDraft(next);
+    void setLlmSettings(next);
+  }
+
+  function handleLlmFieldChange(field: keyof LlmSettings, value: string) {
+    const next = { ...currentLlm, [field]: value };
+    setLlmDraft(next);
+  }
+
+  function handleLlmFieldBlur() {
+    if (llmDraft) {
+      void setLlmSettings(llmDraft);
+    }
+  }
+
+  function handleSaveLlmSettings() {
+    Keyboard.dismiss();
+    if (llmDraft) {
+      void setLlmSettings(llmDraft);
+      setMessage(t("common.saved", "Saved"));
+      setTimeout(() => setMessage(null), 3000);
+    }
+  }
 
   useFocusEffect(
     React.useCallback(() => {
@@ -537,6 +613,184 @@ export function SettingsScreen({ navigation }: Props) {
         </View>
       </GlassPanel>
 
+      <GlassPanel style={styles.section}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setShowAdvanced((v) => !v)}
+          style={styles.advancedHeader}
+        >
+          <View style={styles.serverHeader}>
+            <Bot color={colors.primary} size={22} />
+            <AppText variant="label">{t("settings.advanced")}</AppText>
+          </View>
+          <ChevronDown
+            color={colors.textMuted}
+            size={18}
+            style={{ transform: [{ rotate: showAdvanced ? "180deg" : "0deg" }] }}
+          />
+        </Pressable>
+
+        {showAdvanced ? (
+          <>
+            <AppText muted variant="caption">
+              {t("settings.llmHint")}
+            </AppText>
+
+            <AppText variant="label">{t("settings.llmProvider")}</AppText>
+            <View style={styles.providerGrid}>
+              {LLM_PROVIDERS.map((preset) => {
+                const selected = currentLlm.providerId === preset.id;
+                return (
+                  <Pressable
+                    accessibilityLabel={preset.label}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    key={preset.id}
+                    onPress={() => handleSelectProvider(preset.id)}
+                    style={[
+                      styles.providerChip,
+                      {
+                        backgroundColor: selected ? colors.primary : colors.input,
+                        borderColor: selected ? colors.primary : colors.border
+                      }
+                    ]}
+                  >
+                    <AppText
+                      variant="caption"
+                      style={{ color: selected ? colors.textInverted : colors.text }}
+                    >
+                      {preset.label}
+                    </AppText>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            <TextField
+              autoCapitalize="none"
+              autoCorrect={false}
+              label={t("settings.llmApiKey")}
+              onBlur={handleLlmFieldBlur}
+              onChangeText={(v) => handleLlmFieldChange("apiKey", v)}
+              placeholder={t("settings.llmApiKeyPlaceholder")}
+              secureTextEntry={!showApiKey}
+              value={currentLlm.apiKey}
+              rightElement={
+                <Pressable
+                  accessibilityLabel={showApiKey ? t("auth.hidePassword") : t("auth.showPassword")}
+                  onPress={() => setShowApiKey((v) => !v)}
+                  hitSlop={8}
+                >
+                  {showApiKey
+                    ? <EyeOff color={colors.textMuted} size={20} />
+                    : <Eye color={colors.textMuted} size={20} />}
+                </Pressable>
+              }
+            />
+
+            {currentLlm.providerId === "custom" ? (
+              <>
+                <TextField
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  label={t("settings.llmModel")}
+                  onBlur={handleLlmFieldBlur}
+                  onChangeText={(v) => handleLlmFieldChange("model", v)}
+                  placeholder={t("settings.llmModelPlaceholder")}
+                  value={currentLlm.model}
+                />
+                <TextField
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="url"
+                  label={t("settings.llmBaseUrl")}
+                  onBlur={handleLlmFieldBlur}
+                  onChangeText={(v) => handleLlmFieldChange("baseUrl", v)}
+                  placeholder="https://api.example.com/v1"
+                  value={currentLlm.baseUrl}
+                />
+              </>
+            ) : null}
+
+            {/* Buttons ABOVE the model picker so they're always reachable --- */}
+            <PrimaryButton
+              icon={Save}
+              label={t("common.save", "Save")}
+              onPress={handleSaveLlmSettings}
+              disabled={!llmDraft && llmSettings.apiKey === currentLlm.apiKey && llmSettings.model === currentLlm.model && llmSettings.baseUrl === currentLlm.baseUrl && llmSettings.providerId === currentLlm.providerId}
+            />
+
+            {/* Fetch models button ----------------------------------------- */}
+            <PrimaryButton
+              disabled={!currentLlm.apiKey.trim() || fetchingModels}
+              icon={RefreshCw}
+              label={
+                fetchingModels
+                  ? t("common.loading")
+                  : t("settings.llmFetchModels")
+              }
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+              onPress={handleFetchModels}
+              variant="ghost"
+            />
+
+            {fetchModelsError ? (
+              <AppText variant="caption" style={{ color: colors.danger }}>
+                {fetchModelsError}
+              </AppText>
+            ) : null}
+
+            {/* Model list in a ScrollView ---------------------------------- */}
+            {availableModels && availableModels.length > 0 ? (
+              <>
+                <AppText variant="label">{t("settings.llmPickModel")}</AppText>
+                <ScrollView
+                  style={styles.modelListScroll}
+                  contentContainerStyle={styles.modelListContent}
+                  showsVerticalScrollIndicator
+                  nestedScrollEnabled
+                >
+                  {availableModels.map((id) => {
+                    const selected = currentLlm.model === id;
+                    return (
+                      <Pressable
+                        accessibilityLabel={id}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected }}
+                        key={id}
+                        onPress={() => handlePickModel(id)}
+                        style={[
+                          styles.modelChip,
+                          {
+                            backgroundColor: selected ? colors.primary : colors.input,
+                            borderColor: selected ? colors.primary : colors.border
+                          }
+                        ]}
+                      >
+                        <AppText
+                          variant="caption"
+                          style={{ color: selected ? colors.textInverted : colors.text }}
+                          numberOfLines={1}
+                        >
+                          {id}
+                        </AppText>
+                      </Pressable>
+                    );
+                  })}
+                </ScrollView>
+              </>
+            ) : null}
+
+            {/* Close advanced section ------------------------------------ */}
+            <PrimaryButton
+              label={t("settings.closeAdvanced")}
+              onPress={() => setShowAdvanced(false)}
+              variant="ghost"
+            />
+          </>
+        ) : null}
+      </GlassPanel>
+
       {message ? (
         <AppText accessibilityLiveRegion="polite" style={{ color: colors.success }}>
           {message}
@@ -604,6 +858,25 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.xs
+  },
+  advancedHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "space-between"
+  },
+  chevronOpen: {
+    transform: [{ rotate: "180deg" }]
+  },
+  providerGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs
+  },
+  providerChip: {
+    borderRadius: spacing.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs
   },
   toolbar: {
     alignItems: "center",
@@ -687,6 +960,23 @@ const styles = StyleSheet.create({
   noticeText: {
     flex: 1,
     lineHeight: 18
+  },
+  modelListScroll: {
+    maxHeight: 220,
+    borderRadius: spacing.sm,
+  },
+  modelListContent: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: spacing.xs,
+    paddingBottom: spacing.xs
+  },
+  modelChip: {
+    borderRadius: spacing.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    maxWidth: "100%",
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs
   }
 });
 

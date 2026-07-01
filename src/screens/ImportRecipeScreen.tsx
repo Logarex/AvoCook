@@ -1,8 +1,10 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { ArrowLeft, Download, Upload } from "lucide-react-native";
+import { ArrowLeft, Camera, Download, Upload } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import i18n from "../i18n";
+import * as ImagePicker from "expo-image-picker";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
@@ -10,6 +12,13 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import { usePreferences } from "../features/preferences/PreferencesProvider";
+import {
+  extractRecipeFromPhoto,
+  LlmApiError,
+  LlmModelNotFoundError
+} from "../features/import/photoRecipeImport";
+import { logError } from "../features/logging/appLogger";
 import type { RootStackParamList } from "../navigation/types";
 import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -19,10 +28,13 @@ type Props = NativeStackScreenProps<RootStackParamList, "ImportRecipe">;
 export function ImportRecipeScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
-  const { importBackup, importRecipe } = useRecipes();
+  const { importBackup, importRecipe, createRecipe } = useRecipes();
+  const { llmSettings } = usePreferences();
   const [url, setUrl] = useState(route.params?.url ?? "");
-  const [submitting, setSubmitting] = useState<"url" | "file" | null>(null);
+  const [submitting, setSubmitting] = useState<"url" | "file" | "photo" | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const hasLlmKey = Boolean(llmSettings.apiKey.trim());
 
   // Auto-submit if a URL was provided via navigation params
   React.useEffect(() => {
@@ -67,6 +79,87 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
             ? t("importRecipe.invalidFile")
             : t("importRecipe.fileFailed")
         );
+      }
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
+  function handleScanPhoto() {
+    Alert.alert(
+      t("importRecipe.photoSourceTitle", "Choose source"),
+      "",
+      [
+        {
+          text: t("common.cancel", "Cancel"),
+          style: "cancel"
+        },
+        {
+          text: t("importRecipe.photoSourceCamera", "Camera"),
+          onPress: () => void processImage(ImagePicker.launchCameraAsync)
+        },
+        {
+          text: t("importRecipe.photoSourceGallery", "Photo Library"),
+          onPress: () => void processImage(ImagePicker.launchImageLibraryAsync)
+        }
+      ]
+    );
+  }
+
+  async function processImage(
+    pickerFn: (options: ImagePicker.ImagePickerOptions) => Promise<ImagePicker.ImagePickerResult>
+  ) {
+    setError(null);
+    const result = await pickerFn({
+      mediaTypes: ["images"],
+      quality: 0.8,
+      base64: true,
+      allowsEditing: false
+    }).catch(() => null);
+
+    if (!result || result.canceled || !result.assets[0]) {
+      return;
+    }
+
+    const asset = result.assets[0];
+    const base64 = asset.base64;
+    if (!base64) {
+      setError(t("importRecipe.photoFailed"));
+      return;
+    }
+
+    setSubmitting("photo");
+    try {
+      const recipe = await extractRecipeFromPhoto(
+        base64,
+        llmSettings.apiKey,
+        llmSettings.providerId,
+        llmSettings.baseUrl,
+        llmSettings.model,
+        i18n.language
+      );
+      // Save the recipe
+      const saved = await createRecipe(recipe);
+      if (saved.id) {
+        navigation.replace("RecipeDetail", { id: saved.id });
+      } else {
+        navigation.goBack();
+      }
+    } catch (err) {
+      logError("app", "Photo import failed in ImportRecipeScreen", err);
+      if (err instanceof LlmModelNotFoundError) {
+        setError(
+          t("importRecipe.photoModelNotFound", { model: err.model }) +
+          (err.modelDocsUrl ? "\n" + t("importRecipe.photoModelDocsHint") : "")
+        );
+      } else if (err instanceof LlmApiError && err.status === 401) {
+        setError(t("importRecipe.photoApiKeyInvalid"));
+      } else if (err instanceof LlmApiError && err.status === 403) {
+        setError(t("importRecipe.photoApiNoCredits"));
+      } else if (err instanceof LlmApiError && err.status === 429) {
+        setError(t("importRecipe.photoApiKeyQuotaExceeded"));
+      } else {
+        setError(t("importRecipe.photoFailed"));
       }
     } finally {
       setSubmitting(null);
@@ -141,6 +234,30 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
           onPress={handlePickSharedFile}
           variant="ghost"
         />
+        <View style={styles.divider} />
+        {hasLlmKey ? (
+          <>
+            <AppText muted variant="caption">
+              {t("importRecipe.photoHint")}
+            </AppText>
+            <PrimaryButton
+              disabled={submitting !== null}
+              icon={Camera}
+              label={
+                submitting === "photo"
+                  ? t("common.loading")
+                  : t("importRecipe.photoAction")
+              }
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+              onPress={handleScanPhoto}
+              variant="ghost"
+            />
+          </>
+        ) : (
+          <AppText muted variant="caption">
+            {t("importRecipe.photoNoKeyHint")}
+          </AppText>
+        )}
         {submitting ? <ActivityIndicator color={colors.primary} /> : null}
       </GlassPanel>
     </Screen>
@@ -174,3 +291,4 @@ function isPickerCancel(error: unknown) {
     /cancel|aborted|dismiss/i.test(error.message)
   );
 }
+

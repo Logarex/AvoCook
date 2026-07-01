@@ -20,6 +20,7 @@ with Nextcloud Cookbook if you already have a server.
 - create and edit recipes locally;
 - organise recipes by category;
 - add photos;
+- scan recipes from photos or generate recipes from pictures of dishes using AI (requires API key);
 - import a recipe from a URL when the site exposes `schema.org/Recipe` data;
 - receive shared URLs from other apps (like web browsers) to quickly import recipes;
 - adjust quantities based on the number of servings;

@@ -5,5 +5,6 @@
   "NSRemindersFullAccessUsageDescription": "AvoCook utilise vos rappels pour y exporter et synchroniser vos listes de courses.",
   "NSPhotoLibraryUsageDescription": "Autoriser l'accès aux photos pour ajouter une image à une recette.",
   "NSPhotoLibraryAddUsageDescription": "Autoriser l'enregistrement d'images de recettes si nécessaire.",
-  "NSLocalNetworkUsageDescription": "Autoriser l'accès au réseau local uniquement pour se connecter à un serveur Nextcloud hébergé sur votre réseau."
+  "NSLocalNetworkUsageDescription": "Autoriser l'accès au réseau local uniquement pour se connecter à un serveur Nextcloud hébergé sur votre réseau.",
+  "NSCameraUsageDescription": "Autoriser l'accès à l'appareil photo pour scanner une recette."
 }

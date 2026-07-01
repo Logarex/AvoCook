@@ -358,6 +358,20 @@ export default {
         "Import abgeschlossen: {{created}} hinzugefügt, {{updated}} aktualisiert, {{skipped}} Duplikat(e) übersprungen, {{renamed}} umbenannt.",
       failed: "Diese Seite konnte nicht importiert werden.",
       success: "Rezept importiert",
+      photoAction: "Foto scannen",
+      photoHint:
+        "Fotografiere ein Rezept (Magazin, Notizen) oder ein Gericht, um das Rezept mithilfe künstlicher Intelligenz zu importieren.",
+      photoNoKeyHint:
+        "Konfiguriere einen KI-Schlüssel in Einstellungen → Erweitert, um Rezeptfotos zu scannen.",
+      photoFailed: "Das Rezept konnte aus diesem Foto nicht extrahiert werden. Versuche ein schärferes Bild.",
+      photoApiKeyInvalid: "Ungültiger API-Schlüssel. Überprüfe deinen Schlüssel in Einstellungen → Erweitert.",
+      photoApiKeyQuotaExceeded: "API-Kontingent überschritten. Bitte überprüfen Sie Ihr Limit.",
+      photoModelNotFound: "Modell \"{{model}}\" nicht gefunden. Der Anbieter hat es möglicherweise entfernt oder umbenannt.",
+      photoModelDocsHint: "Prüfe die Dokumentation des Anbieters für aktuelle Modellnamen.",
+      photoApiNoCredits: "Kein Guthaben auf diesem KI-Konto. Lade Guthaben nach oder nutze einen kostenlosen Anbieter (z. B. Google Gemini).",
+      photoSourceTitle: "Quelle wählen",
+      photoSourceCamera: "Foto aufnehmen",
+      photoSourceGallery: "Aus Mediathek wählen",
     },
     settings: {
       title: "Einstellungen",
@@ -437,6 +451,19 @@ export default {
       duplicatesFailedTitle: "Prüfung fehlgeschlagen",
       duplicatesFailed:
         "Die Duplikatprüfung oder Zusammenführung konnte nicht abgeschlossen werden. Prüfe die Nextcloud-Verbindung und versuche es erneut.",
+      advanced: "Erweitert",
+      llmHint:
+        "Konfiguriere deinen eigenen KI-Schlüssel, um Rezeptfotos zu scannen. Dein Schlüssel wird nur sicher auf diesem Gerät gespeichert und nie an AvoCook-Server übertragen.",
+      llmProvider: "KI-Anbieter",
+      llmApiKey: "API-Schlüssel",
+      llmApiKeyPlaceholder: "sk-…",
+      llmModel: "Modell",
+      llmModelPlaceholder: "gpt-4o-mini",
+      llmBaseUrl: "Basis-URL (OpenAI-kompatibel)",
+      llmFetchModels: "Verfügbare Modelle abrufen",
+      llmFetchModelsFailed: "Modelle konnten nicht abgerufen werden. Prüfe deinen API-Schlüssel.",
+      llmPickModel: "Modell auswählen",
+      closeAdvanced: "Schließen",
     },
     logs: {
       title: "Protokolle",

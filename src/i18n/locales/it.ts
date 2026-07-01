@@ -356,6 +356,20 @@ export default {
         "Importazione completata: {{created}} aggiunta/e, {{updated}} aggiornata/e, {{skipped}} duplicato/i ignorato/i, {{renamed}} rinominata/e.",
       failed: "Impossibile importare questa pagina.",
       success: "Ricetta importata",
+      photoAction: "Scansiona foto",
+      photoHint:
+        "Scatta una foto di una ricetta (rivista, appunti) o di un piatto per importare la ricetta utilizzando l'Intelligenza Artificiale.",
+      photoNoKeyHint:
+        "Configura una chiave AI in Impostazioni → Avanzato per scansionare foto di ricette.",
+      photoFailed: "Non è stato possibile estrarre la ricetta da questa foto. Prova con un'immagine più nitida.",
+      photoApiKeyInvalid: "Chiave API non valida. Controlla la tua chiave in Impostazioni → Avanzato.",
+      photoApiKeyQuotaExceeded: "Quota API superata. Controlla i limiti del tuo piano.",
+      photoModelNotFound: "Modello \"{{model}}\" non trovato. Il fornitore potrebbe averlo rimosso o rinominato.",
+      photoModelDocsHint: "Consulta la documentazione del fornitore per i nomi dei modelli attuali.",
+      photoApiNoCredits: "Nessun credito su questo account IA. Ricarica il conto o usa un fornitore gratuito (es. Google Gemini).",
+      photoSourceTitle: "Scegli sorgente",
+      photoSourceCamera: "Scatta una foto",
+      photoSourceGallery: "Scegli dalla libreria",
     },
     settings: {
       title: "Impostazioni",
@@ -435,6 +449,19 @@ export default {
       duplicatesFailedTitle: "Controllo non riuscito",
       duplicatesFailed:
         "Il controllo o l'unione non è stato completato. Controlla la connessione Nextcloud e riprova.",
+      advanced: "Avanzato",
+      llmHint:
+        "Configura la tua chiave AI per scansionare foto di ricette. La chiave viene memorizzata in modo sicuro solo su questo dispositivo e non viene mai inviata ai server di AvoCook.",
+      llmProvider: "Provider AI",
+      llmApiKey: "Chiave API",
+      llmApiKeyPlaceholder: "sk-…",
+      llmModel: "Modello",
+      llmModelPlaceholder: "gpt-4o-mini",
+      llmBaseUrl: "URL base (compatibile OpenAI)",
+      llmFetchModels: "Recupera modelli disponibili",
+      llmFetchModelsFailed: "Impossibile recuperare i modelli. Controlla la tua chiave API.",
+      llmPickModel: "Scegli un modello",
+      closeAdvanced: "Chiudi",
     },
     logs: {
       title: "Registri",

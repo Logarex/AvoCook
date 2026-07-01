@@ -358,6 +358,20 @@ export default {
         "Import terminé : {{created}} ajoutée(s), {{updated}} mise(s) à jour, {{skipped}} doublon(s) ignoré(s), {{renamed}} renommée(s).",
       failed: "Import impossible pour cette page.",
       success: "Recette importée",
+      photoAction: "Scanner une photo",
+      photoHint:
+        "Prenez en photo une recette (magazine, notes) ou un plat pour importer la recette avec l'Intelligence Artificielle.",
+      photoNoKeyHint:
+        "Configurez une clé IA dans Réglages → Avancé pour scanner des photos de recettes.",
+      photoFailed: "La recette n'a pas pu être extraite de cette photo. Essayez avec une image plus nette.",
+      photoApiKeyInvalid: "Clé API invalide. Vérifiez votre clé dans Réglages → Avancé.",
+      photoApiKeyQuotaExceeded: "Quota API dépassé. Vérifiez les limites de votre forfait.",
+      photoModelNotFound: "Modèle \"{{model}}\" introuvable. Il a peut-être été supprimé ou renommé par le fournisseur.",
+      photoModelDocsHint: "Consultez la documentation du fournisseur pour connaître les noms de modèles actuels.",
+      photoApiNoCredits: "Pas de crédits sur ce compte IA. Rechargez le compte ou utilisez un fournisseur gratuit (ex. Google Gemini).",
+      photoSourceTitle: "Choisir la source",
+      photoSourceCamera: "Prendre une photo",
+      photoSourceGallery: "Choisir depuis la galerie",
     },
     settings: {
       title: "Réglages",
@@ -439,6 +453,19 @@ export default {
       duplicatesFailedTitle: "Vérification impossible",
       duplicatesFailed:
         "La vérification ou la fusion n'a pas pu se terminer. Vérifiez la connexion Nextcloud puis réessayez.",
+      advanced: "Avancé",
+      llmHint:
+        "Configurez votre propre clé IA pour scanner des photos de recettes. Votre clé est stockée de façon sécurisée sur cet appareil uniquement et n'est jamais envoyée aux serveurs AvoCook.",
+      llmProvider: "Fournisseur IA",
+      llmApiKey: "Clé API",
+      llmApiKeyPlaceholder: "sk-…",
+      llmModel: "Modèle",
+      llmModelPlaceholder: "gpt-4o-mini",
+      llmBaseUrl: "URL de base (compatible OpenAI)",
+      llmFetchModels: "Récupérer les modèles disponibles",
+      llmFetchModelsFailed: "Impossible de récupérer les modèles. Vérifiez votre clé API.",
+      llmPickModel: "Choisir un modèle",
+      closeAdvanced: "Fermer",
     },
     logs: {
       title: "Journaux",

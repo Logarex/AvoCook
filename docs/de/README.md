@@ -16,6 +16,7 @@ Die Idee ist einfach: Behalte deine Rezepte an einem Ort, nutze sie offline und 
 - Rezepte lokal erstellen und bearbeiten;
 - Rezepte nach Kategorie organisieren;
 - Fotos hinzufügen;
+- Rezepte aus Fotos scannen oder mithilfe von KI Rezepte aus Bildern von Gerichten generieren (erfordert einen API-Schlüssel);
 - ein Rezept über eine URL importieren, wenn die Website `schema.org/Recipe`-Daten bereitstellt;
 - geteilte URLs aus anderen Apps (wie Webbrowsern) empfangen, um Rezepte schnell zu importieren;
 - Mengen basierend auf der Anzahl der Portionen anpassen;

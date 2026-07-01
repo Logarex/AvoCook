@@ -16,6 +16,7 @@ L'idée est simple : gardez vos recettes au même endroit, utilisez-les hors lig
 - créer et modifier des recettes localement ;
 - organiser les recettes par catégorie ;
 - ajouter des photos ;
+- scanner des recettes à partir de photos ou générer des recettes à partir de photos de plats grâce à l'IA (nécessite une clé API) ;
 - importer une recette depuis une URL lorsque le site expose des données `schema.org/Recipe` ;
 - recevoir des URL partagées depuis d'autres applications (comme les navigateurs web) pour importer rapidement des recettes ;
 - ajuster les quantités en fonction du nombre de portions ;

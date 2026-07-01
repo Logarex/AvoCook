@@ -1,4 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import React, {
   createContext,
   useCallback,
@@ -13,22 +14,47 @@ import {
   resolveAppLanguage,
   type AppLanguage
 } from "../../i18n/languages";
+import {
+  LLM_PROVIDERS,
+  type LlmProviderId
+} from "../import/photoRecipeImport";
 
 export type { AppLanguage };
+
+export type LlmSettings = {
+  providerId: LlmProviderId;
+  apiKey: string;
+  baseUrl: string;
+  model: string;
+};
 
 type PreferencesContextValue = {
   keepScreenAwake: boolean;
   keepRecipesLocal: boolean;
   language: AppLanguage;
+  llmSettings: LlmSettings;
   setKeepScreenAwake: (enabled: boolean) => Promise<void>;
   setKeepRecipesLocal: (enabled: boolean) => Promise<void>;
   setLanguage: (language: AppLanguage) => Promise<void>;
+  setLlmSettings: (settings: LlmSettings) => Promise<void>;
 };
 
 const KEEP_AWAKE_KEY = "preferences.keepScreenAwake";
 const KEEP_RECIPES_LOCAL_KEY = "preferences.keepRecipesLocal";
 const LANGUAGE_KEY = "preferences.language";
 const LANGUAGE_USER_SET_KEY = "preferences.language.userSet";
+const LLM_PROVIDER_KEY = "preferences.llm.provider";
+const LLM_BASE_URL_KEY = "preferences.llm.baseUrl";
+const LLM_MODEL_KEY = "preferences.llm.model";
+const LLM_API_KEY_SECURE = "preferences.llm.apiKey";
+
+const DEFAULT_PROVIDER = LLM_PROVIDERS[0];
+const DEFAULT_LLM_SETTINGS: LlmSettings = {
+  providerId: DEFAULT_PROVIDER.id,
+  apiKey: "",
+  baseUrl: DEFAULT_PROVIDER.baseUrl,
+  model: DEFAULT_PROVIDER.defaultModel
+};
 
 const PreferencesContext = createContext<PreferencesContextValue | undefined>(
   undefined
@@ -44,28 +70,57 @@ export function PreferencesProvider({
   const [language, setLanguageState] = useState<AppLanguage>(
     resolveAppLanguage(i18n.language)
   );
+  const [llmSettings, setLlmSettingsState] = useState<LlmSettings>(
+    DEFAULT_LLM_SETTINGS
+  );
 
   useEffect(() => {
     void Promise.all([
       AsyncStorage.getItem(KEEP_AWAKE_KEY),
       AsyncStorage.getItem(KEEP_RECIPES_LOCAL_KEY),
       AsyncStorage.getItem(LANGUAGE_KEY),
-      AsyncStorage.getItem(LANGUAGE_USER_SET_KEY)
-    ]).then(([storedKeepAwake, storedKeepRecipesLocal, storedLanguage, storedUserSet]) => {
-      if (storedKeepAwake === "true" || storedKeepAwake === "false") {
-        setKeepScreenAwakeState(storedKeepAwake === "true");
+      AsyncStorage.getItem(LANGUAGE_USER_SET_KEY),
+      AsyncStorage.getItem(LLM_PROVIDER_KEY),
+      AsyncStorage.getItem(LLM_BASE_URL_KEY),
+      AsyncStorage.getItem(LLM_MODEL_KEY),
+      SecureStore.getItemAsync(LLM_API_KEY_SECURE)
+    ]).then(
+      ([
+        storedKeepAwake,
+        storedKeepRecipesLocal,
+        storedLanguage,
+        storedUserSet,
+        storedProviderId,
+        storedBaseUrl,
+        storedModel,
+        storedApiKey
+      ]) => {
+        if (storedKeepAwake === "true" || storedKeepAwake === "false") {
+          setKeepScreenAwakeState(storedKeepAwake === "true");
+        }
+        if (
+          storedKeepRecipesLocal === "true" ||
+          storedKeepRecipesLocal === "false"
+        ) {
+          setKeepRecipesLocalState(storedKeepRecipesLocal === "true");
+        }
+        if (storedUserSet === "true" && isAppLanguage(storedLanguage)) {
+          setLanguageState(storedLanguage);
+          void i18n.changeLanguage(storedLanguage);
+        }
+        const providerId = (storedProviderId as LlmSettings["providerId"]) ||
+          DEFAULT_LLM_SETTINGS.providerId;
+        const preset =
+          LLM_PROVIDERS.find((p) => p.id === providerId) ??
+          LLM_PROVIDERS[0];
+        setLlmSettingsState({
+          providerId,
+          apiKey: storedApiKey ?? "",
+          baseUrl: storedBaseUrl ?? preset.baseUrl,
+          model: storedModel ?? preset.defaultModel
+        });
       }
-      if (
-        storedKeepRecipesLocal === "true" ||
-        storedKeepRecipesLocal === "false"
-      ) {
-        setKeepRecipesLocalState(storedKeepRecipesLocal === "true");
-      }
-      if (storedUserSet === "true" && isAppLanguage(storedLanguage)) {
-        setLanguageState(storedLanguage);
-        void i18n.changeLanguage(storedLanguage);
-      }
-    });
+    );
   }, []);
 
   const setKeepScreenAwake = useCallback(async (enabled: boolean) => {
@@ -85,22 +140,38 @@ export function PreferencesProvider({
     await i18n.changeLanguage(nextLanguage);
   }, []);
 
+  const setLlmSettings = useCallback(async (next: LlmSettings) => {
+    setLlmSettingsState(next);
+    await AsyncStorage.setItem(LLM_PROVIDER_KEY, next.providerId);
+    await AsyncStorage.setItem(LLM_BASE_URL_KEY, next.baseUrl);
+    await AsyncStorage.setItem(LLM_MODEL_KEY, next.model);
+    if (next.apiKey) {
+      await SecureStore.setItemAsync(LLM_API_KEY_SECURE, next.apiKey);
+    } else {
+      await SecureStore.deleteItemAsync(LLM_API_KEY_SECURE);
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       keepScreenAwake,
       keepRecipesLocal,
       language,
+      llmSettings,
       setKeepScreenAwake,
       setKeepRecipesLocal,
-      setLanguage
+      setLanguage,
+      setLlmSettings
     }),
     [
       keepScreenAwake,
       keepRecipesLocal,
       language,
+      llmSettings,
       setKeepScreenAwake,
       setKeepRecipesLocal,
-      setLanguage
+      setLanguage,
+      setLlmSettings
     ]
   );
 

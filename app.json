@@ -41,10 +41,11 @@
         "NSLocalNetworkUsageDescription": "Autoriser l'accès au réseau local uniquement pour se connecter à un serveur Nextcloud hébergé sur votre réseau.",
         "NSPhotoLibraryUsageDescription": "Autoriser l'accès aux photos pour ajouter une image à une recette.",
         "NSPhotoLibraryAddUsageDescription": "Autoriser l'enregistrement d'images de recettes si nécessaire.",
+        "NSCameraUsageDescription": "Autoriser l'accès à l'appareil photo pour scanner une recette.",
         "NSCalendarsUsageDescription": "Autoriser AvoCook à accéder à votre calendrier pour synchroniser la liste de courses.",
         "NSCalendarsFullAccessUsageDescription": "Autoriser AvoCook à accéder à votre calendrier pour synchroniser la liste de courses.",
         "NSRemindersUsageDescription": "Autoriser AvoCook à accéder à vos rappels pour synchroniser la liste de courses avec l'app Rappels.",
-        "NSRemindersFullAccessUsageDescription": "Autoriser AvoCook à accéder à vos rappels pour synchroniser la liste de courses avec l'app Rappels."
+        "NSRemindersFullAccessUsageDescription": "Autoriser AvoCook à accéder à vos rappels pour synchroniser la liste de courses con l'app Rappels."
       }
     },
     "android": {
@@ -112,8 +113,8 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Autoriser l'accès aux photos pour ajouter une image à une recette.",
-          "cameraPermission": false,
+          "photosPermission": "Autoriser l'accès aux photos pour ajouter une image à una recette.",
+          "cameraPermission": "Autoriser l'accès à l'appareil photo pour scanner une recette.",
           "microphonePermission": false
         }
       ],

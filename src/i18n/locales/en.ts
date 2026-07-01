@@ -354,6 +354,20 @@ export default {
         "Import complete: {{created}} added, {{updated}} updated, {{skipped}} duplicate(s) skipped, {{renamed}} renamed.",
       failed: "This page could not be imported.",
       success: "Recipe imported",
+      photoAction: "Scan a photo",
+      photoHint:
+        "Take a photo of a recipe (magazine, handwritten notes) or a finished dish to import the recipe using Artificial Intelligence.",
+      photoNoKeyHint:
+        "Configure an AI key in Settings → Advanced to scan recipe photos.",
+      photoFailed: "The recipe could not be extracted from this photo. Try a clearer image.",
+      photoApiKeyInvalid: "Invalid API key. Check your key in Settings → Advanced.",
+      photoApiKeyQuotaExceeded: "API quota exceeded. Please check your plan limits.",
+      photoModelNotFound: "Model \"{{model}}\" not found. The provider may have removed or renamed it.",
+      photoModelDocsHint: "Check the provider's documentation for the current model names.",
+      photoApiNoCredits: "No credits on this AI account. Add credits or switch to a free provider (e.g. Google Gemini).",
+      photoSourceTitle: "Choose source",
+      photoSourceCamera: "Take a photo",
+      photoSourceGallery: "Choose from Library",
     },
     settings: {
       title: "Settings",
@@ -431,6 +445,19 @@ export default {
       duplicatesFailedTitle: "Check failed",
       duplicatesFailed:
         "The duplicate check or merge could not finish. Check the Nextcloud connection and try again.",
+      advanced: "Advanced",
+      llmHint:
+        "Configure your own AI key to scan recipe photos. Your key is stored securely on this device only and never sent to AvoCook servers.",
+      llmProvider: "AI provider",
+      llmApiKey: "API key",
+      llmApiKeyPlaceholder: "sk-…",
+      llmModel: "Model",
+      llmModelPlaceholder: "gpt-4o-mini",
+      llmBaseUrl: "Base URL (OpenAI-compatible)",
+      llmFetchModels: "Fetch available models",
+      llmFetchModelsFailed: "Could not fetch models. Check your API key.",
+      llmPickModel: "Choose a model",
+      closeAdvanced: "Close",
     },
     logs: {
       title: "Logs",
