@@ -5,6 +5,7 @@ import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import * as ImagePicker from "expo-image-picker";
+import { useCameraPermissions } from "expo-image-picker";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
@@ -33,6 +34,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
   const [url, setUrl] = useState(route.params?.url ?? "");
   const [submitting, setSubmitting] = useState<"url" | "file" | "photo" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
 
   const hasLlmKey = Boolean(llmSettings.apiKey.trim());
 
@@ -85,7 +87,19 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
     }
   }
 
-  function handleScanPhoto() {
+  async function handleScanPhoto() {
+    // Ensure camera permission is granted before showing the source picker
+    if (!cameraPermission?.granted) {
+      const result = await requestCameraPermission();
+      if (!result.granted) {
+        Alert.alert(
+          t("importRecipe.photoCameraPermissionTitle"),
+          t("importRecipe.photoCameraPermissionBody")
+        );
+        return;
+      }
+    }
+
     Alert.alert(
       t("importRecipe.photoSourceTitle", "Choose source"),
       "",

@@ -376,6 +376,8 @@ export default {
       photoSourceTitle: "Choisir la source",
       photoSourceCamera: "Prendre une photo",
       photoSourceGallery: "Choisir depuis la galerie",
+      photoCameraPermissionTitle: "Accès à l'appareil photo requis",
+      photoCameraPermissionBody: "Veuillez autoriser AvoCook à accéder à l'appareil photo pour scanner des photos de recettes.",
     },
     settings: {
       title: "Réglages",

@@ -325,7 +325,7 @@ function RecipeDetailContent({
         value: string;
       } => Boolean(item),
     );
-  }, [recipe, selectedServings, showServings, t]);
+  }, [recipe, t]);
   const {
     notificationStatus: timerNotificationStatus,
     resetTimer,

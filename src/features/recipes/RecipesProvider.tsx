@@ -292,7 +292,6 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
         },
         repositoryOptions
       );
-      stopLongActionNotice();
       const fileUri = await writeRecipeBackupToPickedDirectory(result.backup);
       setRecipes(await initialiseRecipeStore());
       return { ...result, fileUri };

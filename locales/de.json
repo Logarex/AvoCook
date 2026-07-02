@@ -6,5 +6,5 @@
   "NSPhotoLibraryUsageDescription": "Erlauben Sie den Zugriff auf Fotos, um einem Rezept ein Bild hinzuzufügen.",
   "NSPhotoLibraryAddUsageDescription": "Erlauben Sie bei Bedarf das Speichern von Rezeptbildern.",
   "NSLocalNetworkUsageDescription": "Erlauben Sie den Zugriff auf das lokale Netzwerk nur, um eine Verbindung zu einem in Ihrem Netzwerk gehosteten Nextcloud-Server herzustellen.",
-  "NSCameraUsageDescription": "Erlaube den Kamerazugriff, um Rezepttexte von Fotos zu scannen."
+  "NSCameraUsageDescription": "Kamerazugriff, um Rezepte aus Fotos zu scannen."
 }
