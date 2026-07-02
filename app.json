@@ -3,7 +3,7 @@
     "name": "AvoCook",
     "slug": "avocook",
     "scheme": "avocook",
-    "version": "3.0.0",
+    "version": "3.0.1",
     "locales": {
       "en": "./locales/en.json",
       "fr": "./locales/fr.json",
