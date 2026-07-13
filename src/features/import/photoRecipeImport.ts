@@ -387,11 +387,11 @@ async function callOpenAiCompatibleApi(
   }
 
   const data = (await response.json()) as OpenAiResponse;
-  const content = data?.choices?.[0]?.message?.content;
-  if (!content) {
+  const resultContent = data?.choices?.[0]?.message?.content;
+  if (!resultContent) {
     throw new Error("Empty response from LLM");
   }
-  return content;
+  return resultContent;
 }
 
 // ---------------------------------------------------------------------------
