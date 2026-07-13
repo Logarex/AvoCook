@@ -38,38 +38,92 @@ const AVOCOOK_LIST_NAME = "AvoCook";
 
 export async function findOrCreateAvoCookList(): Promise<string> {
   const storedId = await AsyncStorage.getItem(REMINDERS_LIST_ID_KEY);
+  
+  // 1. Fetch all current reminder calendars
+  let calendars: Calendar.Calendar[] = [];
+  try {
+    calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.REMINDER);
+  } catch (e) {
+    logError("sync", "Failed to get calendars", e);
+  }
+
+  // 2. Check if the stored ID still exists and is modifiable
   if (storedId) {
-    try {
-      const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.REMINDER);
-      if (calendars.find((c) => c.id === storedId)) return storedId;
-    } catch {
-      // fall through
+    const matched = calendars.find((c) => c.id === storedId);
+    if (matched && matched.allowsModifications !== false) {
+      return storedId;
     }
   }
 
-  const calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.REMINDER);
-  const existing = calendars.find((c) => c.title === AVOCOOK_LIST_NAME);
+  // 3. Check if a list named "AvoCook" already exists
+  const existing = calendars.find(
+    (c) => c.title === AVOCOOK_LIST_NAME && c.allowsModifications !== false
+  );
   if (existing) {
     await AsyncStorage.setItem(REMINDERS_LIST_ID_KEY, existing.id);
     return existing.id;
   }
 
-  const defaultSource =
-    calendars.find((c) => c.source?.isLocalAccount)?.source ?? calendars[0]?.source;
+  // 4. We need to create a new calendar. Find the best source.
+  // Prioritize iCloud, then Local, then any modifiable source.
+  const modifiable = calendars.filter((c) => c.allowsModifications !== false);
+  let targetSource = 
+    modifiable.find((c) => c.source?.name === "iCloud" || c.source?.type === "caldav")?.source ??
+    modifiable.find((c) => c.source?.isLocalAccount)?.source ??
+    modifiable[0]?.source ??
+    calendars[0]?.source;
 
-  const newId = await Calendar.createCalendarAsync({
-    title: AVOCOOK_LIST_NAME,
-    color: "#4CAF50",
-    entityType: Calendar.EntityTypes.REMINDER,
-    sourceId: defaultSource?.id,
-    source: defaultSource ?? { isLocalAccount: true, name: "AvoCook", type: "local" },
-    name: AVOCOOK_LIST_NAME,
-    ownerAccount: "personal",
-    accessLevel: Calendar.CalendarAccessLevel.OWNER,
-  });
+  // If we still have no source (e.g., user has 0 reminder lists), try default event calendar source
+  if (!targetSource) {
+    try {
+      const defaultEventCalendar = await Calendar.getDefaultCalendarAsync();
+      targetSource = defaultEventCalendar.source;
+    } catch {
+      // Ignore
+    }
+  }
 
-  await AsyncStorage.setItem(REMINDERS_LIST_ID_KEY, newId);
-  return newId;
+  try {
+    const newId = await Calendar.createCalendarAsync({
+      title: AVOCOOK_LIST_NAME,
+      color: "#4CAF50",
+      entityType: Calendar.EntityTypes.REMINDER,
+      sourceId: targetSource?.id,
+      source: targetSource ?? { isLocalAccount: true, name: "AvoCook", type: "local" },
+      name: AVOCOOK_LIST_NAME,
+      ownerAccount: "personal",
+      accessLevel: Calendar.CalendarAccessLevel.OWNER,
+    });
+
+    await AsyncStorage.setItem(REMINDERS_LIST_ID_KEY, newId);
+    return newId;
+  } catch (e) {
+    logError("sync", "Failed to create new calendar list", e);
+    
+    // If creation failed with the chosen source, try falling back to local source explicitly if we didn't already
+    if (targetSource && !targetSource.isLocalAccount) {
+       try {
+          const localSource = calendars.find((c) => c.source?.isLocalAccount)?.source || { isLocalAccount: true, name: "AvoCook", type: "local" };
+          const fallbackId = await Calendar.createCalendarAsync({
+            title: AVOCOOK_LIST_NAME,
+            color: "#4CAF50",
+            entityType: Calendar.EntityTypes.REMINDER,
+            sourceId: localSource?.id,
+            source: localSource,
+            name: AVOCOOK_LIST_NAME,
+            ownerAccount: "personal",
+            accessLevel: Calendar.CalendarAccessLevel.OWNER,
+          });
+          await AsyncStorage.setItem(REMINDERS_LIST_ID_KEY, fallbackId);
+          return fallbackId;
+       } catch (fallbackErr) {
+          logError("sync", "Fallback local calendar creation also failed", fallbackErr);
+          throw fallbackErr;
+       }
+    }
+    
+    throw e; // Rethrow so enableSync knows it failed
+  }
 }
 
 export async function getLinkedListId(): Promise<string | null> {
@@ -117,7 +171,7 @@ export async function registerReminderMappings(
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
-/** Fetch ALL reminders (incomplete + completed) for a given list. */
+/** Fetch ALL reminders (incomplete + completed) for a given list. Throws on error. */
 async function fetchAllReminders(listId: string): Promise<Calendar.Reminder[]> {
   // Pass null for status and dates to bypass expo-calendar's date requirement
   // and fetch all reminders regardless of completion or due dates.
@@ -127,20 +181,9 @@ async function fetchAllReminders(listId: string): Promise<Calendar.Reminder[]> {
     null,
     null
   ).catch((e) => {
-    logError("sync", "Failed to fetch all reminders", e);
-    return [] as Calendar.Reminder[];
+    logError("sync", `Failed to fetch all reminders for list ${listId}`, e);
+    throw e;
   });
-}
-
-/** Fetch only INCOMPLETE reminders for a given list. */
-async function fetchIncompleteReminders(listId: string): Promise<Calendar.Reminder[]> {
-  const range = { start: new Date(2000, 0, 1), end: new Date(2099, 11, 31) };
-  return Calendar.getRemindersAsync(
-    [listId],
-    Calendar.ReminderStatus.INCOMPLETE,
-    range.start,
-    range.end
-  ).catch(() => [] as Calendar.Reminder[]);
 }
 
 // ─── Push lock ────────────────────────────────────────────────────────────────
