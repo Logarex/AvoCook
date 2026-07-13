@@ -114,6 +114,56 @@ function buildExtractionPrompt(userLocale: string): string {
 Rules:
 - If the image contains text (cookbook page, handwritten note, printed recipe), extract the recipe exactly as written.
 - If the image shows a finished dish without text, infer the most likely recipe for that dish.
+- IMPORTANT: You must only extract or infer recipes for FOOD or BEVERAGES. If the image is not related to food, cooking, or recipes, return EXACTLY {"error": "NOT_FOOD"} and nothing else.
+- Return ONLY a valid JSON object following the schema.org/Recipe format. No markdown, no explanation, no code block — just raw JSON.
+- All text values (name, description, ingredients, instructions, keywords) MUST be written in ${language}.
+
+Required JSON fields:
+- "name" (string): recipe title
+- "recipeIngredient" (array of strings): each ingredient on one line, e.g. "200 g farine"
+- "recipeInstructions" (array of strings): each step as a separate string
+
+Include these fields whenever possible (even if estimated):
+- "description" (string): one-sentence description
+- "recipeYield" (string): number of servings, e.g. "4 personnes"
+- "prepTime" (ISO 8601 duration, e.g. "PT15M" for 15 minutes)
+- "cookTime" (ISO 8601 duration)
+- "totalTime" (ISO 8601 duration)
+- "recipeCategory" (string): dish category, e.g. "Plat principal"
+- "recipeCuisine" (string): cuisine style, e.g. "Française"
+- "keywords" (string): comma-separated keywords
+- "tool" (array of strings): kitchen equipment needed
+- "nutrition" (object) with these sub-fields (all numeric strings):
+  - "calories" (e.g. "350 calories")
+  - "carbohydrateContent" (e.g. "45 g")
+  - "sugarContent" (e.g. "10 g")
+  - "fatContent" (e.g. "12 g")
+  - "saturatedFatContent" (e.g. "4 g")
+  - "fiberContent" (e.g. "3 g")
+  - "proteinContent" (e.g. "20 g")
+  - "sodiumContent" (e.g. "500 mg")
+
+If a value is genuinely unknown and cannot be reasonably estimated, omit that field entirely. Do not use null.`;
+}
+
+/**
+ * Build a text-only generation prompt.
+ */
+function buildTextPrompt(userLocale: string, userPrompt: string): string {
+  const langMap: Record<string, string> = {
+    fr: "French",
+    en: "English",
+    de: "German",
+    es: "Spanish",
+    it: "Italian"
+  };
+  const language = langMap[userLocale.split("-")[0]] ?? "the user's language";
+
+  return `You are a precise recipe generation assistant. Generate a complete recipe based on the following description:
+"${userPrompt}"
+
+Rules:
+- IMPORTANT: You must only generate recipes for FOOD or BEVERAGES. If the prompt asks for something unrelated to food, cooking, or recipes (like how to build a chair, etc.), return EXACTLY {"error": "NOT_FOOD"} and nothing else.
 - Return ONLY a valid JSON object following the schema.org/Recipe format. No markdown, no explanation, no code block — just raw JSON.
 - All text values (name, description, ingredients, instructions, keywords) MUST be written in ${language}.
 
@@ -248,18 +298,69 @@ export async function extractRecipeFromPhoto(
   return parseRecipeFromLlmResponse(responseText);
 }
 
+export async function generateRecipeFromText(
+  textPrompt: string,
+  apiKey: string,
+  providerId: LlmProviderId,
+  userBaseUrl: string,
+  userModel: string,
+  userLocale: string = "en"
+): Promise<Recipe> {
+  const preset = LLM_PROVIDERS.find((p) => p.id === providerId);
+  const format = preset?.apiFormat ?? "openai";
+
+  const baseUrl = providerId === "custom" ? userBaseUrl : (preset?.baseUrl ?? userBaseUrl);
+  const model = userModel || (preset?.defaultModel ?? "");
+  const modelDocsUrl = preset?.modelDocsUrl ?? "";
+  const prompt = buildTextPrompt(userLocale, textPrompt);
+
+  logInfo("network", `Requesting recipe generation from ${providerId} (${model}) in locale ${userLocale}`);
+
+  let responseText: string;
+  try {
+    if (format === "anthropic") {
+      responseText = await callAnthropicApi(null, apiKey, baseUrl, model, prompt);
+    } else {
+      responseText = await callOpenAiCompatibleApi(null, apiKey, baseUrl, model, prompt);
+    }
+  } catch (err) {
+    logError("network", "Failed to call LLM API for text generation", err);
+    if (err instanceof LlmApiError && isModelNotFoundError(err)) {
+      throw new LlmModelNotFoundError(err.status, err.message, model, modelDocsUrl);
+    }
+    throw err;
+  }
+
+  return parseRecipeFromLlmResponse(responseText);
+}
+
 // ---------------------------------------------------------------------------
 // OpenAI-compatible API (OpenAI, Gemini, Groq, Mistral, Custom)
 // ---------------------------------------------------------------------------
 
 async function callOpenAiCompatibleApi(
-  imageBase64: string,
+  imageBase64: string | null,
   apiKey: string,
   baseUrl: string,
   model: string,
   prompt: string
 ): Promise<string> {
   const url = `${baseUrl.replace(/\/$/, "")}/chat/completions`;
+
+  const messagesContent = imageBase64 
+    ? [
+        {
+          type: "image_url",
+          image_url: {
+            url: `data:image/jpeg;base64,${imageBase64}`
+          }
+        },
+        {
+          type: "text",
+          text: prompt
+        }
+      ]
+    : prompt;
 
   const response = await fetch(url, {
     method: "POST",
@@ -269,22 +370,12 @@ async function callOpenAiCompatibleApi(
     },
     body: JSON.stringify({
       model,
+      temperature: 0.2,
       max_tokens: 4096,
       messages: [
         {
           role: "user",
-          content: [
-            {
-              type: "image_url",
-              image_url: {
-                url: `data:image/jpeg;base64,${imageBase64}`
-              }
-            },
-            {
-              type: "text",
-              text: prompt
-            }
-          ]
+          content: messagesContent
         }
       ]
     })
@@ -308,13 +399,30 @@ async function callOpenAiCompatibleApi(
 // ---------------------------------------------------------------------------
 
 async function callAnthropicApi(
-  imageBase64: string,
+  imageBase64: string | null,
   apiKey: string,
   baseUrl: string,
   model: string,
   prompt: string
 ): Promise<string> {
   const url = `${baseUrl.replace(/\/$/, "")}/v1/messages`;
+
+  const messagesContent = imageBase64
+    ? [
+        {
+          type: "image",
+          source: {
+            type: "base64",
+            media_type: "image/jpeg",
+            data: imageBase64
+          }
+        },
+        {
+          type: "text",
+          text: prompt
+        }
+      ]
+    : prompt;
 
   const response = await fetch(url, {
     method: "POST",
@@ -325,24 +433,12 @@ async function callAnthropicApi(
     },
     body: JSON.stringify({
       model,
+      temperature: 0.2,
       max_tokens: 4096,
       messages: [
         {
           role: "user",
-          content: [
-            {
-              type: "image",
-              source: {
-                type: "base64",
-                media_type: "image/jpeg",
-                data: imageBase64
-              }
-            },
-            {
-              type: "text",
-              text: prompt
-            }
-          ]
+          content: messagesContent
         }
       ]
     })
@@ -394,6 +490,10 @@ function parseRecipeFromLlmResponse(responseText: string): Recipe {
     throw new Error("LLM response is not a JSON object");
   }
 
+  if ("error" in parsed && parsed.error === "NOT_FOOD") {
+    throw new LlmNotFoodError();
+  }
+
   try {
     return jsonLdToRecipe(parsed as Record<string, unknown>);
   } catch (err) {
@@ -424,6 +524,14 @@ export class LlmModelNotFoundError extends LlmApiError {
     this.name = "LlmModelNotFoundError";
     this.model = model;
     this.modelDocsUrl = modelDocsUrl;
+  }
+}
+
+/** Thrown when the user uploads an image or uses a prompt that is not related to food/beverages. */
+export class LlmNotFoodError extends Error {
+  constructor() {
+    super("The provided content is not related to food or beverages.");
+    this.name = "LlmNotFoodError";
   }
 }
 

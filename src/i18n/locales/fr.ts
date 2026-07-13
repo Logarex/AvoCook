@@ -366,12 +366,12 @@ export default {
       success: "Recette importée",
       photoAction: "Scanner une photo",
       photoHint:
-        "Prenez en photo une recette (magazine, notes) ou un plat pour importer la recette avec l'Intelligence Artificielle.",
+        "Prenez en photo une recette (magazine, notes) ou un plat pour importer la recette avec l'Intelligence Artificeille.",
       photoNoKeyHint:
         "Configurez une clé IA dans Réglages → Avancé pour scanner des photos de recettes.",
       photoFailed: "La recette n'a pas pu être extraite de cette photo. Essayez avec une image plus nette.",
       photoApiKeyInvalid: "Clé API invalide. Vérifiez votre clé dans Réglages → Avancé.",
-      photoApiKeyQuotaExceeded: "Quota API dépassé. Vérifiez les limites de votre forfait.",
+      photoApiKeyQuotaExceeded: "Quota d'API dépassé. Vérifiez vos limites, ou sélectionnez un modèle 'Flash' dans les Réglages avancés.",
       photoModelNotFound: "Modèle \"{{model}}\" introuvable. Il a peut-être été supprimé ou renommé par le fournisseur.",
       photoModelDocsHint: "Consultez la documentation du fournisseur pour connaître les noms de modèles actuels.",
       photoApiNoCredits: "Pas de crédits sur ce compte IA. Rechargez le compte ou utilisez un fournisseur gratuit (ex. Google Gemini).",
@@ -380,6 +380,12 @@ export default {
       photoSourceGallery: "Choisir depuis la galerie",
       photoCameraPermissionTitle: "Accès à l'appareil photo requis",
       photoCameraPermissionBody: "Veuillez autoriser AvoCook à accéder à l'appareil photo pour scanner des photos de recettes.",
+      textHint: "Ou décrivez une recette par texte :",
+      promptLabel: "Description de la recette",
+      promptPlaceholder: "ex: Une pizza végane aux champignons",
+      generateTextAction: "Générer la recette",
+      notFoodError: "Le contenu fourni n'est pas lié à la nourriture ou aux boissons.",
+      textFailed: "Échec de la génération de la recette.",
     },
     settings: {
       title: "Réglages",

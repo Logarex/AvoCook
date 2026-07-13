@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { ArrowLeft, Camera, Download, Upload } from "lucide-react-native";
+import { ArrowLeft, Camera, Download, Upload, Sparkles } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -15,9 +15,12 @@ import { useRecipes } from "../features/recipes/RecipesProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import {
   extractRecipeFromPhoto,
+  generateRecipeFromText,
   LlmApiError,
-  LlmModelNotFoundError
+  LlmModelNotFoundError,
+  LlmNotFoodError
 } from "../features/import/photoRecipeImport";
+import { persistRecipeImage } from "../features/recipes/recipeImages";
 import { logError } from "../features/logging/appLogger";
 import type { RootStackParamList } from "../navigation/types";
 import { spacing } from "../theme/colors";
@@ -31,7 +34,8 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
   const { importBackup, importRecipe, createRecipe } = useRecipes();
   const { llmSettings } = usePreferences();
   const [url, setUrl] = useState(route.params?.url ?? "");
-  const [submitting, setSubmitting] = useState<"url" | "file" | "photo" | null>(null);
+  const [prompt, setPrompt] = useState("");
+  const [submitting, setSubmitting] = useState<"url" | "file" | "photo" | "text" | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [cameraPermission, requestCameraPermission, getCameraPermission] = ImagePicker.useCameraPermissions({ get: false });
 
@@ -156,6 +160,15 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         llmSettings.model,
         i18n.language
       );
+      
+      try {
+        const photoLocalUri = await persistRecipeImage(asset.uri);
+        recipe.image = photoLocalUri;
+        recipe.imageUrl = photoLocalUri;
+      } catch (imgErr) {
+        logError("app", "Failed to persist recipe image", imgErr);
+      }
+
       // Save the recipe
       const saved = await createRecipe(recipe);
       if (saved.id) {
@@ -170,6 +183,8 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
           t("importRecipe.photoModelNotFound", { model: err.model }) +
           (err.modelDocsUrl ? "\n" + t("importRecipe.photoModelDocsHint") : "")
         );
+      } else if (err instanceof LlmNotFoodError) {
+        setError(t("importRecipe.notFoodError", "The provided content is not related to food or beverages."));
       } else if (err instanceof LlmApiError && err.status === 401) {
         setError(t("importRecipe.photoApiKeyInvalid"));
       } else if (err instanceof LlmApiError && err.status === 403) {
@@ -178,6 +193,47 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         setError(t("importRecipe.photoApiKeyQuotaExceeded"));
       } else {
         setError(t("importRecipe.photoFailed"));
+      }
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
+  async function handleTextPromptSubmit() {
+    setSubmitting("text");
+    setError(null);
+    try {
+      const recipe = await generateRecipeFromText(
+        prompt,
+        llmSettings.apiKey,
+        llmSettings.providerId,
+        llmSettings.baseUrl,
+        llmSettings.model,
+        i18n.language
+      );
+      const saved = await createRecipe(recipe);
+      if (saved.id) {
+        navigation.replace("RecipeDetail", { id: saved.id });
+      } else {
+        navigation.goBack();
+      }
+    } catch (err) {
+      logError("app", "Text import failed in ImportRecipeScreen", err);
+      if (err instanceof LlmModelNotFoundError) {
+        setError(
+          t("importRecipe.photoModelNotFound", { model: err.model }) +
+          (err.modelDocsUrl ? "\n" + t("importRecipe.photoModelDocsHint") : "")
+        );
+      } else if (err instanceof LlmNotFoodError) {
+        setError(t("importRecipe.notFoodError", "The provided content is not related to food or beverages."));
+      } else if (err instanceof LlmApiError && err.status === 401) {
+        setError(t("importRecipe.photoApiKeyInvalid"));
+      } else if (err instanceof LlmApiError && err.status === 403) {
+        setError(t("importRecipe.photoApiNoCredits"));
+      } else if (err instanceof LlmApiError && err.status === 429) {
+        setError(t("importRecipe.photoApiKeyQuotaExceeded"));
+      } else {
+        setError(t("importRecipe.textFailed", "Failed to generate recipe."));
       }
     } finally {
       setSubmitting(null);
@@ -276,6 +332,34 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
             {t("importRecipe.photoNoKeyHint")}
           </AppText>
         )}
+        <View style={styles.divider} />
+        {hasLlmKey ? (
+          <>
+            <AppText muted variant="caption">
+              {t("importRecipe.textHint", "Or describe a recipe using text:")}
+            </AppText>
+            <TextField
+              autoCapitalize="sentences"
+              label={t("importRecipe.promptLabel", "Recipe description")}
+              onChangeText={setPrompt}
+              placeholder={t("importRecipe.promptPlaceholder", "e.g., A vegan pizza with mushrooms")}
+              value={prompt}
+              multiline
+            />
+            <PrimaryButton
+              disabled={!prompt.trim() || submitting !== null}
+              icon={Sparkles}
+              label={
+                submitting === "text"
+                  ? t("common.loading")
+                  : t("importRecipe.generateTextAction", "Generate Recipe")
+              }
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+              onPress={handleTextPromptSubmit}
+              variant="ghost"
+            />
+          </>
+        ) : null}
         {submitting ? <ActivityIndicator color={colors.primary} /> : null}
       </GlassPanel>
     </Screen>
