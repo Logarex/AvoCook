@@ -1,6 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   AlertTriangle,
+  Bug,
   ChevronLeft,
   ChefHat,
   Eye,
@@ -8,7 +9,8 @@ import {
   FileText,
   Heart,
   HelpCircle,
-  LockKeyhole
+  LockKeyhole,
+  Mail
 } from "lucide-react-native";
 import { Image } from "expo-image";
 import React, { useState } from "react";
@@ -23,6 +25,7 @@ import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
+import { useSupportActions } from "../features/support/useSupportActions";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -34,6 +37,7 @@ export function LoginScreen({ navigation }: Props) {
   const { colors } = useAppTheme();
   const { login, startLocalMode } = useAuth();
   const { language, setLanguage } = usePreferences();
+  const { openGithubIssue, contactByEmail } = useSupportActions();
   const [serverUrl, setServerUrl] = useState("");
   const [username, setUsername] = useState("");
   const [appPassword, setAppPassword] = useState("");
@@ -257,6 +261,21 @@ export function LoginScreen({ navigation }: Props) {
         )}
       </View>
 
+      <View style={styles.supportContainer}>
+        <PrimaryButton
+          icon={Bug}
+          label={t("support.github", "Open Issue")}
+          onPress={openGithubIssue}
+          variant="ghost"
+        />
+        <PrimaryButton
+          icon={Mail}
+          label={t("support.email", "Contact Us")}
+          onPress={contactByEmail}
+          variant="ghost"
+        />
+      </View>
+
       <View style={styles.spacer} />
 
       <View style={styles.bottomArea}>
@@ -331,6 +350,10 @@ const styles = StyleSheet.create({
   form: {
     gap: spacing.md,
     paddingBottom: 20
+  },
+  supportContainer: {
+    gap: spacing.sm,
+    marginTop: spacing.lg,
   },
   secureBadge: {
     alignItems: "center",

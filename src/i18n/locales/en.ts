@@ -514,8 +514,8 @@ export default {
         "Photos added manually are copied into app storage so they remain available offline.",
     },
     support: {
-      github: "Open an issue (GitHub)",
-      email: "Contact us via Email",
+      github: "Report a problem on GitHub",
+      email: "Contact the developer via Email",
       includeLogsTitle: "Include logs?",
       includeLogsBody: "Do you want to copy your anonymized diagnostic logs to your clipboard so you can paste them into your message?",
       logsCopiedTitle: "Logs copied!",

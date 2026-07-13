@@ -519,8 +519,8 @@ export default {
         "Le foto aggiunte manualmente vengono copiate nell'archiviazione dell'app per restare disponibili offline.",
     },
     support: {
-      github: "Apri una segnalazione (GitHub)",
-      email: "Contattaci tramite Email",
+      github: "Segnala un problema su GitHub",
+      email: "Contatta lo sviluppatore tramite Email",
       includeLogsTitle: "Includere i registri?",
       includeLogsBody: "Vuoi copiare i tuoi registri diagnostici resi anonimi negli appunti per incollarli nel tuo messaggio?",
       logsCopiedTitle: "Registri copiati!",
