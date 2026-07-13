@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Linking, Platform } from "react-native";
+import { Alert, Linking, } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from "react-i18next";
 import {
@@ -110,28 +110,32 @@ export function useRemindersSync(): UseRemindersSyncReturn {
       {
         text: t("shoppingList.syncDisableConfirmKeep"),
         style: "cancel",
-        onPress: async () => {
-          await AsyncStorage.setItem(SYNC_ENABLED_KEY, "false");
-          await clearLinkedListId();
-          await clearItemMap();
-          setLinked(false);
+        onPress: () => {
+          void (async () => {
+            await AsyncStorage.setItem(SYNC_ENABLED_KEY, "false");
+            await clearLinkedListId();
+            await clearItemMap();
+            setLinked(false);
+          })();
         },
       },
       {
         text: t("shoppingList.syncDisableConfirmDelete"),
         style: "destructive",
-        onPress: async () => {
-          try {
-            const listId = await getLinkedListId();
-            if (listId) await deleteAllReminders(listId);
-          } catch {
-            // best-effort
-          } finally {
-            await AsyncStorage.setItem(SYNC_ENABLED_KEY, "false");
-            await clearLinkedListId();
-            await clearItemMap();
-            setLinked(false);
-          }
+        onPress: () => {
+          void (async () => {
+            try {
+              const listId = await getLinkedListId();
+              if (listId) await deleteAllReminders(listId);
+            } catch {
+              // best-effort
+            } finally {
+              await AsyncStorage.setItem(SYNC_ENABLED_KEY, "false");
+              await clearLinkedListId();
+              await clearItemMap();
+              setLinked(false);
+            }
+          })();
         },
       },
     ]);

@@ -21,26 +21,28 @@ export function useSupportActions() {
         },
         {
           text: t("common.yes", "Yes"),
-          onPress: async () => {
-            try {
-              const logs = await createDiagnosticsReport({ anonymize: true });
-              await Clipboard.setStringAsync(logs);
-              Alert.alert(
-                t("support.logsCopiedTitle", "Logs copied!"),
-                t("support.logsCopiedBody", "The diagnostic logs are now in your clipboard. You can paste them into the text field."),
-                [
-                  {
-                    text: t("common.continue", "Continue"),
-                    onPress: () => {
-                      void Linking.openURL(url);
+          onPress: () => {
+            void (async () => {
+              try {
+                const logs = await createDiagnosticsReport({ anonymize: true });
+                await Clipboard.setStringAsync(logs);
+                Alert.alert(
+                  t("support.logsCopiedTitle", "Logs copied!"),
+                  t("support.logsCopiedBody", "The diagnostic logs are now in your clipboard. You can paste them into the text field."),
+                  [
+                    {
+                      text: t("common.continue", "Continue"),
+                      onPress: () => {
+                        void Linking.openURL(url);
+                      }
                     }
-                  }
-                ]
-              );
-            } catch {
-              // If generating logs fails for some reason, just open the URL
-              void Linking.openURL(url);
-            }
+                  ]
+                );
+              } catch {
+                // If generating logs fails for some reason, just open the URL
+                void Linking.openURL(url);
+              }
+            })();
           }
         }
       ]

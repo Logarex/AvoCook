@@ -228,31 +228,47 @@ export async function fetchAvailableModels(
 
 async function fetchOpenAiModels(apiKey: string, baseUrl: string): Promise<string[]> {
   const url = `${baseUrl.replace(/\/$/, "")}/models`;
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${apiKey}` }
-  });
-  if (!response.ok) {
-    const body = await response.text().catch(() => "");
-    throw new LlmApiError(response.status, body);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: controller.signal as RequestInit["signal"]
+    });
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      throw new LlmApiError(response.status, body);
+    }
+    const data = (await response.json()) as { data?: { id: string }[] };
+    return (data?.data ?? []).map((m) => m.id).sort();
+  } finally {
+    clearTimeout(timeoutId);
   }
-  const data = (await response.json()) as { data?: { id: string }[] };
-  return (data?.data ?? []).map((m) => m.id).sort();
 }
 
 async function fetchAnthropicModels(apiKey: string, baseUrl: string): Promise<string[]> {
   const url = `${baseUrl.replace(/\/$/, "")}/v1/models`;
-  const response = await fetch(url, {
-    headers: {
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01"
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01"
+      },
+      signal: controller.signal as RequestInit["signal"]
+    });
+    if (!response.ok) {
+      const body = await response.text().catch(() => "");
+      throw new LlmApiError(response.status, body);
     }
-  });
-  if (!response.ok) {
-    const body = await response.text().catch(() => "");
-    throw new LlmApiError(response.status, body);
+    const data = (await response.json()) as { data?: { id: string }[] };
+    return (data?.data ?? []).map((m) => m.id).sort();
+  } finally {
+    clearTimeout(timeoutId);
   }
-  const data = (await response.json()) as { data?: { id: string }[] };
-  return (data?.data ?? []).map((m) => m.id).sort();
 }
 
 // ---------------------------------------------------------------------------
@@ -362,24 +378,38 @@ async function callOpenAiCompatibleApi(
       ]
     : prompt;
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`
-    },
-    body: JSON.stringify({
-      model,
-      temperature: 0.2,
-      max_tokens: 4096,
-      messages: [
-        {
-          role: "user",
-          content: messagesContent
-        }
-      ]
-    })
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.2,
+        max_tokens: 4096,
+        messages: [
+          {
+            role: "user",
+            content: messagesContent
+          }
+        ]
+      }),
+      signal: controller.signal as RequestInit["signal"]
+    });
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error("La requête a expiré (timeout de 60s). Veuillez vérifier votre connexion.");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const body = await response.text().catch(() => "");
@@ -424,25 +454,39 @@ async function callAnthropicApi(
       ]
     : prompt;
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": apiKey,
-      "anthropic-version": "2023-06-01"
-    },
-    body: JSON.stringify({
-      model,
-      temperature: 0.2,
-      max_tokens: 4096,
-      messages: [
-        {
-          role: "user",
-          content: messagesContent
-        }
-      ]
-    })
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": apiKey,
+        "anthropic-version": "2023-06-01"
+      },
+      body: JSON.stringify({
+        model,
+        temperature: 0.2,
+        max_tokens: 4096,
+        messages: [
+          {
+            role: "user",
+            content: messagesContent
+          }
+        ]
+      }),
+      signal: controller.signal as RequestInit["signal"]
+    });
+  } catch (err: unknown) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error("La requête a expiré (timeout de 60s). Veuillez vérifier votre connexion.");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!response.ok) {
     const body = await response.text().catch(() => "");
@@ -481,7 +525,7 @@ function parseRecipeFromLlmResponse(responseText: string): Recipe {
   try {
     parsed = JSON.parse(cleaned) as unknown;
   } catch (err) {
-    logError("app", "LLM did not return valid JSON", { responseText, cleaned });
+    logError("app", "LLM did not return valid JSON", { err, responseText, cleaned });
     throw new Error("LLM did not return valid JSON");
   }
 

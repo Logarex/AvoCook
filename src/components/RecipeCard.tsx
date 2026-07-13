@@ -12,7 +12,7 @@ import { useAppTheme } from "../theme/ThemeProvider";
 import { humanDuration } from "../utils/duration";
 import { AppText } from "./AppText";
 
-export function RecipeCard({
+export const RecipeCard = React.memo(function RecipeCard({
   fallbackImageUri,
   imageHeaders,
   recipe,
@@ -105,7 +105,7 @@ export function RecipeCard({
       </View>
     </Pressable>
   );
-}
+});
 
 const styles = StyleSheet.create({
   card: {

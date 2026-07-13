@@ -15,7 +15,7 @@ import {
   Trash2,
   X,
 } from "lucide-react-native";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -317,9 +317,9 @@ export function RecipeListScreen({ navigation }: Props) {
     );
   }
 
-  function handleRecipeLongPress(recipe: Recipe) {
+  const handleRecipeLongPress = useCallback((recipe: Recipe) => {
     setSelectedRecipe(recipe);
-  }
+  }, []);
 
   function handleCloseRecipeActions() {
     if (recipeAction) {
@@ -427,6 +427,26 @@ export function RecipeListScreen({ navigation }: Props) {
       );
     }
   }
+
+  const renderRecipeItem = useCallback(
+    ({ item }: { item: Recipe }) => (
+      <RecipeCard
+        fallbackImageUri={
+          imageClient && canUseRemoteRecipeImageFallback(item)
+            ? imageClient.getRecipeImageUrl(item.id, "thumb")
+            : undefined
+        }
+        imageHeaders={imageHeaders}
+        recipe={item}
+        onLongPress={() => handleRecipeLongPress(item)}
+        onPress={() =>
+          item.id &&
+          navigation.navigate("RecipeDetail", { id: item.id })
+        }
+      />
+    ),
+    [imageClient, imageHeaders, handleRecipeLongPress, navigation]
+  );
 
   return (
     <PageSwipeGesture onSwipeLeft={openShoppingList}>
@@ -688,28 +708,17 @@ export function RecipeListScreen({ navigation }: Props) {
             keyExtractor={(item) => item.id ?? item.name}
             onScroll={handleRecipeListScroll}
             scrollEventThrottle={16}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={5}
+            removeClippedSubviews={true}
             ListEmptyComponent={
               <EmptyState
                 title={t("recipes.emptyTitle")}
                 body={t("recipes.emptyBody")}
               />
             }
-            renderItem={({ item }) => (
-              <RecipeCard
-                fallbackImageUri={
-                  imageClient && canUseRemoteRecipeImageFallback(item)
-                    ? imageClient.getRecipeImageUrl(item.id, "thumb")
-                    : undefined
-                }
-                imageHeaders={imageHeaders}
-                recipe={item}
-                onLongPress={() => handleRecipeLongPress(item)}
-                onPress={() =>
-                  item.id &&
-                  navigation.navigate("RecipeDetail", { id: item.id })
-                }
-              />
-            )}
+            renderItem={renderRecipeItem}
             showsVerticalScrollIndicator={false}
           />
         )}
