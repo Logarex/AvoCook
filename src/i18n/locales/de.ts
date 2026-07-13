@@ -514,5 +514,14 @@ export default {
       photos:
         "Manuell hinzugefügte Fotos werden in den App-Speicher kopiert, damit sie offline verfügbar bleiben.",
     },
+    support: {
+      github: "Ein Issue öffnen (GitHub)",
+      email: "Kontakt per E-Mail",
+      includeLogsTitle: "Protokolle einschließen?",
+      includeLogsBody: "Möchtest du deine anonymisierten Diagnoseprotokolle in die Zwischenablage kopieren, damit du sie in deine Nachricht einfügen kannst?",
+      logsCopiedTitle: "Protokolle kopiert!",
+      logsCopiedBody: "Die Diagnoseprotokolle befinden sich jetzt in deiner Zwischenablage. Du kannst sie in das Textfeld einfügen.",
+      openLogs: "Diagnose & Support",
+    },
   },
 };

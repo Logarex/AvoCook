@@ -509,5 +509,14 @@ export default {
       photos:
         "Las fotos añadidas manualmente se copian en el almacenamiento de la app para que estén disponibles sin conexión.",
     },
+    support: {
+      github: "Abrir un issue (GitHub)",
+      email: "Contáctenos por Email",
+      includeLogsTitle: "¿Incluir registros?",
+      includeLogsBody: "¿Desea copiar los registros de diagnóstico de forma anónima al portapapeles para poder pegarlos en su mensaje?",
+      logsCopiedTitle: "¡Registros copiados!",
+      logsCopiedBody: "Los registros de diagnóstico ahora están en el portapapeles. Puede pegarlos en el campo de texto.",
+      openLogs: "Diagnóstico y Soporte",
+    },
   },
 };

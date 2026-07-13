@@ -510,5 +510,14 @@ export default {
       photos:
         "Le foto aggiunte manualmente vengono copiate nell'archiviazione dell'app per restare disponibili offline.",
     },
+    support: {
+      github: "Apri una segnalazione (GitHub)",
+      email: "Contattaci tramite Email",
+      includeLogsTitle: "Includere i registri?",
+      includeLogsBody: "Vuoi copiare i tuoi registri diagnostici resi anonimi negli appunti per incollarli nel tuo messaggio?",
+      logsCopiedTitle: "Registri copiati!",
+      logsCopiedBody: "I registri diagnostici sono ora negli appunti. Puoi incollarli nel campo di testo.",
+      openLogs: "Diagnostica e Supporto",
+    },
   },
 };

@@ -2,6 +2,8 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   ArrowLeft,
   FileText,
+  Bug,
+  Mail,
   RefreshCw,
   Share2,
   ShieldCheck,
@@ -25,6 +27,7 @@ import {
   type AppLogEntry
 } from "../features/logging/appLogger";
 import { shareDiagnosticsReport } from "../features/logging/diagnosticsReport";
+import { useSupportActions } from "../features/support/useSupportActions";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -40,6 +43,7 @@ export function DiagnosticsLogsScreen({ navigation }: Props) {
   const [anonymize, setAnonymize] = useState(true);
   const [sharing, setSharing] = useState(false);
   const [detailed, setDetailed] = useState(false);
+  const { openGithubIssue, contactByEmail } = useSupportActions();
 
   useEffect(() => subscribeToLogEntries(setEntries), []);
 
@@ -182,6 +186,23 @@ export function DiagnosticsLogsScreen({ navigation }: Props) {
             onPress={confirmClearLogs}
             style={styles.actionButton}
             variant="danger"
+          />
+        </View>
+
+        <View style={styles.actionRow}>
+          <PrimaryButton
+            icon={Bug}
+            label={t("support.github", "Open Issue")}
+            onPress={openGithubIssue}
+            style={styles.actionButton}
+            variant="ghost"
+          />
+          <PrimaryButton
+            icon={Mail}
+            label={t("support.email", "Contact Us")}
+            onPress={contactByEmail}
+            style={styles.actionButton}
+            variant="ghost"
           />
         </View>
       </GlassPanel>

@@ -515,5 +515,14 @@ export default {
       photos:
         "Les photos ajoutées manuellement sont copiées dans le stockage de l'application pour rester disponibles hors ligne.",
     },
+    support: {
+      github: "Ouvrir une issue (GitHub)",
+      email: "Nous contacter par Email",
+      includeLogsTitle: "Inclure les logs ?",
+      includeLogsBody: "Voulez-vous copier vos logs anonymisés dans le presse-papiers pour pouvoir les coller dans votre message ?",
+      logsCopiedTitle: "Logs copiés !",
+      logsCopiedBody: "Les logs sont dans votre presse-papiers. Vous pouvez maintenant les coller dans le champ de texte.",
+      openLogs: "Diagnostics et Support",
+    },
   },
 };

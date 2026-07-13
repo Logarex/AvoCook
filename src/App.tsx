@@ -124,7 +124,13 @@ function RootNavigator() {
               <Stack.Screen name="Privacy" component={PrivacyScreen} />
             </>
           ) : (
-            <Stack.Screen name="Login" component={LoginScreen} />
+            <>
+              <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen
+                name="DiagnosticsLogs"
+                component={DiagnosticsLogsScreen}
+              />
+            </>
           )}
         </Stack.Navigator>
       </NavigationContainer>

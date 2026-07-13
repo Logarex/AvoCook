@@ -5,6 +5,7 @@ import {
   ChefHat,
   Eye,
   EyeOff,
+  FileText,
   Heart,
   HelpCircle,
   LockKeyhole
@@ -28,7 +29,7 @@ import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
-export function LoginScreen(_props: Props) {
+export function LoginScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const { login, startLocalMode } = useAuth();
@@ -245,6 +246,12 @@ export function LoginScreen(_props: Props) {
                 {t("auth.backToLocal")}
               </AppText>
             </Pressable>
+            <PrimaryButton
+              icon={FileText}
+              label={t("support.openLogs", "Diagnostics & Support")}
+              onPress={() => navigation.navigate("DiagnosticsLogs")}
+              variant="ghost"
+            />
             {submitting ? <ActivityIndicator color={colors.primary} /> : null}
           </GlassPanel>
         )}

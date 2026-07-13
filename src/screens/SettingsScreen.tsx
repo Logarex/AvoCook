@@ -9,6 +9,7 @@ import {
   ChevronDown,
   Database,
   Download,
+  Bug,
   Eye,
   EyeOff,
   FileText,
@@ -16,6 +17,7 @@ import {
   Info,
   Lock,
   LogOut,
+  Mail,
   RefreshCw,
   Save,
   ShieldCheck,
@@ -39,6 +41,7 @@ import { usePreferences, type LlmSettings } from "../features/preferences/Prefer
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { LLM_PROVIDERS, type LlmProviderId, fetchAvailableModels } from "../features/import/photoRecipeImport";
 import type { RecipeDuplicateGroup } from "../features/recipes/backupDuplicates";
+import { useSupportActions } from "../features/support/useSupportActions";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { type ThemeMode, useAppTheme } from "../theme/ThemeProvider";
@@ -87,6 +90,7 @@ export function SettingsScreen({ navigation }: Props) {
   const [availableModels, setAvailableModels] = useState<string[] | null>(null);
   const [fetchingModels, setFetchingModels] = useState(false);
   const [fetchModelsError, setFetchModelsError] = useState<string | null>(null);
+  const { openGithubIssue, contactByEmail } = useSupportActions();
 
   function handleSelectProvider(id: LlmProviderId) {
     const preset = LLM_PROVIDERS.find((p) => p.id === id) ?? LLM_PROVIDERS[0];
@@ -808,6 +812,18 @@ export function SettingsScreen({ navigation }: Props) {
           icon={Info}
           label={t("settings.openPrivacy")}
           onPress={() => navigation.navigate("Privacy")}
+          variant="ghost"
+        />
+        <PrimaryButton
+          icon={Bug}
+          label={t("support.github", "Open Issue")}
+          onPress={openGithubIssue}
+          variant="ghost"
+        />
+        <PrimaryButton
+          icon={Mail}
+          label={t("support.email", "Contact Us")}
+          onPress={contactByEmail}
           variant="ghost"
         />
         <PrimaryButton
