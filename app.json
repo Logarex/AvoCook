@@ -122,7 +122,7 @@
       "./tools/plugins/withAndroidNetworkSecurity",
       "./tools/plugins/withAndroidSplitsAndOptimizations",
       "./tools/plugins/withAndroidLint",
-      "./tools/plugins/withAndroidOptionalCamera",
+      "./tools/plugins/withOptionalCamera",
       "expo-font"
     ],
     "extra": {

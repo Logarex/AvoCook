@@ -1,0 +1,341 @@
+
+{
+  name: [32m'AvoCook'[39m,
+  slug: [32m'avocook'[39m,
+  scheme: [32m'avocook'[39m,
+  version: [32m'3.1.0'[39m,
+  orientation: [32m'default'[39m,
+  userInterfaceStyle: [32m'automatic'[39m,
+  icon: [32m'./assets/icon.png'[39m,
+  assetBundlePatterns: [
+    [32m'**/*'[39m
+  ],
+  plugins: [
+    [
+      [32m'expo-calendar'[39m,
+      {
+        calendarPermission: [32m'AvoCook requires calendar access because it shares the same system component as reminders, which are used for your grocery lists.'[39m,
+        remindersPermission: [32m'AvoCook uses your reminders to export and synchronize your grocery lists.'[39m
+      }
+    ],
+    [32m'expo-secure-store'[39m,
+    [32m'expo-sqlite'[39m,
+    [
+      [32m'expo-localization'[39m,
+      {
+        supportedLocales: {
+          ios: [
+            [32m'fr'[39m,
+            [32m'en'[39m,
+            [32m'de'[39m,
+            [32m'es'[39m,
+            [32m'it'[39m
+          ],
+          android: [
+            [32m'fr'[39m,
+            [32m'en'[39m,
+            [32m'de'[39m,
+            [32m'es'[39m,
+            [32m'it'[39m
+          ]
+        }
+      }
+    ],
+    [
+      [32m'expo-splash-screen'[39m,
+      {
+        backgroundColor: [32m'#F7F3EA'[39m,
+        image: [32m'./assets/logo.png'[39m,
+        imageWidth: [33m220[39m,
+        resizeMode: [32m'contain'[39m,
+        dark: {
+          backgroundColor: [32m'#10201D'[39m,
+          image: [32m'./assets/logo-dark.png'[39m
+        }
+      }
+    ],
+    [
+      [32m'expo-image-picker'[39m,
+      {
+        photosPermission: [32m'Allow access to photos to add an image to a recipe.'[39m,
+        cameraPermission: [32m'Allow camera access to scan recipes from photos.'[39m,
+        microphonePermission: [33mfalse[39m
+      }
+    ],
+    [32m'expo-share-intent'[39m,
+    [32m'./tools/plugins/withAndroidNetworkSecurity'[39m,
+    [32m'./tools/plugins/withAndroidSplitsAndOptimizations'[39m,
+    [32m'./tools/plugins/withAndroidLint'[39m,
+    [32m'./tools/plugins/withOptionalCamera'[39m,
+    [32m'expo-font'[39m
+  ],
+  owner: [32m'logarex'[39m,
+  description: [32m'Mobile recipe client compatible with Nextcloud Cookbook.'[39m,
+  sdkVersion: [32m'54.0.0'[39m,
+  platforms: [
+    [32m'ios'[39m,
+    [32m'android'[39m
+  ],
+  locales: {
+    en: [32m'./locales/en.json'[39m,
+    fr: [32m'./locales/fr.json'[39m,
+    de: [32m'./locales/de.json'[39m,
+    es: [32m'./locales/es.json'[39m,
+    it: [32m'./locales/it.json'[39m
+  },
+  splash: {
+    image: [32m'./assets/logo.png'[39m,
+    resizeMode: [32m'contain'[39m,
+    backgroundColor: [32m'#F7F3EA'[39m,
+    dark: {
+      image: [32m'./assets/logo-dark.png'[39m,
+      backgroundColor: [32m'#10201D'[39m
+    }
+  },
+  ios: {
+    supportsTablet: [33mtrue[39m,
+    buildNumber: [32m'2'[39m,
+    bundleIdentifier: [32m'org.epimac.avocook'[39m,
+    icon: {
+      light: [32m'./assets/icon.png'[39m,
+      dark: [32m'./assets/icon-dark.png'[39m
+    },
+    infoPlist: {
+      ITSAppUsesNonExemptEncryption: [33mfalse[39m,
+      UIRequiresFullScreen: [33mfalse[39m,
+      CFBundleAllowMixedLocalizations: [33mtrue[39m,
+      NSLocalNetworkUsageDescription: [32m'Allow local network access only to connect to a Nextcloud server hosted on your network.'[39m,
+      NSPhotoLibraryUsageDescription: [32m'Allow access to photos to add an image to a recipe.'[39m,
+      NSPhotoLibraryAddUsageDescription: [32m'Allow saving recipe images if needed.'[39m,
+      NSCameraUsageDescription: [32m'Allow camera access to scan recipes from photos.'[39m,
+      NSCalendarsUsageDescription: [32m'AvoCook requires calendar access because it shares the same system component as reminders, which are used for your grocery lists.'[39m,
+      NSCalendarsFullAccessUsageDescription: [32m'AvoCook requires calendar access because it shares the same system component as reminders, which are used for your grocery lists.'[39m,
+      NSRemindersUsageDescription: [32m'AvoCook uses your reminders to export and synchronize your grocery lists.'[39m,
+      NSRemindersFullAccessUsageDescription: [32m'AvoCook uses your reminders to export and synchronize your grocery lists.'[39m,
+      CFBundleLocalizations: [
+        [32m'fr'[39m,
+        [32m'en'[39m,
+        [32m'de'[39m,
+        [32m'es'[39m,
+        [32m'it'[39m
+      ]
+    }
+  },
+  android: {
+    package: [32m'app.avocook.mobile'[39m,
+    permissions: [
+      [32m'android.permission.READ_CALENDAR'[39m,
+      [32m'android.permission.WRITE_CALENDAR'[39m,
+      [32m'android.permission.INTERNET'[39m
+    ],
+    blockedPermissions: [
+      [32m'android.permission.RECORD_AUDIO'[39m,
+      [32m'android.permission.SYSTEM_ALERT_WINDOW'[39m,
+      [32m'android.permission.READ_EXTERNAL_STORAGE'[39m,
+      [32m'android.permission.WRITE_EXTERNAL_STORAGE'[39m
+    ],
+    adaptiveIcon: {
+      foregroundImage: [32m'./assets/adaptive-icon.png'[39m,
+      backgroundColor: [32m'#F7F3EA'[39m
+    }
+  },
+  web: {
+    bundler: [32m'metro'[39m,
+    favicon: [32m'./assets/favicon.png'[39m
+  },
+  extra: {
+    eas: {
+      projectId: [32m'71346d2a-c2f5-4f0e-a01e-544bfc1f66ca'[39m,
+      build: {
+        experimental: {
+          ios: {
+            appExtensions: [
+              {
+                targetName: [32m'ShareExtension'[39m,
+                bundleIdentifier: [32m'org.epimac.avocook.share-extension'[39m,
+                entitlements: {
+                  [32m'com.apple.security.application-groups'[39m: [
+                    [32m'group.org.epimac.avocook'[39m
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  _internal: {
+    isDebug: [33mfalse[39m,
+    projectRoot: [32m'/Users/louischabert/GitHub/AvoCook'[39m,
+    staticConfigPath: [32m'/Users/louischabert/GitHub/AvoCook/app.json'[39m,
+    packageJsonPath: [32m'/Users/louischabert/GitHub/AvoCook/package.json'[39m,
+    autolinkedModules: [
+      [32m'avocook-timer-notifications'[39m,
+      [32m'expo'[39m,
+      [32m'expo-asset'[39m,
+      [32m'expo-blur'[39m,
+      [32m'expo-calendar'[39m,
+      [32m'expo-clipboard'[39m,
+      [32m'expo-constants'[39m,
+      [32m'expo-crypto'[39m,
+      [32m'expo-file-system'[39m,
+      [32m'expo-font'[39m,
+      [32m'expo-image'[39m,
+      [32m'expo-image-loader'[39m,
+      [32m'expo-image-picker'[39m,
+      [32m'expo-keep-awake'[39m,
+      [32m'expo-linking'[39m,
+      [32m'expo-localization'[39m,
+      [32m'expo-modules-core'[39m,
+      [32m'expo-print'[39m,
+      [32m'expo-secure-store'[39m,
+      [32m'expo-share-intent'[39m,
+      [32m'expo-sharing'[39m,
+      [32m'expo-splash-screen'[39m,
+      [32m'expo-sqlite'[39m
+    ],
+    dynamicConfigPath: {},
+    pluginHistory: {
+      [32m'expo-calendar'[39m: {
+        name: [32m'expo-calendar'[39m,
+        version: [32m'15.0.8'[39m
+      },
+      [32m'expo-secure-store'[39m: {
+        name: [32m'expo-secure-store'[39m,
+        version: [32m'15.0.8'[39m
+      },
+      [32m'expo-sqlite'[39m: {
+        name: [32m'expo-sqlite'[39m,
+        version: [32m'16.0.10'[39m
+      },
+      [32m'expo-splash-screen'[39m: {
+        name: [32m'expo-splash-screen'[39m,
+        version: [32m'31.0.13'[39m
+      },
+      [32m'expo-image-picker'[39m: {
+        name: [32m'expo-image-picker'[39m,
+        version: [32m'17.0.11'[39m
+      },
+      [32m'expo-share-intent'[39m: {
+        name: [32m'expo-share-intent'[39m,
+        version: [32m'UNVERSIONED'[39m
+      },
+      [32m'expo-font'[39m: {
+        name: [32m'expo-font'[39m,
+        version: [32m'14.0.12'[39m
+      },
+      [32m'react-native-maps'[39m: {
+        name: [32m'react-native-maps'[39m,
+        version: [32m'UNVERSIONED'[39m
+      },
+      [32m'expo-ads-admob'[39m: {
+        name: [32m'expo-ads-admob'[39m,
+        version: [32m'UNVERSIONED'[39m
+      },
+      [32m'expo-apple-authentication'[39m: {
+        name: [32m'expo-apple-authentication'[39m,
+        version: [32m'UNVERSIONED'[39m
+      },
+      [32m'expo-contacts'[39m: {
+        name: [32m'expo-contacts'[39m,
+        version: [32m'UNVERSIONED'[39m
+      },
+      [32m'expo-notifications'[39m: {
+        name: [32m'expo-notifications'[39m,
+        version: [32m'UNVERSIONED'[39m
+      },
+      [32m'expo-updates'[39m: {
+        name: [32m'expo-updates'[39m,
+        version: [32m'UNVERSIONED'[39m
+      },
+      [32m'expo-document-picker'[39m: {
+        name: [32m'expo-document-picker'[39m,
+        version: [32m'UNVERSIONED'[39m
+      },
+      [32m'expo-system-ui'[39m: {
+        name: [32m'expo-system-ui'[39m,
+        version: [32m'UNVERSIONED'[39m
+      },
+      [32m'expo-navigation-bar'[39m: {
+        name: [32m'expo-navigation-bar'[39m,
+        version: [32m'UNVERSIONED'[39m
+      },
+      [32m'expo-file-system'[39m: {
+        name: [32m'expo-file-system'[39m,
+        version: [32m'19.0.23'[39m
+      }
+    }
+  },
+  mods: {
+    ios: {
+      infoPlist: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      podfileProperties: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      dangerous: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      splashScreenStoryboard: [AsyncFunction: interceptingMod] {
+        isProvider: [33mtrue[39m,
+        isIntrospective: [33mtrue[39m
+      },
+      xcodeproj: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      entitlements: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      podfile: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      appDelegate: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      expoPlist: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      }
+    },
+    android: {
+      manifest: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      gradleProperties: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      dangerous: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      appBuildGradle: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      strings: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      mainActivity: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      colors: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      colorsNight: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      styles: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      settingsGradle: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      },
+      projectBuildGradle: [AsyncFunction: interceptingMod] {
+        isProvider: [33mfalse[39m
+      }
+    }
+  },
+  androidStatusBar: {
+    backgroundColor: [32m'#F7F3EA'[39m
+  }
+}
+
