@@ -10,6 +10,7 @@ import {
   ListOrdered,
   Pencil,
   Plus,
+  Share as ShareIcon,
   ShoppingCart,
   Trash2,
   X
@@ -23,6 +24,7 @@ import {
   FlatList,
   Pressable,
   RefreshControl,
+  Share,
   StyleSheet,
   TextInput,
   View
@@ -248,6 +250,35 @@ export function ShoppingListScreen({ navigation }: Props) {
     setReorderMode((current) => !current);
   }
 
+  async function handleShare() {
+    if (items.length === 0) {
+      return;
+    }
+
+    const remaining = items.filter((i) => !i.checked);
+    const checked = items.filter((i) => i.checked);
+
+    let message = t("shoppingList.title") + "\n\n";
+
+    if (remaining.length > 0) {
+      message += remaining.map((i) => `• ${i.label}`).join("\n");
+      message += "\n\n";
+    }
+
+    if (checked.length > 0) {
+      message += checked.map((i) => `✓ ${i.label}`).join("\n");
+      message += "\n";
+    }
+
+    try {
+      await Share.share({
+        message: message.trim()
+      });
+    } catch (error) {
+      console.error("Error sharing shopping list:", error);
+    }
+  }
+
   return (
     <PageSwipeGesture onSwipeRight={openRecipes}>
       <Screen scroll={false} contentStyle={styles.screenContent}>
@@ -298,6 +329,13 @@ export function ShoppingListScreen({ navigation }: Props) {
               ]}
             />
           ) : null}
+          <IconButton
+            disabled={!items.length}
+            icon={ShareIcon}
+            label={t("shoppingList.shareList")}
+            onPress={() => void handleShare()}
+            style={styles.headerIcon}
+          />
           <IconButton
             disabled={!items.length}
             icon={ListOrdered}

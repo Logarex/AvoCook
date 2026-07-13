@@ -78,7 +78,11 @@ export function IngredientSection({
           />
           <PrimaryButton
             icon={ShoppingCart}
-            label={t("shoppingList.addFromRecipe")}
+            label={t(
+              checkedCount > 0
+                ? "shoppingList.addSelectedFromRecipe"
+                : "shoppingList.addFromRecipe",
+            )}
             onPress={onAddAll}
             style={styles.ingredientHeaderButton}
             variant="ghost"

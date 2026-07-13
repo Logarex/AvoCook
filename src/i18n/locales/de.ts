@@ -249,6 +249,7 @@ export default {
     },
     shoppingList: {
       title: "Einkauf",
+      shareList: "Liste teilen",
       emptyTitle: "Leere Liste",
       emptyBody:
         "Füge Zutaten aus einem Rezept hinzu oder tippe einen Eintrag ein.",
@@ -256,6 +257,7 @@ export default {
       itemPlaceholder: "Tomaten, Mehl, Milch...",
       addItem: "Zur Liste hinzufügen",
       addFromRecipe: "Zutaten zur Einkaufsliste hinzufügen",
+      addSelectedFromRecipe: "Auswahl zur Einkaufsliste hinzufügen",
       addIngredientFromRecipe: "{{ingredient}} zur Einkaufsliste hinzufügen",
       addedTitle: "Liste aktualisiert",
       addedBody: "{{count}} Zutat hinzugefügt.",

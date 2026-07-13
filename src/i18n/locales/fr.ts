@@ -250,6 +250,7 @@ export default {
     },
     shoppingList: {
       title: "Courses",
+      shareList: "Partager la liste",
       emptyTitle: "Liste vide",
       emptyBody:
         "Ajoutez des ingrédients depuis une recette ou saisissez un produit.",
@@ -257,6 +258,7 @@ export default {
       itemPlaceholder: "Tomates, farine, lait...",
       addItem: "Ajouter à la liste",
       addFromRecipe: "Ajouter les ingrédients aux courses",
+      addSelectedFromRecipe: "Ajouter la sélection aux courses",
       addIngredientFromRecipe: "Ajouter {{ingredient}} aux courses",
       addedTitle: "Liste mise à jour",
       addedBody: "{{count}} ingrédient ajouté.",

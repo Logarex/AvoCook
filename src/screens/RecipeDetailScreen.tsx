@@ -550,7 +550,13 @@ function RecipeDetailContent({
       return;
     }
 
-    const result = await addIngredientsToShoppingList(scaledIngredients, {
+    const toAdd = checkedIngredientCount > 0
+      ? scaledIngredients.filter((_, index) => checkedIngredientIndexes.has(index))
+      : scaledIngredients;
+
+    if (toAdd.length === 0) return;
+
+    const result = await addIngredientsToShoppingList(toAdd, {
       recipeId,
       recipeName: recipe.name,
     });
