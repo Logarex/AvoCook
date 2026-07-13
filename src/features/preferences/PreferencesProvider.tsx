@@ -31,16 +31,19 @@ export type LlmSettings = {
 type PreferencesContextValue = {
   keepScreenAwake: boolean;
   keepRecipesLocal: boolean;
+  enableBackupReminders: boolean;
   language: AppLanguage;
   llmSettings: LlmSettings;
   setKeepScreenAwake: (enabled: boolean) => Promise<void>;
   setKeepRecipesLocal: (enabled: boolean) => Promise<void>;
+  setEnableBackupReminders: (enabled: boolean) => Promise<void>;
   setLanguage: (language: AppLanguage) => Promise<void>;
   setLlmSettings: (settings: LlmSettings) => Promise<void>;
 };
 
 const KEEP_AWAKE_KEY = "preferences.keepScreenAwake";
 const KEEP_RECIPES_LOCAL_KEY = "preferences.keepRecipesLocal";
+const ENABLE_BACKUP_REMINDERS_KEY = "preferences.enableBackupReminders";
 const LANGUAGE_KEY = "preferences.language";
 const LANGUAGE_USER_SET_KEY = "preferences.language.userSet";
 const LLM_PROVIDER_KEY = "preferences.llm.provider";
@@ -67,6 +70,7 @@ export function PreferencesProvider({
 }) {
   const [keepScreenAwake, setKeepScreenAwakeState] = useState(true);
   const [keepRecipesLocal, setKeepRecipesLocalState] = useState(true);
+  const [enableBackupReminders, setEnableBackupRemindersState] = useState(true);
   const [language, setLanguageState] = useState<AppLanguage>(
     resolveAppLanguage(i18n.language)
   );
@@ -78,6 +82,7 @@ export function PreferencesProvider({
     void Promise.all([
       AsyncStorage.getItem(KEEP_AWAKE_KEY),
       AsyncStorage.getItem(KEEP_RECIPES_LOCAL_KEY),
+      AsyncStorage.getItem(ENABLE_BACKUP_REMINDERS_KEY),
       AsyncStorage.getItem(LANGUAGE_KEY),
       AsyncStorage.getItem(LANGUAGE_USER_SET_KEY),
       AsyncStorage.getItem(LLM_PROVIDER_KEY),
@@ -88,6 +93,7 @@ export function PreferencesProvider({
       ([
         storedKeepAwake,
         storedKeepRecipesLocal,
+        storedEnableBackupReminders,
         storedLanguage,
         storedUserSet,
         storedProviderId,
@@ -103,6 +109,12 @@ export function PreferencesProvider({
           storedKeepRecipesLocal === "false"
         ) {
           setKeepRecipesLocalState(storedKeepRecipesLocal === "true");
+        }
+        if (
+          storedEnableBackupReminders === "true" ||
+          storedEnableBackupReminders === "false"
+        ) {
+          setEnableBackupRemindersState(storedEnableBackupReminders === "true");
         }
         if (storedUserSet === "true" && isAppLanguage(storedLanguage)) {
           setLanguageState(storedLanguage);
@@ -133,6 +145,11 @@ export function PreferencesProvider({
     await AsyncStorage.setItem(KEEP_RECIPES_LOCAL_KEY, String(enabled));
   }, []);
 
+  const setEnableBackupReminders = useCallback(async (enabled: boolean) => {
+    setEnableBackupRemindersState(enabled);
+    await AsyncStorage.setItem(ENABLE_BACKUP_REMINDERS_KEY, String(enabled));
+  }, []);
+
   const setLanguage = useCallback(async (nextLanguage: AppLanguage) => {
     setLanguageState(nextLanguage);
     await AsyncStorage.setItem(LANGUAGE_KEY, nextLanguage);
@@ -156,20 +173,24 @@ export function PreferencesProvider({
     () => ({
       keepScreenAwake,
       keepRecipesLocal,
+      enableBackupReminders,
       language,
       llmSettings,
       setKeepScreenAwake,
       setKeepRecipesLocal,
+      setEnableBackupReminders,
       setLanguage,
       setLlmSettings
     }),
     [
       keepScreenAwake,
       keepRecipesLocal,
+      enableBackupReminders,
       language,
       llmSettings,
       setKeepScreenAwake,
       setKeepRecipesLocal,
+      setEnableBackupReminders,
       setLanguage,
       setLlmSettings
     ]

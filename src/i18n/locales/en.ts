@@ -172,6 +172,8 @@ export default {
       loadedRecipes: "{{count}} recipe loaded",
       loadedRecipes_one: "{{count}} recipe loaded",
       loadedRecipes_other: "{{count}} recipes loaded",
+      backupReminderTitle: "Backup recommended",
+      backupReminderBody: "You've reached {{count}} recipes! Consider exporting a backup to keep them safe.",
       selectedCategory: "Selected category: {{category}}",
       servings: {
         title: "Servings",
@@ -415,6 +417,7 @@ export default {
       notificationsEnabled: "Enabled",
       notificationsDisabled: "Disabled (click to enable)",
       dataBackup: "Data backup",
+      enableBackupReminders: "Regular backup reminders",
       dataBackupLocalBody:
         "Export or import an AvoCook file containing recipes, categories and photos from this device.",
       dataBackupNextcloudBody:

@@ -69,10 +69,12 @@ export function SettingsScreen({ navigation }: Props) {
   const {
     keepRecipesLocal,
     keepScreenAwake,
+    enableBackupReminders,
     language,
     llmSettings,
     setKeepRecipesLocal,
     setKeepScreenAwake,
+    setEnableBackupReminders,
     setLanguage,
     setLlmSettings
   } = usePreferences();
@@ -439,6 +441,20 @@ export function SettingsScreen({ navigation }: Props) {
         <View style={styles.serverHeader}>
           <Database color={colors.primary} size={22} />
           <AppText variant="label">{t("settings.dataBackup")}</AppText>
+        </View>
+        <View style={[styles.rowSection, { paddingHorizontal: 0, paddingTop: 8, paddingBottom: 16 }]}>
+          <View style={styles.rowText}>
+            <AppText variant="label">{t("settings.enableBackupReminders")}</AppText>
+          </View>
+          <Switch
+            accessibilityLabel={t("settings.enableBackupReminders")}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: enableBackupReminders }}
+            onValueChange={(value) => void setEnableBackupReminders(value)}
+            thumbColor={Platform.OS === "android" ? (enableBackupReminders ? colors.primary : colors.textMuted) : undefined}
+            trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
+            value={enableBackupReminders}
+          />
         </View>
         {isLocalMode ? (
           <View style={styles.warningRow}>

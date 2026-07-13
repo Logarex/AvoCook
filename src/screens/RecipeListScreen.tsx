@@ -62,6 +62,7 @@ import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
 import { useReducedMotion } from "../features/accessibility/useReducedMotion";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import { useMilestoneReminders } from "../features/recipes/useMilestoneReminders";
 import { getRecipeCategoryLabel } from "../features/recipes/categories";
 import {
   printRecipe,
@@ -104,7 +105,9 @@ export function RecipeListScreen({ navigation }: Props) {
     loading,
     syncing,
     sync,
+    exportBackup,
   } = useRecipes();
+  const { showBackupReminder, dismissBackupReminder, recordBackupDone, manualTriggerStoreReview } = useMilestoneReminders(recipes.length);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
@@ -264,6 +267,16 @@ export function RecipeListScreen({ navigation }: Props) {
     setShowCategoryCreator(false);
     setNewCategory("");
     setEditingCategory(null);
+  }
+
+  async function handleBackupReminderExport() {
+    try {
+      await exportBackup();
+      await recordBackupDone();
+      void manualTriggerStoreReview();
+    } catch (error) {
+      // Ignored (e.g. user cancelled file picker)
+    }
   }
 
   function handleDeleteCategory(categoryName: string, count: number) {
@@ -616,6 +629,46 @@ export function RecipeListScreen({ navigation }: Props) {
                   const url = updateInfo.apkUrl || updateInfo.releaseUrl;
                   void Linking.openURL(url);
                 }}
+                style={styles.updateActionButton}
+              />
+            </View>
+          </GlassPanel>
+        ) : null}
+
+        {showBackupReminder ? (
+          <GlassPanel style={styles.updateBanner}>
+            <View style={styles.updateBannerHeader}>
+              <View style={styles.updateBannerTitleRow}>
+                <View
+                  style={[
+                    styles.updateIconWrapper,
+                    { backgroundColor: colors.chip },
+                  ]}
+                >
+                  <Download
+                    color={colors.primary}
+                    size={20}
+                    strokeWidth={2.4}
+                  />
+                </View>
+                <AppText variant="subtitle" style={styles.updateTitle}>
+                  {t("recipes.backupReminderTitle")}
+                </AppText>
+              </View>
+              <IconButton
+                icon={X}
+                label={t("common.close")}
+                onPress={() => void dismissBackupReminder()}
+                style={styles.closeIcon}
+              />
+            </View>
+            <AppText variant="caption" style={{ marginTop: 8, marginBottom: 12 }}>
+              {t("recipes.backupReminderBody", { count: recipes.length })}
+            </AppText>
+            <View style={styles.updateActions}>
+              <PrimaryButton
+                label={t("settings.exportBackup")}
+                onPress={() => void handleBackupReminderExport()}
                 style={styles.updateActionButton}
               />
             </View>
