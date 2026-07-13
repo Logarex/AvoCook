@@ -220,11 +220,10 @@ export async function extractRecipeFromPhoto(
   const preset = LLM_PROVIDERS.find((p) => p.id === providerId);
   const format = preset?.apiFormat ?? "openai";
 
-  // For standard providers, always use the preset baseUrl/model so that updating
-  // the default model name in the presets above is the single source of truth.
-  // Only allow user overrides for the "custom" provider.
+  // For standard providers, always use the preset baseUrl.
+  // Use the user's selected model if available, otherwise fall back to the preset's default.
   const baseUrl = providerId === "custom" ? userBaseUrl : (preset?.baseUrl ?? userBaseUrl);
-  const model = providerId === "custom" ? userModel : (preset?.defaultModel ?? userModel);
+  const model = userModel || (preset?.defaultModel ?? "");
   const modelDocsUrl = preset?.modelDocsUrl ?? "";
   const prompt = buildExtractionPrompt(userLocale);
 

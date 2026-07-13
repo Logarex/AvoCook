@@ -87,6 +87,27 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
   }
 
   async function handleScanPhoto() {
+    Alert.alert(
+      t("importRecipe.photoSourceTitle", "Choose source"),
+      "",
+      [
+        {
+          text: t("common.cancel", "Cancel"),
+          style: "cancel"
+        },
+        {
+          text: t("importRecipe.photoSourceCamera", "Camera"),
+          onPress: () => void processCamera()
+        },
+        {
+          text: t("importRecipe.photoSourceGallery", "Photo Library"),
+          onPress: () => void processImage(ImagePicker.launchImageLibraryAsync)
+        }
+      ]
+    );
+  }
+
+  async function processCamera() {
     // Lazily fetch the current permission status (we use { get: false } on the hook
     // to avoid an automatic native call on mount, which caused crashes on some Android devices)
     const currentPermission = cameraPermission ?? (await getCameraPermission());
@@ -100,25 +121,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         return;
       }
     }
-
-    Alert.alert(
-      t("importRecipe.photoSourceTitle", "Choose source"),
-      "",
-      [
-        {
-          text: t("common.cancel", "Cancel"),
-          style: "cancel"
-        },
-        {
-          text: t("importRecipe.photoSourceCamera", "Camera"),
-          onPress: () => void processImage(ImagePicker.launchCameraAsync)
-        },
-        {
-          text: t("importRecipe.photoSourceGallery", "Photo Library"),
-          onPress: () => void processImage(ImagePicker.launchImageLibraryAsync)
-        }
-      ]
-    );
+    void processImage(ImagePicker.launchCameraAsync);
   }
 
   async function processImage(
@@ -127,9 +130,9 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
     setError(null);
     const result = await pickerFn({
       mediaTypes: ["images"],
-      quality: 0.8,
+      quality: 0.4,
       base64: true,
-      allowsEditing: false
+      allowsEditing: true
     }).catch(() => null);
 
     if (!result || result.canceled || !result.assets[0]) {
