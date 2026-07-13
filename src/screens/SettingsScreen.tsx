@@ -25,7 +25,7 @@ import {
   User
 } from "lucide-react-native";
 import React, { useState } from "react";
-import { Alert, Keyboard, Linking, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
+import { Alert, Keyboard, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -393,8 +393,8 @@ export function SettingsScreen({ navigation }: Props) {
           accessibilityRole="switch"
           accessibilityState={{ checked: keepScreenAwake }}
           onValueChange={(value) => void setKeepScreenAwake(value)}
-          thumbColor={keepScreenAwake ? colors.primary : colors.textMuted}
-          trackColor={{ false: colors.border, true: colors.chip }}
+          thumbColor={Platform.OS === "android" ? (keepScreenAwake ? colors.primary : colors.textMuted) : undefined}
+          trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
           value={keepScreenAwake}
         />
       </GlassPanel>
@@ -429,8 +429,8 @@ export function SettingsScreen({ navigation }: Props) {
           }}
           disabled={isLocalMode}
           onValueChange={(value) => void setKeepRecipesLocal(value)}
-          thumbColor={keepRecipesLocal || isLocalMode ? colors.primary : colors.textMuted}
-          trackColor={{ false: colors.border, true: colors.chip }}
+          thumbColor={Platform.OS === "android" ? (keepRecipesLocal || isLocalMode ? colors.primary : colors.textMuted) : undefined}
+          trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
           value={keepRecipesLocal || isLocalMode}
         />
       </GlassPanel>

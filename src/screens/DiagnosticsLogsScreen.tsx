@@ -10,7 +10,7 @@ import {
   Trash2
 } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
-import { Alert, FlatList, StyleSheet, Switch, View } from "react-native";
+import { Alert, FlatList, Platform, StyleSheet, Switch, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -159,8 +159,8 @@ export function DiagnosticsLogsScreen({ navigation }: Props) {
             accessibilityRole="switch"
             accessibilityState={{ checked: anonymize }}
             onValueChange={setAnonymize}
-            thumbColor={anonymize ? colors.primary : colors.textMuted}
-            trackColor={{ false: colors.border, true: colors.chip }}
+            thumbColor={Platform.OS === "android" ? (anonymize ? colors.primary : colors.textMuted) : undefined}
+            trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
             value={anonymize}
           />
         </View>

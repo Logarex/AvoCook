@@ -14,7 +14,7 @@ import {
   X
 } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
-import { Pressable, StyleSheet, Switch, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Switch, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "../components/AppText";
@@ -408,8 +408,8 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         </View>
         <Switch
           onValueChange={setShowServings}
-          thumbColor={showServings ? colors.primary : colors.textMuted}
-          trackColor={{ false: colors.border, true: colors.chip }}
+          thumbColor={Platform.OS === "android" ? (showServings ? colors.primary : colors.textMuted) : undefined}
+          trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
           value={showServings}
         />
       </Pressable>
