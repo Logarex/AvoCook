@@ -59,6 +59,7 @@ export default {
         "Connessione di rete non riuscita. Il server non è raggiungibile, è offline o c'è un problema con il certificato TLS.",
       useLocal: "Inizia a cucinare",
       nextcloudOption: "Collega un account Nextcloud",
+      nextcloudLoginTitle: "Accesso Nextcloud",
       backToLocal: "Usa localmente",
       showPassword: "Mostra password",
       hidePassword: "Nascondi password",
@@ -172,6 +173,8 @@ export default {
       loadedRecipes: "{{count}} ricetta caricata",
       loadedRecipes_one: "{{count}} ricetta caricata",
       loadedRecipes_other: "{{count}} ricette caricate",
+      backupReminderTitle: "Backup consigliato",
+      backupReminderBody: "Hai raggiunto {{count}} ricette! Considera di esportare un backup per tenerle al sicuro.",
       selectedCategory: "Categoria selezionata: {{category}}",
       servings: {
         title: "Porzioni",
@@ -411,11 +414,13 @@ export default {
       reindexConfirmBody:
         "Questo chiede a Nextcloud Cookbook di scansionare nuovamente la cartella delle ricette. È utile se le ricette sono state aggiunte o modificate fuori dall'app, ma può richiedere tempo su un Cookbook grande.",
       reindexDone: "Reindicizzazione richiesta",
+      openLogs: "Registri diagnostici",
       openPrivacy: "Privacy e dati",
       notifications: "Notifiche",
       notificationsEnabled: "Abilitate",
       notificationsDisabled: "Disabilitate (tocca per abilitare)",
       dataBackup: "Backup dei dati",
+      enableBackupReminders: "Promemoria di backup regolari",
       dataBackupLocalBody:
         "Esporta o importa un file AvoCook con ricette, categorie e foto da questo dispositivo.",
       dataBackupNextcloudBody:

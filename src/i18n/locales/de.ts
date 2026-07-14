@@ -173,6 +173,8 @@ export default {
       loadedRecipes: "{{count}} Rezept geladen",
       loadedRecipes_one: "{{count}} Rezept geladen",
       loadedRecipes_other: "{{count}} Rezepte geladen",
+      backupReminderTitle: "Backup empfohlen",
+      backupReminderBody: "Sie haben {{count}} Rezepte erreicht! Denken Sie daran, ein Backup zu exportieren, um sie sicher aufzubewahren.",
       selectedCategory: "Ausgewählte Kategorie: {{category}}",
       servings: {
         title: "Portionen",
@@ -414,11 +416,13 @@ export default {
       reindexConfirmBody:
         "Damit wird Nextcloud Cookbook aufgefordert, den Rezeptordner erneut zu scannen. Nützlich, wenn Rezepte außerhalb der App hinzugefügt oder geändert wurden, kann aber bei einem großen Cookbook dauern.",
       reindexDone: "Neuindizierung angefordert",
+      openLogs: "Diagnoseprotokolle",
       openPrivacy: "Datenschutz und Daten",
       notifications: "Benachrichtigungen",
       notificationsEnabled: "Aktiviert",
       notificationsDisabled: "Deaktiviert (zum Aktivieren tippen)",
       dataBackup: "Datensicherung",
+      enableBackupReminders: "Regelmäßige Backup-Erinnerungen",
       dataBackupLocalBody:
         "Exportiere oder importiere eine AvoCook-Datei mit Rezepten, Kategorien und Fotos von diesem Gerät.",
       dataBackupNextcloudBody:
