@@ -107,7 +107,7 @@ export function RecipeListScreen({ navigation }: Props) {
     sync,
     exportBackup,
   } = useRecipes();
-  const { showBackupReminder, dismissBackupReminder, recordBackupDone, manualTriggerStoreReview } = useMilestoneReminders(recipes.length);
+  const { showBackupReminder, dismissBackupReminder, recordBackupDone, manualTriggerStoreReview } = useMilestoneReminders(recipes.length, isLocalMode);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);

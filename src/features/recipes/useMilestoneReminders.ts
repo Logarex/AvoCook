@@ -6,32 +6,20 @@ import { usePreferences } from "../preferences/PreferencesProvider";
 const LAST_BACKUP_REMINDER_COUNT_KEY = "milestones.lastBackupReminderCount";
 const LAST_STORE_REVIEW_COUNT_KEY = "milestones.lastStoreReviewCount";
 
-// Backup reminders at: 10, 30, 50, 80, 100, and every 30 thereafter.
 function getNextBackupMilestone(lastAcknowledgedCount: number): number {
-  const earlyMilestones = [10, 30, 50, 80, 100];
-  for (const milestone of earlyMilestones) {
-    if (lastAcknowledgedCount < milestone) {
-      return milestone;
-    }
-  }
-  // After 100, every 30 (130, 160, 190...)
-  const diff = lastAcknowledgedCount - 100;
-  const nextMultiple = Math.floor(Math.max(0, diff) / 30) + 1;
-  return 100 + nextMultiple * 30;
+  const nextMultiple = Math.floor(Math.max(0, lastAcknowledgedCount) / 30) + 1;
+  return nextMultiple * 30;
 }
 
-// Store review milestones: 5, 20, 50, 100, 200.
+// Store review milestones: 5.
 function getNextReviewMilestone(lastRequestedCount: number): number {
-  const milestones = [5, 20, 50, 100, 200];
-  for (const milestone of milestones) {
-    if (lastRequestedCount < milestone) {
-      return milestone;
-    }
+  if (lastRequestedCount < 5) {
+    return 5;
   }
   return Infinity;
 }
 
-export function useMilestoneReminders(recipesCount: number) {
+export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean) {
   const { enableBackupReminders } = usePreferences();
   const [showBackupReminder, setShowBackupReminder] = useState(false);
   const [currentBackupMilestone, setCurrentBackupMilestone] = useState(0);
@@ -42,7 +30,7 @@ export function useMilestoneReminders(recipesCount: number) {
       if (recipesCount === 0) return;
 
       // 1. Check Backup Reminders
-      if (enableBackupReminders) {
+      if (enableBackupReminders && isLocalMode) {
         const storedBackupStr = await AsyncStorage.getItem(LAST_BACKUP_REMINDER_COUNT_KEY);
         const lastBackupAckCount = storedBackupStr ? parseInt(storedBackupStr, 10) : 0;
         
@@ -77,7 +65,7 @@ export function useMilestoneReminders(recipesCount: number) {
     return () => {
       mounted = false;
     };
-  }, [recipesCount, enableBackupReminders]);
+  }, [recipesCount, enableBackupReminders, isLocalMode]);
 
   const dismissBackupReminder = useCallback(async () => {
     setShowBackupReminder(false);
