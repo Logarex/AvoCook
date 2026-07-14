@@ -22,7 +22,6 @@ function getNextReviewMilestone(lastRequestedCount: number): number {
 export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean) {
   const { enableBackupReminders } = usePreferences();
   const [showBackupReminder, setShowBackupReminder] = useState(false);
-  const [currentBackupMilestone, setCurrentBackupMilestone] = useState(0);
 
   useEffect(() => {
     let mounted = true;
@@ -36,7 +35,6 @@ export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean
         
         const nextBackupMilestone = getNextBackupMilestone(lastBackupAckCount);
         if (recipesCount >= nextBackupMilestone && mounted) {
-          setCurrentBackupMilestone(nextBackupMilestone);
           setShowBackupReminder(true);
         } else if (mounted) {
           setShowBackupReminder(false);
@@ -69,8 +67,8 @@ export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean
 
   const dismissBackupReminder = useCallback(async () => {
     setShowBackupReminder(false);
-    await AsyncStorage.setItem(LAST_BACKUP_REMINDER_COUNT_KEY, currentBackupMilestone.toString());
-  }, [currentBackupMilestone]);
+    await AsyncStorage.setItem(LAST_BACKUP_REMINDER_COUNT_KEY, recipesCount.toString());
+  }, [recipesCount]);
 
   const recordBackupDone = useCallback(async () => {
     setShowBackupReminder(false);
