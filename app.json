@@ -123,6 +123,7 @@
       "./tools/plugins/withAndroidSplitsAndOptimizations",
       "./tools/plugins/withAndroidLint",
       "./tools/plugins/withOptionalCamera",
+      "./tools/plugins/withIosBuildNumber",
       "expo-font"
     ],
     "extra": {

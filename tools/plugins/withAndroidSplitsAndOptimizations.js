@@ -73,10 +73,6 @@ function withAndroidSplitsAndOptimizations(config) {
           buildGradle.slice(0, insertPos) +
           `configurations.all {
     exclude group: "com.google.firebase"
-    exclude group: "com.google.android.gms", module: "play-services-base"
-    exclude group: "com.google.android.gms", module: "play-services-basement"
-    exclude group: "com.google.android.gms", module: "play-services-tasks"
-    exclude group: "com.google.android.gms", module: "play-services-stats"
 }
 
 ` +
