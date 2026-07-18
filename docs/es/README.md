@@ -35,10 +35,11 @@ El proyecto utiliza Expo, React Native y TypeScript.
 
 ```bash
 npm install
-npm run start
+npm run ios # Para el simulador iOS
+npm run android # Para el emulador Android
 ```
 
-Luego abre la aplicación con Expo Go o una compilación de desarrollo.
+Luego abre la aplicación (se compilará una versión de desarrollo con módulos nativos).
 
 Comandos útiles:
 

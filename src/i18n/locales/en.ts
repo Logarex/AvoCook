@@ -475,6 +475,7 @@ export default {
       llmFetchModelsFailed: "Could not fetch models. Check your API key.",
       llmPickModel: "Choose a model",
       closeAdvanced: "Close",
+      replayIntro: "Replay introduction & tour",
     },
     logs: {
       title: "Logs",
@@ -524,6 +525,90 @@ export default {
       logsCopiedTitle: "Logs copied!",
       logsCopiedBody: "The diagnostic logs are now in your clipboard. You can paste them into the text field.",
       openLogs: "Diagnostics & Support",
+    },
+    onboarding: {
+      values: "Free · Open source · No ads · No trackers",
+      aboutTitle: "Made by a student",
+      aboutBody:
+        "AvoCook is a personal project developed by an independent student. The code is fully public (open source), there are no ads, no trackers, and it is completely free.",
+      localTitle: "Local mode",
+      localBody:
+        "Your recipes stay entirely on your device. No account needed. Perfect if you prefer to keep everything private.",
+      nextcloudTitle: "Nextcloud mode",
+      nextcloudBody:
+        "Sync your recipes with your personal Nextcloud server. Access them from any device and keep them backed up automatically.",
+      contactTitle: "Always in touch",
+      contactBody:
+        "Buttons to contact the developer are available at any time in the app — to report a bug or request a new feature.",
+      next: "Next",
+      featuresTitle: "What can AvoCook do?",
+      featuresSubtitle: "Here is a quick overview of all the features.",
+      start: "Get started",
+      feature1Title: "Create & edit recipes",
+      feature1Body: "Write recipes from scratch with ingredients, steps, photos, categories, and prep/cook times.",
+      feature2Title: "Import from a URL",
+      feature2Body: "Paste a recipe link and AvoCook will extract it automatically. Share a page from your browser directly to the app.",
+      feature3Title: "Scan with AI",
+      feature3Body: "Take a photo of a recipe page, handwritten notes, or a dish — AI will turn it into a full recipe. You can also describe a recipe in text.",
+      feature4Title: "Shopping list",
+      feature4Body: "Add ingredients from any recipe to your shopping list in one tap. Sync with the iOS Reminders app.",
+      feature5Title: "Cooking timers",
+      feature5Body: "Start prep, cook, or total timers for any recipe. They ring via notifications even when the app is in the background.",
+      feature6Title: "Adjust servings",
+      feature6Body: "Recalculate ingredient quantities instantly for any number of people.",
+      feature7Title: "Export & share",
+      feature7Body: "Print a recipe, export it as a PDF, or share it with another AvoCook user.",
+      feature8Title: "Backup & sync",
+      feature8Body: "Export and import a full backup file. Sync with Nextcloud Cookbook if you have a server.",
+      feature9Title: "Contact buttons",
+      feature9Body: "Found a bug or have an idea? Buttons to reach the developer are always in the app — just tap.",
+    },
+    tour: {
+      skip: "Skip",
+      skipTitle: "Skip the tour?",
+      skipBody: "You can replay this tour at any time from Settings → Replay introduction.",
+      skipConfirm: "Skip",
+      next: "Next",
+      finish: "Let's cook!",
+      stepCounter: "{{current}} / {{total}}",
+      step1Title: "Welcome to AvoCook 🥑",
+      step1Body:
+        "The bottom bar lets you switch between your Recipes, Shopping list, and Settings. The top bar of the recipe list has quick actions: sync, import, add a recipe, and open settings.",
+      step2Title: "Add or edit a recipe",
+      step2Body:
+        "Tap the ＋ button to create a recipe from scratch. Fill in the name, ingredients, steps, a photo, a category, and prep/cook times.\n\nTo edit an existing recipe, open it and tap the pen icon. You can also fill in the nutrition section to enable an optional health score.",
+      step3Title: "Import a recipe",
+      step3Body:
+        "Tap the ↓ (Import) button. You can:\n• Paste a URL from a cooking website\n• Share a recipe page from your browser directly to AvoCook\n• Import an AvoCook file (.avocook) to restore a backup or receive a recipe from a friend",
+      step4Title: "AI photo scan & recipe generator",
+      step4Body:
+        "In Import, tap \"Scan a photo\" to photograph a recipe (magazine, handwritten notes) or a dish. The AI extracts or infers the full recipe.\n\nYou can also type a description (e.g. \"vegan mushroom pizza\") to generate a recipe.\n\nTo activate this feature, add an API key in Settings → Advanced:",
+      step5Title: "Categories & health score",
+      step5Body:
+        "Organise recipes by category (Starter, Main course, Dessert…). Create your own with the ≡+ button.\n\nThe optional health score is calculated automatically if you fill in nutrition values (calories, sugar, fat, fiber, protein, sodium) when editing a recipe.",
+      step6Title: "Shopping list",
+      step6Body:
+        "Switch to the Shopping tab. From a recipe, tap \"Add ingredients to shopping list\" to add everything at once.\n\nCheck items off, reorder them, or add items manually. On iPhone, you can sync with the Reminders app.",
+      step7Title: "Cooking timers",
+      step7Body:
+        "Open a recipe and scroll to the Timers section. Tap Start for prep, cook, or total time.\n\nTimers ring via notifications — enable them for AvoCook in your phone settings so they ring even when the screen is locked.",
+      step8Title: "Settings & logs",
+      step8Body:
+        "In Settings: change theme (light/dark/system), language, notifications, backups, and AI key.\n\nDiagnostic logs (Settings → Diagnostic logs) show what happened in the app — useful for troubleshooting. You can export them to send to the developer.",
+      step9Title: "Contact the developer",
+      step9Body:
+        "Found a bug or have a feature idea? Two options:\n• GitHub Issues: public bug report (recommended — helps other users too)\n• Email: for private messages\n\nDon't hesitate — every message helps improve the app!",
+      step10Title: "You're all set! 🎉",
+      step10Body:
+        "AvoCook is ready. You can replay this tour anytime from Settings → Replay introduction.\n\nEnjoy cooking!",
+      aiProvidersTitle: "Available AI providers",
+      free: "Free",
+      geminiNote: "Free up to 1,500 requests/day — recommended for beginners.",
+      groqNote: "Free tier available — fast inference.",
+      aiHowToNote:
+        "Tap a provider to create a free account and get your API key. Then paste it in Settings → Advanced.",
+      githubNote: "Report a bug or request a feature publicly.",
+      emailNote: "Private message to the developer.",
     },
   },
 };

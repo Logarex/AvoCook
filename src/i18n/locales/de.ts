@@ -482,6 +482,7 @@ export default {
       llmFetchModelsFailed: "Modelle konnten nicht abgerufen werden. Prüfe deinen API-Schlüssel.",
       llmPickModel: "Modell auswählen",
       closeAdvanced: "Schließen",
+      replayIntro: "Einführung & Tour wiederholen",
     },
     logs: {
       title: "Protokolle",
@@ -534,6 +535,90 @@ export default {
       logsCopiedTitle: "Protokolle kopiert!",
       logsCopiedBody: "Die Diagnoseprotokolle befinden sich jetzt in deiner Zwischenablage. Du kannst sie in das Textfeld einfügen.",
       openLogs: "Diagnose & Support",
+    },
+    onboarding: {
+      values: "Kostenlos · Open Source · Keine Werbung · Keine Tracker",
+      aboutTitle: "Von einem Studenten entwickelt",
+      aboutBody:
+        "AvoCook ist ein persönliches Projekt eines unabhängigen Studenten. Der Code ist vollständig öffentlich (Open Source), es gibt keine Werbung, keine Tracker und es ist komplett kostenlos.",
+      localTitle: "Lokaler Modus",
+      localBody:
+        "Deine Rezepte bleiben vollständig auf deinem Gerät. Kein Konto erforderlich. Ideal, wenn du alles privat halten möchtest.",
+      nextcloudTitle: "Nextcloud-Modus",
+      nextcloudBody:
+        "Synchronisiere deine Rezepte mit deinem persönlichen Nextcloud-Server. Greife von jedem Gerät darauf zu und lass sie automatisch sichern.",
+      contactTitle: "Immer erreichbar",
+      contactBody:
+        "Schaltflächen zum Kontakt mit dem Entwickler sind jederzeit in der App verfügbar — um einen Fehler zu melden oder eine neue Funktion anzufordern.",
+      next: "Weiter",
+      featuresTitle: "Was kann AvoCook?",
+      featuresSubtitle: "Hier ist ein kurzer Überblick über alle Funktionen.",
+      start: "Los geht's",
+      feature1Title: "Rezepte erstellen & bearbeiten",
+      feature1Body: "Schreibe Rezepte von Grund auf mit Zutaten, Schritten, Fotos, Kategorien und Zubereitungs-/Kochzeiten.",
+      feature2Title: "Von einer URL importieren",
+      feature2Body: "Füge einen Rezept-Link ein und AvoCook extrahiert ihn automatisch. Teile eine Seite direkt aus dem Browser.",
+      feature3Title: "Mit KI scannen",
+      feature3Body: "Fotografiere eine Rezeptseite, handgeschriebene Notizen oder ein Gericht — die KI erstellt ein vollständiges Rezept. Du kannst auch ein Rezept per Text beschreiben.",
+      feature4Title: "Einkaufsliste",
+      feature4Body: "Füge Zutaten aus einem Rezept mit einem Tippen zur Einkaufsliste hinzu. Synchronisierung mit der iOS Erinnerungen-App.",
+      feature5Title: "Kochzeitgeber",
+      feature5Body: "Starte Vorbereitungs-, Koch- oder Gesamtzeitgeber für jedes Rezept. Sie klingeln über Benachrichtigungen auch im Hintergrund.",
+      feature6Title: "Portionen anpassen",
+      feature6Body: "Berechne Mengen sofort für beliebig viele Personen neu.",
+      feature7Title: "Exportieren & teilen",
+      feature7Body: "Drucke ein Rezept, exportiere es als PDF oder teile es mit einem anderen AvoCook-Nutzer.",
+      feature8Title: "Backup & Sync",
+      feature8Body: "Exportiere und importiere eine vollständige Backup-Datei. Synchronisiere mit Nextcloud Cookbook, wenn du einen Server hast.",
+      feature9Title: "Kontakt-Schaltflächen",
+      feature9Body: "Einen Fehler gefunden oder eine Idee? Schaltflächen zum Erreichen des Entwicklers sind immer in der App.",
+    },
+    tour: {
+      skip: "Überspringen",
+      skipTitle: "Tour überspringen?",
+      skipBody: "Du kannst diese Tour jederzeit in Einstellungen → Einführung wiederholen aufrufen.",
+      skipConfirm: "Überspringen",
+      next: "Weiter",
+      finish: "Auf geht's!",
+      stepCounter: "{{current}} / {{total}}",
+      step1Title: "Willkommen bei AvoCook 🥑",
+      step1Body:
+        "Die untere Leiste ermöglicht den Wechsel zwischen deinen Rezepten, der Einkaufsliste und den Einstellungen. Die obere Leiste bietet Schnellaktionen: Synchronisieren, Importieren, Rezept hinzufügen und Einstellungen öffnen.",
+      step2Title: "Rezept hinzufügen oder bearbeiten",
+      step2Body:
+        "Tippe auf die ＋-Schaltfläche, um ein Rezept von Grund auf zu erstellen. Trage Name, Zutaten, Schritte, Foto, Kategorie und Zeiten ein.\n\nUm ein bestehendes Rezept zu bearbeiten, öffne es und tippe auf das Stiftsymbol. Fülle den Ernährungsabschnitt aus, um einen optionalen Gesundheitsscore zu aktivieren.",
+      step3Title: "Rezept importieren",
+      step3Body:
+        "Tippe auf ↓ (Importieren). Du kannst:\n• Eine URL von einer Koch-Website einfügen\n• Eine Rezeptseite direkt aus dem Browser zu AvoCook teilen\n• Eine AvoCook-Datei (.avocook) importieren, um ein Backup wiederherzustellen",
+      step4Title: "KI-Foto-Scan & Rezeptgenerator",
+      step4Body:
+        "In Importieren tippe auf \"Foto scannen\", um ein Rezept (Magazin, Notizen) oder ein Gericht zu fotografieren. Die KI extrahiert oder erstellt das vollständige Rezept.\n\nDu kannst auch eine Beschreibung eingeben (z. B. \"Vegane Pilzpizza\").\n\nFüge einen API-Schlüssel in Einstellungen → Erweitert hinzu, um diese Funktion zu aktivieren:",
+      step5Title: "Kategorien & Gesundheitsscore",
+      step5Body:
+        "Organisiere Rezepte nach Kategorien (Vorspeise, Hauptgericht, Dessert…). Erstelle eigene mit der ≡+-Schaltfläche.\n\nDer optionale Gesundheitsscore wird automatisch berechnet, wenn du Nährwerte ausfüllst (Kalorien, Zucker, Fett, Ballaststoffe, Eiweiß, Salz).",
+      step6Title: "Einkaufsliste",
+      step6Body:
+        "Wechsle zum Tab Einkaufen. Tippe bei einem Rezept auf \"Zutaten zur Einkaufsliste hinzufügen\".\n\nHake Artikel ab, ordne sie neu oder füge sie manuell hinzu. Auf iPhone kannst du mit der Erinnerungen-App synchronisieren.",
+      step7Title: "Kochzeitgeber",
+      step7Body:
+        "Öffne ein Rezept und scrolle zum Abschnitt Zeitgeber. Tippe auf Starten.\n\nZeitgeber klingeln über Benachrichtigungen — aktiviere sie für AvoCook in den Telefoneinstellungen.",
+      step8Title: "Einstellungen & Protokolle",
+      step8Body:
+        "In Einstellungen: Theme, Sprache, Benachrichtigungen, Backups und KI-Schlüssel ändern.\n\nDie Diagnoseprotokolle (Einstellungen → Protokolle) zeigen, was in der App passiert ist — nützlich bei Problemen.",
+      step9Title: "Entwickler kontaktieren",
+      step9Body:
+        "Fehler gefunden oder Funktionsidee? Zwei Möglichkeiten:\n• GitHub Issues: öffentlicher Fehlerbericht (empfohlen)\n• E-Mail: für private Nachrichten\n\nZögere nicht — jede Nachricht hilft, die App zu verbessern!",
+      step10Title: "Du bist startklar! 🎉",
+      step10Body:
+        "AvoCook ist bereit. Du kannst diese Tour jederzeit in Einstellungen → Einführung wiederholen aufrufen.\n\nViel Spaß beim Kochen!",
+      aiProvidersTitle: "Verfügbare KI-Anbieter",
+      free: "Kostenlos",
+      geminiNote: "Kostenlos bis zu 1.500 Anfragen/Tag — empfohlen für Einsteiger.",
+      groqNote: "Kostenloses Kontingent verfügbar — schnelle Inferenz.",
+      aiHowToNote:
+        "Tippe auf einen Anbieter, um ein kostenloses Konto zu erstellen und deinen API-Schlüssel zu erhalten. Dann in Einstellungen → Erweitert einfügen.",
+      githubNote: "Fehler melden oder Funktion öffentlich anfragen.",
+      emailNote: "Private Nachricht an den Entwickler.",
     },
   },
 };

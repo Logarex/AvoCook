@@ -42,6 +42,7 @@ import { useRecipes } from "../features/recipes/RecipesProvider";
 import { LLM_PROVIDERS, type LlmProviderId, fetchAvailableModels } from "../features/import/photoRecipeImport";
 import type { RecipeDuplicateGroup } from "../features/recipes/backupDuplicates";
 import { useSupportActions } from "../features/support/useSupportActions";
+import { useOnboarding } from "../features/onboarding/useOnboarding";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { type ThemeMode, useAppTheme } from "../theme/ThemeProvider";
@@ -93,6 +94,7 @@ export function SettingsScreen({ navigation }: Props) {
   const [fetchingModels, setFetchingModels] = useState(false);
   const [fetchModelsError, setFetchModelsError] = useState<string | null>(null);
   const { openGithubIssue, contactByEmail } = useSupportActions();
+  const { resetOnboarding } = useOnboarding();
 
   function handleSelectProvider(id: LlmProviderId) {
     const preset = LLM_PROVIDERS.find((p) => p.id === id) ?? LLM_PROVIDERS[0];
@@ -199,6 +201,7 @@ export function SettingsScreen({ navigation }: Props) {
 
   async function handleLogout() {
     await logout();
+    navigation.replace("Login");
   }
 
   async function handleExportBackup() {
@@ -818,6 +821,16 @@ export function SettingsScreen({ navigation }: Props) {
       ) : null}
 
       <View style={styles.actions}>
+        <PrimaryButton
+          icon={BookOpen}
+          label={t("settings.replayIntro")}
+          onPress={() => {
+            void resetOnboarding().then(() => {
+              navigation.navigate("Onboarding");
+            });
+          }}
+          variant="ghost"
+        />
         <PrimaryButton
           icon={FileText}
           label={t("settings.openLogs")}

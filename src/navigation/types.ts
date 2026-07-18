@@ -1,4 +1,6 @@
 export type RootStackParamList = {
+  Onboarding: undefined;
+  Tour: undefined;
   Login: undefined;
   Recipes:
     | {

@@ -24,12 +24,15 @@ import type { RootStackParamList } from "./navigation/types";
 import { DiagnosticsLogsScreen } from "./screens/DiagnosticsLogsScreen";
 import { ImportRecipeScreen } from "./screens/ImportRecipeScreen";
 import { LoginScreen } from "./screens/LoginScreen";
+import { OnboardingScreen } from "./screens/OnboardingScreen";
+import { TourScreen } from "./screens/TourScreen";
 import { RecipeDetailScreen } from "./screens/RecipeDetailScreen";
 import { RecipeEditorScreen } from "./screens/RecipeEditorScreen";
 import { RecipeListScreen } from "./screens/RecipeListScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
 import { ShoppingListScreen } from "./screens/ShoppingListScreen";
 import { PrivacyScreen } from "./screens/PrivacyScreen";
+import { useOnboarding } from "./features/onboarding/useOnboarding";
 import { AppThemeProvider, useAppTheme } from "./theme/ThemeProvider";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -74,11 +77,12 @@ function RootNavigator() {
   const { credentials, hydrated, isLocalMode } = useAuth();
   const { colors, isDark, navTheme } = useAppTheme();
   const reducedMotion = useReducedMotion();
+  const { introDone, tourDone, onboardingHydrated } = useOnboarding();
   const loadingLogo = isDark
     ? require("../assets/logo-dark.png")
     : require("../assets/logo.png");
 
-  if (!hydrated) {
+  if (!hydrated || !onboardingHydrated) {
     // simple splash screen while we load the db and stuff
     return (
       <View style={[styles.loading, { backgroundColor: colors.background }]}>
@@ -94,12 +98,23 @@ function RootNavigator() {
     );
   }
 
+  // Determine initial route based on onboarding state
+  const isAuthenticated = Boolean(credentials || isLocalMode);
+  const initialRoute: keyof RootStackParamList = !introDone
+    ? "Onboarding"
+    : isAuthenticated && !tourDone
+      ? "Tour"
+      : isAuthenticated
+        ? "Recipes"
+        : "Login";
+
   return (
     <>
       <StatusBar style={isDark ? "light" : "dark"} />
       <NavigationContainer theme={navTheme}>
-        {credentials || isLocalMode ? <ShareIntentHandler /> : null}
+        {isAuthenticated ? <ShareIntentHandler /> : null}
         <Stack.Navigator
+          initialRouteName={initialRoute}
           screenOptions={({ route }) => ({
             animation: getStackAnimation(
               route.name,
@@ -109,29 +124,22 @@ function RootNavigator() {
             headerShown: false
           })}
         >
-          {credentials || isLocalMode ? (
-            <>
-              <Stack.Screen name="Recipes" component={RecipeListScreen} />
-              <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
-              <Stack.Screen name="RecipeEditor" component={RecipeEditorScreen} />
-              <Stack.Screen name="ImportRecipe" component={ImportRecipeScreen} />
-              <Stack.Screen name="ShoppingList" component={ShoppingListScreen} />
-              <Stack.Screen name="Settings" component={SettingsScreen} />
-              <Stack.Screen
-                name="DiagnosticsLogs"
-                component={DiagnosticsLogsScreen}
-              />
-              <Stack.Screen name="Privacy" component={PrivacyScreen} />
-            </>
-          ) : (
-            <>
-              <Stack.Screen name="Login" component={LoginScreen} />
-              <Stack.Screen
-                name="DiagnosticsLogs"
-                component={DiagnosticsLogsScreen}
-              />
-            </>
-          )}
+          {/* Always register all screens – visibility is controlled by
+              which screen appears first via initialRouteName */}
+          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Tour" component={TourScreen} />
+          <Stack.Screen name="Recipes" component={RecipeListScreen} />
+          <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
+          <Stack.Screen name="RecipeEditor" component={RecipeEditorScreen} />
+          <Stack.Screen name="ImportRecipe" component={ImportRecipeScreen} />
+          <Stack.Screen name="ShoppingList" component={ShoppingListScreen} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen
+            name="DiagnosticsLogs"
+            component={DiagnosticsLogsScreen}
+          />
+          <Stack.Screen name="Privacy" component={PrivacyScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </>

@@ -24,6 +24,7 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
+import { useOnboarding } from "../features/onboarding/useOnboarding";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import { useSupportActions } from "../features/support/useSupportActions";
 import type { RootStackParamList } from "../navigation/types";
@@ -46,12 +47,19 @@ export function LoginScreen({ navigation }: Props) {
   const [showNextcloud, setShowNextcloud] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { tourDone } = useOnboarding();
+
+  async function handleLocalMode() {
+    await startLocalMode();
+    navigation.replace(tourDone ? "Recipes" : "Tour");
+  }
 
   async function handleLogin() {
     setSubmitting(true);
     setError(null);
     try {
       await login({ serverUrl, username, appPassword });
+      navigation.replace(tourDone ? "Recipes" : "Tour");
     } catch (caught) {
       const statusMatch = caught instanceof Error ? caught.message.match(/\b(\d{3})\b/) : null;
       const httpStatus = statusMatch ? statusMatch[1] : null;
@@ -136,7 +144,7 @@ export function LoginScreen({ navigation }: Props) {
               disabled={submitting}
               icon={ChefHat}
               label={t("auth.useLocal")}
-              onPress={() => void startLocalMode()}
+              onPress={() => void handleLocalMode()}
             />
             <Pressable
               disabled={submitting}
