@@ -595,7 +595,21 @@ export default {
           step10Body: "You're all set! You can review this tutorial anytime by going to Settings > Replay intro.",
           aiGuideTitle: "Available providers",
           aiGuideNote: "Tap a provider to get a key.",
-          free: "Free"
+          free: "Free",
+          stepManageTitle: "Manage Recipes",
+          stepManageBody: "At the bottom of each recipe, find useful tools:",
+          managePrint: "Print the recipe.",
+          manageShare: "Share as text or PDF.",
+          manageExport: "AvoCook file (for backup or sharing).",
+          manageSync: "Resync with the server.",
+          stepSortTitle: "Sort and Organize",
+          stepSortBody: "On the main screen, use these icons to organize:",
+          sortFilter: "Filter recipes.",
+          sortCategory: "Manage custom categories.",
+          stepAppleTitle: "Apple Reminders Integration",
+          stepAppleBody: "On iOS, sync your shopping list with Apple Reminders:",
+          appleShare: "Share the list in real time with anyone via iCloud.",
+          appleGrocery: "Set the list type to 'Groceries' in Apple Reminders to sort by aisle automatically."
     },
   },
 };

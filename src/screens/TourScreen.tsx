@@ -7,6 +7,14 @@ import {
   CheckCircle,
   Download,
   ExternalLink,
+  FileText,
+  FileUp,
+  Filter,
+  ListOrdered,
+  ListPlus,
+  Printer,
+  RefreshCw,
+  Share2,
   HelpCircle,
   Mail,
   Plus,
@@ -21,6 +29,7 @@ import {
   Animated,
   Dimensions,
   Linking,
+  Platform,
   Pressable,
   StyleSheet,
   View,
@@ -29,6 +38,7 @@ import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "../components/AppText";
 import { PrimaryButton } from "../components/PrimaryButton";
+import { useAuth } from "../features/auth/AuthProvider";
 import { useOnboarding } from "../features/onboarding/useOnboarding";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
@@ -43,73 +53,39 @@ type TourStep = {
   titleKey: string;
   bodyKey: string;
   /** Extra content rendered below the description */
-  extra?: (colors: ReturnType<typeof useAppTheme>["colors"], t: ReturnType<typeof useTranslation>["t"]) => React.ReactNode;
+  extra?: (context: {
+    colors: ReturnType<typeof useAppTheme>["colors"];
+    t: ReturnType<typeof useTranslation>["t"];
+    isLocalMode: boolean;
+    isIos: boolean;
+  }) => React.ReactNode;
 };
 
-const STEPS: TourStep[] = [
-  // 1 — Overview / navigation
-  {
-    icon: Smartphone,
-    titleKey: "tour.step1Title",
-    bodyKey: "tour.step1Body",
-  },
-  // 2 — Create / edit recipe
-  {
-    icon: Plus,
-    titleKey: "tour.step2Title",
-    bodyKey: "tour.step2Body",
-  },
-  // 3 — Import (URL / file)
-  {
-    icon: Download,
-    titleKey: "tour.step3Title",
-    bodyKey: "tour.step3Body",
-  },
-  // 4 — AI scan (camera icon), with provider info
-  {
-    icon: Camera,
-    titleKey: "tour.step4Title",
-    bodyKey: "tour.step4Body",
-    extra: (colors, t) => <AIGuide colors={colors} t={t} />,
-  },
-  // 5 — Categories + nutriscore
-  {
-    icon: ChefHat,
-    titleKey: "tour.step5Title",
-    bodyKey: "tour.step5Body",
-  },
-  // 6 — Shopping list
-  {
-    icon: ShoppingCart,
-    titleKey: "tour.step6Title",
-    bodyKey: "tour.step6Body",
-  },
-  // 7 — Timers
-  {
-    icon: Timer,
-    titleKey: "tour.step7Title",
-    bodyKey: "tour.step7Body",
-  },
-  // 8 — Settings / logs / backup
-  {
-    icon: Settings,
-    titleKey: "tour.step8Title",
-    bodyKey: "tour.step8Body",
-  },
-  // 9 — Contact
-  {
-    icon: HelpCircle,
-    titleKey: "tour.step9Title",
-    bodyKey: "tour.step9Body",
-    extra: (colors, t) => <ContactLinks colors={colors} t={t} />,
-  },
-  // 10 — Final welcome
-  {
-    icon: CheckCircle,
-    titleKey: "tour.step10Title",
-    bodyKey: "tour.step10Body",
-  },
-];
+function getTourSteps(isLocalMode: boolean, isIos: boolean): TourStep[] {
+  const steps: TourStep[] = [
+    { icon: Smartphone, titleKey: "tour.step1Title", bodyKey: "tour.step1Body" },
+    { icon: Plus, titleKey: "tour.step2Title", bodyKey: "tour.step2Body" },
+    { icon: Download, titleKey: "tour.step3Title", bodyKey: "tour.step3Body" },
+    { icon: Camera, titleKey: "tour.step4Title", bodyKey: "tour.step4Body", extra: (ctx) => <AIGuide colors={ctx.colors} t={ctx.t} /> },
+    { icon: ChefHat, titleKey: "tour.step5Title", bodyKey: "tour.step5Body" },
+    { icon: Filter, titleKey: "tour.stepSortTitle", bodyKey: "tour.stepSortBody", extra: (ctx) => <SortGuide {...ctx} /> },
+    { icon: ShoppingCart, titleKey: "tour.step6Title", bodyKey: "tour.step6Body" },
+  ];
+
+  if (isIos) {
+    steps.push({ icon: ListOrdered, titleKey: "tour.stepAppleTitle", bodyKey: "tour.stepAppleBody", extra: (ctx) => <AppleRemindersGuide {...ctx} /> });
+  }
+
+  steps.push(
+    { icon: Timer, titleKey: "tour.step7Title", bodyKey: "tour.step7Body" },
+    { icon: FileText, titleKey: "tour.stepManageTitle", bodyKey: "tour.stepManageBody", extra: (ctx) => <ManageRecipeGuide {...ctx} /> },
+    { icon: Settings, titleKey: "tour.step8Title", bodyKey: "tour.step8Body" },
+    { icon: HelpCircle, titleKey: "tour.step9Title", bodyKey: "tour.step9Body", extra: (ctx) => <ContactLinks colors={ctx.colors} t={ctx.t} /> },
+    { icon: CheckCircle, titleKey: "tour.step10Title", bodyKey: "tour.step10Body" }
+  );
+
+  return steps;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main screen
@@ -120,6 +96,9 @@ export function TourScreen({ navigation }: Props) {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { markTourDone } = useOnboarding();
+  const { isLocalMode } = useAuth();
+  const isIos = Platform.OS === "ios";
+  const STEPS = React.useMemo(() => getTourSteps(isLocalMode, isIos), [isLocalMode, isIos]);
   const [step, setStep] = useState(0);
   const progress = useRef(new Animated.Value(0)).current;
 
@@ -239,7 +218,7 @@ export function TourScreen({ navigation }: Props) {
           </AppText>
 
           {/* Extra Elements (e.g. AI Guide) */}
-          {current.extra?.(colors, t)}
+          {current.extra?.({ colors, t, isLocalMode, isIos })}
         </View>
       </View>
 
@@ -415,6 +394,89 @@ function ContactLinks({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Extra content: Sort Guide
+// ─────────────────────────────────────────────────────────────────────────────
+
+function SortGuide({ colors, t }: { colors: any; t: any }) {
+  return (
+    <View style={styles.guideListContainer}>
+      <View style={styles.guideListItem}>
+        <View style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}>
+          <Filter color={colors.primary} size={18} />
+        </View>
+        <AppText variant="caption" style={styles.guideListText}>{t("tour.sortFilter")}</AppText>
+      </View>
+      <View style={styles.guideListItem}>
+        <View style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}>
+          <ListPlus color={colors.primary} size={18} />
+        </View>
+        <AppText variant="caption" style={styles.guideListText}>{t("tour.sortCategory")}</AppText>
+      </View>
+    </View>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Extra content: Manage Recipe Guide
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ManageRecipeGuide({ colors, t, isLocalMode }: { colors: any; t: any; isLocalMode: boolean }) {
+  return (
+    <View style={styles.guideListContainer}>
+      <View style={styles.guideListItem}>
+        <View style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}>
+          <Printer color={colors.primary} size={18} />
+        </View>
+        <AppText variant="caption" style={styles.guideListText}>{t("tour.managePrint")}</AppText>
+      </View>
+      <View style={styles.guideListItem}>
+        <View style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}>
+          <Share2 color={colors.primary} size={18} />
+        </View>
+        <AppText variant="caption" style={styles.guideListText}>{t("tour.manageShare")}</AppText>
+      </View>
+      <View style={styles.guideListItem}>
+        <View style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}>
+          <FileUp color={colors.primary} size={18} />
+        </View>
+        <AppText variant="caption" style={styles.guideListText}>{t("tour.manageExport")}</AppText>
+      </View>
+      {!isLocalMode && (
+        <View style={styles.guideListItem}>
+          <View style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}>
+            <RefreshCw color={colors.primary} size={18} />
+          </View>
+          <AppText variant="caption" style={styles.guideListText}>{t("tour.manageSync")}</AppText>
+        </View>
+      )}
+    </View>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Extra content: Apple Reminders Guide
+// ─────────────────────────────────────────────────────────────────────────────
+
+function AppleRemindersGuide({ t }: { colors: any; t: any }) {
+  return (
+    <View style={styles.guideListContainer}>
+      <View style={styles.guideListItem}>
+        <View style={[styles.iconCircleSmall, { backgroundColor: "rgba(10, 132, 255, 0.1)" }]}>
+          <ListOrdered color="#0A84FF" size={18} />
+        </View>
+        <AppText variant="caption" style={styles.guideListText}>{t("tour.appleShare")}</AppText>
+      </View>
+      <View style={styles.guideListItem}>
+        <View style={[styles.iconCircleSmall, { backgroundColor: "rgba(10, 132, 255, 0.1)" }]}>
+          <ListOrdered color="#0A84FF" size={18} />
+        </View>
+        <AppText variant="caption" style={styles.guideListText}>{t("tour.appleGrocery")}</AppText>
+      </View>
+    </View>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Styles
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -497,6 +559,27 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     marginTop: spacing.xl,
     width: "100%",
+  },
+  guideListContainer: {
+    marginTop: spacing.xl,
+    width: "100%",
+    gap: spacing.md,
+  },
+  guideListItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: spacing.md,
+  },
+  iconCircleSmall: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  guideListText: {
+    flex: 1,
+    lineHeight: 20,
   },
   contactCardHorizontal: {
     flex: 1,

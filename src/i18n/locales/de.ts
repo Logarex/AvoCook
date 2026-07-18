@@ -605,7 +605,21 @@ export default {
           step10Body: "Du bist bereit! Du kannst dieses Tutorial jederzeit unter Einstellungen > Intro erneut abspielen ansehen.",
           aiGuideTitle: "Verfügbare Anbieter",
           aiGuideNote: "Tippe auf einen Anbieter, um einen Schlüssel zu erhalten.",
-          free: "Kostenlos"
+          free: "Kostenlos",
+          stepManageTitle: "Rezepte Verwalten",
+          stepManageBody: "Unten in jedem Rezept finden Sie nützliche Tools:",
+          managePrint: "Rezept drucken.",
+          manageShare: "Als Text oder PDF teilen.",
+          manageExport: "AvoCook-Datei (für Backup oder zum Teilen).",
+          manageSync: "Mit dem Server synchronisieren.",
+          stepSortTitle: "Sortieren und Organisieren",
+          stepSortBody: "Auf dem Hauptbildschirm verwenden Sie diese Symbole zur Organisation:",
+          sortFilter: "Rezepte filtern.",
+          sortCategory: "Eigene Kategorien verwalten.",
+          stepAppleTitle: "Apple Erinnerungen-Integration",
+          stepAppleBody: "Unter iOS synchronisieren Sie Ihre Einkaufsliste mit den Apple Erinnerungen:",
+          appleShare: "Teilen Sie die Liste in Echtzeit über iCloud.",
+          appleGrocery: "Wandeln Sie die Liste in Apple Erinnerungen in 'Einkäufe' um, um sie automatisch nach Abteilungen zu sortieren."
     },
   },
 };

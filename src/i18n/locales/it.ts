@@ -602,7 +602,21 @@ export default {
           step10Body: "Sei pronto! Puoi rivedere questo tutorial in qualsiasi momento andando su Impostazioni > Rivedi introduzione.",
           aiGuideTitle: "Provider disponibili",
           aiGuideNote: "Tocca un provider per ottenere una chiave.",
-          free: "Gratis"
+          free: "Gratis",
+          stepManageTitle: "Gestisci Ricette",
+          stepManageBody: "In fondo a ogni ricetta troverai strumenti utili:",
+          managePrint: "Stampa la ricetta.",
+          manageShare: "Condividi come testo o PDF.",
+          manageExport: "File AvoCook (per backup o condivisione).",
+          manageSync: "Sincronizza con il server.",
+          stepSortTitle: "Ordina e Organizza",
+          stepSortBody: "Nella schermata principale, usa queste icone per organizzare:",
+          sortFilter: "Filtra le ricette.",
+          sortCategory: "Gestisci categorie personalizzate.",
+          stepAppleTitle: "Integrazione Promemoria Apple",
+          stepAppleBody: "Su iOS, sincronizza la lista della spesa con i Promemoria di Apple:",
+          appleShare: "Condividi la lista in tempo reale tramite iCloud.",
+          appleGrocery: "Imposta il tipo di lista su 'Spesa' in Promemoria per ordinare automaticamente per corsia."
     },
   },
 };

@@ -605,7 +605,21 @@ export default {
           step10Body: "Vous êtes prêt ! Vous pourrez revoir ce tutoriel à tout moment en allant dans Réglages > Revoir l'introduction.",
           aiGuideTitle: "Fournisseurs disponibles",
           aiGuideNote: "Cliquez sur un fournisseur pour obtenir une clé.",
-          free: "Gratuit"
+          free: "Gratuit",
+          stepManageTitle: "Gérer vos recettes",
+          stepManageBody: "En bas de chaque recette, retrouvez plusieurs outils utiles :",
+          managePrint: "Imprimer la recette.",
+          manageShare: "Partager en texte ou en PDF.",
+          manageExport: "Fichier AvoCook (export/import de recette).",
+          manageSync: "Resynchroniser avec le serveur.",
+          stepSortTitle: "Trier et Organiser",
+          stepSortBody: "Sur la page principale, utilisez ces icônes pour vous y retrouver :",
+          sortFilter: "Filtrer les recettes.",
+          sortCategory: "Gérer vos catégories personnalisées.",
+          stepAppleTitle: "Intégration Apple Rappels",
+          stepAppleBody: "Sur iOS, synchronisez votre liste de courses avec l'app Rappels d'Apple :",
+          appleShare: "Partagez la liste en temps réel avec n'importe qui via iCloud.",
+          appleGrocery: "Convertissez la liste en type 'Courses' chez Apple pour trier par rayon automatiquement."
     },
   },
 };
