@@ -159,7 +159,7 @@ export async function clearItemMap(): Promise<void> {
  * Call right after addIngredients() so the next push updates (not re-creates) them.
  */
 export async function registerReminderMappings(
-  mappings: Array<{ avocookId: string; reminderId: string }>
+  mappings: { avocookId: string; reminderId: string }[]
 ): Promise<void> {
   if (mappings.length === 0) return;
   const itemMap = await loadItemMap();

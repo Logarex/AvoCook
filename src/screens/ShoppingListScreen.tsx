@@ -180,15 +180,32 @@ export function ShoppingListScreen({ navigation }: Props) {
   // React state (and itemsRef) updates AFTER the current render cycle.
   // By computing the expected next state locally, we can push immediately
   // with accurate data — no stale reads, no need to wait for a re-render.
-  async function handleToggleItem(id: string) {
+  const handleToggleItem = useCallback(async (id: string) => {
     await toggleItem(id);
-  }
-  async function handleRemoveItem(id: string) {
+  }, [toggleItem]);
+  const handleRemoveItem = useCallback(async (id: string) => {
     await removeItem(id);
-  }
-  async function handleUpdateItem(id: string, label: string) {
+  }, [removeItem]);
+  const handleUpdateItem = useCallback(async (id: string, label: string) => {
     await updateItem(id, label);
-  }
+  }, [updateItem]);
+
+  const handleStartEditing = useCallback((id: string) => {
+    setReorderMode(false);
+    setEditingItemId(id);
+  }, []);
+
+  const handleStopEditing = useCallback(() => {
+    setEditingItemId(null);
+  }, []);
+
+  const handleMoveUp = useCallback((id: string) => {
+    void moveItem(id, -1);
+  }, [moveItem]);
+
+  const handleMoveDown = useCallback((id: string) => {
+    void moveItem(id, 1);
+  }, [moveItem]);
 
   async function handleAddItem() {
     const label = newItem.trim();
@@ -278,6 +295,23 @@ export function ShoppingListScreen({ navigation }: Props) {
       console.error("Error sharing shopping list:", error);
     }
   }
+
+  const renderItem = useCallback(({ item, index }: { item: ShoppingListItem; index: number }) => (
+    <MemoizedShoppingListRow
+      canMoveDown={index < items.length - 1}
+      canMoveUp={index > 0}
+      editing={editingItemId === item.id}
+      item={item}
+      onMoveDown={handleMoveDown}
+      onMoveUp={handleMoveUp}
+      onRemove={handleRemoveItem}
+      onStartEditing={handleStartEditing}
+      onStopEditing={handleStopEditing}
+      onToggle={handleToggleItem}
+      onUpdate={handleUpdateItem}
+      reorderMode={reorderMode}
+    />
+  ), [editingItemId, items.length, handleMoveDown, handleMoveUp, handleRemoveItem, handleStartEditing, handleStopEditing, handleToggleItem, handleUpdateItem, reorderMode]);
 
   return (
     <PageSwipeGesture onSwipeRight={openRecipes}>
@@ -446,34 +480,17 @@ export function ShoppingListScreen({ navigation }: Props) {
           data={items}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContent}
+          initialNumToRender={15}
+          maxToRenderPerBatch={15}
+          windowSize={7}
+          removeClippedSubviews={true}
           ListEmptyComponent={
             <EmptyState
               title={t("shoppingList.emptyTitle")}
               body={t("shoppingList.emptyBody")}
             />
           }
-          renderItem={({ item, index }) => (
-            <ShoppingListRow
-              canMoveDown={index < items.length - 1}
-              canMoveUp={index > 0}
-              editing={editingItemId === item.id}
-              item={item}
-              onMoveDown={() => void moveItem(item.id, 1)}
-              onMoveUp={() => void moveItem(item.id, -1)}
-              onRemove={() => void handleRemoveItem(item.id)}
-              onStartEditing={() => {
-                setReorderMode(false);
-                setEditingItemId(item.id);
-              }}
-              onStopEditing={() => setEditingItemId(null)}
-              onToggle={() => void handleToggleItem(item.id)}
-              onUpdate={(label) => {
-                void handleUpdateItem(item.id, label);
-                setEditingItemId(null);
-              }}
-              reorderMode={reorderMode}
-            />
-          )}
+          renderItem={renderItem}
           showsVerticalScrollIndicator={false}
           refreshControl={
             sync.linked ? (
@@ -515,13 +532,13 @@ function ShoppingListRow({
   canMoveUp: boolean;
   editing: boolean;
   item: ShoppingListItem;
-  onMoveDown: () => void;
-  onMoveUp: () => void;
-  onRemove: () => void;
-  onStartEditing: () => void;
+  onMoveDown: (id: string) => void;
+  onMoveUp: (id: string) => void;
+  onRemove: (id: string) => Promise<void> | void;
+  onStartEditing: (id: string) => void;
   onStopEditing: () => void;
-  onToggle: () => void;
-  onUpdate: (label: string) => void;
+  onToggle: (id: string) => Promise<void> | void;
+  onUpdate: (id: string, label: string) => Promise<void> | void;
   reorderMode: boolean;
 }) {
   const { t } = useTranslation();
@@ -547,7 +564,7 @@ function ShoppingListRow({
       return;
     }
     if (label !== item.label) {
-      onUpdate(label);
+      void onUpdate(item.id, label);
       return;
     }
     onStopEditing();
@@ -578,7 +595,7 @@ function ShoppingListRow({
           accessibilityRole="checkbox"
           accessibilityState={{ checked: item.checked }}
           disabled={editing}
-          onPress={onToggle}
+          onPress={() => void onToggle(item.id)}
           style={({ pressed }) => [
             styles.itemToggle,
             { opacity: editing ? 0.5 : pressed ? 0.72 : 1 }
@@ -622,7 +639,7 @@ function ShoppingListRow({
         ) : (
           <Pressable
             disabled={reorderMode}
-            onPress={onToggle}
+            onPress={() => void onToggle(item.id)}
             style={({ pressed }) => [
               styles.itemLabelButton,
               { opacity: pressed ? 0.72 : 1 }
@@ -654,7 +671,7 @@ function ShoppingListRow({
             accessibilityRole="button"
             accessibilityState={{ disabled: !canMoveUp }}
             disabled={!canMoveUp}
-            onPress={onMoveUp}
+            onPress={() => onMoveUp(item.id)}
             style={({ pressed }) => [
               styles.reorderAction,
               { opacity: !canMoveUp ? 0.28 : pressed ? 0.62 : 1 }
@@ -668,7 +685,7 @@ function ShoppingListRow({
             accessibilityRole="button"
             accessibilityState={{ disabled: !canMoveDown }}
             disabled={!canMoveDown}
-            onPress={onMoveDown}
+            onPress={() => onMoveDown(item.id)}
             style={({ pressed }) => [
               styles.reorderAction,
               { opacity: !canMoveDown ? 0.28 : pressed ? 0.62 : 1 }
@@ -698,13 +715,13 @@ function ShoppingListRow({
           <IconButton
             icon={Pencil}
             label={t("shoppingList.editItem")}
-            onPress={onStartEditing}
+            onPress={() => void onStartEditing(item.id)}
             style={styles.itemAction}
           />
           <IconButton
             icon={Trash2}
             label={t("shoppingList.deleteItem")}
-            onPress={onRemove}
+            onPress={() => void onRemove(item.id)}
             tone="danger"
             style={styles.itemAction}
           />
@@ -713,6 +730,8 @@ function ShoppingListRow({
     </View>
   );
 }
+
+const MemoizedShoppingListRow = React.memo(ShoppingListRow);
 
 const styles = StyleSheet.create({
   addButton: {

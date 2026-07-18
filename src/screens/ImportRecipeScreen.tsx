@@ -45,6 +45,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
     if (route.params?.url) {
       void handleImport();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route.params?.url]);
 
   async function handleImport() {
