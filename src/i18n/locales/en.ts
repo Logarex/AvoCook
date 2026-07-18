@@ -594,7 +594,7 @@ export default {
         "Open a recipe and scroll to the Timers section. Tap Start for prep, cook, or total time.\n\nTimers ring via notifications — enable them for AvoCook in your phone settings so they ring even when the screen is locked.",
       step8Title: "Settings & logs",
       step8Body:
-        "In Settings: change theme (light/dark/system), language, notifications, backups, and AI key.\n\nDiagnostic logs (Settings → Diagnostic logs) show what happened in the app — useful for troubleshooting. You can export them to send to the developer.",
+        "In Settings (accessible via the icon in the top bar): change theme (light/dark/system), language, notifications, backups, and AI key.\n\nDiagnostic logs (Settings → Diagnostic logs) show what happened in the app — useful for troubleshooting. You can export them to send to the developer.",
       step9Title: "Contact the developer",
       step9Body:
         "Found a bug or have a feature idea? Two options:\n• GitHub Issues: public bug report (recommended — helps other users too)\n• Email: for private messages\n\nDon't hesitate — every message helps improve the app!",

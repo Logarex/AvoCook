@@ -604,7 +604,7 @@ export default {
         "Ouvrez une recette et faites défiler jusqu'à la section Minuteurs. Appuyez sur Lancer pour la préparation, la cuisson ou le total.\n\nLes minuteurs sonnent via les notifications — activez-les pour AvoCook dans les réglages du téléphone pour qu'ils sonnent même écran verrouillé.",
       step8Title: "Réglages & journaux",
       step8Body:
-        "Dans les Réglages : changez le thème (clair/sombre/système), la langue, les notifications, les sauvegardes et la clé IA.\n\nLes journaux de diagnostic (Réglages → Journaux) montrent ce qui s'est passé dans l'app — utiles en cas de problème. Vous pouvez les exporter pour les envoyer au développeur.",
+        "Dans les Réglages (accessibles via l'icône dans la barre du haut) : changez le thème (clair/sombre/système), la langue, les notifications, les sauvegardes et la clé IA.\n\nLes journaux de diagnostic (Réglages → Journaux) montrent ce qui s'est passé dans l'app — utiles en cas de problème. Vous pouvez les exporter pour les envoyer au développeur.",
       step9Title: "Contacter le développeur",
       step9Body:
         "Vous avez trouvé un bug ou une idée de fonctionnalité ? Deux options :\n• GitHub Issues : rapport public (recommandé — aide aussi les autres utilisateurs)\n• Email : pour les messages privés\n\nN'hésitez pas — chaque message aide à améliorer l'app !",

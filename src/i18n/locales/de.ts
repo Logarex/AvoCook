@@ -604,7 +604,7 @@ export default {
         "Öffne ein Rezept und scrolle zum Abschnitt Zeitgeber. Tippe auf Starten.\n\nZeitgeber klingeln über Benachrichtigungen — aktiviere sie für AvoCook in den Telefoneinstellungen.",
       step8Title: "Einstellungen & Protokolle",
       step8Body:
-        "In Einstellungen: Theme, Sprache, Benachrichtigungen, Backups und KI-Schlüssel ändern.\n\nDie Diagnoseprotokolle (Einstellungen → Protokolle) zeigen, was in der App passiert ist — nützlich bei Problemen.",
+        "In Einstellungen (zugänglich über das Symbol in der oberen Leiste): Theme, Sprache, Benachrichtigungen, Backups und KI-Schlüssel ändern.\n\nDie Diagnoseprotokolle (Einstellungen → Protokolle) zeigen, was in der App passiert ist — nützlich bei Problemen.",
       step9Title: "Entwickler kontaktieren",
       step9Body:
         "Fehler gefunden oder Funktionsidee? Zwei Möglichkeiten:\n• GitHub Issues: öffentlicher Fehlerbericht (empfohlen)\n• E-Mail: für private Nachrichten\n\nZögere nicht — jede Nachricht hilft, die App zu verbessern!",

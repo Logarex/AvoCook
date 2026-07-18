@@ -601,7 +601,7 @@ export default {
         "Apri una ricetta e scorri fino alla sezione Timer. Tocca Avvia.\n\nI timer suonano tramite notifiche — abilitale per AvoCook nelle impostazioni del telefono.",
       step8Title: "Impostazioni e registri",
       step8Body:
-        "Nelle Impostazioni: cambia tema (chiaro/scuro/sistema), lingua, notifiche, backup e chiave IA.\n\nI registri diagnostici (Impostazioni → Registri) mostrano cosa è successo nell'app — utili per risolvere problemi.",
+        "Nelle Impostazioni (accessibili tramite l'icona nella barra in alto): cambia tema (chiaro/scuro/sistema), lingua, notifiche, backup e chiave IA.\n\nI registri diagnostici (Impostazioni → Registri) mostrano cosa è successo nell'app — utili per risolvere problemi.",
       step9Title: "Contattare lo sviluppatore",
       step9Body:
         "Trovato un bug o hai un'idea? Due opzioni:\n• GitHub Issues: segnalazione pubblica (consigliato)\n• Email: per messaggi privati\n\nNon esitare — ogni messaggio aiuta a migliorare l'app!",

@@ -600,7 +600,7 @@ export default {
         "Abre una receta y desplázate a la sección Temporizadores. Toca Iniciar.\n\nLos temporizadores suenan mediante notificaciones — actívalas para AvoCook en los ajustes del teléfono.",
       step8Title: "Ajustes y registros",
       step8Body:
-        "En Ajustes: cambia el tema (claro/oscuro/sistema), idioma, notificaciones, copias de seguridad y clave IA.\n\nLos registros de diagnóstico (Ajustes → Registros) muestran lo que ocurrió en la app — útil para resolver problemas.",
+        "En Ajustes (accesibles a través del ícono en la barra superior): cambia el tema (claro/oscuro/sistema), idioma, notificaciones, copias de seguridad y clave IA.\n\nLos registros de diagnóstico (Ajustes → Registros) muestran lo que ocurrió en la app — útil para resolver problemas.",
       step9Title: "Contactar al desarrollador",
       step9Body:
         "¿Encontraste un error o tienes una idea? Dos opciones:\n• GitHub Issues: reporte público (recomendado)\n• Email: para mensajes privados\n\n¡No dudes — cada mensaje ayuda a mejorar la app!",
