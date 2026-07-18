@@ -197,11 +197,7 @@ function Page1({
 }) {
   return (
     <View style={styles.page}>
-      <ScrollView
-        style={{ flex: 1 }}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: spacing.lg }}
-      >
+      <View style={{ flex: 1, justifyContent: "center" }}>
         {/* Hero */}
         <View style={styles.hero}>
           <Image
@@ -226,14 +222,6 @@ function Page1({
           </GlassPanel>
         </View>
 
-        {/* Who made it */}
-        <GlassPanel style={styles.card}>
-          <AppText variant="label" style={{ marginBottom: spacing.xs }}>
-            {t("onboarding.aboutTitle")}
-          </AppText>
-          <AppText muted>{t("onboarding.aboutBody")}</AppText>
-        </GlassPanel>
-
         {/* Local vs Nextcloud */}
         <View style={styles.modesRow}>
           <GlassPanel style={styles.modeCard}>
@@ -255,18 +243,7 @@ function Page1({
             </AppText>
           </GlassPanel>
         </View>
-
-        {/* Contact notice */}
-        <GlassPanel style={styles.contactCard}>
-          <View style={styles.modeHeader}>
-            <Wifi color={colors.primary} size={18} />
-            <AppText variant="label">{t("onboarding.contactTitle")}</AppText>
-          </View>
-          <AppText muted variant="caption">
-            {t("onboarding.contactBody")}
-          </AppText>
-        </GlassPanel>
-      </ScrollView>
+      </View>
 
       {/* CTA */}
       <View style={styles.pageActions}>
