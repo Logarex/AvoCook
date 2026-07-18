@@ -16,7 +16,11 @@ export function useSupportActions() {
           text: t("common.no", "No"),
           style: "cancel",
           onPress: () => {
-            void Linking.openURL(url);
+            void Linking.openURL(url).catch(() => {
+              if (url.startsWith("mailto:")) {
+                Alert.alert(t("support.emailFailedTitle", "No email app found"), t("support.emailFailedBody", "We couldn't open an email app. You can reach us at contact@nephoos.com"));
+              }
+            });
           }
         },
         {
@@ -33,14 +37,22 @@ export function useSupportActions() {
                     {
                       text: t("common.continue", "Continue"),
                       onPress: () => {
-                        void Linking.openURL(url);
+                        void Linking.openURL(url).catch(() => {
+                          if (url.startsWith("mailto:")) {
+                            Alert.alert(t("support.emailFailedTitle", "No email app found"), t("support.emailFailedBody", "We couldn't open an email app. You can reach us at contact@nephoos.com"));
+                          }
+                        });
                       }
                     }
                   ]
                 );
               } catch {
                 // If generating logs fails for some reason, just open the URL
-                void Linking.openURL(url);
+                void Linking.openURL(url).catch(() => {
+                  if (url.startsWith("mailto:")) {
+                    Alert.alert(t("support.emailFailedTitle", "No email app found"), t("support.emailFailedBody", "We couldn't open an email app. You can reach us at contact@nephoos.com"));
+                  }
+                });
               }
             })();
           }

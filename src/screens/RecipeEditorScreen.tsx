@@ -634,8 +634,9 @@ function EditableLineList({
   values: string[];
 }) {
   function updateItem(index: number, value: string) {
+    const isPaste = Math.abs(value.length - values[index].length) > 1 && value.includes("\n");
     onChange(
-      splitPastedLines
+      splitPastedLines && isPaste
         ? expandEditableListItem(values, index, value)
         : values.map((item, itemIndex) => (itemIndex === index ? value : item))
     );
