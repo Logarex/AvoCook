@@ -600,16 +600,16 @@ export default {
           stepManageBody: "At the bottom of each recipe, find useful tools:",
           managePrint: "Print the recipe.",
           manageShare: "Share as text or PDF.",
-          manageExport: "AvoCook file (for backup or sharing).",
-          manageSync: "Resync with the server.",
+          manageExport: "AvoCook File: Export the recipe as a file. You or a friend can import it from the 'Import' screen to add it to your library.",
+          manageSync: "Resync with the server (useful only if you use Nextcloud).",
           stepSortTitle: "Sort and Organize",
-          stepSortBody: "On the main screen, use these icons to organize:",
+          stepSortBody: "On the main page, use these icons to navigate:",
           sortFilter: "Filter recipes.",
-          sortCategory: "Manage custom categories.",
+          sortCategory: "Manage your custom categories.",
           stepAppleTitle: "Apple Reminders Integration",
-          stepAppleBody: "On iOS, sync your shopping list with Apple Reminders:",
-          appleShare: "Share the list in real time with anyone via iCloud.",
-          appleGrocery: "Set the list type to 'Groceries' in Apple Reminders to sort by aisle automatically."
+          stepAppleBody: "On iOS, you can link AvoCook to the Apple 'Reminders' system app:",
+          appleShare: "In AvoCook, export your list to find it in the 'Reminders' app. You can then share it in real time with anyone via iCloud.",
+          appleGrocery: "Also in 'Reminders', convert your list to 'Grocery' type to automatically sort your purchases by aisle!"
     },
   },
 };

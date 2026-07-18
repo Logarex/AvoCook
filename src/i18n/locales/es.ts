@@ -606,16 +606,16 @@ export default {
           stepManageBody: "En la parte inferior de cada receta, encuentra herramientas útiles:",
           managePrint: "Imprimir la receta.",
           manageShare: "Compartir como texto o PDF.",
-          manageExport: "Archivo AvoCook (para copia de seguridad o compartir).",
-          manageSync: "Sincronizar con el servidor.",
+          manageExport: "Archivo AvoCook: Exporta la receta como archivo. Tú o un amigo pueden importarla desde la pantalla 'Importar' para agregarla a la biblioteca.",
+          manageSync: "Resincronizar con el servidor (útil solo si usas Nextcloud).",
           stepSortTitle: "Ordenar y Organizar",
           stepSortBody: "En la pantalla principal, usa estos iconos para organizar:",
           sortFilter: "Filtrar recetas.",
           sortCategory: "Gestionar categorías personalizadas.",
           stepAppleTitle: "Integración Apple Recordatorios",
-          stepAppleBody: "En iOS, sincroniza tu lista de compras con Recordatorios de Apple:",
-          appleShare: "Comparte la lista en tiempo real con cualquier persona vía iCloud.",
-          appleGrocery: "Convierte la lista al tipo 'Compras' en Recordatorios para ordenar automáticamente por pasillo."
+          stepAppleBody: "En iOS, puedes vincular AvoCook a la aplicación del sistema 'Recordatorios' de Apple:",
+          appleShare: "En AvoCook, exporta tu lista para encontrarla en la app 'Recordatorios'. Luego puedes compartirla en tiempo real con cualquier persona vía iCloud.",
+          appleGrocery: "También en 'Recordatorios', ¡convierte tu lista a tipo 'Compras' para ordenar automáticamente tus compras por pasillo!"
     },
   },
 };

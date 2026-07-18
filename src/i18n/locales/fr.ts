@@ -610,16 +610,16 @@ export default {
           stepManageBody: "En bas de chaque recette, retrouvez plusieurs outils utiles :",
           managePrint: "Imprimer la recette.",
           manageShare: "Partager en texte ou en PDF.",
-          manageExport: "Fichier AvoCook (export/import de recette).",
-          manageSync: "Resynchroniser avec le serveur.",
+          manageExport: "Fichier AvoCook : Exportez la recette. Vous ou un ami pourrez l'importer depuis l'écran 'Importer' pour l'ajouter à votre bibliothèque.",
+          manageSync: "Resynchroniser avec le serveur (utile si vous utilisez Nextcloud).",
           stepSortTitle: "Trier et Organiser",
           stepSortBody: "Sur la page principale, utilisez ces icônes pour vous y retrouver :",
           sortFilter: "Filtrer les recettes.",
           sortCategory: "Gérer vos catégories personnalisées.",
           stepAppleTitle: "Intégration Apple Rappels",
-          stepAppleBody: "Sur iOS, synchronisez votre liste de courses avec l'app Rappels d'Apple :",
-          appleShare: "Partagez la liste en temps réel avec n'importe qui via iCloud.",
-          appleGrocery: "Convertissez la liste en type 'Courses' chez Apple pour trier par rayon automatiquement."
+          stepAppleBody: "Sur iOS, vous pouvez lier AvoCook à l'application système 'Rappels' d'Apple :",
+          appleShare: "Dans AvoCook, exportez votre liste vers l'app 'Rappels'. Vous pourrez ensuite la partager en temps réel avec n'importe qui via iCloud.",
+          appleGrocery: "Toujours dans 'Rappels', convertissez la liste en type 'Courses' pour trier automatiquement vos achats par rayon !"
     },
   },
 };

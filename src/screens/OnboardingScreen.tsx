@@ -209,7 +209,7 @@ function Page1({
           <AppText variant="title" style={styles.center}>
             AvoCook
           </AppText>
-          <GlassPanel style={styles.valueBadge}>
+          <GlassPanel style={[styles.valueBadge, { alignSelf: "center", borderRadius: 9999 }]}>
             <View style={styles.valueBadgeRow}>
               <Heart color={colors.primary} size={15} />
               <AppText
@@ -223,24 +223,28 @@ function Page1({
         </View>
 
         {/* Local vs Nextcloud */}
-        <View style={styles.modesRow}>
-          <GlassPanel style={styles.modeCard}>
-            <View style={styles.modeHeader}>
-              <Smartphone color={colors.primary} size={20} />
+        <View style={styles.modesColumn}>
+          <GlassPanel style={styles.modeCardHorizontal}>
+            <View style={[styles.modeIconCircle, { backgroundColor: colors.chip }]}>
+              <Smartphone color={colors.primary} size={24} />
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
               <AppText variant="label">{t("onboarding.localTitle")}</AppText>
+              <AppText muted variant="caption">
+                {t("onboarding.localBody")}
+              </AppText>
             </View>
-            <AppText muted variant="caption">
-              {t("onboarding.localBody")}
-            </AppText>
           </GlassPanel>
-          <GlassPanel style={styles.modeCard}>
-            <View style={styles.modeHeader}>
-              <Cloud color={colors.primary} size={20} />
-              <AppText variant="label">{t("onboarding.nextcloudTitle")}</AppText>
+          <GlassPanel style={styles.modeCardHorizontal}>
+            <View style={[styles.modeIconCircle, { backgroundColor: colors.chip }]}>
+              <Cloud color={colors.primary} size={24} />
             </View>
-            <AppText muted variant="caption">
-              {t("onboarding.nextcloudBody")}
-            </AppText>
+            <View style={{ flex: 1, gap: 2 }}>
+              <AppText variant="label">{t("onboarding.nextcloudTitle")}</AppText>
+              <AppText muted variant="caption">
+                {t("onboarding.nextcloudBody")}
+              </AppText>
+            </View>
           </GlassPanel>
         </View>
       </View>
@@ -372,19 +376,24 @@ const styles = StyleSheet.create({
   card: {
     marginBottom: spacing.sm,
   },
-  modesRow: {
-    flexDirection: "row",
-    gap: spacing.sm,
+  modesColumn: {
+    flexDirection: "column",
+    gap: spacing.md,
     marginBottom: spacing.sm,
   },
-  modeCard: {
-    flex: 1,
-    gap: spacing.xs,
-  },
-  modeHeader: {
-    alignItems: "center",
+  modeCardHorizontal: {
     flexDirection: "row",
-    gap: spacing.xs,
+    alignItems: "center",
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+  },
+  modeIconCircle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: "center",
+    justifyContent: "center",
   },
   contactCard: {
     gap: spacing.xs,

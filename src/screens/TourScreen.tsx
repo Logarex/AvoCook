@@ -9,11 +9,12 @@ import {
   ExternalLink,
   FileText,
   FileUp,
-  Filter,
+  ListFilter,
   ListOrdered,
   ListPlus,
   Printer,
   RefreshCw,
+  Share,
   Share2,
   HelpCircle,
   Mail,
@@ -68,7 +69,7 @@ function getTourSteps(isLocalMode: boolean, isIos: boolean): TourStep[] {
     { icon: Download, titleKey: "tour.step3Title", bodyKey: "tour.step3Body" },
     { icon: Camera, titleKey: "tour.step4Title", bodyKey: "tour.step4Body", extra: (ctx) => <AIGuide colors={ctx.colors} t={ctx.t} /> },
     { icon: ChefHat, titleKey: "tour.step5Title", bodyKey: "tour.step5Body" },
-    { icon: Filter, titleKey: "tour.stepSortTitle", bodyKey: "tour.stepSortBody", extra: (ctx) => <SortGuide {...ctx} /> },
+    { icon: ListFilter, titleKey: "tour.stepSortTitle", bodyKey: "tour.stepSortBody", extra: (ctx) => <SortGuide {...ctx} /> },
     { icon: ShoppingCart, titleKey: "tour.step6Title", bodyKey: "tour.step6Body" },
   ];
 
@@ -402,7 +403,7 @@ function SortGuide({ colors, t }: { colors: any; t: any }) {
     <View style={styles.guideListContainer}>
       <View style={styles.guideListItem}>
         <View style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}>
-          <Filter color={colors.primary} size={18} />
+          <ListFilter color={colors.primary} size={18} />
         </View>
         <AppText variant="caption" style={styles.guideListText}>{t("tour.sortFilter")}</AppText>
       </View>
@@ -462,7 +463,7 @@ function AppleRemindersGuide({ t }: { colors: any; t: any }) {
     <View style={styles.guideListContainer}>
       <View style={styles.guideListItem}>
         <View style={[styles.iconCircleSmall, { backgroundColor: "rgba(10, 132, 255, 0.1)" }]}>
-          <ListOrdered color="#0A84FF" size={18} />
+          <Share color="#0A84FF" size={18} />
         </View>
         <AppText variant="caption" style={styles.guideListText}>{t("tour.appleShare")}</AppText>
       </View>

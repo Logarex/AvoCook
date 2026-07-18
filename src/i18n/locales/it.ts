@@ -607,16 +607,16 @@ export default {
           stepManageBody: "In fondo a ogni ricetta troverai strumenti utili:",
           managePrint: "Stampa la ricetta.",
           manageShare: "Condividi come testo o PDF.",
-          manageExport: "File AvoCook (per backup o condivisione).",
-          manageSync: "Sincronizza con il server.",
+          manageExport: "File AvoCook: Esporta la ricetta come file. Tu o un amico potrete importarla dalla schermata 'Importa' per aggiungerla alla libreria.",
+          manageSync: "Risincronizza con il server (utile solo se usi Nextcloud).",
           stepSortTitle: "Ordina e Organizza",
           stepSortBody: "Nella schermata principale, usa queste icone per organizzare:",
           sortFilter: "Filtra le ricette.",
           sortCategory: "Gestisci categorie personalizzate.",
           stepAppleTitle: "Integrazione Promemoria Apple",
-          stepAppleBody: "Su iOS, sincronizza la lista della spesa con i Promemoria di Apple:",
-          appleShare: "Condividi la lista in tempo reale tramite iCloud.",
-          appleGrocery: "Imposta il tipo di lista su 'Spesa' in Promemoria per ordinare automaticamente per corsia."
+          stepAppleBody: "Su iOS, puoi collegare AvoCook all'app di sistema 'Promemoria' di Apple:",
+          appleShare: "In AvoCook, esporta la tua lista per trovarla nell'app 'Promemoria'. Potrai condividerla in tempo reale con chiunque tramite iCloud.",
+          appleGrocery: "Sempre in 'Promemoria', converti la tua lista in tipo 'Spesa' per ordinare automaticamente i tuoi acquisti per corsia!"
     },
   },
 };
