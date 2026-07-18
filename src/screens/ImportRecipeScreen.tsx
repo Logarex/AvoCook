@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { ArrowLeft, Camera, Download, Upload, Sparkles } from "lucide-react-native";
+import { ArrowLeft, Camera, Download, Upload, Sparkles, Globe, FileJson } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import * as ImagePicker from "expo-image-picker";
@@ -23,7 +23,7 @@ import {
 import { persistRecipeImage } from "../features/recipes/recipeImages";
 import { logError } from "../features/logging/appLogger";
 import type { RootStackParamList } from "../navigation/types";
-import { spacing } from "../theme/colors";
+import { spacing, radius } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ImportRecipe">;
@@ -41,12 +41,10 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
 
   const hasLlmKey = Boolean(llmSettings.apiKey.trim());
 
-  // Auto-submit if a URL was provided via navigation params
   React.useEffect(() => {
     if (route.params?.url) {
       void handleImport();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route.params?.url]);
 
   async function handleImport() {
@@ -112,8 +110,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
   }
 
   async function processCamera() {
-    // Lazily fetch the current permission status (we use { get: false } on the hook
-    // to avoid an automatic native call on mount, which caused crashes on some Android devices)
     const currentPermission = cameraPermission ?? (await getCameraPermission());
     if (!currentPermission?.granted) {
       const result = await requestCameraPermission();
@@ -169,7 +165,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         logError("app", "Failed to persist recipe image", imgErr);
       }
 
-      // Save the recipe
       const saved = await createRecipe(recipe);
       if (saved.id) {
         navigation.replace("RecipeDetail", { id: saved.id });
@@ -258,7 +253,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
   }, [t]);
 
   return (
-    <Screen contentStyle={styles.screen}>
+    <Screen>
       <View style={styles.toolbar}>
         <IconButton
           icon={ArrowLeft}
@@ -269,7 +264,29 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         <View style={styles.toolbarSpacer} />
       </View>
 
-      <GlassPanel style={styles.form}>
+      {/* Error State */}
+      {error ? (
+        <GlassPanel style={styles.errorCard} intensity={80}>
+          <AppText accessibilityRole="alert" style={{ color: colors.danger, textAlign: "center" }}>
+            {error}
+          </AppText>
+        </GlassPanel>
+      ) : null}
+
+      {/* Global Loading Indicator */}
+      {submitting ? (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator color={colors.primary} size="large" />
+        </View>
+      ) : null}
+
+      {/* Section 1: URL Import */}
+      <GlassPanel style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Globe color={colors.primary} size={22} />
+          <AppText variant="label">{t("importRecipe.action")}</AppText>
+        </View>
+        
         <TextField
           autoCapitalize="none"
           autoCorrect={false}
@@ -280,11 +297,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
           textContentType="URL"
           value={url}
         />
-        {error ? (
-          <AppText accessibilityRole="alert" style={{ color: colors.danger }}>
-            {error}
-          </AppText>
-        ) : null}
         <PrimaryButton
           disabled={!url.trim() || submitting !== null}
           icon={Download}
@@ -292,23 +304,15 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
           // eslint-disable-next-line @typescript-eslint/no-misused-promises
           onPress={handleImport}
         />
-        <View style={styles.divider} />
-        <AppText muted variant="caption">
-          {t("importRecipe.sharedFileHint")}
-        </AppText>
-        <PrimaryButton
-          disabled={submitting !== null}
-          icon={Upload}
-          label={
-            submitting === "file"
-              ? t("common.loading")
-              : t("importRecipe.fileAction")
-          }
-          // eslint-disable-next-line @typescript-eslint/no-misused-promises
-          onPress={handlePickSharedFile}
-          variant="ghost"
-        />
-        <View style={styles.divider} />
+      </GlassPanel>
+
+      {/* Section 2: AI Magic */}
+      <GlassPanel style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Sparkles color={colors.primary} size={22} />
+          <AppText variant="label">{t("importRecipe.aiTitle", "Intelligence Artificielle")}</AppText>
+        </View>
+
         {hasLlmKey ? (
           <>
             <AppText muted variant="caption">
@@ -317,13 +321,31 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
             <PrimaryButton
               disabled={submitting !== null}
               icon={Camera}
-              label={
-                submitting === "photo"
-                  ? t("common.loading")
-                  : t("importRecipe.photoAction")
-              }
+              label={submitting === "photo" ? t("common.loading") : t("importRecipe.photoAction")}
               // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onPress={handleScanPhoto}
+              variant="ghost"
+            />
+
+            <View style={styles.divider} />
+
+            <AppText muted variant="caption">
+              {t("importRecipe.textHint", "Ou décrivez la recette avec du texte :")}
+            </AppText>
+            <TextField
+              autoCapitalize="sentences"
+              label={t("importRecipe.promptLabel", "Description de la recette")}
+              onChangeText={setPrompt}
+              placeholder={t("importRecipe.promptPlaceholder", "Ex: Une pizza vegan aux champignons...")}
+              value={prompt}
+              multiline
+            />
+            <PrimaryButton
+              disabled={!prompt.trim() || submitting !== null}
+              icon={Sparkles}
+              label={submitting === "text" ? t("common.loading") : t("importRecipe.generateTextAction", "Générer la recette")}
+              // eslint-disable-next-line @typescript-eslint/no-misused-promises
+              onPress={handleTextPromptSubmit}
               variant="ghost"
             />
           </>
@@ -332,58 +354,72 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
             {t("importRecipe.photoNoKeyHint")}
           </AppText>
         )}
-        <View style={styles.divider} />
-        {hasLlmKey ? (
-          <>
-            <AppText muted variant="caption">
-              {t("importRecipe.textHint", "Or describe a recipe using text:")}
-            </AppText>
-            <TextField
-              autoCapitalize="sentences"
-              label={t("importRecipe.promptLabel", "Recipe description")}
-              onChangeText={setPrompt}
-              placeholder={t("importRecipe.promptPlaceholder", "e.g., A vegan pizza with mushrooms")}
-              value={prompt}
-              multiline
-            />
-            <PrimaryButton
-              disabled={!prompt.trim() || submitting !== null}
-              icon={Sparkles}
-              label={
-                submitting === "text"
-                  ? t("common.loading")
-                  : t("importRecipe.generateTextAction", "Generate Recipe")
-              }
-              // eslint-disable-next-line @typescript-eslint/no-misused-promises
-              onPress={handleTextPromptSubmit}
-              variant="ghost"
-            />
-          </>
-        ) : null}
-        {submitting ? <ActivityIndicator color={colors.primary} /> : null}
+      </GlassPanel>
+
+      {/* Section 3: File Backup */}
+      <GlassPanel style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <FileJson color={colors.primary} size={22} />
+          <AppText variant="label">{t("importRecipe.fileAction")}</AppText>
+        </View>
+        
+        <AppText muted variant="caption">
+          {t("importRecipe.sharedFileHint")}
+        </AppText>
+        <PrimaryButton
+          disabled={submitting !== null}
+          icon={Upload}
+          label={submitting === "file" ? t("common.loading") : t("importRecipe.fileAction")}
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
+          onPress={handlePickSharedFile}
+          variant="ghost"
+        />
       </GlassPanel>
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  form: {
-    gap: spacing.md
-  },
-  divider: {
-    height: StyleSheet.hairlineWidth,
-    opacity: 0.5
-  },
-  screen: {
-    justifyContent: "center"
-  },
   toolbar: {
     alignItems: "center",
     flexDirection: "row",
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.sm,
+    paddingTop: spacing.xs,
   },
   toolbarSpacer: {
     width: 44
+  },
+  section: {
+    gap: spacing.md,
+  },
+  sectionHeader: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    opacity: 0.5,
+    backgroundColor: "gray",
+    marginVertical: spacing.xs,
+  },
+  errorCard: {
+    padding: spacing.md,
+    borderColor: "rgba(255, 59, 48, 0.3)",
+    borderWidth: 1,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 10,
+    backgroundColor: "rgba(0,0,0,0.1)",
+    borderRadius: radius.lg,
   }
 });
 

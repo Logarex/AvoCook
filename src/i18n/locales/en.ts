@@ -364,7 +364,7 @@ export default {
       success: "Recipe imported",
       photoAction: "Scan a photo",
       photoHint:
-        "Take a photo of a recipe (magazine, handwritten notes) or a finished dish to import the recipe using Artificial Intelligence.",
+        "Take a photo of a recipe or a finished dish to import the recipe using Artificial Intelligence.",
       photoNoKeyHint:
         "Configure an AI key in Settings → Advanced to scan recipe photos.",
       photoFailed: "The recipe could not be extracted from this photo. Try a clearer image.",

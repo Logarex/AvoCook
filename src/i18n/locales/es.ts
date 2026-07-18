@@ -367,7 +367,7 @@ export default {
       success: "Receta importada",
       photoAction: "Escanear foto",
       photoHint:
-        "Toma una foto de una receta (revista, notas) o un plato para importar la receta usando Inteligencia Artificial.",
+        "Toma una foto de una receta o un plato para importar la receta usando Inteligencia Artificial.",
       photoNoKeyHint:
         "Configura una clave de IA en Ajustes → Avanzado para escanear fotos de recetas.",
       photoFailed: "No se pudo extraer la receta de esta foto. Intenta con una imagen más clara.",

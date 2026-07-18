@@ -368,7 +368,7 @@ export default {
       success: "Rezept importiert",
       photoAction: "Foto scannen",
       photoHint:
-        "Fotografiere ein Rezept (Magazin, Notizen) oder ein Gericht, um das Rezept mithilfe künstlicher Intelligenz zu importieren.",
+        "Fotografiere ein Rezept oder ein Gericht, um das Rezept mithilfe künstlicher Intelligenz zu importieren.",
       photoNoKeyHint:
         "Konfiguriere einen KI-Schlüssel in Einstellungen → Erweitert, um Rezeptfotos zu scannen.",
       photoFailed: "Das Rezept konnte aus diesem Foto nicht extrahiert werden. Versuche ein schärferes Bild.",
