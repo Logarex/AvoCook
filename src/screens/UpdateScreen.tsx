@@ -1,12 +1,10 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
-  Apple,
   BookOpen,
-  Cloud,
-  FileDown,
   LayoutTemplate,
   Settings,
-  Sparkles,
+  SlidersHorizontal,
+  ArrowRight,
 } from "lucide-react-native";
 import { Image } from "expo-image";
 import React from "react";
@@ -84,20 +82,20 @@ export function UpdateScreen({ navigation }: Props) {
           </GlassPanel>
 
           <GlassPanel style={styles.featureCardHorizontal}>
-            <View style={[styles.featureIconCircle, { backgroundColor: "rgba(10, 132, 255, 0.1)" }]}>
-              <Apple color="#0A84FF" size={24} />
+            <View style={[styles.featureIconCircle, { backgroundColor: colors.chip }]}>
+              <Settings color={colors.primary} size={24} />
             </View>
             <View style={{ flex: 1, gap: 2 }}>
-              <AppText variant="label">{t("update.feat3Title", "Intégration Apple Rappels (iOS)")}</AppText>
+              <AppText variant="label">{t("update.feat3Title", "Nouveaux réglages")}</AppText>
               <AppText muted variant="caption">
-                {t("update.feat3Body", "Un tutoriel exclusif pour synchroniser en direct vos listes de courses avec l'application native Rappels.")}
+                {t("update.feat3Body", "Un écran de réglages repensé en grandes sections claires.")}
               </AppText>
             </View>
           </GlassPanel>
 
           <GlassPanel style={styles.featureCardHorizontal}>
             <View style={[styles.featureIconCircle, { backgroundColor: colors.chip }]}>
-              <Settings color={colors.primary} size={24} />
+              <SlidersHorizontal color={colors.primary} size={24} />
             </View>
             <View style={{ flex: 1, gap: 2 }}>
               <AppText variant="label">{t("update.feat4Title", "Nouvelles options & améliorations")}</AppText>
@@ -112,7 +110,7 @@ export function UpdateScreen({ navigation }: Props) {
       {/* CTA */}
       <View style={styles.pageActions}>
         <PrimaryButton
-          icon={Sparkles}
+          icon={ArrowRight}
           label={t("update.continue", "Continuer vers mes recettes")}
           onPress={() => void handleContinue()}
         />
