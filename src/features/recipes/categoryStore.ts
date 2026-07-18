@@ -10,12 +10,12 @@ export type CategoryRename = {
   to: string;
 };
 
-export async function loadCustomCategories() {
+export async function loadCustomCategories(showDefaults: boolean = true) {
   const storedCategories = await loadStoredCustomCategories();
   const hiddenDefaults = await loadHiddenDefaultCategories();
 
   const allCategories = [
-    ...DEFAULT_RECIPE_CATEGORIES.filter((cat) => !hiddenDefaults.includes(cat)),
+    ...(showDefaults ? DEFAULT_RECIPE_CATEGORIES.filter((cat) => !hiddenDefaults.includes(cat)) : []),
     ...storedCategories
   ];
 

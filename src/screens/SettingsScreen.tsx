@@ -73,6 +73,8 @@ export function SettingsScreen({ navigation }: Props) {
     enableBackupReminders,
     language,
     llmSettings,
+    showDefaultCategories,
+    setShowDefaultCategories,
     setKeepRecipesLocal,
     setKeepScreenAwake,
     setEnableBackupReminders,
@@ -437,6 +439,24 @@ export function SettingsScreen({ navigation }: Props) {
           thumbColor={Platform.OS === "android" ? (keepRecipesLocal || isLocalMode ? colors.primary : colors.textMuted) : undefined}
           trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
           value={keepRecipesLocal || isLocalMode}
+        />
+      </GlassPanel>
+
+      <GlassPanel style={styles.rowSection}>
+        <View style={styles.rowText}>
+          <AppText variant="label">{t("settings.showDefaultCategories")}</AppText>
+          <AppText muted variant="caption">
+            {t("settings.showDefaultCategoriesDescription")}
+          </AppText>
+        </View>
+        <Switch
+          accessibilityLabel={t("settings.showDefaultCategories")}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: showDefaultCategories ?? isLocalMode }}
+          onValueChange={(value) => void setShowDefaultCategories(value)}
+          thumbColor={Platform.OS === "android" ? ((showDefaultCategories ?? isLocalMode) ? colors.primary : colors.textMuted) : undefined}
+          trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
+          value={showDefaultCategories ?? isLocalMode}
         />
       </GlassPanel>
 

@@ -81,10 +81,11 @@ const RecipesContext = createContext<RecipesContextValue | undefined>(
 export function RecipesProvider({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
   const { credentials, getClient, isLocalMode } = useAuth();
-  const { keepRecipesLocal } = usePreferences();
+  const { keepRecipesLocal, showDefaultCategories } = usePreferences();
   const { watchLongAction } = useLongActionToast();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const effectiveShowDefaultCategories = showDefaultCategories ?? isLocalMode;
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
@@ -140,8 +141,8 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   }, [reloadLocal]);
 
   useEffect(() => {
-    void loadCustomCategories().then(setCustomCategories);
-  }, []);
+    void loadCustomCategories(effectiveShowDefaultCategories).then(setCustomCategories);
+  }, [effectiveShowDefaultCategories]);
 
   const sync = useCallback(async () => {
     const client = getClient();
@@ -312,7 +313,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     try {
       const result = await importRecipeBackup(backup, getClient(), repositoryOptions);
       setRecipes(result.recipes);
-      setCustomCategories(await loadCustomCategories());
+      setCustomCategories(await loadCustomCategories(effectiveShowDefaultCategories));
       return result;
     } finally {
       stopLongActionNotice();
@@ -329,7 +330,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
           repositoryOptions
         );
         setRecipes(result.recipes);
-        setCustomCategories(await loadCustomCategories());
+        setCustomCategories(await loadCustomCategories(effectiveShowDefaultCategories));
         return result;
       } finally {
         stopLongActionNotice();
@@ -355,16 +356,18 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   );
 
   const createCategory = useCallback(async (category: string) => {
-    const nextCategories = await saveCustomCategory(category);
+    await saveCustomCategory(category);
+    const nextCategories = await loadCustomCategories(effectiveShowDefaultCategories);
     setCustomCategories(nextCategories);
     return nextCategories;
-  }, []);
+  }, [effectiveShowDefaultCategories]);
 
   const deleteCategory = useCallback(async (category: string) => {
-    const nextCategories = await deleteCustomCategory(category);
+    await deleteCustomCategory(category);
+    const nextCategories = await loadCustomCategories(effectiveShowDefaultCategories);
     setCustomCategories(nextCategories);
     return nextCategories;
-  }, []);
+  }, [effectiveShowDefaultCategories]);
 
   const renameCategory = useCallback(
     async (category: string, nextCategory: string) => {
@@ -377,7 +380,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
           repositoryOptions,
           recipes
         );
-        const nextCategories = await loadCustomCategories();
+        const nextCategories = await loadCustomCategories(effectiveShowDefaultCategories);
         setRecipes(result.recipes);
         setCustomCategories(nextCategories);
         return nextCategories;
@@ -385,7 +388,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
         stopLongActionNotice();
       }
     },
-    [getClient, recipes, repositoryOptions, watchLongAction]
+    [getClient, recipes, repositoryOptions, watchLongAction, effectiveShowDefaultCategories]
   );
 
   const getRecipe = useCallback(

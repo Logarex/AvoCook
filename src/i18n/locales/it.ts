@@ -401,7 +401,9 @@ export default {
       italian: "Italiano",
       keepAwake: "Tieni lo schermo acceso su una ricetta",
       keepRecipesLocal:
-        "Mantieni una copia locale delle ricette per l'uso offline",
+        "Conserva una copia locale delle ricette per l'uso offline",
+      showDefaultCategories: "Mostra le categorie predefinite",
+      showDefaultCategoriesDescription: "Includi categorie standard come Antipasto, Piatto principale, Dessert, ecc.",
       server: "Server",
       localMode: "Modalità locale",
       localOnly: "Uso senza account Nextcloud",

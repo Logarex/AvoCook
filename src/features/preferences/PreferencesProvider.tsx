@@ -34,9 +34,11 @@ type PreferencesContextValue = {
   enableBackupReminders: boolean;
   language: AppLanguage;
   llmSettings: LlmSettings;
+  showDefaultCategories: boolean | null;
   setKeepScreenAwake: (enabled: boolean) => Promise<void>;
   setKeepRecipesLocal: (enabled: boolean) => Promise<void>;
   setEnableBackupReminders: (enabled: boolean) => Promise<void>;
+  setShowDefaultCategories: (enabled: boolean | null) => Promise<void>;
   setLanguage: (language: AppLanguage) => Promise<void>;
   setLlmSettings: (settings: LlmSettings) => Promise<void>;
 };
@@ -44,6 +46,7 @@ type PreferencesContextValue = {
 const KEEP_AWAKE_KEY = "preferences.keepScreenAwake";
 const KEEP_RECIPES_LOCAL_KEY = "preferences.keepRecipesLocal";
 const ENABLE_BACKUP_REMINDERS_KEY = "preferences.enableBackupReminders";
+const SHOW_DEFAULT_CATEGORIES_KEY = "preferences.showDefaultCategories";
 const LANGUAGE_KEY = "preferences.language";
 const LANGUAGE_USER_SET_KEY = "preferences.language.userSet";
 const LLM_PROVIDER_KEY = "preferences.llm.provider";
@@ -71,6 +74,7 @@ export function PreferencesProvider({
   const [keepScreenAwake, setKeepScreenAwakeState] = useState(true);
   const [keepRecipesLocal, setKeepRecipesLocalState] = useState(true);
   const [enableBackupReminders, setEnableBackupRemindersState] = useState(true);
+  const [showDefaultCategories, setShowDefaultCategoriesState] = useState<boolean | null>(null);
   const [language, setLanguageState] = useState<AppLanguage>(
     resolveAppLanguage(i18n.language)
   );
@@ -83,6 +87,7 @@ export function PreferencesProvider({
       AsyncStorage.getItem(KEEP_AWAKE_KEY),
       AsyncStorage.getItem(KEEP_RECIPES_LOCAL_KEY),
       AsyncStorage.getItem(ENABLE_BACKUP_REMINDERS_KEY),
+      AsyncStorage.getItem(SHOW_DEFAULT_CATEGORIES_KEY),
       AsyncStorage.getItem(LANGUAGE_KEY),
       AsyncStorage.getItem(LANGUAGE_USER_SET_KEY),
       AsyncStorage.getItem(LLM_PROVIDER_KEY),
@@ -94,6 +99,7 @@ export function PreferencesProvider({
         storedKeepAwake,
         storedKeepRecipesLocal,
         storedEnableBackupReminders,
+        storedShowDefaultCategories,
         storedLanguage,
         storedUserSet,
         storedProviderId,
@@ -115,6 +121,12 @@ export function PreferencesProvider({
           storedEnableBackupReminders === "false"
         ) {
           setEnableBackupRemindersState(storedEnableBackupReminders === "true");
+        }
+        if (
+          storedShowDefaultCategories === "true" ||
+          storedShowDefaultCategories === "false"
+        ) {
+          setShowDefaultCategoriesState(storedShowDefaultCategories === "true");
         }
         if (storedUserSet === "true" && isAppLanguage(storedLanguage)) {
           setLanguageState(storedLanguage);
@@ -150,6 +162,15 @@ export function PreferencesProvider({
     await AsyncStorage.setItem(ENABLE_BACKUP_REMINDERS_KEY, String(enabled));
   }, []);
 
+  const setShowDefaultCategories = useCallback(async (enabled: boolean | null) => {
+    setShowDefaultCategoriesState(enabled);
+    if (enabled === null) {
+      await AsyncStorage.removeItem(SHOW_DEFAULT_CATEGORIES_KEY);
+    } else {
+      await AsyncStorage.setItem(SHOW_DEFAULT_CATEGORIES_KEY, String(enabled));
+    }
+  }, []);
+
   const setLanguage = useCallback(async (nextLanguage: AppLanguage) => {
     setLanguageState(nextLanguage);
     await AsyncStorage.setItem(LANGUAGE_KEY, nextLanguage);
@@ -174,11 +195,13 @@ export function PreferencesProvider({
       keepScreenAwake,
       keepRecipesLocal,
       enableBackupReminders,
+      showDefaultCategories,
       language,
       llmSettings,
       setKeepScreenAwake,
       setKeepRecipesLocal,
       setEnableBackupReminders,
+      setShowDefaultCategories,
       setLanguage,
       setLlmSettings
     }),
@@ -186,11 +209,13 @@ export function PreferencesProvider({
       keepScreenAwake,
       keepRecipesLocal,
       enableBackupReminders,
+      showDefaultCategories,
       language,
       llmSettings,
       setKeepScreenAwake,
       setKeepRecipesLocal,
       setEnableBackupReminders,
+      setShowDefaultCategories,
       setLanguage,
       setLlmSettings
     ]
