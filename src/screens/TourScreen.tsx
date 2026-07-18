@@ -7,8 +7,6 @@ import {
   CheckCircle,
   Download,
   ExternalLink,
-  FileText,
-  Globe,
   HelpCircle,
   Mail,
   Plus,
@@ -16,7 +14,6 @@ import {
   ShoppingCart,
   Smartphone,
   Timer,
-  X,
 } from "lucide-react-native";
 import React, { useCallback, useRef, useState } from "react";
 import {
@@ -24,20 +21,15 @@ import {
   Animated,
   Dimensions,
   Linking,
-  Modal,
-  Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "../components/AppText";
-import { GlassPanel } from "../components/GlassPanel";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { useOnboarding } from "../features/onboarding/useOnboarding";
-import { LLM_PROVIDERS } from "../features/import/photoRecipeImport";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -78,7 +70,7 @@ const STEPS: TourStep[] = [
     icon: Camera,
     titleKey: "tour.step4Title",
     bodyKey: "tour.step4Body",
-    extra: (colors, t) => <AIProviderList colors={colors} t={t} />,
+    extra: (colors, t) => <AIGuide colors={colors} t={t} />,
   },
   // 5 — Categories + nutriscore
   {
@@ -104,7 +96,7 @@ const STEPS: TourStep[] = [
     titleKey: "tour.step8Title",
     bodyKey: "tour.step8Body",
   },
-  // 9 — Contact buttons
+  // 9 — Contact
   {
     icon: HelpCircle,
     titleKey: "tour.step9Title",
@@ -188,33 +180,33 @@ export function TourScreen({ navigation }: Props) {
   return (
     <View
       style={[
-        styles.overlay,
+        styles.root,
         {
-          backgroundColor: "rgba(0,0,0,0.65)",
+          backgroundColor: colors.background,
           paddingTop: insets.top,
           paddingBottom: insets.bottom + spacing.lg,
         },
       ]}
     >
-      {/* Skip button */}
-      {!isLast && (
-        <Pressable
-          onPress={() => void handleSkip()}
-          style={[styles.skipButton, { paddingTop: spacing.xs }]}
-          hitSlop={8}
-        >
-          <AppText
-            variant="caption"
-            style={{ color: "rgba(255,255,255,0.7)" }}
+      {/* Top Bar with Skip Button */}
+      <View style={styles.topBar}>
+        <View style={{ flex: 1 }} />
+        {!isLast && (
+          <Pressable
+            onPress={() => void handleSkip()}
+            style={styles.skipButton}
+            hitSlop={8}
           >
-            {t("tour.skip")}
-          </AppText>
-        </Pressable>
-      )}
+            <AppText variant="label" style={{ color: colors.textMuted }}>
+              {t("tour.skip")}
+            </AppText>
+          </Pressable>
+        )}
+      </View>
 
       {/* Progress bar */}
       <View
-        style={[styles.progressTrack, { backgroundColor: "rgba(255,255,255,0.2)" }]}
+        style={[styles.progressTrack, { backgroundColor: colors.border }]}
       >
         <Animated.View
           style={[
@@ -224,17 +216,9 @@ export function TourScreen({ navigation }: Props) {
         />
       </View>
 
-      {/* Step counter */}
-      <AppText
-        variant="caption"
-        style={styles.stepCounter}
-      >
-        {t("tour.stepCounter", { current: step + 1, total: STEPS.length })}
-      </AppText>
-
-      {/* Card */}
-      <View style={styles.cardWrapper}>
-        <GlassPanel style={styles.card} intensity={55}>
+      {/* Main Content Area */}
+      <View style={styles.contentWrapper}>
+        <View style={styles.centerContainer}>
           {/* Icon circle */}
           <View
             style={[
@@ -242,24 +226,21 @@ export function TourScreen({ navigation }: Props) {
               { backgroundColor: colors.chip },
             ]}
           >
-            <Icon color={colors.primary} size={32} strokeWidth={1.8} />
+            <Icon color={colors.primary} size={48} strokeWidth={1.5} />
           </View>
 
-          <AppText variant="subtitle" style={styles.stepTitle}>
+          {/* Texts */}
+          <AppText variant="title" style={styles.stepTitle}>
             {t(current.titleKey as Parameters<typeof t>[0])}
           </AppText>
 
-          <ScrollView
-            style={{ maxHeight: 240 }}
-            showsVerticalScrollIndicator={false}
-            nestedScrollEnabled
-          >
-            <AppText style={styles.stepBody}>
-              {t(current.bodyKey as Parameters<typeof t>[0])}
-            </AppText>
-            {current.extra?.(colors, t)}
-          </ScrollView>
-        </GlassPanel>
+          <AppText style={styles.stepBody} muted>
+            {t(current.bodyKey as Parameters<typeof t>[0])}
+          </AppText>
+
+          {/* Extra Elements (e.g. AI Guide) */}
+          {current.extra?.(colors, t)}
+        </View>
       </View>
 
       {/* Navigation buttons */}
@@ -290,8 +271,8 @@ export function TourScreen({ navigation }: Props) {
                   backgroundColor:
                     i === step
                       ? colors.primary
-                      : "rgba(255,255,255,0.35)",
-                  width: i === step ? 20 : 8,
+                      : colors.border,
+                  width: i === step ? 24 : 8,
                 },
               ]}
             />
@@ -303,10 +284,10 @@ export function TourScreen({ navigation }: Props) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Extra content: AI Providers
+// Extra content: AI Guide
 // ─────────────────────────────────────────────────────────────────────────────
 
-function AIProviderList({
+function AIGuide({
   colors,
   t,
 }: {
@@ -316,114 +297,61 @@ function AIProviderList({
   type Provider = {
     label: string;
     free: boolean;
-    freeNote?: string;
     url: string;
     id: string;
   };
 
   const providers: Provider[] = [
-    {
-      id: "gemini",
-      label: "Google Gemini",
-      free: true,
-      freeNote: t("tour.geminiNote"),
-      url: "https://aistudio.google.com/apikey",
-    },
-    {
-      id: "openai",
-      label: "OpenAI (ChatGPT)",
-      free: false,
-      url: "https://platform.openai.com/api-keys",
-    },
-    {
-      id: "groq",
-      label: "Groq",
-      free: true,
-      freeNote: t("tour.groqNote"),
-      url: "https://console.groq.com/keys",
-    },
-    {
-      id: "mistral",
-      label: "Mistral (Le Chat)",
-      free: false,
-      url: "https://console.mistral.ai/api-keys",
-    },
-    {
-      id: "claude",
-      label: "Anthropic (Claude)",
-      free: false,
-      url: "https://console.anthropic.com/settings/keys",
-    },
-    {
-      id: "grok",
-      label: "Grok (xAI)",
-      free: false,
-      url: "https://console.x.ai/",
-    },
+    { id: "gemini", label: "Gemini", free: true, url: "https://aistudio.google.com/apikey" },
+    { id: "groq", label: "Groq", free: true, url: "https://console.groq.com/keys" },
+    { id: "openai", label: "OpenAI", free: false, url: "https://platform.openai.com/api-keys" },
+    { id: "claude", label: "Anthropic", free: false, url: "https://console.anthropic.com/settings/keys" },
+    { id: "mistral", label: "Mistral", free: false, url: "https://console.mistral.ai/api-keys" },
+    { id: "grok", label: "Grok", free: false, url: "https://console.x.ai/" },
   ];
 
   return (
-    <View style={{ marginTop: spacing.md }}>
-      <AppText
-        variant="label"
-        style={{ marginBottom: spacing.sm }}
-      >
-        {t("tour.aiProvidersTitle")}
+    <View style={styles.aiGuideContainer}>
+      <AppText variant="label" style={{ marginBottom: spacing.sm, textAlign: "center" }}>
+        {t("tour.aiGuideTitle")}
       </AppText>
-      {providers.map((p) => (
-        <Pressable
-          key={p.id}
-          onPress={() => void Linking.openURL(p.url)}
-          style={({ pressed }) => [
-            styles.providerRow,
-            {
-              backgroundColor: pressed
-                ? colors.chip
-                : "transparent",
-              borderColor: colors.border,
-            },
-          ]}
-        >
-          <View style={{ flex: 1 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: spacing.xs }}>
-              <AppText variant="label" style={{ fontSize: 14 }}>
+
+      <View style={styles.providerGrid}>
+        {providers.map((p) => (
+          <Pressable
+            key={p.id}
+            onPress={() => void Linking.openURL(p.url)}
+            style={({ pressed }) => [
+              styles.providerGridItem,
+              {
+                backgroundColor: pressed ? colors.chip : "transparent",
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <AppText variant="label" style={{ fontSize: 13 }} numberOfLines={1}>
                 {p.label}
               </AppText>
               {p.free && (
-                <View
-                  style={[
-                    styles.freeBadge,
-                    { backgroundColor: colors.chip },
-                  ]}
-                >
-                  <AppText
-                    variant="caption"
-                    style={{ color: colors.primary, fontWeight: "700" }}
-                  >
+                <View style={[styles.freeBadgeCompact, { backgroundColor: colors.chip }]}>
+                  <AppText variant="caption" style={{ color: colors.primary, fontWeight: "700", fontSize: 9 }}>
                     {t("tour.free")}
                   </AppText>
                 </View>
               )}
             </View>
-            {p.freeNote && (
-              <AppText
-                muted
-                variant="caption"
-                style={{ marginTop: 2 }}
-              >
-                {p.freeNote}
-              </AppText>
-            )}
-          </View>
-          <ExternalLink color={colors.textMuted} size={14} />
-        </Pressable>
-      ))}
+            <ExternalLink color={colors.textMuted} size={12} />
+          </Pressable>
+        ))}
+      </View>
+
       <AppText
         muted
         variant="caption"
-        style={{ marginTop: spacing.sm }}
+        style={{ marginTop: spacing.md, textAlign: "center" }}
       >
-        {t("tour.aiHowToNote")}
+        {t("tour.aiGuideNote")}
       </AppText>
     </View>
   );
@@ -448,48 +376,38 @@ function ContactLinks({
   }
 
   return (
-    <View style={{ marginTop: spacing.md, gap: spacing.sm }}>
+    <View style={styles.contactContainer}>
       <Pressable
         onPress={openGithub}
         style={({ pressed }) => [
-          styles.contactRow,
+          styles.contactCardHorizontal,
           {
             backgroundColor: pressed ? colors.chip : "transparent",
             borderColor: colors.border,
           },
         ]}
       >
-        <Bug color={colors.primary} size={18} />
-        <View style={{ flex: 1 }}>
-          <AppText variant="label" style={{ fontSize: 14 }}>
-            {t("support.github")}
-          </AppText>
-          <AppText muted variant="caption">
-            {t("tour.githubNote")}
-          </AppText>
-        </View>
+        <Bug color={colors.primary} size={20} />
+        <AppText variant="label" style={{ fontSize: 14 }}>
+          GitHub
+        </AppText>
         <ExternalLink color={colors.textMuted} size={14} />
       </Pressable>
 
       <Pressable
         onPress={openEmail}
         style={({ pressed }) => [
-          styles.contactRow,
+          styles.contactCardHorizontal,
           {
             backgroundColor: pressed ? colors.chip : "transparent",
             borderColor: colors.border,
           },
         ]}
       >
-        <Mail color={colors.primary} size={18} />
-        <View style={{ flex: 1 }}>
-          <AppText variant="label" style={{ fontSize: 14 }}>
-            {t("support.email")}
-          </AppText>
-          <AppText muted variant="caption">
-            {t("tour.emailNote")}
-          </AppText>
-        </View>
+        <Mail color={colors.primary} size={20} />
+        <AppText variant="label" style={{ fontSize: 14 }}>
+          Email
+        </AppText>
         <ExternalLink color={colors.textMuted} size={14} />
       </Pressable>
     </View>
@@ -501,19 +419,22 @@ function ContactLinks({
 // ─────────────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  overlay: {
+  root: {
     flex: 1,
+    paddingHorizontal: spacing.xl,
+  },
+  topBar: {
+    flexDirection: "row",
+    height: 44,
     alignItems: "center",
-    paddingHorizontal: spacing.lg,
   },
   skipButton: {
-    alignSelf: "flex-end",
     padding: spacing.xs,
   },
   progressTrack: {
     borderRadius: radius.pill,
     height: 4,
-    marginTop: spacing.sm,
+    marginTop: spacing.xs,
     overflow: "hidden",
     width: "100%",
   },
@@ -521,34 +442,72 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     height: "100%",
   },
-  stepCounter: {
-    color: "rgba(255,255,255,0.55)",
-    marginTop: spacing.sm,
-  },
-  cardWrapper: {
+  contentWrapper: {
     flex: 1,
     justifyContent: "center",
-    width: "100%",
   },
-  card: {
-    gap: spacing.sm,
-    paddingVertical: spacing.lg,
+  centerContainer: {
+    alignItems: "center",
+    width: "100%",
   },
   iconCircle: {
     alignItems: "center",
-    alignSelf: "center",
-    borderRadius: 36,
-    height: 72,
+    borderRadius: 48,
+    height: 96,
     justifyContent: "center",
-    marginBottom: spacing.xs,
-    width: 72,
+    marginBottom: spacing.xl,
+    width: 96,
   },
   stepTitle: {
     textAlign: "center",
+    marginBottom: spacing.md,
+    fontSize: 24,
   },
   stepBody: {
-    lineHeight: 22,
     textAlign: "center",
+    fontSize: 16,
+    lineHeight: 24,
+  },
+  aiGuideContainer: {
+    marginTop: spacing.xl,
+    width: "100%",
+  },
+  providerGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    gap: spacing.sm,
+  },
+  providerGridItem: {
+    alignItems: "center",
+    borderRadius: radius.sm,
+    borderWidth: 1,
+    flexDirection: "row",
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    width: "48%", // 2 columns
+  },
+  freeBadgeCompact: {
+    borderRadius: radius.pill,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  contactContainer: {
+    flexDirection: "row",
+    gap: spacing.sm,
+    marginTop: spacing.xl,
+    width: "100%",
+  },
+  contactCardHorizontal: {
+    flex: 1,
+    alignItems: "center",
+    borderRadius: radius.md,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: spacing.sm,
+    justifyContent: "center",
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
   },
   navRow: {
     flexDirection: "row",
@@ -562,36 +521,13 @@ const styles = StyleSheet.create({
   dots: {
     alignItems: "center",
     flexDirection: "row",
-    gap: spacing.xs,
+    gap: spacing.sm,
     justifyContent: "center",
-    marginTop: spacing.md,
+    marginTop: spacing.xl,
   },
   dot: {
     borderRadius: radius.pill,
     height: 8,
   },
-  providerRow: {
-    alignItems: "center",
-    borderRadius: radius.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: "row",
-    gap: spacing.sm,
-    marginBottom: spacing.xs,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs + 2,
-  },
-  freeBadge: {
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 2,
-  },
-  contactRow: {
-    alignItems: "center",
-    borderRadius: radius.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: "row",
-    gap: spacing.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.sm,
-  },
 });
+
