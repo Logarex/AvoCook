@@ -621,5 +621,19 @@ export default {
           appleShare: "Dans AvoCook, exportez votre liste vers l'app 'Rappels'. Vous pourrez ensuite la partager en temps réel avec n'importe qui via iCloud.",
           appleGrocery: "Toujours dans 'Rappels', convertissez la liste en type 'Courses' pour trier automatiquement vos achats par rayon !"
     },
+    update: {
+      title: "Quoi de neuf ?",
+      subtitle: "Découvrez les nouveautés de la version 3.2.0",
+      feat1Title: "Nouveaux tutoriels & écrans d'accueil",
+      feat1Body: "Un accueil repensé et des guides détaillés pour mieux découvrir l'application.",
+      feat2Title: "Nouvel écran d'import",
+      feat2Body: "Plus clair et plus aéré avec des sections distinctes pour scanner une recette.",
+      feat3Title: "Intégration Apple Rappels (iOS)",
+      feat3Body: "Un tutoriel exclusif pour synchroniser en direct vos listes de courses avec l'application native Rappels.",
+      feat4Title: "Nouvelles options & améliorations",
+      feat4Body: "Possibilité de cacher les catégories par défaut, meilleure gestion des copiés-collés, et divers correctifs.",
+      continue: "Continuer vers mes recettes",
+      settingsButton: "Quoi de neuf dans cette version",
+    },
   },
 };

@@ -621,5 +621,19 @@ export default {
           appleShare: "Exportieren Sie Ihre Liste in AvoCook, um sie in der App 'Erinnerungen' zu finden. Sie können sie dann in Echtzeit über iCloud teilen.",
           appleGrocery: "Wandeln Sie Ihre Liste in 'Erinnerungen' in den Typ 'Einkäufe' um, um Ihre Einkäufe automatisch nach Abteilungen zu sortieren!"
     },
+    update: {
+      title: "Was ist neu?",
+      subtitle: "Entdecken Sie die neuen Funktionen in Version 3.2.0",
+      feat1Title: "Neue Tutorials & Startbildschirme",
+      feat1Body: "Ein neu gestalteter Startbildschirm und detaillierte Anleitungen, um die App besser kennenzulernen.",
+      feat2Title: "Neuer Import-Bildschirm",
+      feat2Body: "Übersichtlicher und geräumiger, mit eigenen Bereichen zum Scannen von Rezepten.",
+      feat3Title: "Apple Erinnerungen-Integration (iOS)",
+      feat3Body: "Ein exklusives Tutorial zur Live-Synchronisierung Ihrer Einkaufslisten mit der nativen Erinnerungen-App.",
+      feat4Title: "Neue Optionen & Verbesserungen",
+      feat4Body: "Möglichkeit, Standardkategorien auszublenden, besseres Einfügen von Listen und verschiedene Fehlerbehebungen.",
+      continue: "Weiter zu meinen Rezepten",
+      settingsButton: "Was ist neu in dieser Version",
+    },
   },
 };

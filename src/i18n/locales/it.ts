@@ -618,5 +618,19 @@ export default {
           appleShare: "In AvoCook, esporta la tua lista per trovarla nell'app 'Promemoria'. Potrai condividerla in tempo reale con chiunque tramite iCloud.",
           appleGrocery: "Sempre in 'Promemoria', converti la tua lista in tipo 'Spesa' per ordinare automaticamente i tuoi acquisti per corsia!"
     },
+    update: {
+      title: "Cosa c'è di nuovo?",
+      subtitle: "Scopri le novità della versione 3.2.0",
+      feat1Title: "Nuovi tutorial e schermate iniziali",
+      feat1Body: "Una schermata di benvenuto ridisegnata e guide dettagliate per esplorare l'app.",
+      feat2Title: "Nuova schermata di importazione",
+      feat2Body: "Più chiara e spaziosa, con sezioni distinte per la scansione delle ricette.",
+      feat3Title: "Integrazione Promemoria Apple (iOS)",
+      feat3Body: "Un tutorial esclusivo per sincronizzare dal vivo le tue liste della spesa con l'app nativa Promemoria.",
+      feat4Title: "Nuove opzioni e miglioramenti",
+      feat4Body: "Opzione per nascondere le categorie predefinite, migliore gestione del copia-incolla delle liste e varie correzioni.",
+      continue: "Continua verso le mie ricette",
+      settingsButton: "Cosa c'è di nuovo in questa versione",
+    },
   },
 };

@@ -26,6 +26,7 @@ import { ImportRecipeScreen } from "./screens/ImportRecipeScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import { OnboardingScreen } from "./screens/OnboardingScreen";
 import { TourScreen } from "./screens/TourScreen";
+import { UpdateScreen } from "./screens/UpdateScreen";
 import { RecipeDetailScreen } from "./screens/RecipeDetailScreen";
 import { RecipeEditorScreen } from "./screens/RecipeEditorScreen";
 import { RecipeListScreen } from "./screens/RecipeListScreen";
@@ -77,7 +78,7 @@ function RootNavigator() {
   const { credentials, hydrated, isLocalMode } = useAuth();
   const { colors, isDark, navTheme } = useAppTheme();
   const reducedMotion = useReducedMotion();
-  const { introDone, tourDone, onboardingHydrated } = useOnboarding();
+  const { introDone, tourDone, showUpdateScreen, onboardingHydrated } = useOnboarding();
   const loadingLogo = isDark
     ? require("../assets/logo-dark.png")
     : require("../assets/logo.png");
@@ -104,9 +105,11 @@ function RootNavigator() {
     ? "Onboarding"
     : isAuthenticated && !tourDone
       ? "Tour"
-      : isAuthenticated
-        ? "Recipes"
-        : "Login";
+      : isAuthenticated && showUpdateScreen
+        ? "Update"
+        : isAuthenticated
+          ? "Recipes"
+          : "Login";
 
   return (
     <>
@@ -129,6 +132,7 @@ function RootNavigator() {
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Tour" component={TourScreen} />
+          <Stack.Screen name="Update" component={UpdateScreen} />
           <Stack.Screen name="Recipes" component={RecipeListScreen} />
           <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
           <Stack.Screen name="RecipeEditor" component={RecipeEditorScreen} />

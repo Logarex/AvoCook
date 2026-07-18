@@ -611,5 +611,19 @@ export default {
           appleShare: "In AvoCook, export your list to find it in the 'Reminders' app. You can then share it in real time with anyone via iCloud.",
           appleGrocery: "Also in 'Reminders', convert your list to 'Grocery' type to automatically sort your purchases by aisle!"
     },
+    update: {
+      title: "What's new?",
+      subtitle: "Discover the new features in version 3.2.0",
+      feat1Title: "New tutorials & home screens",
+      feat1Body: "A redesigned welcome screen and detailed guides to help you explore the app.",
+      feat2Title: "New import screen",
+      feat2Body: "Clearer and more spacious, with distinct sections for scanning recipes.",
+      feat3Title: "Apple Reminders Integration (iOS)",
+      feat3Body: "An exclusive tutorial on how to sync your shopping lists live with the native Reminders app.",
+      feat4Title: "New options & improvements",
+      feat4Body: "Option to hide default categories, better clipboard handling for lists, and various bug fixes.",
+      continue: "Continue to my recipes",
+      settingsButton: "What's new in this version",
+    },
   },
 };

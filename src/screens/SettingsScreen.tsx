@@ -21,6 +21,8 @@ import {
   RefreshCw,
   Save,
   ShieldCheck,
+  Smartphone,
+  Sparkles,
   Upload,
   User
 } from "lucide-react-native";
@@ -841,6 +843,12 @@ export function SettingsScreen({ navigation }: Props) {
       ) : null}
 
       <View style={styles.actions}>
+        <PrimaryButton
+          icon={Sparkles}
+          label={t("update.settingsButton", "Quoi de neuf dans cette version")}
+          onPress={() => navigation.navigate("Update")}
+          variant="ghost"
+        />
         <PrimaryButton
           icon={BookOpen}
           label={t("settings.replayIntro")}

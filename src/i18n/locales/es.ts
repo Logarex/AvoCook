@@ -617,5 +617,19 @@ export default {
           appleShare: "En AvoCook, exporta tu lista para encontrarla en la app 'Recordatorios'. Luego puedes compartirla en tiempo real con cualquier persona vía iCloud.",
           appleGrocery: "También en 'Recordatorios', ¡convierte tu lista a tipo 'Compras' para ordenar automáticamente tus compras por pasillo!"
     },
+    update: {
+      title: "¿Qué hay de nuevo?",
+      subtitle: "Descubre las novedades de la versión 3.2.0",
+      feat1Title: "Nuevos tutoriales y pantallas de inicio",
+      feat1Body: "Una pantalla de bienvenida rediseñada y guías detalladas para descubrir la aplicación.",
+      feat2Title: "Nueva pantalla de importación",
+      feat2Body: "Más clara y espaciosa, con secciones distintas para escanear recetas.",
+      feat3Title: "Integración Apple Recordatorios (iOS)",
+      feat3Body: "Un tutorial exclusivo para sincronizar en vivo tus listas de compras con la app nativa Recordatorios.",
+      feat4Title: "Nuevas opciones y mejoras",
+      feat4Body: "Opción para ocultar categorías predeterminadas, mejor gestión de listas copiadas y varias correcciones.",
+      continue: "Continuar a mis recetas",
+      settingsButton: "Qué hay de nuevo en esta versión",
+    },
   },
 };
