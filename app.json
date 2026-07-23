@@ -30,6 +30,7 @@
       "supportsTablet": true,
       "buildNumber": "2",
       "bundleIdentifier": "org.epimac.avocook",
+      "appStoreUrl": "https://apps.apple.com/app/avocook",
       "icon": {
         "light": "./assets/icon.png",
         "dark": "./assets/icon-dark.png"
@@ -50,6 +51,7 @@
     },
     "android": {
       "package": "app.avocook.mobile",
+      "playStoreUrl": "https://play.google.com/store/apps/details?id=app.avocook.mobile",
       "permissions": [],
       "blockedPermissions": [
         "android.permission.RECORD_AUDIO",

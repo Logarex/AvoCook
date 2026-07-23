@@ -11,12 +11,12 @@ function getNextBackupMilestone(lastAcknowledgedCount: number): number {
   return nextMultiple * 30;
 }
 
-// Store review milestones: 5.
+// Store review milestones: first request at 5 recipes, then every 20 recipes (25, 45, 65…).
 function getNextReviewMilestone(lastRequestedCount: number): number {
   if (lastRequestedCount < 5) {
     return 5;
   }
-  return Infinity;
+  return lastRequestedCount + 20;
 }
 
 export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean) {
