@@ -177,10 +177,11 @@ function ShareIntentHandler() {
             logInfo("app", "Share intent skipped (invalid URL)", { rawUrl });
           }
         } else if (shareIntent.type === "text" && shareIntent.text) {
-          // Sometimes URLs are shared as plain text
+          // Sometimes URLs are shared as plain text, often with the page title prepended
           const rawText = shareIntent.text.trim();
-          if (rawText.startsWith("http://") || rawText.startsWith("https://")) {
-            navigation.navigate("ImportRecipe", { url: rawText });
+          const urlMatch = rawText.match(/https?:\/\/[^\s]+/);
+          if (urlMatch && urlMatch[0]) {
+            navigation.navigate("ImportRecipe", { url: urlMatch[0] });
           } else {
             logInfo("app", "Share intent skipped (text not URL)");
           }
