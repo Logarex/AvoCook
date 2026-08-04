@@ -176,6 +176,7 @@ export function DiagnosticsLogsScreen({ navigation }: Props) {
                 Alert.alert(t("logs.exportFailedTitle"), t("logs.exportFailed"))
               );
             }}
+            style={{ flex: 1 }}
             variant="primary"
           />
           <PrimaryButton
@@ -183,6 +184,7 @@ export function DiagnosticsLogsScreen({ navigation }: Props) {
             icon={Trash2}
             label={t("logs.clear")}
             onPress={confirmClearLogs}
+            style={{ flex: 1 }}
             variant="danger"
           />
         </View>
@@ -263,7 +265,6 @@ const styles = StyleSheet.create({
   },
   actionRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
     gap: spacing.sm
   },
   supportColumn: {

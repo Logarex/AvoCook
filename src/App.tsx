@@ -13,7 +13,7 @@ import "./i18n";
 import { AppText } from "./components/AppText";
 import { LongActionToastProvider } from "./components/LongActionToast";
 import { AuthProvider, useAuth } from "./features/auth/AuthProvider";
-import { logInfo } from "./features/logging/appLogger";
+import { logInfo, logError } from "./features/logging/appLogger";
 import { installNetworkLogger } from "./features/logging/networkLogger";
 import { PreferencesProvider } from "./features/preferences/PreferencesProvider";
 import { RecipesProvider } from "./features/recipes/RecipesProvider";
@@ -162,24 +162,38 @@ function ShareIntentHandler() {
     // Small delay to ensure the navigator is mounted and ready
     const timer = setTimeout(() => {
       try {
+        logInfo("app", "Processing share intent", {
+          type: shareIntent.type,
+          webUrl: shareIntent.webUrl,
+          textLength: shareIntent.text?.length,
+          filesCount: shareIntent.files?.length
+        });
+        
         if (shareIntent.type === "weburl" && shareIntent.webUrl) {
           const rawUrl = shareIntent.webUrl.trim();
           if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
             navigation.navigate("ImportRecipe", { url: rawUrl });
+          } else {
+            logInfo("app", "Share intent skipped (invalid URL)", { rawUrl });
           }
         } else if (shareIntent.type === "text" && shareIntent.text) {
           // Sometimes URLs are shared as plain text
           const rawText = shareIntent.text.trim();
           if (rawText.startsWith("http://") || rawText.startsWith("https://")) {
             navigation.navigate("ImportRecipe", { url: rawText });
+          } else {
+            logInfo("app", "Share intent skipped (text not URL)");
           }
         } else if (shareIntent.type === "file" && shareIntent.files?.[0]?.path) {
           // File shared from Fichiers / Files app (.avocook backup)
           const filePath = shareIntent.files[0].path;
           navigation.navigate("ImportRecipe", { fileUri: filePath });
+        } else {
+          logInfo("app", "Share intent skipped (unsupported type/content)");
         }
-      } catch {
+      } catch (error) {
         // Navigation error — navigator may not be ready yet, ignore gracefully
+        logError("app", "Share intent navigation failed", error);
       }
       resetShareIntent();
     }, 150);

@@ -91,7 +91,6 @@ export function SettingsScreen({ navigation }: Props) {
   const [duplicateAction, setDuplicateAction] = useState(false);
   const [notificationState, setNotificationState] =
     useState<TimerNotificationState>("unavailable");
-  const [showAdvanced, setShowAdvanced] = useState(true);
   const [showApiKey, setShowApiKey] = useState(false);
   const [llmDraft, setLlmDraft] = useState<LlmSettings | null>(null);
   const currentLlm = llmDraft ?? llmSettings;
@@ -101,13 +100,13 @@ export function SettingsScreen({ navigation }: Props) {
   const { openGithubIssue, contactByEmail } = useSupportActions();
   const { resetOnboarding, markUpdateSeen } = useOnboarding();
 
-  // Auto-fetch available models when the section opens and API key is already set
+  // Auto-fetch available models when the API key is already set
   React.useEffect(() => {
-    if (showAdvanced && currentLlm.apiKey.trim() && availableModels === null && !fetchingModels) {
+    if (currentLlm.apiKey.trim() && availableModels === null && !fetchingModels) {
       void handleFetchModels();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showAdvanced, currentLlm.apiKey]);
+  }, [currentLlm.apiKey]);
 
   function handleSelectProvider(id: LlmProviderId) {
     const preset = LLM_PROVIDERS.find((p) => p.id === id) ?? LLM_PROVIDERS[0];
@@ -699,24 +698,12 @@ export function SettingsScreen({ navigation }: Props) {
       </GlassPanel>
 
       <GlassPanel style={styles.section}>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => setShowAdvanced((v) => !v)}
-          style={showAdvanced ? styles.advancedHeader : [styles.advancedHeader, { marginBottom: 0 }]}
-        >
-          <View style={[styles.sectionHeader, { marginBottom: 0 }]}>
-            <Bot color={colors.primary} size={22} />
-            <AppText variant="label">{t("settings.advanced")}</AppText>
-          </View>
-          <ChevronDown
-            color={colors.textMuted}
-            size={18}
-            style={{ transform: [{ rotate: showAdvanced ? "180deg" : "0deg" }] }}
-          />
-        </Pressable>
+        <View style={styles.sectionHeader}>
+          <Bot color={colors.primary} size={22} />
+          <AppText variant="label">{t("settings.advanced")}</AppText>
+        </View>
 
-        {showAdvanced ? (
-          <View style={{ marginTop: 16, gap: spacing.md }}>
+        <View style={{ marginTop: 16, gap: spacing.md }}>
             <AppText muted variant="caption" style={{ marginBottom: 16 }}>
               {t("settings.llmHint")}
             </AppText>
@@ -798,13 +785,6 @@ export function SettingsScreen({ navigation }: Props) {
             ) : null}
 
             <PrimaryButton
-              icon={Save}
-              label={t("common.save", "Save")}
-              onPress={handleSaveLlmSettings}
-              disabled={!llmDraft && llmSettings.apiKey === currentLlm.apiKey && llmSettings.model === currentLlm.model && llmSettings.baseUrl === currentLlm.baseUrl && llmSettings.providerId === currentLlm.providerId}
-            />
-
-            <PrimaryButton
               disabled={!currentLlm.apiKey.trim() || fetchingModels}
               icon={RefreshCw}
               label={
@@ -864,13 +844,12 @@ export function SettingsScreen({ navigation }: Props) {
             ) : null}
 
             <PrimaryButton
-              label={t("settings.closeAdvanced")}
-              onPress={() => setShowAdvanced(false)}
-              variant="ghost"
-              style={{ marginTop: 16 }}
+              icon={Save}
+              label={t("common.save", "Save")}
+              onPress={handleSaveLlmSettings}
+              disabled={!llmDraft && llmSettings.apiKey === currentLlm.apiKey && llmSettings.model === currentLlm.model && llmSettings.baseUrl === currentLlm.baseUrl && llmSettings.providerId === currentLlm.providerId}
             />
           </View>
-        ) : null}
       </GlassPanel>
 
       <GlassPanel style={styles.section}>

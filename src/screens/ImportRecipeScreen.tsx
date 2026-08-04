@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Camera, Download, Upload, Sparkles, Globe, FileJson } from "lucide-react-native";
+import { ArrowLeft, Camera, Download, Upload, Sparkles, Globe, FileJson } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -7,6 +7,7 @@ import i18n from "../i18n";
 import * as ImagePicker from "expo-image-picker";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
+import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
@@ -302,9 +303,18 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
   }, [t]);
 
   return (
-    <Screen>
+    <Screen showScrollTop={false}>
       <View style={styles.toolbar}>
-        <AppText variant="subtitle">{t("importRecipe.title")}</AppText>
+        <IconButton
+          icon={ArrowLeft}
+          label={t("common.back", "Retour")}
+          onPress={() => navigation.goBack()}
+        />
+        <View style={styles.toolbarTitleContainer}>
+          <AppText variant="subtitle">{t("importRecipe.title")}</AppText>
+        </View>
+        {/* Empty view for flex balancing */}
+        <View style={{ width: 44 }} />
       </View>
 
       {/* Error State */}
@@ -425,9 +435,13 @@ const styles = StyleSheet.create({
   toolbar: {
     alignItems: "center",
     flexDirection: "row",
-    justifyContent: "center",
+    justifyContent: "space-between",
     paddingHorizontal: spacing.sm,
     paddingTop: spacing.xs,
+  },
+  toolbarTitleContainer: {
+    alignItems: "center",
+    flex: 1,
   },
   section: {
     gap: spacing.md,
