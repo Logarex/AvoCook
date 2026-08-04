@@ -91,7 +91,7 @@ export function SettingsScreen({ navigation }: Props) {
   const [duplicateAction, setDuplicateAction] = useState(false);
   const [notificationState, setNotificationState] =
     useState<TimerNotificationState>("unavailable");
-  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(true);
   const [showApiKey, setShowApiKey] = useState(false);
   const [llmDraft, setLlmDraft] = useState<LlmSettings | null>(null);
   const currentLlm = llmDraft ?? llmSettings;
@@ -99,7 +99,15 @@ export function SettingsScreen({ navigation }: Props) {
   const [fetchingModels, setFetchingModels] = useState(false);
   const [fetchModelsError, setFetchModelsError] = useState<string | null>(null);
   const { openGithubIssue, contactByEmail } = useSupportActions();
-  const { resetOnboarding } = useOnboarding();
+  const { resetOnboarding, markUpdateSeen } = useOnboarding();
+
+  // Auto-fetch available models when the section opens and API key is already set
+  React.useEffect(() => {
+    if (showAdvanced && currentLlm.apiKey.trim() && availableModels === null && !fetchingModels) {
+      void handleFetchModels();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showAdvanced, currentLlm.apiKey]);
 
   function handleSelectProvider(id: LlmProviderId) {
     const preset = LLM_PROVIDERS.find((p) => p.id === id) ?? LLM_PROVIDERS[0];
@@ -708,7 +716,7 @@ export function SettingsScreen({ navigation }: Props) {
         </Pressable>
 
         {showAdvanced ? (
-          <View style={{ marginTop: 16 }}>
+          <View style={{ marginTop: 16, gap: spacing.md }}>
             <AppText muted variant="caption" style={{ marginBottom: 16 }}>
               {t("settings.llmHint")}
             </AppText>
@@ -883,6 +891,7 @@ export function SettingsScreen({ navigation }: Props) {
             label={t("settings.replayIntro")}
             onPress={() => {
               void resetOnboarding().then(() => {
+                void markUpdateSeen();
                 navigation.navigate("Onboarding");
               });
             }}
@@ -936,8 +945,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm
   },
   backupButton: {
-    flex: 1,
-    minWidth: 150
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 140,
   },
   rowSection: {
     alignItems: "center",

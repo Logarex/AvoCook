@@ -155,15 +155,36 @@ function ShareIntentHandler() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   React.useEffect(() => {
-    if (hasShareIntent && shareIntent.type) {
-      if (shareIntent.type === "weburl" && shareIntent.webUrl) {
-        navigation.navigate("ImportRecipe", { url: shareIntent.webUrl });
-      } else if (shareIntent.type === "text" && shareIntent.text) {
-        // sometimes URLs are shared as plain text
-        navigation.navigate("ImportRecipe", { url: shareIntent.text });
+    if (!hasShareIntent || !shareIntent.type) {
+      return;
+    }
+
+    // Small delay to ensure the navigator is mounted and ready
+    const timer = setTimeout(() => {
+      try {
+        if (shareIntent.type === "weburl" && shareIntent.webUrl) {
+          const rawUrl = shareIntent.webUrl.trim();
+          if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
+            navigation.navigate("ImportRecipe", { url: rawUrl });
+          }
+        } else if (shareIntent.type === "text" && shareIntent.text) {
+          // Sometimes URLs are shared as plain text
+          const rawText = shareIntent.text.trim();
+          if (rawText.startsWith("http://") || rawText.startsWith("https://")) {
+            navigation.navigate("ImportRecipe", { url: rawText });
+          }
+        } else if (shareIntent.type === "file" && shareIntent.files?.[0]?.path) {
+          // File shared from Fichiers / Files app (.avocook backup)
+          const filePath = shareIntent.files[0].path;
+          navigation.navigate("ImportRecipe", { fileUri: filePath });
+        }
+      } catch {
+        // Navigation error — navigator may not be ready yet, ignore gracefully
       }
       resetShareIntent();
-    }
+    }, 150);
+
+    return () => clearTimeout(timer);
   }, [hasShareIntent, shareIntent, navigation, resetShareIntent]);
 
   return null;

@@ -95,8 +95,28 @@ export function getPrintLabels(t: (key: string) => string): RecipePrintLabels {
   };
 }
 
+/**
+ * Maps JSON-LD Nutrition keys to their i18n translation key.
+ * This ensures every nutrition field is displayed in the user's language.
+ */
+const NUTRITION_KEY_MAP: Record<string, string> = {
+  calories: "editor.caloriesKcal",
+  carbohydrateContent: "editor.carbsGrams",
+  cholesterolContent: "editor.cholesterolMg",
+  fatContent: "editor.fatGrams",
+  fiberContent: "editor.fiberGrams",
+  proteinContent: "editor.proteinGrams",
+  saturatedFatContent: "editor.saturatedFatGrams",
+  servingSize: "recipes.share.servingSize",
+  sodiumContent: "editor.sodiumMg",
+  sugarContent: "editor.sugarGrams",
+  transFatContent: "editor.transFatGrams",
+  unsaturatedFatContent: "editor.unsaturatedFatGrams",
+};
+
 export function normalizeNutrition(
-  nutrition?: Nutrition | Nutrition[] | null,
+  nutrition: Nutrition | Nutrition[] | null | undefined,
+  t: (key: string) => string,
 ): [string, string][] {
   const node = Array.isArray(nutrition) ? nutrition[0] : nutrition;
   if (!node || typeof node !== "object") {
@@ -105,7 +125,12 @@ export function normalizeNutrition(
 
   return Object.entries(node)
     .filter(([key, value]) => key !== "@type" && Boolean(value))
-    .map(([key, value]) => [key.replace(/Content$/, ""), String(value)]);
+    .map(([key, value]) => {
+      const i18nKey = NUTRITION_KEY_MAP[key];
+      // Use translated label if we know the key, otherwise strip "Content" suffix
+      const label = i18nKey ? t(i18nKey) : key.replace(/Content$/, "");
+      return [label, String(value)] as [string, string];
+    });
 }
 
 export function isUserDismissedShareOrPrint(error: unknown) {

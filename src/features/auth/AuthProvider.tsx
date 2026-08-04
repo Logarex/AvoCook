@@ -38,17 +38,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
 
   useEffect(() => {
-    void Promise.all([
-      SecureStore.getItemAsync(CREDENTIALS_KEY),
-      AsyncStorage.getItem(LOCAL_MODE_KEY)
-    ])
-      .then(([stored, localMode]) => {
+    async function loadAuth() {
+      // Retry logic: on some Android devices, SecureStore may return null
+      // before the keychain is fully ready after boot/unlock.
+      const tryLoadCredentials = async (attempt: number): Promise<string | null> => {
+        const stored = await SecureStore.getItemAsync(CREDENTIALS_KEY);
+        if (stored === null && attempt < 2) {
+          // Brief delay then retry — covers race condition on Android
+          await new Promise((resolve) => setTimeout(resolve, 350));
+          return tryLoadCredentials(attempt + 1);
+        }
+        return stored;
+      };
+
+      try {
+        const [stored, localMode] = await Promise.all([
+          tryLoadCredentials(0),
+          AsyncStorage.getItem(LOCAL_MODE_KEY)
+        ]);
         if (stored) {
           setCredentials(JSON.parse(stored) as NextcloudCredentials);
         }
         setIsLocalMode(localMode === "true" && !stored);
-      })
-      .finally(() => setHydrated(true));
+      } catch (error) {
+        logError("auth", "Failed to load auth state", error);
+      } finally {
+        setHydrated(true);
+      }
+    }
+    void loadAuth();
   }, []);
 
   const login = useCallback(async (nextCredentials: NextcloudCredentials) => {

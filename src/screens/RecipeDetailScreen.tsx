@@ -233,8 +233,8 @@ function RecipeDetailContent({
   const source = getImageSource();
   const canUpdateFromSource = isExternalRecipeSourceUrl(recipe?.url);
   const nutrition = useMemo(
-    () => normalizeNutrition(recipe?.nutrition),
-    [recipe?.nutrition],
+    () => normalizeNutrition(recipe?.nutrition, t),
+    [recipe?.nutrition, t],
   );
   const baseServings = Math.max(1, recipe?.recipeYield || 1);
   const showServings = !recipe?.localMeta?.hideServings;

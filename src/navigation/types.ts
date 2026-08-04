@@ -18,6 +18,7 @@ export type RootStackParamList = {
   ImportRecipe:
     | {
         url?: string;
+        fileUri?: string;
       }
     | undefined;
   ShoppingList:

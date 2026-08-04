@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { ArrowLeft, Camera, Download, Upload, Sparkles, Globe, FileJson } from "lucide-react-native";
+import { Camera, Download, Upload, Sparkles, Globe, FileJson } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
 import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -7,7 +7,6 @@ import i18n from "../i18n";
 import * as ImagePicker from "expo-image-picker";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
-import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
@@ -31,7 +30,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "ImportRecipe">;
 export function ImportRecipeScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
-  const { importBackup, importRecipe, createRecipe } = useRecipes();
+  const { importBackup, importBackupFile, importRecipe, createRecipe } = useRecipes();
   const { llmSettings } = usePreferences();
   const [url, setUrl] = useState(route.params?.url ?? "");
   const [prompt, setPrompt] = useState("");
@@ -41,12 +40,21 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
 
   const hasLlmKey = Boolean(llmSettings.apiKey.trim());
 
+  // Auto-import URL shared via share extension
   React.useEffect(() => {
     if (route.params?.url) {
-      void handleImport();
+      void handleImportUrl(route.params.url);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route.params?.url]);
+
+  // Auto-import .avocook file shared via share extension
+  React.useEffect(() => {
+    if (route.params?.fileUri) {
+      void handleImportSharedFile(route.params.fileUri);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [route.params?.fileUri]);
 
   async function handleImport() {
     setSubmitting("url");
@@ -60,6 +68,46 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
       }
     } catch {
       setError(t("importRecipe.failed"));
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
+  async function handleImportUrl(targetUrl: string) {
+    setUrl(targetUrl);
+    setSubmitting("url");
+    setError(null);
+    try {
+      const recipe = await importRecipe(targetUrl);
+      if (recipe.id) {
+        navigation.replace("RecipeDetail", { id: recipe.id });
+      } else {
+        navigation.goBack();
+      }
+    } catch {
+      setError(t("importRecipe.failed"));
+    } finally {
+      setSubmitting(null);
+    }
+  }
+
+  async function handleImportSharedFile(fileUri: string) {
+    setSubmitting("file");
+    setError(null);
+    try {
+      const result = await importBackupFile(fileUri);
+      showImportSuccess(result);
+      if (navigation.canGoBack()) {
+        navigation.goBack();
+      } else {
+        navigation.replace("Recipes");
+      }
+    } catch (error) {
+      setError(
+        error instanceof Error && error.message === "INVALID_RECIPE_BACKUP"
+          ? t("importRecipe.invalidFile")
+          : t("importRecipe.fileFailed")
+      );
     } finally {
       setSubmitting(null);
     }
@@ -256,13 +304,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
   return (
     <Screen>
       <View style={styles.toolbar}>
-        <IconButton
-          icon={ArrowLeft}
-          label={t("common.back")}
-          onPress={() => navigation.goBack()}
-        />
         <AppText variant="subtitle">{t("importRecipe.title")}</AppText>
-        <View style={styles.toolbarSpacer} />
       </View>
 
       {/* Error State */}
@@ -337,7 +379,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
               autoCapitalize="sentences"
               label={t("importRecipe.promptLabel", "Description de la recette")}
               onChangeText={setPrompt}
-              placeholder={t("importRecipe.promptPlaceholder", "Ex: Une pizza vegan aux champignons...")}
               value={prompt}
               multiline
             />
@@ -384,12 +425,9 @@ const styles = StyleSheet.create({
   toolbar: {
     alignItems: "center",
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     paddingHorizontal: spacing.sm,
     paddingTop: spacing.xs,
-  },
-  toolbarSpacer: {
-    width: 44
   },
   section: {
     gap: spacing.md,

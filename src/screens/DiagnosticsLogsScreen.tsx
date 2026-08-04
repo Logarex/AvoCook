@@ -176,7 +176,6 @@ export function DiagnosticsLogsScreen({ navigation }: Props) {
                 Alert.alert(t("logs.exportFailedTitle"), t("logs.exportFailed"))
               );
             }}
-            style={styles.actionButton}
             variant="primary"
           />
           <PrimaryButton
@@ -184,24 +183,21 @@ export function DiagnosticsLogsScreen({ navigation }: Props) {
             icon={Trash2}
             label={t("logs.clear")}
             onPress={confirmClearLogs}
-            style={styles.actionButton}
             variant="danger"
           />
         </View>
 
-        <View style={styles.actionRow}>
+        <View style={styles.supportColumn}>
           <PrimaryButton
             icon={Bug}
             label={t("support.github", "Open Issue")}
             onPress={openGithubIssue}
-            style={styles.actionButton}
             variant="ghost"
           />
           <PrimaryButton
             icon={Mail}
             label={t("support.email", "Contact Us")}
             onPress={contactByEmail}
-            style={styles.actionButton}
             variant="ghost"
           />
         </View>
@@ -261,13 +257,18 @@ function getLogBorderColor(
 
 const styles = StyleSheet.create({
   actionButton: {
-    flex: 1,
-    minWidth: 150
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 140,
   },
   actionRow: {
     flexDirection: "row",
     flexWrap: "wrap",
     gap: spacing.sm
+  },
+  supportColumn: {
+    flexDirection: "column",
+    gap: spacing.xs
   },
   emptyState: {
     gap: spacing.xs
