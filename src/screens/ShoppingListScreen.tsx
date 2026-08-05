@@ -68,6 +68,7 @@ export function ShoppingListScreen({ navigation }: Props) {
   const [newItem, setNewItem] = useState("");
   const [reorderMode, setReorderMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const listRef = useRef<FlatList<ShoppingListItem>>(null);
   const remainingCount = useMemo(
     () => items.filter((item) => !item.checked).length,
     [items]
@@ -296,6 +297,37 @@ export function ShoppingListScreen({ navigation }: Props) {
     }
   }
 
+  const alphabet = useMemo(() => {
+    const letters = new Set<string>();
+    for (const item of items) {
+      if (item.label) {
+        const first = item.label.charAt(0).toUpperCase();
+        const letter = first.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (letter >= 'A' && letter <= 'Z') {
+          letters.add(letter);
+        } else {
+          letters.add('#');
+        }
+      }
+    }
+    return Array.from(letters).sort();
+  }, [items]);
+
+  const scrollToLetter = useCallback((letter: string) => {
+    const index = items.findIndex(item => {
+      if (!item.label) return false;
+      const first = item.label.charAt(0).toUpperCase();
+      const l = first.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      if (letter === '#') {
+        return !(l >= 'A' && l <= 'Z');
+      }
+      return l === letter;
+    });
+    if (index !== -1) {
+      listRef.current?.scrollToIndex({ index, animated: false, viewPosition: 0 });
+    }
+  }, [items]);
+
   const renderItem = useCallback(({ item, index }: { item: ShoppingListItem; index: number }) => (
     <MemoizedShoppingListRow
       canMoveDown={index < items.length - 1}
@@ -476,28 +508,52 @@ export function ShoppingListScreen({ navigation }: Props) {
                 : ""}
             </AppText>
           </View>
-          <FlatList
-          data={items}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.listContent}
-          initialNumToRender={15}
-          maxToRenderPerBatch={15}
-          windowSize={7}
-          removeClippedSubviews={true}
-          ListEmptyComponent={
-            <EmptyState
-              title={t("shoppingList.emptyTitle")}
-              body={t("shoppingList.emptyBody")}
+          <View style={{ flex: 1 }}>
+            <FlatList
+              ref={listRef}
+              data={items}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.listContent}
+              initialNumToRender={15}
+              maxToRenderPerBatch={15}
+              windowSize={7}
+              removeClippedSubviews={true}
+              getItemLayout={(data, index) => ({
+                length: 56,
+                offset: 56 * index,
+                index,
+              })}
+              ListEmptyComponent={
+                <EmptyState
+                  title={t("shoppingList.emptyTitle")}
+                  body={t("shoppingList.emptyBody")}
+                />
+              }
+              renderItem={renderItem}
+              showsVerticalScrollIndicator={false}
+              refreshControl={
+                sync.linked ? (
+                  <RefreshControl refreshing={refreshing} onRefresh={() => void handleRefresh()} tintColor={colors.primary} />
+                ) : undefined
+              }
             />
-          }
-          renderItem={renderItem}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            sync.linked ? (
-              <RefreshControl refreshing={refreshing} onRefresh={() => void handleRefresh()} tintColor={colors.primary} />
-            ) : undefined
-          }
-        />
+            {!loading && items.length > 0 && !reorderMode ? (
+              <View style={[localStyles.alphabetSidebar, { borderLeftColor: colors.border }]}>
+                {alphabet.map((letter) => (
+                  <Pressable
+                    key={letter}
+                    onPress={() => scrollToLetter(letter)}
+                    hitSlop={6}
+                    style={localStyles.alphabetLetterButton}
+                  >
+                    <AppText style={[localStyles.alphabetLetter, { color: colors.primary }]}>
+                      {letter}
+                    </AppText>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+          </View>
         </>
       )}
 
@@ -816,7 +872,8 @@ const styles = StyleSheet.create({
   },
   listContent: {
     gap: spacing.xs,
-    paddingBottom: spacing.md
+    paddingBottom: spacing.md,
+    paddingRight: 24
   },
   loading: {
     alignItems: "center",
@@ -900,4 +957,26 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.xs
   }
+});
+
+const localStyles = StyleSheet.create({
+  alphabetSidebar: {
+    alignItems: "center",
+    bottom: 0,
+    justifyContent: "center",
+    position: "absolute",
+    right: -12,
+    top: 0,
+    width: 24,
+    zIndex: 10,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+  },
+  alphabetLetterButton: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  alphabetLetter: {
+    fontSize: 11,
+    fontWeight: "700",
+  },
 });

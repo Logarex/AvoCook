@@ -225,6 +225,37 @@ export function RecipeListScreen({ navigation }: Props) {
     });
   }, [category, query, recipes]);
 
+  const alphabet = useMemo(() => {
+    const letters = new Set<string>();
+    for (const r of filteredRecipes) {
+      if (r.name) {
+        const first = r.name.charAt(0).toUpperCase();
+        const letter = first.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        if (letter >= 'A' && letter <= 'Z') {
+          letters.add(letter);
+        } else {
+          letters.add('#');
+        }
+      }
+    }
+    return Array.from(letters).sort();
+  }, [filteredRecipes]);
+
+  const scrollToLetter = useCallback((letter: string) => {
+    const index = filteredRecipes.findIndex(r => {
+      if (!r.name) return false;
+      const first = r.name.charAt(0).toUpperCase();
+      const l = first.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      if (letter === '#') {
+        return !(l >= 'A' && l <= 'Z');
+      }
+      return l === letter;
+    });
+    if (index !== -1) {
+      recipeListRef.current?.scrollToIndex({ index, animated: false, viewPosition: 0 });
+    }
+  }, [filteredRecipes]);
+
   const connected = Boolean(credentials || isLocalMode);
   const imageClient = credentials ? getClient() : null;
   const imageHeaders = imageClient?.getImageHeaders();
@@ -700,52 +731,49 @@ export function RecipeListScreen({ navigation }: Props) {
             <ActivityIndicator color={colors.primary} />
           </View>
         ) : (
-          <FlatList
-            ref={recipeListRef}
-            style={styles.recipeList}
-            contentContainerStyle={styles.listContent}
-            data={filteredRecipes}
-            keyExtractor={(item) => item.id ?? item.name}
-            onScroll={handleRecipeListScroll}
-            scrollEventThrottle={16}
-            initialNumToRender={10}
-            maxToRenderPerBatch={10}
-            windowSize={5}
-            removeClippedSubviews={true}
-            ListEmptyComponent={
-              <EmptyState
-                title={t("recipes.emptyTitle")}
-                body={t("recipes.emptyBody")}
-              />
-            }
-            renderItem={renderRecipeItem}
-            showsVerticalScrollIndicator={false}
-          />
+          <View style={{ flex: 1 }}>
+            <FlatList
+              ref={recipeListRef}
+              style={styles.recipeList}
+              contentContainerStyle={styles.listContent}
+              data={filteredRecipes}
+              keyExtractor={(item) => item.id ?? item.name}
+              initialNumToRender={10}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+              removeClippedSubviews={true}
+              getItemLayout={(data, index) => ({
+                length: 110,
+                offset: 110 * index,
+                index,
+              })}
+              ListEmptyComponent={
+                <EmptyState
+                  title={t("recipes.emptyTitle")}
+                  body={t("recipes.emptyBody")}
+                />
+              }
+              renderItem={renderRecipeItem}
+              showsVerticalScrollIndicator={false}
+            />
+            {!loading && filteredRecipes.length > 0 ? (
+              <View style={[styles.alphabetSidebar, { borderLeftColor: colors.border }]}>
+                {alphabet.map((letter) => (
+                  <Pressable
+                    key={letter}
+                    onPress={() => scrollToLetter(letter)}
+                    hitSlop={6}
+                    style={styles.alphabetLetterButton}
+                  >
+                    <AppText style={[styles.alphabetLetter, { color: colors.primary }]}>
+                      {letter}
+                    </AppText>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+          </View>
         )}
-
-        {!loading && filteredRecipes.length > 0 && showListScrollTop ? (
-          <Pressable
-            accessibilityLabel={t("common.backToTop")}
-            accessibilityRole="button"
-            onPress={() =>
-              recipeListRef.current?.scrollToOffset({
-                animated: !reducedMotion,
-                offset: 0,
-              })
-            }
-            style={({ pressed }) => [
-              styles.scrollTopButton,
-              {
-                backgroundColor: colors.surfaceGlassStrong,
-                borderColor: colors.border,
-                opacity: pressed ? 0.74 : 0.92,
-                shadowColor: colors.shadow,
-              },
-            ]}
-          >
-            <ArrowUp color={colors.primary} size={19} strokeWidth={2.6} />
-          </Pressable>
-        ) : null}
 
         <CategoryPickerModal
           category={category}

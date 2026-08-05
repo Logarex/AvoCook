@@ -82,6 +82,7 @@ export const styles = StyleSheet.create({
   listContent: {
     gap: spacing.xs,
     paddingBottom: spacing.sm,
+    paddingRight: 24,
   },
   listTitle: {
     lineHeight: 36,
@@ -153,20 +154,24 @@ export const styles = StyleSheet.create({
     paddingBottom: 0,
     paddingTop: spacing.sm,
   },
-  scrollTopButton: {
+  alphabetSidebar: {
     alignItems: "center",
-    borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
-    bottom: 104,
-    height: 42,
+    bottom: 0,
     justifyContent: "center",
     position: "absolute",
-    right: spacing.md,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    width: 42,
-    elevation: 4,
+    right: -12,
+    top: 0,
+    width: 24,
+    zIndex: 10,
+    borderLeftWidth: StyleSheet.hairlineWidth,
+  },
+  alphabetLetterButton: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+  },
+  alphabetLetter: {
+    fontSize: 11,
+    fontWeight: "700",
   },
   searchField: {
     flex: 1,
