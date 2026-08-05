@@ -8,7 +8,8 @@ import {
   renameCustomCategory,
   resolveCategoryRename,
   type CategoryRename,
-  saveCustomCategories
+  saveCustomCategories,
+  saveFavoriteCategories
 } from "./categoryStore";
 import {
   findDuplicateRecipeGroups,
@@ -1109,10 +1110,12 @@ export async function exportRecipeBackup(
   {
     client,
     customCategories,
+    favoriteCategories,
     isLocalMode
   }: {
     client: CookbookClient | null;
     customCategories: string[];
+    favoriteCategories: string[];
     isLocalMode: boolean;
   },
   options: RecipeRepositoryOptions = {}
@@ -1124,6 +1127,7 @@ export async function exportRecipeBackup(
   return createRecipeBackup({
     recipes,
     customCategories,
+    favoriteCategories,
     source: client ? "nextcloud" : isLocalMode ? "local" : "mixed",
     client
   });
@@ -1145,6 +1149,9 @@ export async function importRecipeBackup(
 ): Promise<RecipeBackupImportResult> {
   await migrateDatabase();
   const categories = await saveCustomCategories(backup.customCategories);
+  if (backup.favoriteCategories) {
+    await saveFavoriteCategories(backup.favoriteCategories);
+  }
   let existingRecipes = await loadLocalRecipes();
   const summary = {
     created: 0,

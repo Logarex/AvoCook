@@ -31,7 +31,6 @@ import {
   View,
 } from "react-native";
 import { CategoryChip } from "./recipeList/CategoryChip";
-import { MoreCategoryChip } from "./recipeList/MoreCategoryChip";
 import { RecipeActionsModal } from "./recipeList/RecipeActionsModal";
 import { CategoryPickerModal } from "./recipeList/CategoryPickerModal";
 import { styles } from "./recipeList/recipeListStyles";
@@ -106,6 +105,8 @@ export function RecipeListScreen({ navigation }: Props) {
     syncing,
     sync,
     exportBackup,
+    favoriteCategories,
+    toggleFavoriteCategory
   } = useRecipes();
   const { showBackupReminder, dismissBackupReminder, recordBackupDone, manualTriggerStoreReview } = useMilestoneReminders(recipes.length, isLocalMode);
   const [query, setQuery] = useState("");
@@ -182,21 +183,25 @@ export function RecipeListScreen({ navigation }: Props) {
   }, [customCategories, recipes, t]);
 
   const visibleCategoryOptions = useMemo(() => {
-    const [allCategories] = categoryOptions;
-    const selectedCategory = categoryOptions.find(
-      (item) => item.id === category,
-    );
+    const allCategories = categoryOptions.find(c => c.id === null);
+    const uncategorized = categoryOptions.find(c => c.id === "");
+    const favorites = categoryOptions.filter(c => c.id !== null && c.id !== "" && favoriteCategories.includes(c.id));
+    const selected = categoryOptions.find((item) => item.id === category);
 
-    const nextOptions = [allCategories];
-    if (
-      selectedCategory &&
-      !nextOptions.some((item) => item.id === selectedCategory.id)
-    ) {
-      nextOptions.push(selectedCategory);
+    const nextOptions: CategoryOption[] = [];
+    if (allCategories) nextOptions.push(allCategories);
+    if (uncategorized) nextOptions.push(uncategorized);
+    favorites.forEach(f => {
+      if (!nextOptions.some(item => item.id === f.id)) {
+        nextOptions.push(f);
+      }
+    });
+    if (selected && !nextOptions.some((item) => item.id === selected.id)) {
+      nextOptions.push(selected);
     }
 
-    return nextOptions.filter((item): item is CategoryOption => Boolean(item));
-  }, [category, categoryOptions]);
+    return nextOptions;
+  }, [category, categoryOptions, favoriteCategories]);
 
   const filteredRecipes = useMemo(() => {
     const normalizedQuery = normalizeSearchText(query);
@@ -615,9 +620,6 @@ export function RecipeListScreen({ navigation }: Props) {
               onPress={() => setCategory(item.id)}
             />
           ))}
-          {categoryOptions.length > visibleCategoryOptions.length ? (
-            <MoreCategoryChip onPress={() => setShowCategoryPicker(true)} />
-          ) : null}
         </ScrollView>
 
         {updateInfo && !dismissedUpdate ? (
@@ -781,6 +783,7 @@ export function RecipeListScreen({ navigation }: Props) {
         <CategoryPickerModal
           category={category}
           categoryOptions={categoryOptions}
+          favoriteCategories={favoriteCategories}
           onClose={() => setShowCategoryPicker(false)}
           onDeleteCategory={handleDeleteCategory}
           onRenameCategory={handleStartRenameCategory}
@@ -788,6 +791,7 @@ export function RecipeListScreen({ navigation }: Props) {
             setCategory(nextCategory);
             setShowCategoryPicker(false);
           }}
+          onToggleFavorite={(cat) => void toggleFavoriteCategory(cat)}
           title={categoryPickerLabel}
           visible={showCategoryPicker}
         />

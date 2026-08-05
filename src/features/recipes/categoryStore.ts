@@ -4,6 +4,7 @@ import { DEFAULT_RECIPE_CATEGORIES, isDefaultRecipeCategory } from "./categories
 const CUSTOM_CATEGORIES_KEY = "recipes.customCategories";
 const HIDDEN_DEFAULT_CATEGORIES_KEY = "recipes.hiddenDefaultCategories";
 const CATEGORY_RENAMES_KEY = "recipes.categoryRenames";
+const FAVORITE_CATEGORIES_KEY = "recipes.favoriteCategories";
 
 export type CategoryRename = {
   from: string;
@@ -180,6 +181,45 @@ export async function saveCustomCategories(categories: string[]) {
   ]);
 
   return loadCustomCategories();
+}
+
+export async function loadFavoriteCategories() {
+  return parseStoredCategories(await AsyncStorage.getItem(FAVORITE_CATEGORIES_KEY));
+}
+
+export async function toggleFavoriteCategory(category: string) {
+  const normalized = normalizeCategoryName(category);
+  if (!normalized) {
+    return loadFavoriteCategories();
+  }
+
+  const favorites = await loadFavoriteCategories();
+  const isFavorite = favorites.includes(normalized);
+  const nextFavorites = isFavorite
+    ? favorites.filter((c) => c !== normalized)
+    : sortCategories([...favorites, normalized]);
+    
+  await AsyncStorage.setItem(
+    FAVORITE_CATEGORIES_KEY,
+    JSON.stringify(nextFavorites)
+  );
+  
+  return nextFavorites;
+}
+
+export async function saveFavoriteCategories(categories: string[] = []) {
+  const storedFavorites = await loadFavoriteCategories();
+  const importedFavorites = categories
+    .filter((item): item is string => typeof item === "string")
+    .map(normalizeCategoryName)
+    .filter(Boolean);
+
+  await AsyncStorage.setItem(
+    FAVORITE_CATEGORIES_KEY,
+    JSON.stringify(sortCategories([...storedFavorites, ...importedFavorites]))
+  );
+
+  return loadFavoriteCategories();
 }
 
 export function normalizeCategoryName(category: string) {

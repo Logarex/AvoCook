@@ -34,6 +34,7 @@ export type RecipeBackup = {
   source: RecipeBackupSource;
   recipes: RecipeBackupEntry[];
   customCategories: string[];
+  favoriteCategories?: string[];
   assets: Record<string, RecipeBackupImageAsset>;
 };
 
@@ -48,6 +49,7 @@ export type RecipeBackupExportResult = {
 type CreateRecipeBackupOptions = {
   recipes: Recipe[];
   customCategories: string[];
+  favoriteCategories: string[];
   source: RecipeBackupSource;
   client?: CookbookClient | null;
   imageDownloadTimeoutMs?: number;
@@ -77,6 +79,7 @@ async function mapWithConcurrency<T, R>(
 export async function createRecipeBackup({
   recipes,
   customCategories,
+  favoriteCategories,
   source,
   client,
   imageDownloadTimeoutMs
@@ -118,6 +121,9 @@ export async function createRecipeBackup({
     source,
     recipes: finalEntries,
     customCategories: Array.from(new Set(customCategories.map((item) => item.trim()).filter(Boolean))).sort((left, right) =>
+      left.localeCompare(right)
+    ),
+    favoriteCategories: Array.from(new Set(favoriteCategories.map((item) => item.trim()).filter(Boolean))).sort((left, right) =>
       left.localeCompare(right)
     ),
     assets
@@ -169,6 +175,11 @@ export function parseRecipeBackup(content: string): RecipeBackup {
       })),
     customCategories: Array.isArray(parsed.customCategories)
       ? parsed.customCategories.filter(
+          (category): category is string => typeof category === "string"
+        )
+      : [],
+    favoriteCategories: Array.isArray(parsed.favoriteCategories)
+      ? parsed.favoriteCategories.filter(
           (category): category is string => typeof category === "string"
         )
       : [],

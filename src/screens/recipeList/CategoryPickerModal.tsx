@@ -1,13 +1,14 @@
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useReducedMotion } from "../../features/accessibility/useReducedMotion";
 import { getScreenBottomPadding } from "../../utils/safeArea";
-import { Check, Pencil, Trash2, X } from "lucide-react-native";
+import { Check, Pencil, Star, Trash2, X } from "lucide-react-native";
 import React from "react";
 import { Modal, Pressable, ScrollView, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../../components/AppText";
 import { GlassPanel } from "../../components/GlassPanel";
 import { IconButton } from "../../components/IconButton";
+import { spacing } from "../../theme/colors";
 import { useAppTheme } from "../../theme/ThemeProvider";
 import { styles } from "./recipeListStyles";
 
@@ -16,19 +17,23 @@ export type CategoryOption = { count: number; id: string | null; label: string; 
 export function CategoryPickerModal({
   category,
   categoryOptions,
+  favoriteCategories,
   onClose,
   onDeleteCategory,
   onRenameCategory,
   onSelect,
+  onToggleFavorite,
   title,
   visible,
 }: {
   category: string | null;
   categoryOptions: CategoryOption[];
+  favoriteCategories: string[];
   onClose: () => void;
   onDeleteCategory: (category: string, count: number) => void;
   onRenameCategory: (category: string) => void;
   onSelect: (category: string | null) => void;
+  onToggleFavorite: (category: string) => void;
   title: string;
   visible: boolean;
 }) {
@@ -75,6 +80,22 @@ export function CategoryPickerModal({
                   },
                 ]}
               >
+                {item.id !== null ? (
+                  <Pressable
+                    accessibilityLabel={t("recipes.toggleFavorite")}
+                    accessibilityRole="button"
+                    onPress={() => onToggleFavorite(item.id ?? "")}
+                    style={({ pressed }) => [
+                      { opacity: pressed ? 0.6 : 1, padding: spacing.xxs },
+                    ]}
+                  >
+                    <Star
+                      color={favoriteCategories.includes(item.id ?? "") ? colors.warning : colors.border}
+                      fill={favoriteCategories.includes(item.id ?? "") ? colors.warning : "transparent"}
+                      size={22}
+                    />
+                  </Pressable>
+                ) : null}
                 <Pressable
                   accessibilityLabel={`${item.label}, ${item.count}`}
                   accessibilityRole="button"

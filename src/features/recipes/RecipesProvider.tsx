@@ -15,7 +15,9 @@ import { usePreferences } from "../preferences/PreferencesProvider";
 import {
   deleteCustomCategory,
   loadCustomCategories,
-  saveCustomCategory
+  saveCustomCategory,
+  loadFavoriteCategories,
+  toggleFavoriteCategory as toggleFavoriteCategoryInStore
 } from "./categoryStore";
 import {
   clearSyncedLocalRecipes,
@@ -50,6 +52,7 @@ import type { Recipe } from "./types";
 type RecipesContextValue = {
   recipes: Recipe[];
   customCategories: string[];
+  favoriteCategories: string[];
   loading: boolean;
   syncing: boolean;
   lastError: string | null;
@@ -72,6 +75,7 @@ type RecipesContextValue = {
   createCategory: (category: string) => Promise<string[]>;
   deleteCategory: (category: string) => Promise<string[]>;
   renameCategory: (category: string, nextCategory: string) => Promise<string[]>;
+  toggleFavoriteCategory: (category: string) => Promise<string[]>;
 };
 
 const RecipesContext = createContext<RecipesContextValue | undefined>(
@@ -85,6 +89,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   const { watchLongAction } = useLongActionToast();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
+  const [favoriteCategories, setFavoriteCategories] = useState<string[]>([]);
   const effectiveShowDefaultCategories = showDefaultCategories ?? isLocalMode;
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
@@ -142,6 +147,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     void loadCustomCategories(effectiveShowDefaultCategories).then(setCustomCategories);
+    void loadFavoriteCategories().then(setFavoriteCategories);
   }, [effectiveShowDefaultCategories]);
 
   const sync = useCallback(async () => {
@@ -289,6 +295,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
         {
           client: getClient(),
           customCategories,
+          favoriteCategories,
           isLocalMode
         },
         repositoryOptions
@@ -314,6 +321,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       const result = await importRecipeBackup(backup, getClient(), repositoryOptions);
       setRecipes(result.recipes);
       setCustomCategories(await loadCustomCategories(effectiveShowDefaultCategories));
+      setFavoriteCategories(await loadFavoriteCategories());
       return result;
     } finally {
       stopLongActionNotice();
@@ -331,6 +339,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
         );
         setRecipes(result.recipes);
         setCustomCategories(await loadCustomCategories(effectiveShowDefaultCategories));
+        setFavoriteCategories(await loadFavoriteCategories());
         return result;
       } finally {
         stopLongActionNotice();
@@ -391,6 +400,12 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     [getClient, recipes, repositoryOptions, watchLongAction, effectiveShowDefaultCategories]
   );
 
+  const toggleFavoriteCategory = useCallback(async (category: string) => {
+    const nextFavorites = await toggleFavoriteCategoryInStore(category);
+    setFavoriteCategories(nextFavorites);
+    return nextFavorites;
+  }, []);
+
   const getRecipe = useCallback(
     (id: string) => recipes.find((recipe) => recipe.id === id),
     [recipes]
@@ -400,6 +415,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     () => ({
       recipes,
       customCategories,
+      favoriteCategories,
       loading,
       syncing,
       lastError,
@@ -419,11 +435,13 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       mergeDuplicateGroup,
       createCategory,
       deleteCategory,
-      renameCategory
+      renameCategory,
+      toggleFavoriteCategory
     }),
     [
       recipes,
       customCategories,
+      favoriteCategories,
       loading,
       syncing,
       lastError,
@@ -443,7 +461,8 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       mergeDuplicateGroup,
       createCategory,
       deleteCategory,
-      renameCategory
+      renameCategory,
+      toggleFavoriteCategory
     ]
   );
 
