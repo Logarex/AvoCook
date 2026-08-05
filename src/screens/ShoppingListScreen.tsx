@@ -324,7 +324,7 @@ export function ShoppingListScreen({ navigation }: Props) {
       return l === letter;
     });
     if (index !== -1) {
-      listRef.current?.scrollToIndex({ index, animated: false, viewPosition: 0 });
+      listRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0 });
     }
   }, [items]);
 
@@ -513,14 +513,17 @@ export function ShoppingListScreen({ navigation }: Props) {
               ref={listRef}
               data={items}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.listContent}
+              contentContainerStyle={[
+                styles.listContent,
+                items.length > 0 && { paddingRight: 24 }
+              ]}
               initialNumToRender={15}
               maxToRenderPerBatch={15}
               windowSize={7}
               removeClippedSubviews={true}
               getItemLayout={(data, index) => ({
-                length: 56,
-                offset: 56 * index,
+                length: 68,
+                offset: 68 * index,
                 index,
               })}
               ListEmptyComponent={
@@ -704,13 +707,14 @@ function ShoppingListRow({
             <AppText
               style={item.checked ? styles.checkedText : undefined}
               variant="label"
+              numberOfLines={1}
             >
               {item.label}
             </AppText>
           </Pressable>
         )}
         {item.recipeName ? (
-          <AppText muted variant="caption">
+          <AppText muted variant="caption" numberOfLines={1}>
             {item.recipeName}
           </AppText>
         ) : null}
@@ -858,6 +862,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: spacing.xs,
+    height: 60,
     padding: spacing.sm
   },
   itemText: {
@@ -872,8 +877,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     gap: spacing.xs,
-    paddingBottom: spacing.md,
-    paddingRight: 24
+    paddingBottom: spacing.md
   },
   loading: {
     alignItems: "center",

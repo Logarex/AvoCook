@@ -76,7 +76,7 @@ export const RecipeCard = React.memo(function RecipeCard({
         )}
       </View>
       <View style={styles.body}>
-        <AppText variant="label" numberOfLines={2}>
+        <AppText variant="label" numberOfLines={1}>
           {recipe.name}
         </AppText>
         {recipe.description ? (
@@ -86,7 +86,7 @@ export const RecipeCard = React.memo(function RecipeCard({
         ) : null}
         <View style={styles.meta}>
           {totalTime ? (
-            <View style={styles.metaItem}>
+            <View style={[styles.metaItem, { flexShrink: 0 }]}>
               <Clock color={colors.textMuted} size={14} />
               <AppText muted variant="caption">
                 {totalTime}
@@ -96,7 +96,7 @@ export const RecipeCard = React.memo(function RecipeCard({
           {recipe.recipeCategory ? (
             <View style={styles.metaItem}>
               <Tag color={colors.textMuted} size={14} />
-              <AppText muted variant="caption" numberOfLines={1}>
+              <AppText muted variant="caption" numberOfLines={1} style={{ flexShrink: 1 }}>
                 {recipe.recipeCategory}
               </AppText>
             </View>
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: spacing.sm,
-    minHeight: 96,
+    height: 116,
     overflow: "hidden",
     padding: spacing.sm
   },
@@ -137,13 +137,14 @@ const styles = StyleSheet.create({
   },
   meta: {
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.sm
+    gap: spacing.sm,
+    overflow: "hidden"
   },
   metaItem: {
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.xxs,
-    maxWidth: "100%"
+    maxWidth: "100%",
+    flexShrink: 1
   }
 });

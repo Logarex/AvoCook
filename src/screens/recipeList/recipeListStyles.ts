@@ -82,7 +82,6 @@ export const styles = StyleSheet.create({
   listContent: {
     gap: spacing.xs,
     paddingBottom: spacing.sm,
-    paddingRight: 24,
   },
   listTitle: {
     lineHeight: 36,

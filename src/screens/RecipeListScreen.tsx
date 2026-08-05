@@ -252,7 +252,7 @@ export function RecipeListScreen({ navigation }: Props) {
       return l === letter;
     });
     if (index !== -1) {
-      recipeListRef.current?.scrollToIndex({ index, animated: false, viewPosition: 0 });
+      recipeListRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0 });
     }
   }, [filteredRecipes]);
 
@@ -735,7 +735,10 @@ export function RecipeListScreen({ navigation }: Props) {
             <FlatList
               ref={recipeListRef}
               style={styles.recipeList}
-              contentContainerStyle={styles.listContent}
+              contentContainerStyle={[
+                styles.listContent,
+                filteredRecipes.length > 0 && { paddingRight: 24 }
+              ]}
               data={filteredRecipes}
               keyExtractor={(item) => item.id ?? item.name}
               initialNumToRender={10}
@@ -743,8 +746,8 @@ export function RecipeListScreen({ navigation }: Props) {
               windowSize={5}
               removeClippedSubviews={true}
               getItemLayout={(data, index) => ({
-                length: 110,
-                offset: 110 * index,
+                length: 124,
+                offset: 124 * index,
                 index,
               })}
               ListEmptyComponent={
