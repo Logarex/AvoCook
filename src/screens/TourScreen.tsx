@@ -12,7 +12,6 @@ import {
   ListFilter,
   ListOrdered,
   ListPlus,
-  Printer,
   RefreshCw,
   Share,
   Share2,
@@ -424,12 +423,6 @@ function SortGuide({ colors, t }: { colors: any; t: any }) {
 function ManageRecipeGuide({ colors, t, isLocalMode }: { colors: any; t: any; isLocalMode: boolean }) {
   return (
     <View style={styles.guideListContainer}>
-      <View style={styles.guideListItem}>
-        <View style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}>
-          <Printer color={colors.primary} size={18} />
-        </View>
-        <AppText variant="caption" style={styles.guideListText}>{t("tour.managePrint")}</AppText>
-      </View>
       <View style={styles.guideListItem}>
         <View style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}>
           <Share2 color={colors.primary} size={18} />

@@ -14,7 +14,6 @@ import {
   Pencil,
   Play,
   Plus,
-  Printer,
   RefreshCw,
   RotateCcw,
   Share2,
@@ -75,10 +74,8 @@ import {
   isCookbookImageEndpoint,
 } from "../features/recipes/recipeImageReferences";
 import {
-  printRecipe,
   shareRecipeFile,
   shareRecipePdf,
-  type RecipePrintLabels,
 } from "../features/recipes/recipeSharing";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { getRecipeCategoryLabel } from "../features/recipes/categories";
@@ -435,29 +432,6 @@ function RecipeDetailContent({
     resetTimer(timerId);
   }
 
-  async function handlePrint() {
-    if (!recipe) {
-      return;
-    }
-    setShareAction("print");
-    const stopLongActionNotice = watchLongAction("longActions.printRecipe");
-    try {
-      const result = await printRecipe(recipe, getPrintLabels(t), getClient());
-      showShareWarning(result.skippedImageCount);
-    } catch (error) {
-      if (isUserDismissedShareOrPrint(error)) {
-        return;
-      }
-      Alert.alert(
-        t("recipes.share.failedTitle"),
-        t("recipes.share.failedBody"),
-      );
-    } finally {
-      stopLongActionNotice();
-      setShareAction(null);
-    }
-  }
-
   async function handleSharePdf() {
     if (!recipe) {
       return;
@@ -629,19 +603,11 @@ function RecipeDetailContent({
 
   const toolbarActions: ToolbarAction[] = [
     {
-      id: "print",
-      icon: Printer,
-      label: t("recipes.share.print"),
-      onPress: () => void handlePrint(),
-      disabled: shareAction !== null,
-    },
-    {
       id: "share-pdf",
       icon: Share2,
       label: t("recipes.share.sharePdf"),
       onPress: () => void handleSharePdf(),
       disabled: shareAction !== null,
-      tone: "primary",
     },
     {
       id: "share-file",

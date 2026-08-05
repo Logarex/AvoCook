@@ -33,6 +33,7 @@ import {
 import { CategoryChip } from "./recipeList/CategoryChip";
 import { RecipeActionsModal } from "./recipeList/RecipeActionsModal";
 import { CategoryPickerModal } from "./recipeList/CategoryPickerModal";
+import { AddRecipeModal } from "./recipeList/AddRecipeModal";
 import { styles } from "./recipeList/recipeListStyles";
 import {
   isUserDismissedShareOrPrint,
@@ -113,6 +114,7 @@ export function RecipeListScreen({ navigation }: Props) {
   const [category, setCategory] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showCategoryCreator, setShowCategoryCreator] = useState(false);
+  const [showAddMenu, setShowAddMenu] = useState(false);
   const [showListScrollTop, setShowListScrollTop] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
@@ -517,20 +519,9 @@ export function RecipeListScreen({ navigation }: Props) {
               />
             ) : null}
             <IconButton
-              icon={Download}
-              label={t("common.import")}
-              onPress={() => navigation.navigate("ImportRecipe")}
-              tone="primary"
-              style={styles.headerIcon}
-            />
-            <IconButton
               icon={Plus}
               label={t("common.add")}
-              onPress={() =>
-                navigation.navigate("RecipeEditor", {
-                  category: category ? category : undefined,
-                })
-              }
+              onPress={() => setShowAddMenu(true)}
               tone="primary"
               style={styles.headerIcon}
             />
@@ -802,11 +793,21 @@ export function RecipeListScreen({ navigation }: Props) {
           action={recipeAction}
           onClose={handleCloseRecipeActions}
           onDelete={handleDeleteRecipe}
-          onPrint={(recipe) => void handlePrintRecipe(recipe)}
           onShareFile={(recipe) => void handleShareRecipeFile(recipe)}
           onSharePdf={(recipe) => void handleShareRecipePdf(recipe)}
           recipe={selectedRecipe}
-          visible={Boolean(selectedRecipe)}
+          visible={!!selectedRecipe}
+        />
+
+        <AddRecipeModal
+          visible={showAddMenu}
+          onClose={() => setShowAddMenu(false)}
+          onNewRecipe={() =>
+            navigation.navigate("RecipeEditor", {
+              category: category ? category : undefined,
+            })
+          }
+          onImportRecipe={() => navigation.navigate("ImportRecipe")}
         />
 
         <BottomNavigation

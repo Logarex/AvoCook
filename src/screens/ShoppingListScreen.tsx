@@ -6,8 +6,6 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
-  GripVertical,
-  ListOrdered,
   Pencil,
   Plus,
   Share as ShareIcon,
@@ -39,6 +37,7 @@ import { IconButton } from "../components/IconButton";
 import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
+import { ShoppingListActionsModal } from "./ShoppingListActionsModal";
 import { useShoppingList } from "../features/shopping/ShoppingListProvider";
 import { registerReminderMappings } from "../features/shopping/remindersSync";
 import type { ShoppingListItem } from "../features/shopping/shoppingList";
@@ -65,8 +64,8 @@ export function ShoppingListScreen({ navigation }: Props) {
     sync
   } = useShoppingList();
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [newItem, setNewItem] = useState("");
-  const [reorderMode, setReorderMode] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const listRef = useRef<FlatList<ShoppingListItem>>(null);
   const remainingCount = useMemo(
@@ -192,7 +191,6 @@ export function ShoppingListScreen({ navigation }: Props) {
   }, [updateItem]);
 
   const handleStartEditing = useCallback((id: string) => {
-    setReorderMode(false);
     setEditingItemId(id);
   }, []);
 
@@ -217,55 +215,9 @@ export function ShoppingListScreen({ navigation }: Props) {
     }
   }
 
-  function handleClearChecked() {
-    if (!checkedCount) {
-      return;
-    }
-    Alert.alert(
-      t("common.delete"),
-      t("shoppingList.clearCheckedConfirm", { count: checkedCount }),
-      [
-        {
-          text: t("common.cancel"),
-          style: "cancel"
-        },
-        {
-          text: t("common.delete"),
-          style: "destructive",
-          onPress: () => {
-            void clearChecked();
-          }
-        }
-      ]
-    );
-  }
-
-  function handleClearAll() {
-    if (items.length === 0) {
-      return;
-    }
-    Alert.alert(
-      t("shoppingList.clearAll"),
-      t("shoppingList.clearAllConfirm", { count: items.length }),
-      [
-        {
-          text: t("common.cancel"),
-          style: "cancel"
-        },
-        {
-          text: t("common.delete"),
-          style: "destructive",
-          onPress: () => {
-            void clearAll();
-          }
-        }
-      ]
-    );
-  }
-
-  function toggleReorderMode() {
-    setEditingItemId(null);
-    setReorderMode((current) => !current);
+  function handleDeleteOptions() {
+    if (items.length === 0) return;
+    setShowActionsMenu(true);
   }
 
   async function handleShare() {
@@ -341,9 +293,8 @@ export function ShoppingListScreen({ navigation }: Props) {
       onStopEditing={handleStopEditing}
       onToggle={handleToggleItem}
       onUpdate={handleUpdateItem}
-      reorderMode={reorderMode}
     />
-  ), [editingItemId, items.length, handleMoveDown, handleMoveUp, handleRemoveItem, handleStartEditing, handleStopEditing, handleToggleItem, handleUpdateItem, reorderMode]);
+  ), [editingItemId, items.length, handleMoveDown, handleMoveUp, handleRemoveItem, handleStartEditing, handleStopEditing, handleToggleItem, handleUpdateItem]);
 
   return (
     <PageSwipeGesture onSwipeRight={openRecipes}>
@@ -404,37 +355,9 @@ export function ShoppingListScreen({ navigation }: Props) {
           />
           <IconButton
             disabled={!items.length}
-            icon={ListOrdered}
-            label={
-              reorderMode
-                ? t("shoppingList.doneReordering")
-                : t("shoppingList.reorderItems")
-            }
-            onPress={toggleReorderMode}
-            tone={reorderMode ? "primary" : "default"}
-            style={[
-              styles.headerIcon,
-              reorderMode
-                ? {
-                    backgroundColor: colors.chip,
-                    borderColor: colors.primary
-                  }
-                : null
-            ]}
-          />
-          <IconButton
-            disabled={!checkedCount}
             icon={Trash2}
-            label={t("shoppingList.clearChecked")}
-            onPress={handleClearChecked}
-            tone="danger"
-            style={styles.headerIcon}
-          />
-          <IconButton
-            disabled={!items.length}
-            icon={X}
-            label={t("shoppingList.clearAll")}
-            onPress={handleClearAll}
+            label={t("common.delete")}
+            onPress={handleDeleteOptions}
             tone="danger"
             style={styles.headerIcon}
           />
@@ -540,7 +463,7 @@ export function ShoppingListScreen({ navigation }: Props) {
                 ) : undefined
               }
             />
-            {!loading && items.length > 0 && !reorderMode ? (
+            {!loading && items.length > 0 ? (
               <View style={[localStyles.alphabetSidebar, { borderLeftColor: colors.border }]}>
                 {alphabet.map((letter) => (
                   <Pressable
@@ -568,6 +491,14 @@ export function ShoppingListScreen({ navigation }: Props) {
           }
         }}
       />
+      
+      <ShoppingListActionsModal
+        visible={showActionsMenu}
+        onClose={() => setShowActionsMenu(false)}
+        checkedCount={checkedCount}
+        onClearChecked={clearChecked}
+        onClearAll={clearAll}
+      />
       </Screen>
     </PageSwipeGesture>
   );
@@ -584,8 +515,7 @@ function ShoppingListRow({
   onStartEditing,
   onStopEditing,
   onToggle,
-  onUpdate,
-  reorderMode
+  onUpdate
 }: {
   canMoveDown: boolean;
   canMoveUp: boolean;
@@ -598,7 +528,6 @@ function ShoppingListRow({
   onStopEditing: () => void;
   onToggle: (id: string) => Promise<void> | void;
   onUpdate: (id: string, label: string) => Promise<void> | void;
-  reorderMode: boolean;
 }) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
@@ -644,11 +573,6 @@ function ShoppingListRow({
         }
       ]}
     >
-      {reorderMode ? (
-        <View style={styles.reorderHandle}>
-          <GripVertical color={colors.textMuted} size={19} strokeWidth={2.2} />
-        </View>
-      ) : (
         <Pressable
           accessibilityLabel={item.label}
           accessibilityRole="checkbox"
@@ -674,7 +598,6 @@ function ShoppingListRow({
             ) : null}
           </View>
         </Pressable>
-      )}
       <View style={styles.itemText}>
         {editing ? (
           <TextInput
@@ -697,8 +620,7 @@ function ShoppingListRow({
           />
         ) : (
           <Pressable
-            disabled={reorderMode}
-            onPress={() => void onToggle(item.id)}
+            onPress={() => void onStartEditing(item.id)}
             style={({ pressed }) => [
               styles.itemLabelButton,
               { opacity: pressed ? 0.72 : 1 }
@@ -719,42 +641,7 @@ function ShoppingListRow({
           </AppText>
         ) : null}
       </View>
-      {reorderMode ? (
-        <View
-          style={[
-            styles.reorderActions,
-            { backgroundColor: colors.input, borderColor: colors.border }
-          ]}
-        >
-          <Pressable
-            accessibilityLabel={t("shoppingList.moveItemUp")}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !canMoveUp }}
-            disabled={!canMoveUp}
-            onPress={() => onMoveUp(item.id)}
-            style={({ pressed }) => [
-              styles.reorderAction,
-              { opacity: !canMoveUp ? 0.28 : pressed ? 0.62 : 1 }
-            ]}
-          >
-            <ChevronUp color={colors.text} size={19} strokeWidth={2.5} />
-          </Pressable>
-          <View style={[styles.reorderDivider, { backgroundColor: colors.border }]} />
-          <Pressable
-            accessibilityLabel={t("shoppingList.moveItemDown")}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !canMoveDown }}
-            disabled={!canMoveDown}
-            onPress={() => onMoveDown(item.id)}
-            style={({ pressed }) => [
-              styles.reorderAction,
-              { opacity: !canMoveDown ? 0.28 : pressed ? 0.62 : 1 }
-            ]}
-          >
-            <ChevronDown color={colors.text} size={19} strokeWidth={2.5} />
-          </Pressable>
-        </View>
-      ) : editing ? (
+      {editing ? (
         <View style={styles.editActions}>
           <IconButton
             icon={Check}
@@ -769,15 +656,6 @@ function ShoppingListRow({
             onPress={cancelEdit}
             style={styles.itemAction}
           />
-        </View>
-      ) : (
-        <View style={styles.itemActions}>
-          <IconButton
-            icon={Pencil}
-            label={t("shoppingList.editItem")}
-            onPress={() => void onStartEditing(item.id)}
-            style={styles.itemAction}
-          />
           <IconButton
             icon={Trash2}
             label={t("shoppingList.deleteItem")}
@@ -785,6 +663,43 @@ function ShoppingListRow({
             tone="danger"
             style={styles.itemAction}
           />
+        </View>
+      ) : (
+        <View style={styles.itemActions}>
+          <View
+            style={[
+              styles.reorderActions,
+              { backgroundColor: colors.input, borderColor: colors.border }
+            ]}
+          >
+            <Pressable
+              accessibilityLabel={t("shoppingList.moveItemUp")}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !canMoveUp }}
+              disabled={!canMoveUp}
+              onPress={() => onMoveUp(item.id)}
+              style={({ pressed }) => [
+                styles.reorderAction,
+                { opacity: !canMoveUp ? 0.28 : pressed ? 0.62 : 1 }
+              ]}
+            >
+              <ChevronUp color={colors.text} size={19} strokeWidth={2.5} />
+            </Pressable>
+            <View style={[styles.reorderDivider, { backgroundColor: colors.border }]} />
+            <Pressable
+              accessibilityLabel={t("shoppingList.moveItemDown")}
+              accessibilityRole="button"
+              accessibilityState={{ disabled: !canMoveDown }}
+              disabled={!canMoveDown}
+              onPress={() => onMoveDown(item.id)}
+              style={({ pressed }) => [
+                styles.reorderAction,
+                { opacity: !canMoveDown ? 0.28 : pressed ? 0.62 : 1 }
+              ]}
+            >
+              <ChevronDown color={colors.text} size={19} strokeWidth={2.5} />
+            </Pressable>
+          </View>
         </View>
       )}
     </View>

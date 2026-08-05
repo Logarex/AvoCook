@@ -9,7 +9,7 @@ type PrimaryButtonProps = {
   label: string;
   onPress: () => void;
   icon?: LucideIcon;
-  variant?: "primary" | "secondary" | "ghost" | "danger";
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "danger-secondary";
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
 };
@@ -28,11 +28,17 @@ export function PrimaryButton({
       ? colors.primary
       : variant === "danger"
         ? colors.danger
-        : variant === "secondary"
-          ? colors.secondary
-          : colors.surfaceGlassStrong;
+        : variant === "danger-secondary"
+          ? "rgba(219, 68, 85, 0.15)"
+          : variant === "secondary"
+            ? colors.secondary
+            : colors.surfaceGlassStrong;
   const foregroundColor =
-    variant === "ghost" ? colors.text : colors.textInverted;
+    variant === "ghost" 
+      ? colors.text 
+      : variant === "danger-secondary"
+        ? colors.danger
+        : colors.textInverted;
 
   return (
     <Pressable
