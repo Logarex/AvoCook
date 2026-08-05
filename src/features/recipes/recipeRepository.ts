@@ -1,13 +1,8 @@
 import { importRecipeFromWeb } from "../import/schemaRecipeParser";
 import { CookbookApiError, type CookbookClient } from "../nextcloud/cookbookClient";
 import {
-  clearCategoryRenames,
-  loadCategoryRenames,
   normalizeCategoryName,
-  recordCategoryRename,
   renameCustomCategory,
-  resolveCategoryRename,
-  type CategoryRename,
   saveCustomCategories,
   saveFavoriteCategories
 } from "./categoryStore";

@@ -12,12 +12,10 @@ import { Modal, Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { GlassPanel } from "../components/GlassPanel";
 import { PrimaryButton } from "../components/PrimaryButton";
-import { useAppTheme } from "../theme/ThemeProvider";
 import { styles } from "./recipeList/recipeListStyles";
 
 export function ShoppingListActionsModal({
   onClose,
-  onReorder,
   onClearChecked,
   onClearAll,
   checkedCount,
@@ -30,7 +28,6 @@ export function ShoppingListActionsModal({
   visible: boolean;
 }) {
   const { t } = useTranslation();
-  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
 

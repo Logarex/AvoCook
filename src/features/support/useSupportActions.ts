@@ -1,4 +1,3 @@
-import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
 import { Alert } from "react-native";
 import { useTranslation } from "react-i18next";

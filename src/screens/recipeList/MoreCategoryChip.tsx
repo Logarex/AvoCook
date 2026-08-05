@@ -1,7 +1,7 @@
 import { safeTranslation } from "./recipeListHelpers";
-import { MoreHorizontal, ListFilter } from "lucide-react-native";
+import { ListFilter } from "lucide-react-native";
 import React from "react";
-import { Pressable, View } from "react-native";
+import { Pressable } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../../components/AppText";
 import { useAppTheme } from "../../theme/ThemeProvider";

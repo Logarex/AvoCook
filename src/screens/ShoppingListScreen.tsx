@@ -6,7 +6,6 @@ import {
   Check,
   ChevronDown,
   ChevronUp,
-  Pencil,
   Plus,
   Share as ShareIcon,
   ShoppingCart,
@@ -16,7 +15,6 @@ import {
 import React, { useMemo, useState, useRef, useCallback, useEffect } from "react";
 import {
   ActivityIndicator,
-  Alert,
   AppState,
   type AppStateStatus,
   FlatList,
@@ -496,8 +494,8 @@ export function ShoppingListScreen({ navigation }: Props) {
         visible={showActionsMenu}
         onClose={() => setShowActionsMenu(false)}
         checkedCount={checkedCount}
-        onClearChecked={clearChecked}
-        onClearAll={clearAll}
+        onClearChecked={() => void clearChecked()}
+        onClearAll={() => void clearAll()}
       />
       </Screen>
     </PageSwipeGesture>

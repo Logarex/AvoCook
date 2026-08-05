@@ -1,18 +1,13 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   AlertTriangle,
-  ArrowUp,
   Check,
   Download,
-  FileUp,
   ListFilter,
   ListPlus,
   Plus,
-  Printer,
   RefreshCw,
   Settings,
-  Share2,
-  Trash2,
   X,
 } from "lucide-react-native";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -21,13 +16,9 @@ import {
   Alert,
   FlatList,
   Linking,
-  Modal,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   View,
 } from "react-native";
 import { CategoryChip } from "./recipeList/CategoryChip";
@@ -45,7 +36,6 @@ import {
 } from "./recipeList/recipeListHelpers";
 
 import { useTranslation } from "react-i18next";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "../components/AppText";
 import { BottomNavigation } from "../components/BottomNavigation";
 import { ConnectionStatus } from "../components/ConnectionStatus";
@@ -60,15 +50,12 @@ import { Screen } from "../components/Screen";
 import { SearchField } from "../components/SearchField";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
-import { useReducedMotion } from "../features/accessibility/useReducedMotion";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { useMilestoneReminders } from "../features/recipes/useMilestoneReminders";
 import { getRecipeCategoryLabel } from "../features/recipes/categories";
 import {
-  printRecipe,
   shareRecipeFile,
   shareRecipePdf,
-  type RecipePrintLabels,
 } from "../features/recipes/recipeSharing";
 import { canUseRemoteRecipeImageFallback } from "../features/recipes/recipeImageReferences";
 import {
@@ -77,10 +64,7 @@ import {
 } from "../features/updates/updateService";
 import type { Recipe } from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
-import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
-import { getScreenBottomPadding } from "../utils/safeArea";
-
 type Props = NativeStackScreenProps<RootStackParamList, "Recipes">;
 
 type CategoryOption = {
@@ -93,7 +77,6 @@ export function RecipeListScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const { watchLongAction } = useLongActionToast();
-  const reducedMotion = useReducedMotion();
   const { credentials, getClient, isLocalMode } = useAuth();
   const {
     createCategory,
@@ -115,7 +98,6 @@ export function RecipeListScreen({ navigation }: Props) {
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
   const [showCategoryCreator, setShowCategoryCreator] = useState(false);
   const [showAddMenu, setShowAddMenu] = useState(false);
-  const [showListScrollTop, setShowListScrollTop] = useState(false);
   const [newCategory, setNewCategory] = useState("");
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
@@ -312,7 +294,7 @@ export function RecipeListScreen({ navigation }: Props) {
       await exportBackup();
       await recordBackupDone();
       void manualTriggerStoreReview();
-    } catch (error) {
+    } catch {
       // Ignored (e.g. user cancelled file picker)
     }
   }
@@ -346,14 +328,6 @@ export function RecipeListScreen({ navigation }: Props) {
     );
   }
 
-  function handleRecipeListScroll(
-    event: NativeSyntheticEvent<NativeScrollEvent>,
-  ) {
-    const nextShowListScrollTop = event.nativeEvent.contentOffset.y > 260;
-    setShowListScrollTop((current) =>
-      current === nextShowListScrollTop ? current : nextShowListScrollTop,
-    );
-  }
 
   const handleRecipeLongPress = useCallback((recipe: Recipe) => {
     setSelectedRecipe(recipe);
@@ -366,26 +340,7 @@ export function RecipeListScreen({ navigation }: Props) {
     setSelectedRecipe(null);
   }
 
-  async function handlePrintRecipe(recipe: Recipe) {
-    setRecipeAction("print");
-    const stopLongActionNotice = watchLongAction("longActions.printRecipe");
-    try {
-      const result = await printRecipe(recipe, getPrintLabels(t), getClient());
-      showShareWarning(result.skippedImageCount);
-    } catch (error) {
-      if (isUserDismissedShareOrPrint(error)) {
-        return;
-      }
-      Alert.alert(
-        t("recipes.share.failedTitle"),
-        t("recipes.share.failedBody"),
-      );
-    } finally {
-      stopLongActionNotice();
-      setRecipeAction(null);
-      setSelectedRecipe(null);
-    }
-  }
+
 
   async function handleShareRecipePdf(recipe: Recipe) {
     setRecipeAction("pdf");

@@ -4,19 +4,16 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useReducedMotion } from "../../features/accessibility/useReducedMotion";
 import { getScreenBottomPadding } from "../../utils/safeArea";
 import {
-  ExternalLink,
-  Pencil,
   Share2,
   Trash2,
   FileUp,
   X,
 } from "lucide-react-native";
 import React from "react";
-import { Modal, Pressable, ScrollView, View } from "react-native";
+import { Modal, Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { GlassPanel } from "../../components/GlassPanel";
 import { PrimaryButton } from "../../components/PrimaryButton";
-import { isExternalRecipeSourceUrl } from "../../features/recipes/recipeSource";
 import type { Recipe } from "../../features/recipes/types";
 import { useAppTheme } from "../../theme/ThemeProvider";
 import { styles } from "./recipeListStyles";
@@ -25,7 +22,6 @@ export function RecipeActionsModal({
   action,
   onClose,
   onDelete,
-  onPrint,
   onShareFile,
   onSharePdf,
   recipe,

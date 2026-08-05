@@ -220,9 +220,10 @@ export function SettingsScreen({ navigation }: Props) {
         {
           text: t("common.logout"),
           style: "destructive",
-          onPress: async () => {
-            await logout();
-            navigation.replace("Login");
+          onPress: () => {
+            void logout().then(() => {
+              navigation.replace("Login");
+            });
           }
         }
       ]
@@ -238,9 +239,10 @@ export function SettingsScreen({ navigation }: Props) {
           { text: t("common.cancel"), style: "cancel" },
           {
             text: t("settings.switchToNextcloud"),
-            onPress: async () => {
-              await logout();
-              navigation.replace("Login", { showNextcloud: true });
+            onPress: () => {
+              void logout().then(() => {
+                navigation.replace("Login", { showNextcloud: true });
+              });
             }
           }
         ]
@@ -254,9 +256,10 @@ export function SettingsScreen({ navigation }: Props) {
           {
             text: t("settings.switchToLocal"),
             style: "destructive",
-            onPress: async () => {
-              await startLocalMode();
-              navigation.replace("Recipes");
+            onPress: () => {
+              void startLocalMode().then(() => {
+                navigation.replace("Recipes");
+              });
             }
           }
         ]

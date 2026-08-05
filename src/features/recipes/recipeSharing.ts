@@ -150,6 +150,7 @@ export async function createRecipeShareBackup(
     customCategories: normalizedRecipe.recipeCategory
       ? [normalizedRecipe.recipeCategory]
       : [],
+    favoriteCategories: [],
     source: client ? "nextcloud" : "local",
     client,
     imageDownloadTimeoutMs: SHARE_IMAGE_DOWNLOAD_TIMEOUT_MS

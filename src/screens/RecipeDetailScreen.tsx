@@ -5,29 +5,17 @@ import type { LucideIcon } from "lucide-react-native";
 import {
   ArrowLeft,
   Clock,
-  Check,
   ExternalLink,
   FileUp,
-  HeartPulse,
-  Minus,
-  Pause,
   Pencil,
-  Play,
-  Plus,
   RefreshCw,
-  RotateCcw,
   Share2,
-  ShoppingCart,
-  Square,
-  Timer,
   Trash2,
 } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Alert,
   Linking,
-  Pressable,
-  StyleSheet,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -39,7 +27,6 @@ import { HealthSection } from "./recipeDetail/HealthSection";
 import { RecipeSection } from "./recipeDetail/RecipeSection";
 import { styles } from "./recipeDetail/recipeDetailStyles";
 import {
-  formatTimerSeconds,
   getTimerPresets,
   normalizeNutrition,
   getPrintLabels,
@@ -50,9 +37,6 @@ import {
   isUserDismissedShareOrPrint,
   type ToolbarAction,
   type DetailRecipe,
-  TOOLBAR_ICON_SIZE,
-  TOOLBAR_HORIZONTAL_PADDING,
-  TOOLBAR_BACK_ACTION_GAP,
 } from "./recipeDetail/recipeDetailHelpers";
 
 import { useTranslation } from "react-i18next";
@@ -66,13 +50,7 @@ import { Screen } from "../components/Screen";
 import { ScreenErrorBoundary } from "../components/ScreenErrorBoundary";
 import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
-import type { HealthProfile } from "../features/recipes/health";
 import { getRecipeHealthProfile } from "../features/recipes/health";
-import {
-  canUseRemoteRecipeImageFallback,
-  getPreferredDisplayRecipeImage,
-  isCookbookImageEndpoint,
-} from "../features/recipes/recipeImageReferences";
 import {
   shareRecipeFile,
   shareRecipePdf,
@@ -82,20 +60,14 @@ import { getRecipeCategoryLabel } from "../features/recipes/categories";
 import { useShoppingList } from "../features/shopping/ShoppingListProvider";
 import {
   useRecipeTimers,
-  type TimerNotificationStatus,
-  type TimerPreset,
-  type TimerState,
 } from "../features/timers/TimersProvider";
 import {
   normalizeRecipe,
-  type NutriScoreGrade,
-  type Nutrition,
 } from "../features/recipes/types";
 import { isExternalRecipeSourceUrl } from "../features/recipes/recipeSource";
 import type { RootStackParamList } from "../navigation/types";
-import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
-import { humanDuration, isoDurationToMinutes } from "../utils/duration";
+import { humanDuration } from "../utils/duration";
 import { scaleIngredientLine } from "../utils/servings";
 
 type Props = NativeStackScreenProps<RootStackParamList, "RecipeDetail">;

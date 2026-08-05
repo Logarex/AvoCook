@@ -1,6 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
-  Bot,
   Bug,
   Camera,
   ChefHat,
@@ -27,7 +26,6 @@ import React, { useCallback, useRef, useState } from "react";
 import {
   Alert,
   Animated,
-  Dimensions,
   Linking,
   Platform,
   Pressable,
@@ -44,7 +42,6 @@ import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
-const { width: SW } = Dimensions.get("window");
 
 type Props = NativeStackScreenProps<RootStackParamList, "Tour">;
 
