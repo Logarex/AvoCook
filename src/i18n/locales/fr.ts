@@ -1,6 +1,8 @@
 export default {
   translation: {
     common: {
+    saved: "Enregistré",
+
       add: "Ajouter",
       back: "Retour",
       backToTop: "Revenir en haut",
@@ -97,6 +99,8 @@ export default {
       dismiss: "Plus tard",
     },
     recipes: {
+    toggleFavorite: "Ajouter/Retirer des favoris",
+
       title: "Recettes",
       emptyTitle: "Aucune recette",
       emptyBody: "Ajoutez une recette ou synchronisez votre Cookbook.",
@@ -355,6 +359,8 @@ export default {
       requiredName: "Le nom de la recette est obligatoire.",
     },
     importRecipe: {
+    aiTitle: "Intelligence Artificielle",
+
       title: "Importer",
       url: "URL de la recette",
       urlPlaceholder: "https://www.marmiton.org/...",
@@ -545,6 +551,9 @@ export default {
         "Les photos ajoutées manuellement sont copiées dans le stockage de l'application pour rester disponibles hors ligne.",
     },
     support: {
+    emailFailedTitle: "Aucune application d'e-mail trouvée",
+    emailFailedBody: "Impossible d'ouvrir une application d'e-mail. Vous pouvez nous contacter à contact@nephoos.com",
+
       github: "Signaler un problème sur GitHub",
       email: "Contacter le développeur par Email",
       includeLogsTitle: "Inclure les logs ?",
@@ -591,6 +600,8 @@ export default {
       feature9Body: "Vous avez trouvé un bug ou une idée ? Des boutons pour joindre le développeur sont toujours dans l'app — il suffit de taper.",
     },
     tour: {
+    managePrint: "Imprimer la recette.",
+
           skip: "Passer",
           skipTitle: "Passer le tutoriel ?",
           skipBody: "Vous pourrez le revoir plus tard dans les Réglages.",

@@ -1,6 +1,8 @@
 export default {
   translation: {
     common: {
+    saved: "Guardado",
+
       add: "Añadir",
       back: "Atrás",
       backToTop: "Volver arriba",
@@ -96,6 +98,8 @@ export default {
       dismiss: "Más tarde",
     },
     recipes: {
+    toggleFavorite: "Alternar categoría favorita",
+
       title: "Recetas",
       emptyTitle: "Sin recetas",
       emptyBody: "Añade una receta o sincroniza tu Cookbook.",
@@ -354,6 +358,8 @@ export default {
       requiredName: "El nombre de la receta es obligatorio.",
     },
     importRecipe: {
+    aiTitle: "Inteligencia Artificial",
+
       title: "Importar",
       url: "URL de la receta",
       urlPlaceholder: "https://cookpad.com/...",
@@ -541,6 +547,9 @@ export default {
         "Las fotos añadidas manualmente se copian en el almacenamiento de la app para que estén disponibles sin conexión.",
     },
     support: {
+    emailFailedTitle: "No se encontró aplicación de correo electrónico",
+    emailFailedBody: "No pudimos abrir una aplicación de correo. Puedes contactarnos en contact@nephoos.com",
+
       github: "Reportar un problema en GitHub",
       email: "Contactar al desarrollador por Email",
       includeLogsTitle: "¿Incluir registros?",

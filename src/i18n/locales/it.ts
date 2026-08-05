@@ -1,6 +1,8 @@
 export default {
   translation: {
     common: {
+    saved: "Salvato",
+
       add: "Aggiungi",
       back: "Indietro",
       backToTop: "Torna in alto",
@@ -96,6 +98,8 @@ export default {
       dismiss: "Più tardi",
     },
     recipes: {
+    toggleFavorite: "Alterna categoria preferita",
+
       title: "Ricette",
       emptyTitle: "Nessuna ricetta",
       emptyBody: "Aggiungi una ricetta o sincronizza il tuo Cookbook.",
@@ -353,6 +357,8 @@ export default {
       requiredName: "Il nome della ricetta è obbligatorio.",
     },
     importRecipe: {
+    aiTitle: "Intelligenza Artificiale",
+
       title: "Importa",
       url: "URL della ricetta",
       urlPlaceholder: "https://www.giallozafferano.it/...",
@@ -542,6 +548,9 @@ export default {
         "Le foto aggiunte manualmente vengono copiate nell'archiviazione dell'app per restare disponibili offline.",
     },
     support: {
+    emailFailedTitle: "Nessuna app email trovata",
+    emailFailedBody: "Impossibile aprire un'app email. Puoi contattarci a contact@nephoos.com",
+
       github: "Segnala un problema su GitHub",
       email: "Contatta lo sviluppatore tramite Email",
       includeLogsTitle: "Includere i registri?",

@@ -1,6 +1,8 @@
 export default {
   translation: {
     common: {
+    saved: "Saved",
+
       add: "Add",
       back: "Back",
       backToTop: "Back to top",
@@ -95,6 +97,8 @@ export default {
       dismiss: "Later",
     },
     recipes: {
+    toggleFavorite: "Toggle favorite category",
+
       title: "Recipes",
       emptyTitle: "No recipes",
       emptyBody: "Add a recipe or sync your Cookbook.",
@@ -351,6 +355,8 @@ export default {
       requiredName: "Recipe name is required.",
     },
     importRecipe: {
+    aiTitle: "Artificial Intelligence",
+
       title: "Import",
       url: "Recipe URL",
       urlPlaceholder: "https://www.allrecipes.com/...",
@@ -535,6 +541,9 @@ export default {
         "Photos added manually are copied into app storage so they remain available offline.",
     },
     support: {
+    emailFailedTitle: "No email app found",
+    emailFailedBody: "We couldn't open an email app. You can reach us at contact@nephoos.com",
+
       github: "Report a problem on GitHub",
       email: "Contact the developer via Email",
       includeLogsTitle: "Include logs?",

@@ -1,6 +1,8 @@
 export default {
   translation: {
     common: {
+    saved: "Gespeichert",
+
       add: "Hinzufügen",
       back: "Zurück",
       backToTop: "Nach oben",
@@ -96,6 +98,8 @@ export default {
       dismiss: "Später",
     },
     recipes: {
+    toggleFavorite: "Favoriten-Kategorie umschalten",
+
       title: "Rezepte",
       emptyTitle: "Keine Rezepte",
       emptyBody: "Füge ein Rezept hinzu oder synchronisiere dein Cookbook.",
@@ -355,6 +359,8 @@ export default {
       requiredName: "Rezeptname ist erforderlich.",
     },
     importRecipe: {
+    aiTitle: "Künstliche Intelligenz",
+
       title: "Importieren",
       url: "Rezept-URL",
       urlPlaceholder: "https://www.chefkoch.de/...",
@@ -545,6 +551,9 @@ export default {
         "Manuell hinzugefügte Fotos werden in den App-Speicher kopiert, damit sie offline verfügbar bleiben.",
     },
     support: {
+    emailFailedTitle: "Keine E-Mail-App gefunden",
+    emailFailedBody: "Wir konnten keine E-Mail-App öffnen. Sie können uns unter contact@nephoos.com erreichen",
+
       github: "Ein Problem auf GitHub melden",
       email: "Entwickler per E-Mail kontaktieren",
       includeLogsTitle: "Protokolle einschließen?",
