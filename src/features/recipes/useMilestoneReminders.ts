@@ -11,12 +11,16 @@ function getNextBackupMilestone(lastAcknowledgedCount: number): number {
   return nextMultiple * 30;
 }
 
-// Store review milestones: first request at 5 recipes, then every 20 recipes (25, 45, 65…).
+// Store review milestones: first request on app launch (0), then after 2, 4, 8, 16... recipes.
 function getNextReviewMilestone(lastRequestedCount: number): number {
-  if (lastRequestedCount < 5) {
-    return 5;
+  if (lastRequestedCount < 0) return 0;
+  if (lastRequestedCount === 0) return 2;
+  
+  let next = 2;
+  while (next <= lastRequestedCount) {
+    next *= 2;
   }
-  return lastRequestedCount + 20;
+  return next;
 }
 
 export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean) {
@@ -26,10 +30,8 @@ export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean
   useEffect(() => {
     let mounted = true;
     async function checkMilestones() {
-      if (recipesCount === 0) return;
-
       // 1. Check Backup Reminders
-      if (enableBackupReminders && isLocalMode) {
+      if (recipesCount > 0 && enableBackupReminders && isLocalMode) {
         const storedBackupStr = await AsyncStorage.getItem(LAST_BACKUP_REMINDER_COUNT_KEY);
         const lastBackupAckCount = storedBackupStr ? parseInt(storedBackupStr, 10) : 0;
         
@@ -45,14 +47,18 @@ export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean
 
       // 2. Check Store Review Reminders
       const storedReviewStr = await AsyncStorage.getItem(LAST_STORE_REVIEW_COUNT_KEY);
-      const lastReviewReqCount = storedReviewStr ? parseInt(storedReviewStr, 10) : 0;
+      const lastReviewReqCount = storedReviewStr !== null ? parseInt(storedReviewStr, 10) : -1;
       
       const nextReviewMilestone = getNextReviewMilestone(lastReviewReqCount);
       if (recipesCount >= nextReviewMilestone) {
         // Wait a bit so the UI has time to render before the review modal appears
         setTimeout(() => {
           if (mounted) {
-            void triggerStoreReview(nextReviewMilestone);
+            let currentMilestone = nextReviewMilestone;
+            while (getNextReviewMilestone(currentMilestone) <= recipesCount) {
+              currentMilestone = getNextReviewMilestone(currentMilestone);
+            }
+            void triggerStoreReview(currentMilestone);
           }
         }, 1500);
       }
