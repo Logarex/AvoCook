@@ -1031,13 +1031,15 @@ const styles = StyleSheet.create({
   providerGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: spacing.xs
+    justifyContent: "center",
+    gap: spacing.sm,
+    paddingVertical: spacing.sm
   },
   providerChip: {
-    borderRadius: spacing.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm
   },
   toolbar: {
     alignItems: "center",
