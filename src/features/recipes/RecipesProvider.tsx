@@ -308,6 +308,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     }
   }, [
     customCategories,
+    favoriteCategories,
     getClient,
     isLocalMode,
     repositoryOptions,
@@ -326,7 +327,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     } finally {
       stopLongActionNotice();
     }
-  }, [getClient, repositoryOptions, watchLongAction]);
+  }, [effectiveShowDefaultCategories, getClient, repositoryOptions, watchLongAction]);
 
   const importBackupFile = useCallback(
     async (uri: string) => {
@@ -345,7 +346,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
         stopLongActionNotice();
       }
     },
-    [getClient, repositoryOptions, watchLongAction]
+    [effectiveShowDefaultCategories, getClient, repositoryOptions, watchLongAction]
   );
 
   const findDuplicateGroups = useCallback(() => findDuplicateRecipes(), []);
