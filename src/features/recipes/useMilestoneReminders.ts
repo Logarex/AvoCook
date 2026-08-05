@@ -83,7 +83,7 @@ export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean
       }
       // Record that we triggered it for this milestone, even if it failed/was denied by OS
       await AsyncStorage.setItem(LAST_STORE_REVIEW_COUNT_KEY, milestone.toString());
-    } catch (e) {
+    } catch {
       // Ignore gracefully
     }
   }
@@ -94,7 +94,7 @@ export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean
       if (await StoreReview.hasAction()) {
         await StoreReview.requestReview();
       }
-    } catch (e) {
+    } catch {
       // Ignore gracefully
     }
   }, []);

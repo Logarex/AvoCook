@@ -6,13 +6,13 @@ import {
   Bell,
   BookOpen,
   Bot,
-  ChevronDown,
+  
   Database,
   Download,
   Bug,
   Eye,
   EyeOff,
-  FileText,
+  
   Globe,
   Info,
   Lock,
@@ -20,9 +20,9 @@ import {
   Mail,
   RefreshCw,
   Save,
-  ShieldCheck,
+  
   Smartphone,
-  Sparkles,
+  
   Star,
   Upload,
   User
@@ -876,12 +876,7 @@ export function SettingsScreen({ navigation }: Props) {
             }}
             variant="ghost"
           />
-          <PrimaryButton
-            icon={FileText}
-            label={t("settings.openLogs")}
-            onPress={() => navigation.navigate("DiagnosticsLogs")}
-            variant="ghost"
-          />
+
           <PrimaryButton
             icon={Info}
             label={t("settings.openPrivacy")}

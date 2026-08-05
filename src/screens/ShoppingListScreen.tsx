@@ -409,7 +409,7 @@ export function ShoppingListScreen({ navigation }: Props) {
         </View>
       </View>
 
-      {/* Sync banner: shown when feature is available but not yet linked */}
+
       {sync.available && !sync.linked && !sync.dismissed ? (
         <GlassPanel style={styles.syncBanner}>
           <View style={styles.syncBannerHeader}>

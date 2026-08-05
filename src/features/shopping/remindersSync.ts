@@ -2,7 +2,6 @@ import * as Calendar from "expo-calendar";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 import type { ShoppingListItem } from "./shoppingList";
-import { logInfo, logWarn, logError } from "../logging/appLogger";
 
 const REMINDERS_LIST_ID_KEY = "shopping.reminders.listId.v1";
 const REMINDERS_ITEM_MAP_KEY = "shopping.reminders.itemMap.v1";
@@ -44,7 +43,7 @@ export async function findOrCreateAvoCookList(): Promise<string> {
   try {
     calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.REMINDER);
   } catch (e) {
-    logError("sync", "Failed to get calendars", e);
+    console.error("sync", "Failed to get calendars", e);
   }
 
   // 2. Check if the stored ID still exists and is modifiable
@@ -98,7 +97,7 @@ export async function findOrCreateAvoCookList(): Promise<string> {
     await AsyncStorage.setItem(REMINDERS_LIST_ID_KEY, newId);
     return newId;
   } catch (e) {
-    logError("sync", "Failed to create new calendar list", e);
+    console.error("sync", "Failed to create new calendar list", e);
     
     // If creation failed with the chosen source, try falling back to local source explicitly if we didn't already
     if (targetSource && !targetSource.isLocalAccount) {
@@ -117,7 +116,7 @@ export async function findOrCreateAvoCookList(): Promise<string> {
           await AsyncStorage.setItem(REMINDERS_LIST_ID_KEY, fallbackId);
           return fallbackId;
        } catch (fallbackErr) {
-          logError("sync", "Fallback local calendar creation also failed", fallbackErr);
+          console.error("sync", "Fallback local calendar creation also failed", fallbackErr);
           throw fallbackErr;
        }
     }
@@ -181,7 +180,7 @@ async function fetchAllReminders(listId: string): Promise<Calendar.Reminder[]> {
     null,
     null
   ).catch((e) => {
-    logError("sync", `Failed to fetch all reminders for list ${listId}`, e);
+    console.error("sync", `Failed to fetch all reminders for list ${listId}`, e);
     throw e;
   });
 }
@@ -229,7 +228,7 @@ async function _executePush(items: ShoppingListItem[], listId: string): Promise<
   const nextMap: ItemMap = {};
   const knownReminderIds = new Set(Object.values(itemMap));
 
-  logInfo("sync", "Starting push to Reminders", {
+  console.info("sync", "Starting push to Reminders", {
     avoCookItems: items.length,
     remindersCount: reminders.length,
     knownMappings: knownReminderIds.size,
@@ -248,7 +247,7 @@ async function _executePush(items: ShoppingListItem[], listId: string): Promise<
           r.title?.trim().toLowerCase() === item.label.trim().toLowerCase()
       );
       if (matchedReminder) {
-        logInfo("sync", `Matched item by name: ${item.label}`, {
+        console.info("sync", `Matched item by name: ${item.label}`, {
           avocookId: item.id,
           reminderId: matchedReminder.id,
         });
@@ -266,19 +265,19 @@ async function _executePush(items: ShoppingListItem[], listId: string): Promise<
     if (matchedReminder && matchedReminder.id) {
       // Both exist -> update reminder to match AvoCook
       await Calendar.updateReminderAsync(matchedReminder.id, reminderDetails).catch(
-        (e) => logWarn("sync", `Failed to update reminder ${matchedReminder!.id}`, e)
+        (e) => console.warn("sync", `Failed to update reminder ${matchedReminder!.id}`, e)
       );
       nextMap[item.id] = matchedReminder.id;
     } else {
       // New in AvoCook -> create reminder
       const newId = await Calendar.createReminderAsync(listId, reminderDetails).catch(
         (e) => {
-          logWarn("sync", `Failed to create reminder for ${item.label}`, e);
+          console.warn("sync", `Failed to create reminder for ${item.label}`, e);
           return null;
         }
       );
       if (newId) {
-        logInfo("sync", `Created new reminder for ${item.label}`, { reminderId: newId });
+        console.info("sync", `Created new reminder for ${item.label}`, { reminderId: newId });
         nextMap[item.id] = newId;
       }
     }
@@ -292,15 +291,15 @@ async function _executePush(items: ShoppingListItem[], listId: string): Promise<
       knownReminderIds.has(reminder.id) &&
       !nextMappedReminderIds.has(reminder.id)
     ) {
-      logInfo("sync", `Item deleted in AvoCook, deleting reminder: ${reminder.title}`);
+      console.info("sync", `Item deleted in AvoCook, deleting reminder: ${reminder.title}`);
       await Calendar.deleteReminderAsync(reminder.id).catch((e) =>
-        logWarn("sync", `Failed to delete orphaned reminder ${reminder.id}`, e)
+        console.warn("sync", `Failed to delete orphaned reminder ${reminder.id}`, e)
       );
     }
   }
 
   await saveItemMap(nextMap);
-  logInfo("sync", "Push completed", { nextMapSize: Object.keys(nextMap).length });
+  console.info("sync", "Push completed", { nextMapSize: Object.keys(nextMap).length });
 }
 
 // ─── Pull lock ────────────────────────────────────────────────────────────────
@@ -366,7 +365,7 @@ async function _executePull(
   const deletedItemIds: string[] = [];
   const newReminderItems: NewReminderItem[] = [];
 
-  logInfo("sync", "Starting pull from Reminders", {
+  console.info("sync", "Starting pull from Reminders", {
     avoCookItems: currentItems.length,
     remindersCount: reminders.length,
   });
@@ -382,7 +381,7 @@ async function _executePull(
       const systemChecked = matchedReminder.completed ?? false;
 
       if (systemLabel !== item.label || systemChecked !== item.checked) {
-        logInfo("sync", `Item updated from Rappels: ${item.label}`, {
+        console.info("sync", `Item updated from Rappels: ${item.label}`, {
           old: { label: item.label, checked: item.checked },
           new: { label: systemLabel, checked: systemChecked },
         });
@@ -399,7 +398,7 @@ async function _executePull(
     } else {
       // Reminder is gone! Was it previously mapped?
       if (reminderId) {
-        logInfo("sync", `Reminder deleted in Rappels, deleting from AvoCook: ${item.label}`);
+        console.info("sync", `Reminder deleted in Rappels, deleting from AvoCook: ${item.label}`);
         deletedItemIds.push(item.id);
         delete nextMap[item.id];
         hasChanges = true;
@@ -420,7 +419,7 @@ async function _executePull(
     ) {
       // Brand new reminder in Reminders!
       if (reminder.title?.trim()) {
-        logInfo("sync", `New reminder detected from Rappels: ${reminder.title}`);
+        console.info("sync", `New reminder detected from Rappels: ${reminder.title}`);
         newReminderItems.push({
           reminderId: reminder.id,
           label: reminder.title.trim(),
@@ -432,7 +431,7 @@ async function _executePull(
   }
 
   await saveItemMap(nextMap);
-  logInfo("sync", "Pull completed", { hasChanges, newCount: newReminderItems.length, delCount: deletedItemIds.length });
+  console.info("sync", "Pull completed", { hasChanges, newCount: newReminderItems.length, delCount: deletedItemIds.length });
 
   return {
     updatedItems,

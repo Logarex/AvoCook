@@ -1,6 +1,5 @@
 import { jsonLdToRecipe } from "./schemaRecipeParser";
 import type { Recipe } from "../recipes/types";
-import { logError, logInfo } from "../logging/appLogger";
 
 // ---------------------------------------------------------------------------
 // Provider presets
@@ -293,7 +292,7 @@ export async function extractRecipeFromPhoto(
   const modelDocsUrl = preset?.modelDocsUrl ?? "";
   const prompt = buildExtractionPrompt(userLocale);
 
-  logInfo("network", `Requesting recipe extraction from ${providerId} (${model}) in locale ${userLocale}`);
+  console.info("network", `Requesting recipe extraction from ${providerId} (${model}) in locale ${userLocale}`);
 
   let responseText: string;
   try {
@@ -303,7 +302,7 @@ export async function extractRecipeFromPhoto(
       responseText = await callOpenAiCompatibleApi(imageBase64, apiKey, baseUrl, model, prompt);
     }
   } catch (err) {
-    logError("network", "Failed to call LLM API for photo import", err);
+    console.error("network", "Failed to call LLM API for photo import", err);
     // Re-wrap model-not-found errors with provider docs URL so the UI can help.
     if (err instanceof LlmApiError && isModelNotFoundError(err)) {
       throw new LlmModelNotFoundError(err.status, err.message, model, modelDocsUrl);
@@ -330,7 +329,7 @@ export async function generateRecipeFromText(
   const modelDocsUrl = preset?.modelDocsUrl ?? "";
   const prompt = buildTextPrompt(userLocale, textPrompt);
 
-  logInfo("network", `Requesting recipe generation from ${providerId} (${model}) in locale ${userLocale}`);
+  console.info("network", `Requesting recipe generation from ${providerId} (${model}) in locale ${userLocale}`);
 
   let responseText: string;
   try {
@@ -340,7 +339,7 @@ export async function generateRecipeFromText(
       responseText = await callOpenAiCompatibleApi(null, apiKey, baseUrl, model, prompt);
     }
   } catch (err) {
-    logError("network", "Failed to call LLM API for text generation", err);
+    console.error("network", "Failed to call LLM API for text generation", err);
     if (err instanceof LlmApiError && isModelNotFoundError(err)) {
       throw new LlmModelNotFoundError(err.status, err.message, model, modelDocsUrl);
     }
@@ -525,12 +524,12 @@ function parseRecipeFromLlmResponse(responseText: string): Recipe {
   try {
     parsed = JSON.parse(cleaned) as unknown;
   } catch (err) {
-    logError("app", "LLM did not return valid JSON", { err, responseText, cleaned });
+    console.error("app", "LLM did not return valid JSON", { err, responseText, cleaned });
     throw new Error("LLM did not return valid JSON");
   }
 
   if (typeof parsed !== "object" || parsed === null) {
-    logError("app", "LLM response is not a JSON object", { parsed });
+    console.error("app", "LLM response is not a JSON object", { parsed });
     throw new Error("LLM response is not a JSON object");
   }
 
@@ -541,7 +540,7 @@ function parseRecipeFromLlmResponse(responseText: string): Recipe {
   try {
     return jsonLdToRecipe(parsed as Record<string, unknown>);
   } catch (err) {
-    logError("app", "Failed to convert JSON-LD to Recipe", { err, parsed });
+    console.error("app", "Failed to convert JSON-LD to Recipe", { err, parsed });
     throw err;
   }
 }

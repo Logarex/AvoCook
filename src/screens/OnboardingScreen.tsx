@@ -8,12 +8,12 @@ import {
   ExternalLink,
   Heart,
   HelpCircle,
-  Mail,
+  
   Smartphone,
   ShoppingCart,
   Star,
   Timer,
-  Wifi,
+  
 } from "lucide-react-native";
 import { Image } from "expo-image";
 import React, { useRef, useState } from "react";
@@ -21,7 +21,7 @@ import {
   Animated,
   Dimensions,
   FlatList,
-  Linking,
+  
   NativeScrollEvent,
   NativeSyntheticEvent,
   Pressable,
@@ -126,7 +126,7 @@ export function OnboardingScreen({ navigation }: Props) {
         },
       ]}
     >
-      {/* Language picker top-right */}
+
       <View style={styles.topBar}>
         <View style={{ flex: 1 }} />
         <LanguagePicker
@@ -181,7 +181,7 @@ export function OnboardingScreen({ navigation }: Props) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Page 1 — Presentation
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 function Page1({
@@ -222,7 +222,7 @@ function Page1({
           </GlassPanel>
         </View>
 
-        {/* Local vs Nextcloud */}
+
         <View style={styles.modesColumn}>
           <GlassPanel style={styles.modeCardHorizontal}>
             <View style={[styles.modeIconCircle, { backgroundColor: colors.chip }]}>
@@ -260,10 +260,6 @@ function Page1({
     </View>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Page 2 — Features
-// ─────────────────────────────────────────────────────────────────────────────
 
 function Page2({
   colors,
@@ -331,7 +327,7 @@ function Page2({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Styles
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({

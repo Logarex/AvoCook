@@ -9,7 +9,7 @@ import React, {
   useState
 } from "react";
 import { assertSecureNextcloudUrl, normalizeNextcloudUrl } from "../../utils/url";
-import { logError, logInfo, normalizeLogError } from "../logging/appLogger";
+
 import {
   CookbookClient,
   type NextcloudCredentials
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         setIsLocalMode(localMode === "true" && !stored);
       } catch (error) {
-        logError("auth", "Failed to load auth state", error);
+        console.error("auth", "Failed to load auth state", error);
       } finally {
         setHydrated(true);
       }
@@ -72,7 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (nextCredentials: NextcloudCredentials) => {
     const serverUrl = normalizeNextcloudUrl(nextCredentials.serverUrl);
     assertSecureNextcloudUrl(serverUrl);
-    logInfo("auth", "Login started", {
+    console.info("auth", "Login started", {
       serverUrl,
       username: nextCredentials.username.trim()
     });
@@ -90,16 +90,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (user?.id?.trim()) {
         normalizedCredentials.userId = user.id.trim();
       }
-      logInfo("auth", "Login connection validated", {
+      console.info("auth", "Login connection validated", {
         serverUrl,
         username: normalizedCredentials.username,
         userId: normalizedCredentials.userId ?? null
       });
     } catch (error) {
-      logError("auth", "Login failed", {
+      console.error("auth", "Login failed", {
         serverUrl,
         username: normalizedCredentials.username,
-        error: normalizeLogError(error)
+        error
       });
       throw error;
     }
@@ -114,7 +114,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(LOCAL_MODE_KEY, "false");
     setIsLocalMode(false);
     setCredentials(normalizedCredentials);
-    logInfo("auth", "Login credentials stored", {
+    console.info("auth", "Login credentials stored", {
       serverUrl,
       username: normalizedCredentials.username,
       userId: normalizedCredentials.userId ?? null
@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const startLocalMode = useCallback(async () => {
-    logInfo("auth", "Local mode started");
+    console.info("auth", "Local mode started");
     await SecureStore.deleteItemAsync(CREDENTIALS_KEY);
     await AsyncStorage.setItem(LOCAL_MODE_KEY, "true");
     setCredentials(null);
@@ -130,7 +130,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const logout = useCallback(async () => {
-    logInfo("auth", "Logout started");
+    console.info("auth", "Logout started");
     await SecureStore.deleteItemAsync(CREDENTIALS_KEY);
     await AsyncStorage.setItem(LOCAL_MODE_KEY, "false");
     setCredentials(null);

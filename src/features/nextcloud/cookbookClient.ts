@@ -1,11 +1,5 @@
 import { base64Encode } from "../../utils/base64";
 import { normalizeNextcloudUrl } from "../../utils/url";
-import {
-  logError,
-  logInfo,
-  logWarn,
-  normalizeLogError
-} from "../logging/appLogger";
 import { normalizeCookbookImageEndpointReference } from "../recipes/recipeImageReferences";
 import {
   toCookbookCreateRecipe,
@@ -236,7 +230,7 @@ export class CookbookClient {
     const { File } = await import("expo-file-system");
     const localFile = new File(localUri);
     const remotePath = `/AvoCook Images/${getSafeRemoteImageFilename(localUri)}`;
-    logInfo("sync", "Recipe image upload started", {
+    console.info("sync", "Recipe image upload started", {
       localUri,
       remotePath
     });
@@ -245,12 +239,12 @@ export class CookbookClient {
       await this.putWebDavFileWithAutoMkcol(remotePath, body, {
         "Content-Type": getImageMimeType(remotePath)
       });
-      logInfo("sync", "Recipe image upload finished", { remotePath });
+      console.info("sync", "Recipe image upload finished", { remotePath });
     } catch (error) {
-      logError("sync", "Recipe image upload failed", {
+      console.error("sync", "Recipe image upload failed", {
         localUri,
         remotePath,
-        error: normalizeLogError(error)
+        error: error
       });
       throw error;
     }
@@ -403,7 +397,7 @@ export class CookbookClient {
       }
 
       // fallback: explicit MKCOL if auto failed
-      logWarn(
+      console.warn(
         "sync",
         "WebDAV auto directory creation failed; trying explicit MKCOL",
         {
@@ -470,7 +464,7 @@ export class CookbookClient {
                 // The user id and the login username can differ on Nextcloud
                 // (e.g. "john@example.com" login but "john" user id for WebDAV paths).
                 // We try the login first, then fall back to the resolved user id.
-                logWarn(
+                console.warn(
                   "sync",
                   "WebDAV auth rejected login; retrying with resolved user id",
                   {
@@ -501,7 +495,7 @@ export class CookbookClient {
       }
 
       const hasFallbackEndpoint = styleIndex < styles.length - 1;
-      logWarn(
+      console.warn(
         "sync",
         hasFallbackEndpoint
           ? "WebDAV request failed; trying fallback endpoint"

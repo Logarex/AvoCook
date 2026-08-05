@@ -27,6 +27,5 @@ export type RootStackParamList = {
       }
     | undefined;
   Settings: undefined;
-  DiagnosticsLogs: undefined;
   Privacy: undefined;
 };

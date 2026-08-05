@@ -199,7 +199,7 @@ export function TourScreen({ navigation }: Props) {
       {/* Main Content Area */}
       <View style={styles.contentWrapper}>
         <View style={styles.centerContainer}>
-          {/* Icon circle */}
+
           <View
             style={[
               styles.iconCircle,
@@ -218,7 +218,7 @@ export function TourScreen({ navigation }: Props) {
             {t(current.bodyKey as Parameters<typeof t>[0])}
           </AppText>
 
-          {/* Extra Elements (e.g. AI Guide) */}
+
           {current.extra?.({ colors, t, isLocalMode, isIos })}
         </View>
       </View>
@@ -478,7 +478,7 @@ function AppleRemindersGuide({ t }: { colors: any; t: any }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Styles
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({

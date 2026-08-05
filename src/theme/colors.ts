@@ -20,7 +20,6 @@ export type AppColorScheme = {
 };
 
 export const lightColors: AppColorScheme = {
-  // maybe we should use Tailwind instead of hardcoding everything...
   background: "#F7F3EA",
   backgroundElevated: "#FFFFFF",
   text: "#1D1A16",

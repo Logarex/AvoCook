@@ -1,6 +1,5 @@
 import * as Crypto from "expo-crypto";
 import * as SQLite from "expo-sqlite";
-import { logDebug } from "../logging/appLogger";
 import { hasLocalMetadata, normalizeRecipe, type Recipe } from "./types";
 
 export type SyncOperationType = "create" | "update" | "delete";
@@ -96,7 +95,7 @@ export async function saveLocalRecipe(
     dirty ? 1 : 0,
     payload.dateModified ?? dateModified
   );
-  logDebug("local", "Local recipe saved", {
+  console.debug("local", "Local recipe saved", {
     id,
     dirty,
     touchModified,
@@ -156,7 +155,7 @@ export async function enqueueSyncOperation(
         new Date().toISOString(),
         queuedCreate.id
       );
-      logDebug("local", "Queued create operation payload updated", {
+      console.debug("local", "Queued create operation payload updated", {
         operation,
         recipeId,
         queueId: queuedCreate.id,
@@ -175,7 +174,7 @@ export async function enqueueSyncOperation(
     payload ? JSON.stringify(payload) : null,
     new Date().toISOString()
   );
-  logDebug("local", "Sync operation queued", {
+  console.debug("local", "Sync operation queued", {
     operation,
     recipeId,
     hasPayload: Boolean(payload),

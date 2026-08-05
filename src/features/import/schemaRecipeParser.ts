@@ -2,30 +2,6 @@ import { normalizeRecipe, type Recipe } from "../recipes/types";
 
 type JsonLdValue = Record<string, unknown> | JsonLdValue[] | string;
 
-export type ImportSource = {
-  host: string;
-  region: "france" | "world";
-};
-
-export const SUPPORTED_IMPORT_SITES: ImportSource[] = [
-  { host: "marmiton.org", region: "france" },
-  { host: "cuisineaz.com", region: "france" },
-  { host: "750g.com", region: "france" },
-  { host: "journaldesfemmes.fr", region: "france" },
-  { host: "papillesetpupilles.fr", region: "france" },
-  { host: "hervecuisine.com", region: "france" },
-  { host: "atelierdeschefs.fr", region: "france" },
-  { host: "allrecipes.com", region: "world" },
-  { host: "bbcgoodfood.com", region: "world" },
-  { host: "seriouseats.com", region: "world" },
-  { host: "foodnetwork.com", region: "world" },
-  { host: "nytimes.com", region: "world" },
-  { host: "chefkoch.de", region: "world" },
-  { host: "giallozafferano.it", region: "world" },
-  { host: "recetasderechupete.com", region: "world" },
-  { host: "cookpad.com", region: "world" }
-];
-
 export async function importRecipeFromWeb(url: string): Promise<Recipe> {
   const response = await fetch(url, {
     headers: {

@@ -55,7 +55,7 @@ export function UpdateScreen({ navigation }: Props) {
           </AppText>
         </View>
 
-        {/* Features list */}
+
         <View style={styles.featuresColumn}>
           <GlassPanel style={styles.featureCardHorizontal}>
             <View style={[styles.featureIconCircle, { backgroundColor: colors.chip }]}>

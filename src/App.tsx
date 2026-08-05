@@ -13,15 +13,12 @@ import "./i18n";
 import { AppText } from "./components/AppText";
 import { LongActionToastProvider } from "./components/LongActionToast";
 import { AuthProvider, useAuth } from "./features/auth/AuthProvider";
-import { logInfo, logError } from "./features/logging/appLogger";
-import { installNetworkLogger } from "./features/logging/networkLogger";
 import { PreferencesProvider } from "./features/preferences/PreferencesProvider";
 import { RecipesProvider } from "./features/recipes/RecipesProvider";
 import { ShoppingListProvider } from "./features/shopping/ShoppingListProvider";
 import { TimersProvider } from "./features/timers/TimersProvider";
 import { useReducedMotion } from "./features/accessibility/useReducedMotion";
 import type { RootStackParamList } from "./navigation/types";
-import { DiagnosticsLogsScreen } from "./screens/DiagnosticsLogsScreen";
 import { ImportRecipeScreen } from "./screens/ImportRecipeScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import { OnboardingScreen } from "./screens/OnboardingScreen";
@@ -44,14 +41,10 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 
 export default function App() {
   React.useEffect(() => {
-    installNetworkLogger();
-    logInfo("app", "AvoCook mounted");
     SplashScreen.hideAsync().catch(() => {});
   }, []);
 
   return (
-    // Warning: all those providers are probably making the app slower
-    // but I didn't find a better way to structure this without Redux
     <GestureHandlerRootView style={styles.flex}>
       <SafeAreaProvider>
         <AppThemeProvider>
@@ -127,8 +120,7 @@ function RootNavigator() {
             headerShown: false
           })}
         >
-          {/* Always register all screens – visibility is controlled by
-              which screen appears first via initialRouteName */}
+
           <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Tour" component={TourScreen} />
@@ -139,10 +131,7 @@ function RootNavigator() {
           <Stack.Screen name="ImportRecipe" component={ImportRecipeScreen} />
           <Stack.Screen name="ShoppingList" component={ShoppingListScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
-          <Stack.Screen
-            name="DiagnosticsLogs"
-            component={DiagnosticsLogsScreen}
-          />
+
           <Stack.Screen name="Privacy" component={PrivacyScreen} />
         </Stack.Navigator>
       </NavigationContainer>
@@ -162,19 +151,11 @@ function ShareIntentHandler() {
     // Small delay to ensure the navigator is mounted and ready
     const timer = setTimeout(() => {
       try {
-        logInfo("app", "Processing share intent", {
-          type: shareIntent.type,
-          webUrl: shareIntent.webUrl,
-          textLength: shareIntent.text?.length,
-          filesCount: shareIntent.files?.length
-        });
-        
+        // Process share intent
         if (shareIntent.type === "weburl" && shareIntent.webUrl) {
           const rawUrl = shareIntent.webUrl.trim();
           if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
             navigation.navigate("ImportRecipe", { url: rawUrl });
-          } else {
-            logInfo("app", "Share intent skipped (invalid URL)", { rawUrl });
           }
         } else if (shareIntent.type === "text" && shareIntent.text) {
           // Sometimes URLs are shared as plain text, often with the page title prepended
@@ -182,19 +163,14 @@ function ShareIntentHandler() {
           const urlMatch = rawText.match(/https?:\/\/[^\s]+/);
           if (urlMatch && urlMatch[0]) {
             navigation.navigate("ImportRecipe", { url: urlMatch[0] });
-          } else {
-            logInfo("app", "Share intent skipped (text not URL)");
           }
         } else if (shareIntent.type === "file" && shareIntent.files?.[0]?.path) {
           // File shared from Fichiers / Files app (.avocook backup)
           const filePath = shareIntent.files[0].path;
           navigation.navigate("ImportRecipe", { fileUri: filePath });
-        } else {
-          logInfo("app", "Share intent skipped (unsupported type/content)");
         }
       } catch (error) {
         // Navigation error — navigator may not be ready yet, ignore gracefully
-        logError("app", "Share intent navigation failed", error);
       }
       resetShareIntent();
     }, 150);

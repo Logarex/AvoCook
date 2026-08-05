@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ArrowLeft, Camera, Download, Upload, Sparkles, Globe, FileJson } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert,  StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import * as ImagePicker from "expo-image-picker";
@@ -21,7 +21,6 @@ import {
   LlmNotFoodError
 } from "../features/import/photoRecipeImport";
 import { persistRecipeImage } from "../features/recipes/recipeImages";
-import { logError } from "../features/logging/appLogger";
 import type { RootStackParamList } from "../navigation/types";
 import { spacing, radius } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -212,7 +211,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         recipe.image = photoLocalUri;
         recipe.imageUrl = photoLocalUri;
       } catch (imgErr) {
-        logError("app", "Failed to persist recipe image", imgErr);
+        console.error("app", "Failed to persist recipe image", imgErr);
       }
 
       const saved = await createRecipe(recipe);
@@ -222,7 +221,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         navigation.goBack();
       }
     } catch (err) {
-      logError("app", "Photo import failed in ImportRecipeScreen", err);
+      console.error("app", "Photo import failed in ImportRecipeScreen", err);
       if (err instanceof LlmModelNotFoundError) {
         setError(
           t("importRecipe.photoModelNotFound", { model: err.model }) +
@@ -263,7 +262,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         navigation.goBack();
       }
     } catch (err) {
-      logError("app", "Text import failed in ImportRecipeScreen", err);
+      console.error("app", "Text import failed in ImportRecipeScreen", err);
       if (err instanceof LlmModelNotFoundError) {
         setError(
           t("importRecipe.photoModelNotFound", { model: err.model }) +
@@ -313,7 +312,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         <View style={styles.toolbarTitleContainer}>
           <AppText variant="subtitle">{t("importRecipe.title")}</AppText>
         </View>
-        {/* Empty view for flex balancing */}
+
         <View style={{ width: 44 }} />
       </View>
 
@@ -408,7 +407,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         )}
       </GlassPanel>
 
-      {/* Section 3: File Backup */}
+
       <GlassPanel style={styles.section}>
         <View style={styles.sectionHeader}>
           <FileJson color={colors.primary} size={22} />
