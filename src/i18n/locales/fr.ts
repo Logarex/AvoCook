@@ -630,7 +630,7 @@ export default {
     },
     update: {
       title: "Quoi de neuf ?",
-      subtitle: "Découvrez les nouveautés de la version 3.3.0",
+      subtitle: "Découvrez les nouveautés de la version 3.4.0",
       feat1Title: "Correctifs de stabilité",
       feat1Body: "Correction de la déconnexion intempestive après fermeture de l'app, meilleure persistance de la session sur iOS et Android.",
       feat2Title: "Import par partage corrigé",

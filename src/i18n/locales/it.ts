@@ -627,7 +627,7 @@ export default {
     },
     update: {
       title: "Cosa c'è di nuovo?",
-      subtitle: "Scopri le novità della versione 3.3.0",
+      subtitle: "Scopri le novità della versione 3.4.0",
       feat1Title: "Correzioni di stabilità",
       feat1Body: "Corretti i logout imprevisti dopo la chiusura dell'app, migliore persistenza della sessione su iOS e Android.",
       feat2Title: "Condivisione ricette corretta",

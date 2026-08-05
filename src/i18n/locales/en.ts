@@ -620,7 +620,7 @@ export default {
     },
     update: {
       title: "What's new?",
-      subtitle: "Discover what's new in version 3.3.0",
+      subtitle: "Discover what's new in version 3.4.0",
       feat1Title: "Stability fixes",
       feat1Body: "Fixed unexpected logouts after closing the app, better session persistence on iOS and Android.",
       feat2Title: "Share extension fixed",
