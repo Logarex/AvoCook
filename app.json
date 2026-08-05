@@ -128,6 +128,7 @@
       "./tools/plugins/withAndroidLint",
       "./tools/plugins/withOptionalCamera",
       "./tools/plugins/withIosBuildNumber",
+      "./tools/plugins/withProguardRules",
       "expo-font"
     ],
     "extra": {
