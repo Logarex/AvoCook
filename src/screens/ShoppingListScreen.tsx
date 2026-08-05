@@ -909,7 +909,7 @@ const styles = StyleSheet.create({
   },
   syncBannerButton: {
     alignItems: "center",
-    alignSelf: "flex-start",
+    alignSelf: "center",
     borderRadius: radius.pill,
     flexDirection: "row",
     gap: spacing.xxs,

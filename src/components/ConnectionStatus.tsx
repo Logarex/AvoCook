@@ -65,12 +65,12 @@ export function ConnectionStatus({
             }
           ]}
         />
-        <AppText muted variant="caption" numberOfLines={1}>
+        <AppText muted variant="caption" style={{ flexShrink: 1 }}>
           {label}
         </AppText>
       </View>
       {detail ? (
-        <AppText muted variant="caption" numberOfLines={1} style={styles.detail}>
+        <AppText muted variant="caption" style={[styles.detail, { flexShrink: 1 }]}>
           {detail}
         </AppText>
       ) : null}
