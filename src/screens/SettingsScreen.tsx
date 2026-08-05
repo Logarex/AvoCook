@@ -61,7 +61,7 @@ export function SettingsScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors, mode, setMode } = useAppTheme();
   const { watchLongAction } = useLongActionToast();
-  const { credentials, getClient, isLocalMode, logout } = useAuth();
+  const { credentials, getClient, isLocalMode, logout, startLocalMode } = useAuth();
   const {
     exportBackup,
     findDuplicateGroups,
@@ -212,8 +212,56 @@ export function SettingsScreen({ navigation }: Props) {
   }
 
   async function handleLogout() {
-    await logout();
-    navigation.replace("Login");
+    Alert.alert(
+      t("settings.logoutConfirmTitle", "Déconnexion"),
+      t("settings.logoutConfirmBody", "Vos informations de connexion seront supprimées de cet appareil."),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.logout"),
+          style: "destructive",
+          onPress: async () => {
+            await logout();
+            navigation.replace("Login");
+          }
+        }
+      ]
+    );
+  }
+
+  async function handleSwitchMode() {
+    if (isLocalMode) {
+      Alert.alert(
+        t("settings.switchToNextcloudConfirmTitle", "Passer sur Nextcloud ?"),
+        t("settings.switchToNextcloudConfirmBody", "Vos recettes locales ne seront pas synchronisées avec Nextcloud, elles resteront uniquement sur cet appareil. Aucune donnée n'est perdue !"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("settings.switchToNextcloud"),
+            onPress: async () => {
+              await logout();
+              navigation.replace("Login", { showNextcloud: true });
+            }
+          }
+        ]
+      );
+    } else {
+      Alert.alert(
+        t("settings.switchToLocalConfirmTitle", "Passer en mode local ?"),
+        t("settings.switchToLocalConfirmBody", "Vos recettes Nextcloud ne seront plus synchronisées sur cet appareil. Vos recettes locales sont conservées séparément. Aucune donnée n'est perdue !"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          {
+            text: t("settings.switchToLocal"),
+            style: "destructive",
+            onPress: async () => {
+              await startLocalMode();
+              navigation.replace("Recipes");
+            }
+          }
+        ]
+      );
+    }
   }
 
   async function handleExportBackup() {
@@ -898,13 +946,22 @@ export function SettingsScreen({ navigation }: Props) {
         </View>
       </GlassPanel>
 
-      <PrimaryButton
-        icon={LogOut}
-        label={t("common.logout")}
-        onPress={() => void handleLogout()}
-        variant="danger"
-        style={{ marginTop: 16, marginBottom: 32 }}
-      />
+      <View style={{ marginTop: 16, marginBottom: 32, gap: 8 }}>
+        <PrimaryButton
+          icon={isLocalMode ? Globe : Smartphone}
+          label={isLocalMode ? t("settings.switchToNextcloud") : t("settings.switchToLocal")}
+          onPress={() => void handleSwitchMode()}
+          variant="secondary"
+        />
+        {!isLocalMode ? (
+          <PrimaryButton
+            icon={LogOut}
+            label={t("common.logout")}
+            onPress={() => void handleLogout()}
+            variant="danger"
+          />
+        ) : null}
+      </View>
     </Screen>
   );
 }

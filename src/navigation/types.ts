@@ -2,7 +2,11 @@ export type RootStackParamList = {
   Onboarding: undefined;
   Tour: undefined;
   Update: undefined;
-  Login: undefined;
+  Login:
+    | {
+        showNextcloud?: boolean;
+      }
+    | undefined;
   Recipes:
     | {
         tabTransition?: "fromShopping";

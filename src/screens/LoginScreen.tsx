@@ -33,7 +33,7 @@ import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
-export function LoginScreen({ navigation }: Props) {
+export function LoginScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const { login, startLocalMode } = useAuth();
@@ -44,7 +44,7 @@ export function LoginScreen({ navigation }: Props) {
   const [appPassword, setAppPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordTutorial, setShowPasswordTutorial] = useState(false);
-  const [showNextcloud, setShowNextcloud] = useState(false);
+  const [showNextcloud, setShowNextcloud] = useState(route.params?.showNextcloud ?? false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { tourDone } = useOnboarding();
@@ -252,7 +252,7 @@ export function LoginScreen({ navigation }: Props) {
             <Pressable
               disabled={submitting}
               style={styles.textLink}
-              onPress={() => setShowNextcloud(false)}
+              onPress={() => void handleLocalMode()}
             >
               <AppText variant="label" style={{ color: colors.primary, textAlign: "center" }}>
                 {t("auth.backToLocal")}

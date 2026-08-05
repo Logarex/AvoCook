@@ -506,14 +506,16 @@ export function RecipeListScreen({ navigation }: Props) {
             />
           </View>
           <View style={styles.actions}>
-            <IconButton
-              icon={RefreshCw}
-              label={t("common.sync")}
-              onPress={() => void sync()}
-              spinning={syncing}
-              disabled={!credentials}
-              style={styles.headerIcon}
-            />
+            {!isLocalMode ? (
+              <IconButton
+                icon={RefreshCw}
+                label={t("common.sync")}
+                onPress={() => void sync()}
+                spinning={syncing}
+                disabled={!credentials}
+                style={styles.headerIcon}
+              />
+            ) : null}
             <IconButton
               icon={Download}
               label={t("common.import")}
