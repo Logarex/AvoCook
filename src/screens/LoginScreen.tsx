@@ -4,6 +4,7 @@ import {
   Bug,
   ChevronLeft,
   ChefHat,
+  Cloud,
   Eye,
   EyeOff,
   
@@ -146,15 +147,13 @@ export function LoginScreen({ route, navigation }: Props) {
               label={t("auth.useLocal")}
               onPress={() => void handleLocalMode()}
             />
-            <Pressable
+            <PrimaryButton
               disabled={submitting}
-              style={styles.textLink}
+              icon={Cloud}
+              label={t("auth.nextcloudOption")}
               onPress={() => setShowNextcloud(true)}
-            >
-              <AppText variant="label" style={{ color: colors.primary, textAlign: "center" }}>
-                {t("auth.nextcloudOption")}
-              </AppText>
-            </Pressable>
+              variant="ghost"
+            />
             {submitting ? <ActivityIndicator color={colors.primary} /> : null}
           </GlassPanel>
         ) : (
@@ -249,15 +248,13 @@ export function LoginScreen({ route, navigation }: Props) {
               label={submitting ? t("common.loading") : t("auth.login")}
               onPress={() => void handleLogin()}
             />
-            <Pressable
+            <PrimaryButton
               disabled={submitting}
-              style={styles.textLink}
+              icon={ChefHat}
+              label={t("auth.backToLocal")}
               onPress={() => void handleLocalMode()}
-            >
-              <AppText variant="label" style={{ color: colors.primary, textAlign: "center" }}>
-                {t("auth.backToLocal")}
-              </AppText>
-            </Pressable>
+              variant="ghost"
+            />
 
             {submitting ? <ActivityIndicator color={colors.primary} /> : null}
           </GlassPanel>
@@ -305,7 +302,7 @@ function isLikelyTlsError(error: unknown) {
 const styles = StyleSheet.create({
   screen: {
     gap: 0,
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
     paddingBottom: spacing.xxl,
     minHeight: "100%"
@@ -364,11 +361,6 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     marginTop: -spacing.xs,
     paddingHorizontal: spacing.xs
-  },
-  textLink: {
-    paddingVertical: spacing.sm,
-    alignItems: "center",
-    justifyContent: "center"
   },
   passwordButton: {
     height: 36,
