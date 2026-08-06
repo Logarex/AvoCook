@@ -348,7 +348,7 @@ function ContactLinks({
     void Linking.openURL("https://github.com/Logarex/AvoCook/issues");
   }
   function openEmail() {
-    void Linking.openURL("mailto:louischabert.dev@gmail.com?subject=AvoCook");
+    void Linking.openURL("mailto:avocook@nephoos.com?subject=AvoCook");
   }
 
   return (

@@ -66,7 +66,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
       } else {
         navigation.goBack();
       }
-    } catch {
+    } catch (err) {
       setError(t("importRecipe.failed"));
     } finally {
       setSubmitting(null);
@@ -84,7 +84,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
       } else {
         navigation.goBack();
       }
-    } catch {
+    } catch (err) {
       setError(t("importRecipe.failed"));
     } finally {
       setSubmitting(null);
