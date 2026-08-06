@@ -25,6 +25,7 @@ import { IngredientSection } from "./recipeDetail/IngredientSection";
 import { InstructionSection } from "./recipeDetail/InstructionSection";
 import { HealthSection } from "./recipeDetail/HealthSection";
 import { RecipeSection } from "./recipeDetail/RecipeSection";
+import { ShareRecipeModal } from "./recipeDetail/ShareRecipeModal";
 import { styles } from "./recipeDetail/recipeDetailStyles";
 import {
   getTimerPresets,
@@ -193,6 +194,7 @@ function RecipeDetailContent({
   const [shareAction, setShareAction] = useState<
     "print" | "pdf" | "file" | "source" | null
   >(null);
+  const [showShareMenu, setShowShareMenu] = useState(false);
   const [checkedIngredientIndexes, setCheckedIngredientIndexes] = useState<
     Set<number>
   >(() => new Set());
@@ -575,17 +577,10 @@ function RecipeDetailContent({
 
   const toolbarActions: ToolbarAction[] = [
     {
-      id: "share-pdf",
+      id: "share",
       icon: Share2,
-      label: t("recipes.share.sharePdf"),
-      onPress: () => void handleSharePdf(),
-      disabled: shareAction !== null,
-    },
-    {
-      id: "share-file",
-      icon: FileUp,
-      label: t("recipes.share.shareFile"),
-      onPress: () => void handleShareFile(),
+      label: t("common.share"),
+      onPress: () => setShowShareMenu(true),
       disabled: shareAction !== null,
     },
     ...(canUpdateFromSource
@@ -646,6 +641,14 @@ function RecipeDetailContent({
           ))}
         </View>
       </View>
+
+      <ShareRecipeModal
+        visible={showShareMenu}
+        onClose={() => setShowShareMenu(false)}
+        onSharePdf={() => void handleSharePdf()}
+        onShareFile={() => void handleShareFile()}
+        disabled={shareAction !== null}
+      />
 
       <View style={[styles.heroImage, { backgroundColor: colors.chip }]}>
         {source ? (

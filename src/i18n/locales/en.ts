@@ -11,6 +11,7 @@ export default {
       delete: "Delete",
       edit: "Edit",
       save: "Save",
+      share: "Share",
       search: "Search",
       clear: "Clear",
       settings: "Settings",

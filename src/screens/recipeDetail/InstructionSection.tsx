@@ -43,17 +43,6 @@ export function InstructionSection({
             </AppText>
           ) : null}
         </View>
-        {checkedCount > 0 ? (
-          <View style={styles.stepHeaderActions}>
-            <PrimaryButton
-              icon={RotateCcw}
-              label={t("recipes.resetStepChecks")}
-              onPress={onResetChecked}
-              style={styles.stepHeaderButton}
-              variant="ghost"
-            />
-          </View>
-        ) : null}
       </View>
       <View style={styles.sectionItems}>
         {items.map((item, index) => {

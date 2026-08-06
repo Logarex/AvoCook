@@ -891,6 +891,7 @@ const localStyles = StyleSheet.create({
   alphabetLetterButton: {
     paddingHorizontal: 4,
     paddingVertical: 2,
+    marginLeft: 6,
   },
   alphabetLetter: {
     fontSize: 11,

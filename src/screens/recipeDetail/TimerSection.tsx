@@ -39,25 +39,16 @@ export function TimerSection({
         <Timer color={colors.primary} size={21} />
         <AppText variant="subtitle">{t("recipes.timers.title")}</AppText>
       </View>
-      <AppText
-        muted={
-          notificationStatus !== "denied" &&
-          notificationStatus !== "unavailable"
-        }
-        variant="caption"
-        style={
-          notificationStatus === "denied" ||
-          notificationStatus === "unavailable"
-            ? { color: colors.danger }
-            : undefined
-        }
-      >
-        {notificationStatus === "unavailable"
-          ? t("recipes.timers.notificationsUnavailable")
-          : notificationStatus === "denied"
-            ? t("recipes.timers.notificationsOff")
-            : t("recipes.timers.notificationHint")}
-      </AppText>
+      {notificationStatus === "unavailable" || notificationStatus === "denied" ? (
+        <AppText
+          variant="caption"
+          style={{ color: colors.danger }}
+        >
+          {notificationStatus === "unavailable"
+            ? t("recipes.timers.notificationsUnavailable")
+            : t("recipes.timers.notificationsOff")}
+        </AppText>
+      ) : null}
       <View style={styles.timerList}>
         {presets.map((preset) => {
           const timer = timers[preset.id];

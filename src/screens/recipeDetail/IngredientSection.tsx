@@ -50,15 +50,6 @@ export function IngredientSection({
           ) : null}
         </View>
         <View style={styles.ingredientHeaderActions}>
-          {checkedCount > 0 ? (
-            <PrimaryButton
-              icon={RotateCcw}
-              label={t("recipes.resetIngredientChecks")}
-              onPress={onResetChecked}
-              style={styles.ingredientHeaderButton}
-              variant="ghost"
-            />
-          ) : null}
           <PrimaryButton
             icon={Copy}
             label={t(
