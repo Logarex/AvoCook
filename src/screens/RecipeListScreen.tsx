@@ -25,6 +25,7 @@ import { CategoryChip } from "./recipeList/CategoryChip";
 import { RecipeActionsModal } from "./recipeList/RecipeActionsModal";
 import { CategoryPickerModal } from "./recipeList/CategoryPickerModal";
 import { AddRecipeModal } from "./recipeList/AddRecipeModal";
+import { CategoryEditorModal } from "./recipeList/CategoryEditorModal";
 import { styles } from "./recipeList/recipeListStyles";
 import {
   isUserDismissedShareOrPrint,
@@ -259,8 +260,8 @@ export function RecipeListScreen({ navigation }: Props) {
     navigation.navigate("ShoppingList", { tabTransition: "fromRecipes" });
   }, [navigation]);
 
-  async function handleCreateCategory() {
-    const normalized = newCategory.replace(/\s+/g, " ").trim();
+  async function handleSaveCategory(name: string, isFavorite: boolean) {
+    const normalized = name.replace(/\s+/g, " ").trim();
     if (!normalized) {
       return;
     }
@@ -269,6 +270,14 @@ export function RecipeListScreen({ navigation }: Props) {
     } else {
       await createCategory(normalized);
     }
+    
+    const currentlyFavorite = favoriteCategories.includes(normalized);
+    if (isFavorite && !currentlyFavorite) {
+      void toggleFavoriteCategory(normalized);
+    } else if (!isFavorite && currentlyFavorite) {
+      void toggleFavoriteCategory(normalized);
+    }
+
     setCategory(normalized);
     setShowCategoryPicker(false);
     setNewCategory("");
@@ -521,37 +530,14 @@ export function RecipeListScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {showCategoryCreator ? (
-          <GlassPanel style={styles.inlineEditor}>
-            <TextField
-              label={
-                editingCategory
-                  ? t("recipes.renameCategory")
-                  : t("recipes.categoryName")
-              }
-              onChangeText={setNewCategory}
-              value={newCategory}
-            />
-            <View style={styles.inlineEditorActions}>
-              <PrimaryButton
-                disabled={!newCategory.trim()}
-                icon={Check}
-                label={
-                  editingCategory ? t("common.save") : t("recipes.createCategory")
-                }
-                onPress={() => void handleCreateCategory()}
-                style={styles.inlineEditorActionButton}
-              />
-              <PrimaryButton
-                icon={X}
-                label={t("common.cancel")}
-                onPress={handleCloseCategoryEditor}
-                style={styles.inlineEditorActionButton}
-                variant="ghost"
-              />
-            </View>
-          </GlassPanel>
-        ) : null}
+        <CategoryEditorModal
+          editingCategory={editingCategory}
+          initialCategoryName={newCategory}
+          initialIsFavorite={favoriteCategories.includes(editingCategory || newCategory)}
+          onClose={handleCloseCategoryEditor}
+          onSave={(name, isFavorite) => void handleSaveCategory(name, isFavorite)}
+          visible={showCategoryCreator}
+        />
 
         <ScrollView
           horizontal

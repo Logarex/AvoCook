@@ -113,13 +113,25 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
+  centeredModalRoot: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: spacing.md,
+  },
+  centeredModalContent: {
+    width: "100%",
+    maxWidth: 400,
+    gap: spacing.md,
+    padding: spacing.md,
+  },
   modalRoot: {
     flex: 1,
     justifyContent: "flex-end",
   },
   modalScrim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(0,0,0,0.24)",
+    backgroundColor: "rgba(0,0,0,0.40)",
   },
   modalSheet: {
     borderBottomLeftRadius: 0,
