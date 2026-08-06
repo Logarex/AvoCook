@@ -1,7 +1,7 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { ArrowLeft, Camera, Download, Upload, Sparkles, Globe, FileJson } from "lucide-react-native";
 import React, { useCallback, useState } from "react";
-import { ActivityIndicator, Alert,  StyleSheet, View } from "react-native";
+import { Alert,  StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import i18n from "../i18n";
 import * as ImagePicker from "expo-image-picker";
@@ -325,12 +325,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         </GlassPanel>
       ) : null}
 
-      {/* Global Loading Indicator */}
-      {submitting ? (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator color={colors.primary} size="large" />
-        </View>
-      ) : null}
+
 
       {/* Section 1: URL Import */}
       <GlassPanel style={styles.section}>
@@ -460,18 +455,6 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderColor: "rgba(255, 59, 48, 0.3)",
     borderWidth: 1,
-  },
-  loadingOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 10,
-    backgroundColor: "rgba(0,0,0,0.1)",
-    borderRadius: radius.lg,
   }
 });
 

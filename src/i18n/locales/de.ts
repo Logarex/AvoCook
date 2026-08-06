@@ -25,7 +25,7 @@ export default {
       close: "Schließen",
       continue: "Weiter",
       longActionNotice:
-        "{{action}} läuft. Kein erneutes Tippen nötig; es kann etwas dauern.",
+        "{{action}} wird ausgeführt... Bitte warten.",
     },
     longActions: {
       sync: "Die Synchronisierung",

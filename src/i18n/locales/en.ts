@@ -25,7 +25,7 @@ export default {
       close: "Close",
       continue: "Continue",
       longActionNotice:
-        "{{action}} is running. No need to tap again; it may take a little time.",
+        "{{action}} is in progress. Please wait.",
     },
     longActions: {
       sync: "Sync",

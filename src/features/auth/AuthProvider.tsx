@@ -112,6 +112,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
     await AsyncStorage.setItem(LOCAL_MODE_KEY, "false");
+    await AsyncStorage.removeItem("recipes.firstSyncCompleted");
     setIsLocalMode(false);
     setCredentials(normalizedCredentials);
     console.info("auth", "Login credentials stored", {
@@ -133,6 +134,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.info("auth", "Logout started");
     await SecureStore.deleteItemAsync(CREDENTIALS_KEY);
     await AsyncStorage.setItem(LOCAL_MODE_KEY, "false");
+    await AsyncStorage.removeItem("recipes.firstSyncCompleted");
     setCredentials(null);
     setIsLocalMode(false);
   }, []);

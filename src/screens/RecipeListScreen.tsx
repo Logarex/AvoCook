@@ -662,7 +662,7 @@ export function RecipeListScreen({ navigation }: Props) {
           </GlassPanel>
         ) : null}
 
-        {loading ? (
+        {loading && !syncing ? (
           <View style={styles.loading}>
             <ActivityIndicator color={colors.primary} />
           </View>

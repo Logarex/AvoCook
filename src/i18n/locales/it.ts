@@ -25,7 +25,7 @@ export default {
       close: "Chiudi",
       continue: "Continua",
       longActionNotice:
-        "{{action}} è in corso. Non serve toccare di nuovo; può richiedere un po' di tempo.",
+        "{{action}} è in corso. Attendere prego.",
     },
     longActions: {
       sync: "La sincronizzazione",

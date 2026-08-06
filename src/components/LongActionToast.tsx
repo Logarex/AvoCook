@@ -1,4 +1,3 @@
-import { Clock3 } from "lucide-react-native";
 import React, {
   createContext,
   useCallback,
@@ -9,8 +8,7 @@ import React, {
   useState
 } from "react";
 import { useTranslation } from "react-i18next";
-import { Animated, StyleSheet, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ActivityIndicator, Animated, StyleSheet, View } from "react-native";
 import { useReducedMotion } from "../features/accessibility/useReducedMotion";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -28,8 +26,7 @@ type LongActionToastContextValue = {
 const LongActionToastContext =
   createContext<LongActionToastContextValue | null>(null);
 
-const LONG_ACTION_DELAY_MS = 1800;
-const LONG_ACTION_VISIBLE_MS = 4800;
+const LONG_ACTION_DELAY_MS = 600;
 
 export function LongActionToastProvider({
   children
@@ -39,7 +36,6 @@ export function LongActionToastProvider({
   const [toast, setToast] = useState<LongActionToast | null>(null);
   const nextToastIdRef = useRef(0);
   const delayTimersRef = useRef(new Map<number, ReturnType<typeof setTimeout>>());
-  const hideTimersRef = useRef(new Map<number, ReturnType<typeof setTimeout>>());
 
   const watchLongAction = useCallback((actionKey: string) => {
     const id = nextToastIdRef.current + 1;
@@ -48,14 +44,6 @@ export function LongActionToastProvider({
     const delayTimer = setTimeout(() => {
       delayTimersRef.current.delete(id);
       setToast({ id, actionKey });
-
-      const hideTimer = setTimeout(() => {
-        hideTimersRef.current.delete(id);
-        setToast((currentToast) =>
-          currentToast?.id === id ? null : currentToast
-        );
-      }, LONG_ACTION_VISIBLE_MS);
-      hideTimersRef.current.set(id, hideTimer);
     }, LONG_ACTION_DELAY_MS);
     delayTimersRef.current.set(id, delayTimer);
 
@@ -65,15 +53,16 @@ export function LongActionToastProvider({
         clearTimeout(pendingDelayTimer);
         delayTimersRef.current.delete(id);
       }
+      setToast((currentToast) =>
+        currentToast?.id === id ? null : currentToast
+      );
     };
   }, []);
 
   useEffect(
     () => () => {
       delayTimersRef.current.forEach(clearTimeout);
-      hideTimersRef.current.forEach(clearTimeout);
       delayTimersRef.current.clear();
-      hideTimersRef.current.clear();
     },
     []
   );
@@ -107,10 +96,8 @@ function LongActionToastOverlay({
 }) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
   const reducedMotion = useReducedMotion();
   const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(8)).current;
 
   useEffect(() => {
     if (!toast) {
@@ -119,25 +106,16 @@ function LongActionToastOverlay({
 
     if (reducedMotion) {
       opacity.setValue(1);
-      translateY.setValue(0);
       return;
     }
 
     opacity.setValue(0);
-    translateY.setValue(8);
-    Animated.parallel([
-      Animated.timing(opacity, {
-        duration: 180,
-        toValue: 1,
-        useNativeDriver: true
-      }),
-      Animated.timing(translateY, {
-        duration: 180,
-        toValue: 0,
-        useNativeDriver: true
-      })
-    ]).start();
-  }, [opacity, reducedMotion, toast, translateY]);
+    Animated.timing(opacity, {
+      duration: 180,
+      toValue: 1,
+      useNativeDriver: true
+    }).start();
+  }, [opacity, reducedMotion, toast]);
 
   if (!toast) {
     return null;
@@ -146,13 +124,12 @@ function LongActionToastOverlay({
   return (
     <Animated.View
       accessibilityLiveRegion="polite"
-      pointerEvents="none"
       style={[
-        styles.toastWrap,
+        StyleSheet.absoluteFill,
+        styles.overlayWrap,
         {
           opacity,
-          bottom: Math.max(insets.bottom, spacing.sm) + 76,
-          transform: [{ translateY }]
+          backgroundColor: "rgba(0, 0, 0, 0.4)"
         }
       ]}
     >
@@ -166,8 +143,8 @@ function LongActionToastOverlay({
           }
         ]}
       >
-        <Clock3 color={colors.primaryStrong} size={18} strokeWidth={2.7} />
-        <AppText variant="caption" style={styles.toastText}>
+        <ActivityIndicator color={colors.primary} size="small" />
+        <AppText variant="body" style={styles.toastText}>
           {t("common.longActionNotice", { action: t(toast.actionKey) })}
         </AppText>
       </View>
@@ -179,26 +156,25 @@ const styles = StyleSheet.create({
   root: {
     flex: 1
   },
-  toastWrap: {
+  overlayWrap: {
     alignItems: "center",
-    left: spacing.md,
-    position: "absolute",
-    right: spacing.md,
-    zIndex: 50,
-    elevation: 12
+    justifyContent: "center",
+    zIndex: 9999,
+    elevation: 24,
+    paddingHorizontal: spacing.xl
   },
   toast: {
     alignItems: "center",
     borderRadius: radius.md,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
-    gap: spacing.xs,
-    maxWidth: 520,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.md,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.24,
     shadowRadius: 22,
+    maxWidth: 400,
     width: "100%"
   },
   toastText: {

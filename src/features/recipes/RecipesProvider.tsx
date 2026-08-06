@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState
 } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Alert } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useLongActionToast } from "../../components/LongActionToast";
@@ -160,10 +161,19 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     }
 
     syncInFlightRef.current = true;
-    const stopLongActionNotice = watchLongAction("longActions.sync");
+    
+    const firstSyncCompleted = await AsyncStorage.getItem("recipes.firstSyncCompleted");
+    const isFirstSync = firstSyncCompleted !== "true";
+    
+    const stopLongActionNotice = isFirstSync ? watchLongAction("longActions.sync") : () => {};
     setSyncing(true);
     try {
       setRecipes(await syncRecipes(client, keepRecipesLocal, repositoryOptions));
+      
+      if (isFirstSync) {
+        await AsyncStorage.setItem("recipes.firstSyncCompleted", "true");
+      }
+      
       setLastError(null);
     } catch (error) {
       setLastError(error instanceof Error ? error.message : String(error));
