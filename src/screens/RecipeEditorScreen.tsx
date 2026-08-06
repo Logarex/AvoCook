@@ -386,6 +386,28 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           value={recipeYield}
         />
       </View>
+      {categorySuggestions.length ? (
+        <View style={styles.suggestionList}>
+          {categorySuggestions.map((suggestion) => (
+            <Pressable
+              key={suggestion.id}
+              accessibilityLabel={suggestion.label}
+              accessibilityRole="button"
+              onPress={() => setCategory(suggestion.id)}
+              style={({ pressed }) => [
+                styles.suggestionChip,
+                {
+                  backgroundColor: colors.chip,
+                  borderColor: colors.border,
+                  opacity: pressed ? 0.76 : 1
+                }
+              ]}
+            >
+              <AppText variant="caption">{suggestion.label}</AppText>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
       <Pressable
         accessibilityLabel={t("editor.showServings")}
         accessibilityRole="switch"
@@ -413,28 +435,6 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           value={showServings}
         />
       </Pressable>
-      {categorySuggestions.length ? (
-        <View style={styles.suggestionList}>
-          {categorySuggestions.map((suggestion) => (
-            <Pressable
-              key={suggestion.id}
-              accessibilityLabel={suggestion.label}
-              accessibilityRole="button"
-              onPress={() => setCategory(suggestion.id)}
-              style={({ pressed }) => [
-                styles.suggestionChip,
-                {
-                  backgroundColor: colors.chip,
-                  borderColor: colors.border,
-                  opacity: pressed ? 0.76 : 1
-                }
-              ]}
-            >
-              <AppText variant="caption">{suggestion.label}</AppText>
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
       <TextField
         label={t("editor.keywords")}
         onChangeText={setKeywords}
@@ -661,7 +661,7 @@ function EditableLineList({
 
   return (
     <View style={styles.lineList}>
-      <AppText variant="label">{label}</AppText>
+      <AppText variant="subtitle">{label}</AppText>
       {values.map((value, index) => (
         <View key={index} style={styles.lineItem}>
           <TextField
@@ -863,7 +863,7 @@ const styles = StyleSheet.create({
     opacity: 0.55
   },
   instructionInput: {
-    minHeight: 68,
+    minHeight: 130,
     textAlignVertical: "top"
   },
   lineInput: {
@@ -875,15 +875,16 @@ const styles = StyleSheet.create({
     width: 38
   },
   lineActions: {
-    gap: spacing.xxs
+    gap: spacing.xs,
+    paddingTop: 26
   },
   lineItem: {
-    alignItems: "flex-end",
     flexDirection: "row",
-    gap: spacing.xs
+    alignItems: "flex-start",
+    gap: spacing.sm
   },
   lineList: {
-    gap: spacing.sm
+    gap: spacing.md
   },
   switchRow: {
     alignItems: "center",

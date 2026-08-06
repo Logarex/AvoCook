@@ -4,6 +4,7 @@ import {
   StyleSheet,
   TextInput,
   TextInputProps,
+  TextStyle,
   View,
   ViewStyle
 } from "react-native";
@@ -13,12 +14,14 @@ import { AppText } from "./AppText";
 
 type TextFieldProps = TextInputProps & {
   label: string;
+  labelStyle?: StyleProp<TextStyle>;
   containerStyle?: StyleProp<ViewStyle>;
   rightElement?: React.ReactNode;
 };
 
 export function TextField({
   label,
+  labelStyle,
   containerStyle,
   multiline,
   rightElement,
@@ -28,7 +31,7 @@ export function TextField({
   const { colors } = useAppTheme();
   return (
     <View style={[styles.container, containerStyle]}>
-      <AppText variant="label">{label}</AppText>
+      <AppText variant="label" style={labelStyle}>{label}</AppText>
       <View style={styles.inputWrap}>
         <TextInput
           {...props}
