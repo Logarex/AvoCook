@@ -1,33 +1,59 @@
 # AvoCook
 
-AvoCook es una aplicación móvil de recetas que estoy creando para uso personal y para aprender a ejecutar un proyecto completo de React Native de principio a fin.
+AvoCook es un cuaderno de recetas móvil — funciona completamente sin conexión, en tu dispositivo, sin necesidad de cuenta. Si ya tienes un servidor Nextcloud, puedes conectarlo de forma opcional para sincronizar tus recetas entre dispositivos.
 
-La idea es simple: mantén tus recetas en un solo lugar, úsalas sin conexión y sincronízalas con Nextcloud Cookbook si ya tienes un servidor.
+Lo desarrollé para uso personal mientras aprendía a llevar un proyecto React Native completo de principio a fin.
 
-[App Store](https://apps.apple.com/app/avocook/id6769012665) · [APK de Android](https://github.com/Logarex/AvoCook/releases/latest) · [![Descargas de APK](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
+[App Store](https://apps.apple.com/app/avocook/id6769012665) · [APK Android](https://github.com/Logarex/AvoCook/releases/latest) · [![Descargas APK](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
 
 <p align="center">
-  <img src="../../assets/screenshots/login.png" width="280" alt="Inicio de sesión de AvoCook" />
+  <img src="../../assets/screenshots/login.png" width="280" alt="Inicio de sesión AvoCook" />
   <img src="../../assets/screenshots/recipe.png" width="280" alt="Detalle de la receta" />
 </p>
 
-## Qué puede hacer la aplicación
+---
 
-- crear y editar recetas localmente;
-- organizar recetas por categoría;
-- añadir fotos;
-- escanear recetas a partir de fotos o generar recetas a partir de fotos de platos usando IA (requiere una clave API);
-- importar una receta desde una URL cuando el sitio expone datos `schema.org/Recipe`;
-- recibir URLs compartidas desde otras aplicaciones (como navegadores web) para importar recetas rápidamente;
-- ajustar las cantidades según el número de porciones;
-- copiar los ingredientes al portapapeles;
-- iniciar temporizadores de cocina;
-- exportar una receta como PDF o imprimirla;
-- hacer copias de seguridad / restaurar recetas a un archivo JSON;
-- sincronizar con Nextcloud Cookbook, si el usuario lo desea;
-- sincronizar con la aplicación Recordatorios de iOS para aprovechar las funciones de uso compartido de Apple.
+## Funcionalidades
 
-El modo local no requiere una cuenta. Los datos permanecen en el dispositivo.
+### Recetas
+
+- Crear y editar recetas localmente, sin cuenta;
+- Organizar recetas por categoría;
+- Ajustar las cantidades según el número de raciones;
+- Añadir una o varias fotos a cada receta;
+- Exportar una receta en PDF o imprimirla directamente;
+- Compartir una receta con otra aplicación.
+
+### Importación
+
+- Importar una receta desde una URL — funciona en cualquier sitio que exponga datos `schema.org/Recipe` (Marmiton, 750g, BBC Good Food y muchos más);
+- Recibir una URL compartida desde un navegador u otra app para importar una receta con un toque;
+- Escanear una receta desde una foto, o generar una receta a partir de la foto de un plato con IA (requiere una clave API compatible con OpenAI).
+
+### Lista de la compra
+
+- Copiar los ingredientes al portapapeles con un toque;
+- Exportar una lista de la compra a Recordatorios de iOS para aprovechar el sistema de compartir de Apple y la integración con Siri.
+
+### Temporizadores
+
+- Iniciar uno o varios temporizadores de cocina directamente desde una receta;
+- Los temporizadores lanzan una notificación local incluso cuando la app está en segundo plano.
+
+### Datos y sincronización
+
+- Hacer una copia de seguridad de todas las recetas en un archivo JSON y restaurarlas;
+- **Opcional**: conectar un servidor Nextcloud Cookbook para sincronizar recetas entre dispositivos. Los datos van directamente entre la app y tu servidor, sin pasar por ningún servicio de terceros.
+
+> En modo local, todo se queda en tu dispositivo. Sin cuenta, sin nube, sin rastreo.
+
+---
+
+## Idiomas disponibles
+
+Francés · Inglés · Alemán · Español · Italiano
+
+---
 
 ## Configuración de desarrollo
 
@@ -35,51 +61,80 @@ El proyecto utiliza Expo, React Native y TypeScript.
 
 ```bash
 npm install
-npm run ios # Para el simulador iOS
-npm run android # Para el emulador Android
+npm run ios      # Simulador iOS
+npm run android  # Emulador Android
 ```
 
-Luego abre la aplicación (se compilará una versión de desarrollo con módulos nativos).
+En el primer inicio se compila una build de desarrollo con módulos nativos. Después, la app se abre directamente.
 
 Comandos útiles:
 
 ```bash
-npm run typecheck
-npm test
-npm run lint
-npm run import:check -- <url-receta>
+npm run typecheck                      # Verificaciones TypeScript
+npm test                               # Tests unitarios (Vitest)
+npm run lint                           # ESLint
+npm run import:check -- <url-receta>   # Probar la importación desde una URL
 ```
+
+---
+
+## Estructura del proyecto
+
+```
+src/
+├── App.tsx                              # Punto de entrada, navegación
+├── screens/                             # Pantallas (lista, detalle, editor, ajustes…)
+├── components/                          # Componentes de UI reutilizables
+├── features/
+│   ├── recipes/                         # Almacenamiento local (SQLite), lógica recetas, backup
+│   ├── nextcloud/                       # Cliente HTTP para Nextcloud Cookbook
+│   ├── import/                          # Importación por URL y foto
+│   ├── shopping/                        # Lista de la compra y sync con Recordatorios iOS
+│   ├── timers/                          # Temporizadores de cocina
+│   ├── preferences/                     # Configuración de la aplicación
+│   └── auth/                            # Autenticación Nextcloud
+├── i18n/                                # Internacionalización (i18next, 5 idiomas)
+├── modules/
+│   └── avocook-timer-notifications/     # Módulo nativo para notificaciones de temporizador
+└── theme/                               # Colores, tipografía, estilos compartidos
+tools/                                   # Plugins de build, verificador de importación, assets
+docs/                                    # Documentación en otros idiomas (fr, de, es, it)
+```
+
+---
 
 ## Nextcloud Cookbook
 
 Para probar la sincronización:
 
-1. Instala la aplicación Cookbook en una instancia de Nextcloud.
-2. Crea una contraseña de aplicación en la configuración de seguridad.
-3. Introduce la URL del servidor, el nombre de usuario y esa contraseña en AvoCook.
+1. Instala la [aplicación Cookbook](https://apps.nextcloud.com/apps/cookbook) en una instancia de Nextcloud.
+2. Crea una **contraseña de aplicación** en la configuración de seguridad (Ajustes → Seguridad → Dispositivos y sesiones).
+3. En AvoCook (Ajustes), introduce la URL del servidor, el nombre de usuario y esa contraseña.
 
-La aplicación rechaza los servidores remotos a través de HTTP. HTTP se acepta para `localhost` durante el desarrollo.
+La app exige HTTPS para servidores remotos. El HTTP simple solo se acepta para `localhost` durante el desarrollo.
+
+---
 
 ## Android
 
-Los APK se publican en las versiones de GitHub. El archivo principal que se debe instalar es `avocook.apk`.
+Los APK se publican en las [releases de GitHub](https://github.com/Logarex/AvoCook/releases). Descarga `avocook.apk` e instálalo directamente.
 
-## Estructura del proyecto
+---
 
-- `src/screens`: pantallas de la aplicación;
-- `src/components`: componentes reutilizables;
-- `src/features/recipes`: almacenamiento local, sincronización y lógica de recetas;
-- `src/features/nextcloud`: cliente HTTP para Cookbook;
-- `src/features/import`: importación de recetas desde páginas web;
-- `src/modules/avocook-timer-notifications`: pequeño módulo nativo para las notificaciones del temporizador.
+## Contribuir
+
+Las pull requests son bienvenidas. Consulta [CONTRIBUTING.md](../../.github/CONTRIBUTING.md) para las pautas y la plantilla de PR.
+
+---
 
 ## Apoyar el proyecto ☕
 
-Si aprecias AvoCook y deseas ayudarme a financiar los gastos, puedes hacer una donación:
+Si AvoCook te resulta útil, puedes ayudar a cubrir los costes:
 
-- [Donar vía Revolut](https://revolut.me/logarex)
-- [Donar vía PayPal](https://paypal.me/logarex31)
+**[→ Donar vía Revolut](https://revolut.me/logarex)** · **[→ Donar vía PayPal](https://paypal.me/logarex31)**
+
+---
 
 ## Licencia
 
-Este proyecto tiene la licencia [GPLv3](../../LICENSE).
+Este proyecto está bajo la licencia [GPLv3](../../LICENSE).

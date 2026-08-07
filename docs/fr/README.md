@@ -1,8 +1,8 @@
 # AvoCook
 
-AvoCook est une application mobile de recettes que je développe pour mon usage personnel et pour apprendre à créer un projet React Native complet de bout en bout.
+AvoCook est un carnet de recettes mobile — il fonctionne entièrement hors ligne, sur votre appareil, sans compte. Si vous avez déjà un serveur Nextcloud, vous pouvez le connecter pour garder vos recettes synchronisées entre vos appareils.
 
-L'idée est simple : gardez vos recettes au même endroit, utilisez-les hors ligne et synchronisez-les avec Nextcloud Cookbook si vous disposez déjà d'un serveur.
+Je l'ai développé pour mon usage personnel en apprenant à mener un projet React Native complet de bout en bout.
 
 [App Store](https://apps.apple.com/app/avocook/id6769012665) · [APK Android](https://github.com/Logarex/AvoCook/releases/latest) · [![Téléchargements APK](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
 
@@ -11,23 +11,49 @@ L'idée est simple : gardez vos recettes au même endroit, utilisez-les hors lig
   <img src="../../assets/screenshots/recipe.png" width="280" alt="Détail de la recette" />
 </p>
 
-## Ce que l'application peut faire
+---
 
-- créer et modifier des recettes localement ;
-- organiser les recettes par catégorie ;
-- ajouter des photos ;
-- scanner des recettes à partir de photos ou générer des recettes à partir de photos de plats grâce à l'IA (nécessite une clé API) ;
-- importer une recette depuis une URL lorsque le site expose des données `schema.org/Recipe` ;
-- recevoir des URL partagées depuis d'autres applications (comme les navigateurs web) pour importer rapidement des recettes ;
-- ajuster les quantités en fonction du nombre de portions ;
-- copier les ingrédients dans le presse-papiers ;
-- lancer des minuteurs de cuisson ;
-- exporter une recette en PDF ou l'imprimer ;
-- sauvegarder / restaurer des recettes vers un fichier JSON ;
-- synchroniser avec Nextcloud Cookbook, si l'utilisateur le souhaite ;
-- synchroniser avec l'application Rappels d'iOS pour tirer parti des fonctionnalités de partage d'Apple.
+## Fonctionnalités
 
-Le mode local ne nécessite aucun compte. Les données restent sur l'appareil.
+### Recettes
+
+- Créer et modifier des recettes localement, sans compte ;
+- Organiser les recettes par catégorie ;
+- Ajuster les quantités selon le nombre de portions ;
+- Ajouter une ou plusieurs photos à chaque recette ;
+- Exporter une recette en PDF ou l'imprimer directement ;
+- Partager une recette vers une autre application.
+
+### Import
+
+- Importer une recette depuis une URL — fonctionne sur tous les sites qui exposent des données `schema.org/Recipe` (Marmiton, 750g, BBC Good Food et beaucoup d'autres) ;
+- Recevoir une URL partagée depuis un navigateur ou une autre app pour importer une recette en un geste ;
+- Scanner une recette depuis une photo, ou générer une recette à partir d'une photo d'un plat grâce à l'IA (nécessite une clé API compatible OpenAI).
+
+### Liste de courses
+
+- Copier les ingrédients dans le presse-papiers en un geste ;
+- Exporter une liste de courses vers les Rappels iOS pour profiter du partage Apple et de l'intégration Siri.
+
+### Minuteurs
+
+- Lancer un ou plusieurs minuteurs de cuisson directement depuis une recette ;
+- Les minuteurs déclenchent une notification locale même quand l'app est en arrière-plan.
+
+### Données et synchronisation
+
+- Sauvegarder toutes les recettes dans un fichier JSON et les restaurer ;
+- **Optionnel** : connecter un serveur Nextcloud Cookbook pour synchroniser les recettes entre appareils. Les données circulent directement entre l'app et votre serveur, sans passer par un service tiers.
+
+> En mode local, tout reste sur l'appareil. Pas de compte, pas de cloud, pas de tracking.
+
+---
+
+## Langues disponibles
+
+Français · Anglais · Allemand · Espagnol · Italien
+
+---
 
 ## Configuration pour le développement
 
@@ -35,50 +61,79 @@ Le projet utilise Expo, React Native et TypeScript.
 
 ```bash
 npm install
-npm run ios # Pour le simulateur iOS
-npm run android # Pour l'émulateur Android
+npm run ios      # Simulateur iOS
+npm run android  # Émulateur Android
 ```
 
-Ensuite, ouvrez l'application (un build de développement est compilé avec les modules natifs).
+Un build de développement avec les modules natifs est compilé au premier lancement. Ensuite, l'application s'ouvre directement.
 
 Commandes utiles :
 
 ```bash
-npm run typecheck
-npm test
-npm run lint
-npm run import:check -- <url-recette>
+npm run typecheck                       # Vérifications TypeScript
+npm test                                # Tests unitaires (Vitest)
+npm run lint                            # ESLint
+npm run import:check -- <url-recette>   # Tester l'import depuis une URL
 ```
+
+---
+
+## Structure du projet
+
+```
+src/
+├── App.tsx                              # Point d'entrée, navigation
+├── screens/                             # Écrans (liste, détail, éditeur, paramètres…)
+├── components/                          # Composants UI réutilisables
+├── features/
+│   ├── recipes/                         # Stockage local (SQLite), logique recettes, backup
+│   ├── nextcloud/                       # Client HTTP pour Nextcloud Cookbook
+│   ├── import/                          # Import depuis URL et photo
+│   ├── shopping/                        # Liste de courses et synchronisation Rappels iOS
+│   ├── timers/                          # Minuteurs de cuisson
+│   ├── preferences/                     # Paramètres de l'application
+│   └── auth/                            # Authentification Nextcloud
+├── i18n/                                # Internationalisation (i18next, 5 langues)
+├── modules/
+│   └── avocook-timer-notifications/     # Module natif pour les notifications minuteur
+└── theme/                               # Couleurs, typographie, styles partagés
+tools/                                   # Plugins de build, vérificateur d'import, assets
+docs/                                    # Documentation dans d'autres langues (fr, de, es, it)
+```
+
+---
 
 ## Nextcloud Cookbook
 
 Pour tester la synchronisation :
 
-1. Installez l'application Cookbook sur une instance Nextcloud.
-2. Créez un mot de passe d'application dans les paramètres de sécurité.
-3. Entrez l'URL du serveur, le nom d'utilisateur et ce mot de passe dans AvoCook.
+1. Installez l'[application Cookbook](https://apps.nextcloud.com/apps/cookbook) sur une instance Nextcloud.
+2. Créez un **mot de passe d'application** dans les paramètres de sécurité (Paramètres → Sécurité → Appareils et sessions).
+3. Dans AvoCook, allez dans les paramètres et entrez l'URL du serveur, le nom d'utilisateur et ce mot de passe.
 
-L'application rejette les serveurs distants via HTTP. Le HTTP est accepté pour `localhost` lors du développement.
+L'application impose HTTPS pour les serveurs distants. Le HTTP simple est accepté uniquement pour `localhost` en développement.
+
+---
 
 ## Android
 
-Les APK sont publiés dans les versions GitHub (releases). Le fichier principal à installer est `avocook.apk`.
+Les APK sont publiés dans les [releases GitHub](https://github.com/Logarex/AvoCook/releases). Téléchargez `avocook.apk` et installez-le directement.
 
-## Structure du projet
+---
 
-- `src/screens` : écrans de l'application ;
-- `src/components` : composants réutilisables ;
-- `src/features/recipes` : stockage local, synchronisation et logique des recettes ;
-- `src/features/nextcloud` : client HTTP pour Cookbook ;
-- `src/features/import` : importation de recettes depuis des pages web ;
-- `src/modules/avocook-timer-notifications` : petit module natif pour les notifications du minuteur.
+## Contribuer
+
+Les pull requests sont les bienvenues. Consultez [CONTRIBUTING.md](../../.github/CONTRIBUTING.md) pour les conventions et le modèle de PR.
+
+---
 
 ## Soutenir le projet ☕
 
-Si vous appréciez AvoCook et souhaitez m'aider à financer les frais, vous pouvez faire un don :
+Si AvoCook vous est utile, vous pouvez aider à couvrir les frais :
 
-- [Faire un don via Revolut](https://revolut.me/logarex)
-- [Faire un don via PayPal](https://paypal.me/logarex31)
+**[→ Faire un don via Revolut](https://revolut.me/logarex)** · **[→ Faire un don via PayPal](https://paypal.me/logarex31)**
+
+---
 
 ## Licence
 
