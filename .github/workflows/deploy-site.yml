@@ -1,0 +1,50 @@
+name: Deploy site to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Build & deploy landing page
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare deployment folder
+        run: |
+          mkdir -p _deploy
+
+          # Copy site files
+          cp -r site/. _deploy/
+
+          # Copy logos
+          for f in assets/logo.png assets/logo-dark.png assets/icon.svg; do
+            [ -f "$f" ] && cp "$f" _deploy/
+          done
+
+          # Copy screenshots if they exist
+          mkdir -p _deploy/screenshots
+          if [ -d "assets/screenshots" ]; then
+            find assets/screenshots -maxdepth 1 \
+              \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webp" \) \
+              -exec cp {} _deploy/screenshots/ \;
+          fi
+
+          echo "Deployment contents:"
+          ls -lh _deploy/
+          ls -lh _deploy/screenshots/ 2>/dev/null || echo "(no screenshots yet)"
+
+      - name: Deploy to gh-pages branch
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: _deploy
+          clean: true
+          commit-message: "chore: deploy site [skip ci]"

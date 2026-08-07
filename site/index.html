@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AvoCook — votre carnet de recettes mobile. Fonctionne hors ligne, synchronisation Nextcloud optionnelle. iOS et Android." />
+  <meta property="og:title" content="AvoCook — Carnet de recettes mobile" />
+  <meta property="og:description" content="Un carnet de recettes complet qui fonctionne hors ligne. Synchronisation Nextcloud optionnelle." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#10201D" />
+  <title>AvoCook — Carnet de recettes mobile</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav id="main-nav">
+  <div class="container">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">
+        <!-- Logo light (shown in dark mode) -->
+        <img src="logo.png" alt="AvoCook" class="nav-logo-img logo-light" />
+        <!-- Logo dark (shown in light mode) -->
+        <img src="logo-dark.png" alt="AvoCook" class="nav-logo-img logo-dark" />
+        AvoCook
+      </a>
+      <div class="nav-actions">
+        <div class="lang-selector" id="lang-selector" role="group" aria-label="Language">
+          <button class="lang-btn" data-lang="fr">FR</button>
+          <button class="lang-btn" data-lang="en">EN</button>
+          <button class="lang-btn" data-lang="de">DE</button>
+          <button class="lang-btn" data-lang="es">ES</button>
+          <button class="lang-btn" data-lang="it">IT</button>
+        </div>
+        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#9681;</button>
+        <div class="nav-download-wrap">
+          <button class="nav-cta" aria-haspopup="true" aria-expanded="false" id="nav-download-btn">
+            <span data-i18n="nav_download">Télécharger</span>
+            <span class="nav-cta-arrow">▾</span>
+          </button>
+          <div class="download-dropdown" role="menu">
+            <a href="https://apps.apple.com/app/avocook/id6769012665"
+               class="download-option" target="_blank" rel="noopener noreferrer" role="menuitem">
+              <span class="download-option-icon">&#63743;</span>
+              <div class="download-option-label">
+                <div class="download-option-name">App Store</div>
+                <div class="download-option-sub">iOS</div>
+              </div>
+            </a>
+            <a href="https://play.google.com/store/apps/details?id=com.logarex.avocook"
+               class="download-option" target="_blank" rel="noopener noreferrer" role="menuitem">
+              <span class="download-option-icon">&#9654;</span>
+              <div class="download-option-label">
+                <div class="download-option-name">Play Store</div>
+                <div class="download-option-sub">Android</div>
+              </div>
+            </a>
+            <a href="https://github.com/Logarex/AvoCook/releases/latest"
+               class="download-option" target="_blank" rel="noopener noreferrer" role="menuitem">
+              <span class="download-option-icon">&#8595;</span>
+              <div class="download-option-label">
+                <div class="download-option-name">APK</div>
+                <div class="download-option-sub" data-i18n="apk_sub">GitHub Releases</div>
+              </div>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<section class="hero" id="hero">
+  <div class="hero-glow"></div>
+  <div class="container">
+    <div class="hero-inner">
+      <div class="hero-content">
+        <div class="hero-eyebrow">
+          <span class="hero-badge-pill">v3.4.0</span>
+          <span class="hero-eyebrow-sep">·</span>
+          <span style="font-size:13px; color: var(--text-muted);">iOS · Android</span>
+          <span class="hero-eyebrow-sep">·</span>
+          <span style="font-size:13px; color: var(--text-muted);">GPL-3.0</span>
+        </div>
+
+        <h1 class="hero-title" data-i18n-html="hero_title">
+          Votre carnet de recettes,<br><em>toujours avec vous</em>
+        </h1>
+
+        <p class="hero-subtitle" data-i18n="hero_subtitle">
+          Fonctionne entièrement hors ligne, sans compte. Synchronisation Nextcloud disponible si vous le souhaitez.
+        </p>
+
+        <div class="hero-local-note">
+          <span class="check-badge">✓</span>
+          <span data-i18n="hero_note">Mode local — aucun compte requis. Vos données restent sur l'appareil.</span>
+        </div>
+
+        <div class="hero-ctas" id="download">
+          <a href="https://apps.apple.com/app/avocook/id6769012665"
+             class="btn-primary" target="_blank" rel="noopener noreferrer">
+            <span data-i18n="hero_cta_appstore">App Store</span>
+          </a>
+          <a href="https://github.com/Logarex/AvoCook/releases/latest"
+             class="btn-secondary" target="_blank" rel="noopener noreferrer">
+            <span data-i18n="hero_cta_apk">APK Android</span>
+          </a>
+        </div>
+
+        <div class="hero-stats">
+          <div class="hero-stat">
+            <span class="hero-stat-value">5</span>
+            <span class="hero-stat-label" data-i18n="stat_languages">langues</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-value">14</span>
+            <span class="hero-stat-label" data-i18n="stat_features">fonctionnalités</span>
+          </div>
+          <div class="hero-stat">
+            <span class="hero-stat-value">100%</span>
+            <span class="hero-stat-label" data-i18n="stat_offline">hors ligne</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-phones" aria-hidden="true">
+        <div class="phone-mockup phone-back">
+          <div class="phone-screen">
+            <img src="screenshots/recipe.png" alt="Recipe detail screen"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+            <div class="phone-placeholder" style="display:none">
+              <span class="phone-placeholder-icon">—</span>
+              <span data-i18n="screenshot_placeholder">Capture à venir</span>
+            </div>
+          </div>
+        </div>
+        <div class="phone-mockup phone-front">
+          <div class="phone-screen">
+            <img src="screenshots/login.png" alt="Login screen"
+                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+            <div class="phone-placeholder" style="display:none">
+              <span class="phone-placeholder-icon">—</span>
+              <span data-i18n="screenshot_placeholder">Capture à venir</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FEATURES ===== -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="features-header fade-up">
+      <span class="section-label" data-i18n="features_label">Fonctionnalités</span>
+      <h2 class="section-title" data-i18n="features_title">Tout ce dont vous avez besoin</h2>
+      <p class="section-subtitle" data-i18n="features_subtitle">Un carnet de recettes complet, sans superflu.</p>
+    </div>
+
+    <div class="features-grid fade-up delay-1">
+      <div class="feature-card">
+        <div class="feature-name" data-i18n="feat_1_name">Créer & modifier</div>
+        <div class="feature-desc" data-i18n="feat_1_desc">Rédigez vos recettes de zéro, étape par étape. Modifiez-les à tout moment, sans connexion.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-name" data-i18n="feat_2_name">Catégories</div>
+        <div class="feature-desc" data-i18n="feat_2_desc">Organisez vos recettes par catégorie (entrées, desserts, plats rapides…). Filtrez en un geste.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-name" data-i18n="feat_3_name">Ajuster les portions</div>
+        <div class="feature-desc" data-i18n="feat_3_desc">Changez le nombre de portions et toutes les quantités se mettent à jour automatiquement. Plus de calcul mental.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-name" data-i18n="feat_4_name">Photos</div>
+        <div class="feature-desc" data-i18n="feat_4_desc">Ajoutez une ou plusieurs photos par recette depuis votre bibliothèque ou directement depuis l'appareil photo.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-name" data-i18n="feat_5_name">PDF & impression</div>
+        <div class="feature-desc" data-i18n="feat_5_desc">Exportez n'importe quelle recette en fichier PDF, ou envoyez-la directement à l'impression depuis l'app.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-name" data-i18n="feat_6_name">Partager une recette</div>
+        <div class="feature-desc" data-i18n="feat_6_desc">Partagez une recette vers une autre application via la feuille de partage standard du système.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-name" data-i18n="feat_7_name">Import depuis une URL</div>
+        <div class="feature-desc" data-i18n="feat_7_desc">Collez un lien depuis Marmiton, 750g, BBC Good Food — la recette s'importe automatiquement via schema.org/Recipe.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-name" data-i18n="feat_8_name">Partager depuis le navigateur</div>
+        <div class="feature-desc" data-i18n="feat_8_desc">Vous repérez une recette en ligne ? Partagez la page depuis votre navigateur vers AvoCook. Import en un geste.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-name" data-i18n="feat_9_name">Génération IA</div>
+        <div class="feature-desc" data-i18n="feat_9_desc">Scannez une recette depuis une photo, ou décrivez un plat pour obtenir une recette complète. Compatible OpenAI.</div>
+        <span class="feature-tag" data-i18n="tag_optional">Optionnel</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-name" data-i18n="feat_10_name">Liste de courses</div>
+        <div class="feature-desc" data-i18n="feat_10_desc">Copiez les ingrédients dans le presse-papiers en un geste, ou exportez une liste vers les Rappels iOS.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-name" data-i18n="feat_11_name">Minuteurs</div>
+        <div class="feature-desc" data-i18n="feat_11_desc">Lancez un ou plusieurs minuteurs de cuisson directement depuis une recette. Notification locale même en arrière-plan.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-name" data-i18n="feat_12_name">Sauvegarde & restauration</div>
+        <div class="feature-desc" data-i18n="feat_12_desc">Exportez toutes vos recettes dans un fichier JSON et restaurez-les n'importe quand, sur n'importe quel appareil.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-name" data-i18n="feat_13_name">Synchronisation Nextcloud</div>
+        <div class="feature-desc" data-i18n="feat_13_desc">Connectez votre propre serveur Nextcloud Cookbook pour synchroniser vos recettes entre appareils. Entièrement optionnel.</div>
+        <span class="feature-tag" data-i18n="tag_optional">Optionnel</span>
+      </div>
+      <div class="feature-card">
+        <div class="feature-name" data-i18n="feat_14_name">100% hors ligne & privé</div>
+        <div class="feature-desc" data-i18n="feat_14_desc">AvoCook fonctionne sans connexion internet. Pas de compte, pas de tracking, pas de serveur tiers. Vos données vous appartiennent.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== SCREENSHOTS ===== -->
+<!-- Déposez vos captures dans assets/screenshots/ du repo (login.png, recipe_list.png, recipe.png,
+     editor.png, import.png, timer.png) — elles seront copiées au prochain déploiement. -->
+<section class="screenshots" id="screenshots">
+  <div class="container">
+    <div class="screenshots-header fade-up">
+      <span class="section-label" data-i18n="screenshots_label">Aperçu</span>
+      <h2 class="section-title" data-i18n="screenshots_title">L'application en images</h2>
+      <p class="section-subtitle" data-i18n="screenshots_subtitle" style="margin: 0 auto;">Glissez pour naviguer entre les captures.</p>
+    </div>
+  </div>
+  <div class="carousel-wrap">
+    <div class="carousel-track fade-up delay-1" id="carousel">
+      <div class="carousel-slide">
+        <img src="screenshots/login.png" alt="Login screen"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <div class="screenshot-placeholder-wrap" style="display:none">
+          <span class="screenshot-placeholder-label" data-i18n="ph_home">Écran d'accueil</span>
+        </div>
+      </div>
+      <div class="carousel-slide">
+        <img src="screenshots/recipe_list.png" alt="Recipe list"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <div class="screenshot-placeholder-wrap" style="display:none">
+          <span class="screenshot-placeholder-label" data-i18n="ph_list">Liste des recettes</span>
+        </div>
+      </div>
+      <div class="carousel-slide">
+        <img src="screenshots/recipe.png" alt="Recipe detail"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <div class="screenshot-placeholder-wrap" style="display:none">
+          <span class="screenshot-placeholder-label" data-i18n="ph_detail">Détail d'une recette</span>
+        </div>
+      </div>
+      <div class="carousel-slide">
+        <img src="screenshots/editor.png" alt="Recipe editor"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <div class="screenshot-placeholder-wrap" style="display:none">
+          <span class="screenshot-placeholder-label" data-i18n="ph_editor">Éditeur de recette</span>
+        </div>
+      </div>
+      <div class="carousel-slide">
+        <img src="screenshots/import.png" alt="URL import"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <div class="screenshot-placeholder-wrap" style="display:none">
+          <span class="screenshot-placeholder-label" data-i18n="ph_import">Import depuis une URL</span>
+        </div>
+      </div>
+      <div class="carousel-slide">
+        <img src="screenshots/timer.png" alt="Timers"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <div class="screenshot-placeholder-wrap" style="display:none">
+          <span class="screenshot-placeholder-label" data-i18n="ph_timer">Minuteurs</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="how-it-works" id="how">
+  <div class="container">
+    <div class="how-header fade-up">
+      <span class="section-label" data-i18n="how_label">Fonctionnement</span>
+      <h2 class="section-title" data-i18n="how_title">Local d'abord. Nextcloud si vous voulez.</h2>
+      <p class="section-subtitle" data-i18n="how_subtitle">AvoCook est conçu pour fonctionner sans aucun compte. La synchronisation Nextcloud est une option, pas une obligation.</p>
+    </div>
+
+    <div class="modes-grid fade-up delay-1">
+      <div class="mode-card mode-local">
+        <div class="mode-title" data-i18n="local_title">Mode local</div>
+        <div class="mode-desc" data-i18n="local_desc">Le mode par défaut. Aucun compte, aucune connexion requise. Vos recettes sont stockées dans une base SQLite directement sur votre appareil.</div>
+        <ul class="mode-points">
+          <li data-i18n="local_p1">Fonctionne en mode avion</li>
+          <li data-i18n="local_p2">Données uniquement sur l'appareil</li>
+          <li data-i18n="local_p3">Aucun serveur tiers impliqué</li>
+          <li data-i18n="local_p4">Sauvegarde manuelle vers un fichier JSON</li>
+        </ul>
+      </div>
+
+      <div class="mode-divider">
+        <span data-i18n="mode_or">ou</span>
+      </div>
+
+      <div class="mode-card mode-nextcloud">
+        <div class="mode-title" data-i18n="nextcloud_title">Synchronisation Nextcloud</div>
+        <div class="mode-desc" data-i18n="nextcloud_desc">Connectez votre propre serveur Nextcloud avec l'application Cookbook. Les données circulent directement entre l'app et votre serveur.</div>
+        <ul class="mode-points">
+          <li data-i18n="nextcloud_p1">Compatible Nextcloud Cookbook</li>
+          <li data-i18n="nextcloud_p2">Synchronisation multi-appareils</li>
+          <li data-i18n="nextcloud_p3">Mot de passe d'application, HTTPS obligatoire</li>
+          <li data-i18n="nextcloud_p4">Aucun serveur tiers — votre Nextcloud uniquement</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== IMPORT ===== -->
+<section class="import-section" id="import">
+  <div class="container">
+    <div class="import-inner">
+      <div class="import-text-content fade-up">
+        <span class="section-label" data-i18n="import_label">Import intelligent</span>
+        <h2 class="section-title" data-i18n="import_title">Importez depuis n'importe quel site</h2>
+        <p class="section-subtitle" data-i18n="import_subtitle">AvoCook lit les données structurées schema.org/Recipe exposées par la plupart des sites de cuisine. Collez une URL, la recette est prête en quelques secondes.</p>
+
+        <div class="sites-list">
+          <span class="site-pill">Marmiton</span>
+          <span class="site-pill">750g</span>
+          <span class="site-pill">BBC Good Food</span>
+          <span class="site-pill">Allrecipes</span>
+          <span class="site-pill">Food Network</span>
+          <span class="site-pill">Serious Eats</span>
+          <span class="site-pill">Cuisine AZ</span>
+          <span class="site-pill" data-i18n="and_many_more">et beaucoup d'autres</span>
+        </div>
+
+        <div class="info-box">
+          <div class="info-box-title" data-i18n="import_ai_title">Import par IA</div>
+          <div class="info-box-text" data-i18n="import_ai_desc">Prenez en photo une page de livre de cuisine, une carte au restaurant ou n'importe quel plat — AvoCook peut générer une recette complète via un modèle compatible OpenAI. Fonctionnalité optionnelle, votre propre clé API.</div>
+        </div>
+      </div>
+
+      <div class="import-visual fade-up delay-1">
+        <div class="import-url-bar">
+          <span class="import-url-icon">→</span>
+          <span>marmiton.org/recettes/recette_tarte-aux-pommes...</span>
+        </div>
+        <div class="import-arrow">↓</div>
+        <div class="import-result">
+          <div class="import-result-title">Tarte aux pommes normande</div>
+          <div class="import-result-meta" data-i18n="import_result_meta">4 portions · 45 min · Importée depuis Marmiton</div>
+          <div class="import-result-tags">
+            <span class="import-result-tag" data-i18n="import_tag_ingredients">12 ingrédients</span>
+            <span class="import-result-tag" data-i18n="import_tag_steps">6 étapes</span>
+            <span class="import-result-tag" data-i18n="import_tag_photo">Photo incluse</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== ABOUT ===== -->
+<section class="about" id="about">
+  <div class="container">
+    <div class="about-inner">
+      <div class="fade-up">
+        <span class="section-label" data-i18n="about_label">Le projet</span>
+        <h2 class="section-title" data-i18n="about_title">Fait par un étudiant, pour tous les jours</h2>
+        <blockquote class="about-quote" data-i18n="about_quote">
+          "J'avais mes recettes éparpillées entre des photos, des onglets Safari et des notes. J'ai décidé de construire l'app qui me manquait."
+        </blockquote>
+        <p class="about-text" data-i18n="about_p1">AvoCook a commencé comme un projet perso pendant mes études d'informatique. L'objectif était double : avoir une vraie app de recettes sur mon téléphone, et apprendre à mener un projet React Native de A à Z — de l'écriture du premier composant jusqu'à la publication sur l'App Store.</p>
+        <p class="about-text" data-i18n="about_p2">Au fil du temps, le projet a grandi : modules natifs, synchronisation Nextcloud, import de recettes, génération IA, support multi-plateforme. Chaque fonctionnalité a été l'occasion d'apprendre quelque chose de concret — parfois en se battant deux heures sur un bug qu'on ne comprend finalement pas si mal.</p>
+        <p class="about-text" data-i18n="about_p3">L'app est entièrement open source sous licence GPLv3. Si vous voulez vous en inspirer, contribuer, ou juste regarder comment c'est construit, le code est sur GitHub.</p>
+
+        <div class="info-box">
+          <div class="info-box-title" data-i18n="about_highlight_title">Contexte</div>
+          <div class="info-box-text" data-i18n="about_highlight_text">Étudiant en informatique · Projet personnel · Développé en France · Publié sur l'App Store et GitHub · Maintenu activement</div>
+        </div>
+      </div>
+
+      <div class="about-numbers fade-up delay-1">
+        <div class="about-number-card">
+          <div class="about-number-val">5</div>
+          <div class="about-number-label" data-i18n="num_languages">Langues disponibles dans l'application</div>
+        </div>
+        <div class="about-number-card">
+          <div class="about-number-val">2</div>
+          <div class="about-number-label" data-i18n="num_platforms">Plateformes — iOS et Android</div>
+        </div>
+        <div class="about-number-card">
+          <div class="about-number-val">GPLv3</div>
+          <div class="about-number-label" data-i18n="num_license">Licence open source · Code disponible sur GitHub</div>
+        </div>
+        <div class="about-number-card">
+          <div class="about-number-val">0</div>
+          <div class="about-number-label" data-i18n="num_tracking">Traceurs · Analytics · Publicités</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== TECH ===== -->
+<section class="tech" id="tech">
+  <div class="container">
+    <div class="fade-up">
+      <span class="section-label" data-i18n="tech_label">Stack technique</span>
+      <h2 class="section-title" data-i18n="tech_title">Ce qui tourne sous le capot</h2>
+      <p class="section-subtitle" data-i18n="tech_subtitle">Un projet React Native complet, sans raccourcis.</p>
+    </div>
+    <div class="tech-grid fade-up delay-1">
+      <div class="tech-card">
+        <div class="tech-card-name">React Native + Expo</div>
+        <div class="tech-card-desc" data-i18n="tech_rn">Base cross-platform. Expo pour les modules natifs, les assets et le build CI/CD.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-name">TypeScript</div>
+        <div class="tech-card-desc" data-i18n="tech_ts">Typage complet, du composant à la couche de données. Aucun <code>any</code> implicite.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-name">SQLite</div>
+        <div class="tech-card-desc" data-i18n="tech_sqlite">Stockage local des recettes dans une base relationnelle embarquée via expo-sqlite.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-name">i18next</div>
+        <div class="tech-card-desc" data-i18n="tech_i18n">Internationalisation complète en 5 langues avec détection automatique de la locale.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-name">Expo SecureStore</div>
+        <div class="tech-card-desc" data-i18n="tech_secure">Identifiants Nextcloud stockés dans l'enclave sécurisée du système (Keychain iOS / Keystore Android).</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-name">Expo Calendar</div>
+        <div class="tech-card-desc" data-i18n="tech_calendar">Synchronisation des listes de courses avec les Rappels iOS via l'API native.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-name">schema.org parser</div>
+        <div class="tech-card-desc" data-i18n="tech_schema">Import de recettes depuis n'importe quel site exposant des données structurées Recipe.</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-card-name">Module natif custom</div>
+        <div class="tech-card-desc" data-i18n="tech_native">avocook-timer-notifications — notifications locales pour les minuteurs, même app en arrière-plan.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== OPEN SOURCE ===== -->
+<section class="opensource" id="opensource">
+  <div class="container">
+    <div class="opensource-inner">
+      <div class="fade-up">
+        <span class="section-label" data-i18n="os_label">Open source</span>
+        <h2 class="section-title" data-i18n="os_title">Le code est ouvert</h2>
+        <p class="about-text" data-i18n="os_p1">AvoCook est publié sous licence GPLv3. Vous pouvez lire le code, le forker et contribuer. Les pull requests sont les bienvenues — il y a un template et un guide de contribution.</p>
+
+        <div class="opensource-links">
+          <a href="https://github.com/Logarex/AvoCook" class="opensource-link" target="_blank" rel="noopener noreferrer">
+            <div class="opensource-link-text">
+              <div class="opensource-link-name" data-i18n="os_link_repo">Dépôt GitHub</div>
+              <div class="opensource-link-sub">github.com/Logarex/AvoCook</div>
+            </div>
+            <span class="opensource-link-arrow">→</span>
+          </a>
+          <a href="https://github.com/Logarex/AvoCook/releases" class="opensource-link" target="_blank" rel="noopener noreferrer">
+            <div class="opensource-link-text">
+              <div class="opensource-link-name" data-i18n="os_link_releases">Releases & APK</div>
+              <div class="opensource-link-sub" data-i18n="os_link_releases_sub">Téléchargez la dernière version</div>
+            </div>
+            <span class="opensource-link-arrow">→</span>
+          </a>
+          <a href="https://github.com/Logarex/AvoCook/blob/main/.github/CONTRIBUTING.md" class="opensource-link" target="_blank" rel="noopener noreferrer">
+            <div class="opensource-link-text">
+              <div class="opensource-link-name" data-i18n="os_link_contrib">Contribuer</div>
+              <div class="opensource-link-sub" data-i18n="os_link_contrib_sub">Guide & PR template</div>
+            </div>
+            <span class="opensource-link-arrow">→</span>
+          </a>
+          <a href="https://github.com/Logarex/AvoCook/issues" class="opensource-link" target="_blank" rel="noopener noreferrer">
+            <div class="opensource-link-text">
+              <div class="opensource-link-name" data-i18n="os_link_issues">Signaler un bug</div>
+              <div class="opensource-link-sub" data-i18n="os_link_issues_sub">GitHub Issues</div>
+            </div>
+            <span class="opensource-link-arrow">→</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="fade-up delay-1">
+        <div class="mode-card" style="height:100%">
+          <div class="mode-title">GNU GPL v3</div>
+          <div class="mode-desc" data-i18n="os_license_desc">Vous êtes libre d'utiliser, modifier et distribuer AvoCook, à condition de conserver la même licence. Le code source doit rester accessible.</div>
+          <ul class="mode-points">
+            <li data-i18n="os_lic_p1">Utiliser librement</li>
+            <li data-i18n="os_lic_p2">Modifier et redistribuer</li>
+            <li data-i18n="os_lic_p3">Accès au code source garanti</li>
+            <li data-i18n="os_lic_p4">Copyleft — même licence conservée</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CONTACT ===== -->
+<section class="contact" id="contact">
+  <div class="container">
+    <div class="contact-inner fade-up">
+      <div>
+        <span class="section-label" data-i18n="contact_label">Contact</span>
+        <h2 class="section-title" data-i18n="contact_title">Une question ? Une idée ?</h2>
+        <p class="about-text" data-i18n="contact_subtitle">
+          Pour les bugs et demandes de fonctionnalités, GitHub Issues est le meilleur endroit — les templates sont là pour ça. Pour tout le reste, l'email fonctionne.
+        </p>
+      </div>
+
+      <div class="contact-cards">
+        <div class="contact-card">
+          <div class="contact-card-label" data-i18n="contact_email_label">Par email</div>
+          <!-- L'adresse est construite par JS pour éviter les bots -->
+          <a id="contact-email-link" class="contact-email-link" href="#">—</a>
+          <p class="contact-card-note" data-i18n="contact_email_note">Pour les bugs ou demandes de fonctionnalités, préférez une issue GitHub — c'est plus facile à suivre.</p>
+        </div>
+        <div class="contact-card">
+          <div class="contact-card-label" data-i18n="contact_gh_label">Via GitHub</div>
+          <a href="https://github.com/Logarex/AvoCook/issues" class="contact-gh-link" target="_blank" rel="noopener noreferrer">
+            <span data-i18n="contact_gh_cta">Ouvrir une issue</span>
+            <span>→</span>
+          </a>
+          <p class="contact-card-note" data-i18n="contact_gh_note">Bugs, demandes de fonctionnalités, questions techniques — les templates guident le rapport.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== DONATE ===== -->
+<section class="donate" id="donate">
+  <div class="container">
+    <div class="donate-inner fade-up">
+      <span class="section-label" data-i18n="donate_label">Soutenir</span>
+      <h2 class="section-title donate-title" data-i18n="donate_title">Vous trouvez AvoCook utile ?</h2>
+      <p class="donate-subtitle" data-i18n="donate_subtitle">L'application est gratuite et open source. Si elle vous fait gagner du temps en cuisine, un don aide à couvrir les frais de développement (compte développeur Apple, serveur de test…).</p>
+      <div class="donate-buttons">
+        <a href="https://revolut.me/logarex" class="donate-btn donate-btn-revolut" target="_blank" rel="noopener noreferrer">
+          <span data-i18n="donate_revolut">Donner via Revolut</span>
+        </a>
+        <a href="https://paypal.me/logarex31" class="donate-btn donate-btn-paypal" target="_blank" rel="noopener noreferrer">
+          <span data-i18n="donate_paypal">Donner via PayPal</span>
+        </a>
+      </div>
+      <p class="donate-note" data-i18n="donate_note">Aucun montant minimum. Tout est apprécié.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FOOTER ===== -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <div class="footer-logo">
+          <span class="nav-logo-dot"></span>
+          AvoCook
+        </div>
+        <div class="footer-copy" data-i18n="footer_copy">Projet open source · Licence GPLv3 · Fait avec soin</div>
+      </div>
+      <div class="footer-links">
+        <a href="https://github.com/Logarex/AvoCook" class="footer-link">GitHub</a>
+        <a href="https://github.com/Logarex/AvoCook/releases" class="footer-link" data-i18n="footer_releases">Releases</a>
+        <a href="https://github.com/Logarex/AvoCook/blob/main/PRIVACY.md" class="footer-link" data-i18n="footer_privacy">Confidentialité</a>
+        <a href="https://apps.apple.com/app/avocook/id6769012665" class="footer-link">App Store</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script src="main.js"></script>
+</body>
+</html>
