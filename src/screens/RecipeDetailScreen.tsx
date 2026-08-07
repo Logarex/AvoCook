@@ -9,7 +9,7 @@ import {
   FileUp,
   Pencil,
   RefreshCw,
-  Share2,
+  Share,
   Trash2,
 } from "lucide-react-native";
 import React, { useEffect, useMemo, useState } from "react";
@@ -578,7 +578,7 @@ function RecipeDetailContent({
   const toolbarActions: ToolbarAction[] = [
     {
       id: "share",
-      icon: Share2,
+      icon: Share,
       label: t("common.share"),
       onPress: () => setShowShareMenu(true),
       disabled: shareAction !== null,

@@ -229,12 +229,12 @@ export function ShoppingListScreen({ navigation }: Props) {
     let message = t("shoppingList.title") + "\n\n";
 
     if (remaining.length > 0) {
-      message += remaining.map((i) => `• ${i.label}`).join("\n");
+      message += remaining.map((i) => `• ${i.label}${i.recipeName ? ` (${i.recipeName})` : ''}`).join("\n");
       message += "\n\n";
     }
 
     if (checked.length > 0) {
-      message += checked.map((i) => `✓ ${i.label}`).join("\n");
+      message += checked.map((i) => `✓ ${i.label}${i.recipeName ? ` (${i.recipeName})` : ''}`).join("\n");
       message += "\n";
     }
 
@@ -442,11 +442,6 @@ export function ShoppingListScreen({ navigation }: Props) {
               maxToRenderPerBatch={15}
               windowSize={7}
               removeClippedSubviews={true}
-              getItemLayout={(data, index) => ({
-                length: 68,
-                offset: 68 * index,
-                index,
-              })}
               ListEmptyComponent={
                 <EmptyState
                   title={t("shoppingList.emptyTitle")}
@@ -759,7 +754,6 @@ const styles = StyleSheet.create({
   },
   itemLabelButton: {
     justifyContent: "center",
-    minHeight: 44
   },
   itemInput: {
     borderRadius: radius.sm,
@@ -775,7 +769,7 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: spacing.xs,
-    height: 60,
+    minHeight: 60,
     padding: spacing.sm
   },
   itemText: {
