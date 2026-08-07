@@ -22,7 +22,7 @@ import {
 } from "../features/import/photoRecipeImport";
 import { persistRecipeImage } from "../features/recipes/recipeImages";
 import type { RootStackParamList } from "../navigation/types";
-import { spacing, radius } from "../theme/colors";
+import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ImportRecipe">;
@@ -66,7 +66,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
       } else {
         navigation.goBack();
       }
-    } catch (err) {
+    } catch {
       setError(t("importRecipe.failed"));
     } finally {
       setSubmitting(null);
@@ -84,7 +84,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
       } else {
         navigation.goBack();
       }
-    } catch (err) {
+    } catch {
       setError(t("importRecipe.failed"));
     } finally {
       setSubmitting(null);
@@ -353,7 +353,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         />
       </GlassPanel>
 
-      {/* Section 2: AI Magic */}
       <GlassPanel style={styles.section}>
         <View style={styles.sectionHeader}>
           <Sparkles color={colors.primary} size={22} />

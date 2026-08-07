@@ -1,10 +1,9 @@
-import { Check, RotateCcw } from "lucide-react-native";
+import { Check } from "lucide-react-native";
 import React from "react";
 import { Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../../components/AppText";
 import { GlassPanel } from "../../components/GlassPanel";
-import { PrimaryButton } from "../../components/PrimaryButton";
 import { useAppTheme } from "../../theme/ThemeProvider";
 import { styles } from "./recipeDetailStyles";
 

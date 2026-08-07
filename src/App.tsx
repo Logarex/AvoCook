@@ -169,7 +169,7 @@ function ShareIntentHandler() {
           const filePath = shareIntent.files[0].path;
           navigation.navigate("ImportRecipe", { fileUri: filePath });
         }
-      } catch (_error) {
+      } catch {
         // Navigation error — navigator may not be ready yet, ignore gracefully
       }
       resetShareIntent();

@@ -1,7 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   AlertTriangle,
-  Check,
   Download,
   ListFilter,
   ListPlus,
@@ -49,7 +48,6 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { RecipeCard } from "../components/RecipeCard";
 import { Screen } from "../components/Screen";
 import { SearchField } from "../components/SearchField";
-import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { useMilestoneReminders } from "../features/recipes/useMilestoneReminders";

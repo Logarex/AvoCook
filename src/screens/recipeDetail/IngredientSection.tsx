@@ -1,4 +1,4 @@
-import { Check, RotateCcw, ShoppingCart, Copy } from "lucide-react-native";
+import { Check, ShoppingCart, Copy } from "lucide-react-native";
 import React from "react";
 import * as Clipboard from "expo-clipboard";
 import { Pressable, View } from "react-native";

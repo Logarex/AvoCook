@@ -260,7 +260,7 @@ export function TourScreen({ navigation }: Props) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Extra content: AI Guide
+// Extra content: Import Guide
 // ─────────────────────────────────────────────────────────────────────────────
 
 function AIGuide({

@@ -4,6 +4,7 @@
 
 const https = require('https');
 const zlib = require('zlib');
+const { Buffer } = require('buffer');
 
 const URL_TO_TEST = 'https://www.papillesetpupilles.fr/2025/11/sabich-maison-la-recette-facile-et-irresistible.html/';
 

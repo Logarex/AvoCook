@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   Clock,
   ExternalLink,
-  FileUp,
   Pencil,
   RefreshCw,
   Share,
