@@ -549,6 +549,8 @@ nav.scrolled {
   scrollbar-width: none;
   -ms-overflow-style: none;
   cursor: grab;
+  max-width: max-content;
+  margin: 0 auto;
 }
 .carousel-track:active { cursor: grabbing; }
 .carousel-track::-webkit-scrollbar { display: none; }
