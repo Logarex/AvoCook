@@ -566,8 +566,8 @@ nav.scrolled {
 
 .carousel-slide {
   flex-shrink: 0;
-  width: 230px; height: 496px;
-  border-radius: var(--radius-lg);
+  width: 230px; height: 498px;
+  border-radius: 44px;
   border: 1px solid var(--border);
   overflow: hidden;
   scroll-snap-align: start;
