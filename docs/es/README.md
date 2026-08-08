@@ -4,7 +4,7 @@ AvoCook es un cuaderno de recetas móvil — funciona completamente sin conexió
 
 Lo desarrollé para uso personal mientras aprendía a llevar un proyecto React Native completo de principio a fin.
 
-[App Store](https://apps.apple.com/app/avocook/id6769012665) · [APK Android](https://github.com/Logarex/AvoCook/releases/latest) · [![Descargas APK](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
+[App Store](https://apps.apple.com/app/avocook/id6769012665) · [Google Play](https://play.google.com/store/apps/details?id=app.avocook.mobile) · [APK Android](https://github.com/Logarex/AvoCook/releases/latest) · [![Descargas APK](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
 
 <div align="center">
   <img src="../../assets/screenshots/es/login.png" width="280" alt="Inicio de sesión AvoCook" />

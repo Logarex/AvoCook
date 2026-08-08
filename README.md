@@ -5,7 +5,7 @@ AvoCook is a mobile recipe notebook — it works entirely offline, on your devic
 I built it for personal use while learning to ship a complete React Native project from start to finish.
 
 [App Store](https://apps.apple.com/app/avocook/id6769012665) ·
-[Android APK](https://github.com/Logarex/AvoCook/releases/latest) ·
+[Google Play](https://play.google.com/store/apps/details?id=app.avocook.mobile) · [Android APK](https://github.com/Logarex/AvoCook/releases/latest) ·
 [![APK downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
 
 <div align="center">
