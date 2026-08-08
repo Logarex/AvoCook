@@ -6,40 +6,31 @@
 
 /* --- Custom Properties --- */
 :root {
-  /* --- Exact AvoCook brand colors (from src/theme/colors.ts) --- */
-  --app-bg-dark:       #14120F;   /* darkColors.background */
-  --app-bg-elevated:   #211E19;   /* darkColors.backgroundElevated */
-  --app-primary-dark:  #83CFC1;   /* darkColors.primary */
-  --app-primary-strong:#B6EFE4;   /* darkColors.primaryStrong */
-  --app-accent-dark:   #F0C977;   /* darkColors.accent */
-  --app-text-dark:     #F8EFE3;   /* darkColors.text */
-  --app-text-muted-dk: #B9AB9A;   /* darkColors.textMuted */
-  --app-border-dark:   rgba(255,243,224,0.14); /* darkColors.border */
+  --avocado:       #5A8A5E;
+  --avocado-light: #7AB68A;
+  --avocado-dark:  #3D6142;
+  --avocado-pale:  rgba(90,138,94,0.12);
+  --cream:         #F7F3EA;
+  --cream-dark:    #EDE8DC;
+  --night:         #10201D;
+  --night-deep:    #0A1612;
+  --night-mid:     #172820;
+  --gold:          #C9A04A;
 
-  --app-bg-light:      #F7F3EA;   /* lightColors.background */
-  --app-bg-elev-light: #FFFFFF;   /* lightColors.backgroundElevated */
-  --app-primary-light: #2F6F64;   /* lightColors.primary */
-  --app-primary-str-l: #164C45;   /* lightColors.primaryStrong */
-  --app-accent-light:  #E5B85E;   /* lightColors.accent */
-  --app-text-light:    #1D1A16;   /* lightColors.text */
-  --app-text-muted-lt: #6C6258;   /* lightColors.textMuted */
-  --app-border-light:  rgba(56,47,37,0.14); /* lightColors.border */
-
-  /* --- Dark mode (default) --- */
-  --bg:            #14120F;
-  --bg-subtle:     #0E0C09;
-  --bg-card:       rgba(255,243,224,0.055);
-  --bg-card-hover: rgba(255,243,224,0.09);
-  --bg-badge:      rgba(131,207,193,0.14);
-  --text:          #F8EFE3;
-  --text-muted:    #B9AB9A;
-  --text-faint:    rgba(248,239,227,0.28);
-  --border:        rgba(255,243,224,0.12);
-  --border-accent: rgba(131,207,193,0.32);
-  --accent:        #83CFC1;   /* exact app primary dark */
-  --accent-strong: #B6EFE4;
-  --accent-glow:   rgba(131,207,193,0.2);
-  --gold:          #F0C977;   /* exact app accent dark */
+  /* Dark mode (default) */
+  --bg:            #10201D;
+  --bg-subtle:     #0D1B17;
+  --bg-card:       rgba(255,255,255,0.055);
+  --bg-card-hover: rgba(255,255,255,0.09);
+  --bg-badge:      rgba(90,138,94,0.18);
+  --text:          #F7F3EA;
+  --text-muted:    rgba(247,243,234,0.58);
+  --text-faint:    rgba(247,243,234,0.28);
+  --border:        rgba(255,255,255,0.08);
+  --border-accent: rgba(90,138,94,0.38);
+  --accent:        #7AB68A;
+  --accent-strong: #5A8A5E;
+  --accent-glow:   rgba(122,182,138,0.22);
   --shadow:        0 8px 40px rgba(0,0,0,0.45);
   --shadow-card:   0 2px 16px rgba(0,0,0,0.3);
 
@@ -55,20 +46,20 @@
 [data-theme="light"] {
   --bg:            #F7F3EA;
   --bg-subtle:     #EDE8DC;
-  --bg-card:       rgba(56,47,37,0.05);
-  --bg-card-hover: rgba(56,47,37,0.09);
-  --bg-badge:      rgba(47,111,100,0.1);
-  --text:          #1D1A16;
-  --text-muted:    #6C6258;
-  --text-faint:    rgba(29,26,22,0.3);
-  --border:        rgba(56,47,37,0.14);
-  --border-accent: rgba(47,111,100,0.28);
-  --accent:        #2F6F64;   /* exact app primary light */
-  --accent-strong: #164C45;
-  --accent-glow:   rgba(47,111,100,0.15);
-  --gold:          #E5B85E;   /* exact app accent light */
-  --shadow:        0 8px 40px rgba(43,31,18,0.12);
-  --shadow-card:   0 2px 16px rgba(43,31,18,0.08);
+  --bg-card:       rgba(16,32,29,0.05);
+  --bg-card-hover: rgba(16,32,29,0.09);
+  --bg-badge:      rgba(61,97,66,0.1);
+  --text:          #10201D;
+  --text-muted:    rgba(16,32,29,0.58);
+  --text-faint:    rgba(16,32,29,0.28);
+  --border:        rgba(16,32,29,0.1);
+  --border-accent: rgba(61,97,66,0.28);
+  --accent:        #3D6142;
+  --accent-strong: #5A8A5E;
+  --accent-glow:   rgba(61,97,66,0.15);
+  --gold:          #C9A04A;
+  --shadow:        0 8px 40px rgba(16,32,29,0.12);
+  --shadow-card:   0 2px 16px rgba(16,32,29,0.08);
 }
 
 /* --- Top accent bar --- */
@@ -178,12 +169,14 @@ nav.scrolled {
   display: block;
 }
 /* Light/dark logo swap */
-.nav-logo-img.logo-dark  { display: none; }
-.nav-logo-img.logo-light { display: block; }
-[data-theme="light"] .nav-logo-img.logo-dark  { display: block; }
-[data-theme="light"] .nav-logo-img.logo-light { display: none; }
-[data-theme="dark"] .nav-logo-img.logo-dark   { display: none; }
-[data-theme="dark"] .nav-logo-img.logo-light  { display: block; }
+/* .logo-dark = file logo-dark.png (which is light-colored, for dark theme) */
+/* .logo-light = file logo.png (which is dark-colored, for light theme) */
+.nav-logo-img.logo-dark  { display: block; }
+.nav-logo-img.logo-light { display: none; }
+[data-theme="light"] .nav-logo-img.logo-dark  { display: none; }
+[data-theme="light"] .nav-logo-img.logo-light { display: block; }
+[data-theme="dark"] .nav-logo-img.logo-dark   { display: block; }
+[data-theme="dark"] .nav-logo-img.logo-light  { display: none; }
 .nav-logo-dot {
   width: 9px; height: 9px;
   border-radius: 50%;
@@ -231,6 +224,14 @@ nav.scrolled {
 .nav-download-wrap {
   position: relative;
 }
+/* Bridge the gap to prevent hover loss */
+.nav-download-wrap::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0; right: 0;
+  height: 12px;
+}
 .nav-download-wrap:hover .download-dropdown,
 .nav-download-wrap:focus-within .download-dropdown,
 .nav-download-wrap.open .download-dropdown {
@@ -260,8 +261,8 @@ nav.scrolled {
   /* Force background behind blur */
   background: color-mix(in srgb, var(--bg) 90%, transparent);
 }
-[data-theme="dark"] .download-dropdown { background: rgba(21,19,15,0.96); }
-[data-theme="light"] .download-dropdown { background: rgba(242,238,228,0.97); }
+[data-theme="dark"] .download-dropdown { background: rgba(16,32,29,0.96); }
+[data-theme="light"] .download-dropdown { background: rgba(247,243,234,0.97); }
 
 .download-option {
   display: flex;
@@ -404,7 +405,7 @@ nav.scrolled {
 .btn-primary {
   display: inline-flex; align-items: center; gap: 8px;
   background: var(--accent);
-  color: #14120F;  /* always dark text on colored bg */
+  color: var(--night);
   font-weight: 700; font-size: 15px;
   padding: 14px 26px;
   border-radius: 100px;
@@ -617,7 +618,7 @@ nav.scrolled {
 }
 .mode-card.mode-nextcloud {
   border-color: var(--border-accent);
-  background: rgba(131,207,193,0.07);
+  background: var(--avocado-pale);
 }
 .mode-title { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
 .mode-desc { font-size: 14.5px; color: var(--text-muted); line-height: 1.68; }
@@ -808,7 +809,7 @@ nav.scrolled {
 }
 .donate-btn-revolut {
   background: var(--accent);
-  color: #14120F;
+  color: var(--night);
 }
 .donate-btn-revolut:hover { opacity: 0.9; transform: translateY(-3px); box-shadow: 0 14px 32px var(--accent-glow); }
 .donate-btn-paypal {
