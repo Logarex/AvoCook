@@ -435,7 +435,7 @@ nav.scrolled {
 /* Phone mockups */
 .hero-phones {
   position: relative;
-  height: 540px;
+  height: 560px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -453,8 +453,8 @@ nav.scrolled {
 
 .phone-mockup {
   position: absolute;
-  width: 228px; height: 480px;
-  border-radius: 40px;
+  width: 230px; height: 498px;
+  border-radius: 44px;
   border: 1px solid rgba(255,255,255,0.08);
   background: var(--bg-card);
   overflow: hidden;
@@ -463,16 +463,6 @@ nav.scrolled {
 [data-theme="light"] .phone-mockup {
   border: 1px solid rgba(0,0,0,0.08);
   box-shadow: 0 40px 80px rgba(16,32,29,0.15), 0 0 0 1px rgba(0,0,0,0.05);
-}
-.phone-mockup::before {
-  content: '';
-  position: absolute;
-  top: 14px; left: 50%;
-  transform: translateX(-50%);
-  width: 60px; height: 6px;
-  background: rgba(128,128,128,0.3);
-  border-radius: 100px;
-  z-index: 5;
 }
 .phone-front {
   left: 50%; 
