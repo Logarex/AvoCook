@@ -6,10 +6,10 @@ Ich habe es für den persönlichen Gebrauch entwickelt und dabei gelernt, ein vo
 
 [App Store](https://apps.apple.com/app/avocook/id6769012665) · [Android APK](https://github.com/Logarex/AvoCook/releases/latest) · [![APK-Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
 
-<p align="center">
-  <img src="../../assets/screenshots/login.png" width="280" alt="AvoCook Login" />
-  <img src="../../assets/screenshots/recipe.png" width="280" alt="Rezeptdetails" />
-</p>
+<div align="center">
+  <img src="../../assets/screenshots/de/login.png" width="280" alt="AvoCook Login" />
+  <img src="../../assets/screenshots/de/recipe.png" width="280" alt="Rezeptdetails" />
+</div>
 
 ---
 

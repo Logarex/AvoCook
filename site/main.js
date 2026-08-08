@@ -56,6 +56,7 @@ const translations = {
     ph_detail: "Détail d'une recette",
     ph_editor: "Éditeur de recette",
     ph_import: "Import depuis une URL",
+    ph_shopping: "Liste de courses",
     ph_timer: "Minuteurs",
     how_label: "Fonctionnement",
     how_title: "Local d'abord. Nextcloud si vous voulez.",
@@ -193,6 +194,7 @@ const translations = {
     ph_detail: "Recipe detail",
     ph_editor: "Recipe editor",
     ph_import: "URL import",
+    ph_shopping: "Shopping List",
     ph_timer: "Timers",
     how_label: "How it works",
     how_title: "Local first. Nextcloud if you want.",
@@ -330,6 +332,7 @@ const translations = {
     ph_detail: "Rezeptdetails",
     ph_editor: "Rezepteditor",
     ph_import: "URL-Import",
+    ph_shopping: "Einkaufsliste",
     ph_timer: "Timer",
     how_label: "Funktionsweise",
     how_title: "Lokal zuerst. Nextcloud wenn gewünscht.",
@@ -467,6 +470,7 @@ const translations = {
     ph_detail: "Detalle de receta",
     ph_editor: "Editor de recetas",
     ph_import: "Importar desde URL",
+    ph_shopping: "Lista de compras",
     ph_timer: "Temporizadores",
     how_label: "Funcionamiento",
     how_title: "Local primero. Nextcloud si quieres.",
@@ -604,6 +608,7 @@ const translations = {
     ph_detail: "Dettaglio ricetta",
     ph_editor: "Editor ricetta",
     ph_import: "Importa da URL",
+    ph_shopping: "Lista della spesa",
     ph_timer: "Timer",
     how_label: "Come funziona",
     how_title: "Prima locale. Nextcloud se vuoi.",
@@ -722,6 +727,12 @@ function applyLanguage(lang) {
   document.querySelectorAll('[data-i18n-html]').forEach(el => {
     const key = el.getAttribute('data-i18n-html');
     if (t[key] !== undefined) el.innerHTML = t[key];
+  });
+
+  // Image sources
+  document.querySelectorAll('[data-i18n-img]').forEach(el => {
+    const template = el.getAttribute('data-i18n-img');
+    el.src = template.replace('{lang}', lang);
   });
 
   // Update active button

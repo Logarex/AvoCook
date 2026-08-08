@@ -6,10 +6,10 @@ Je l'ai développé pour mon usage personnel en apprenant à mener un projet Rea
 
 [App Store](https://apps.apple.com/app/avocook/id6769012665) · [APK Android](https://github.com/Logarex/AvoCook/releases/latest) · [![Téléchargements APK](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
 
-<p align="center">
-  <img src="../../assets/screenshots/login.png" width="280" alt="Connexion AvoCook" />
-  <img src="../../assets/screenshots/recipe.png" width="280" alt="Détail de la recette" />
-</p>
+<div align="center">
+  <img src="../../assets/screenshots/fr/login.png" width="280" alt="Connexion AvoCook" />
+  <img src="../../assets/screenshots/fr/recipe.png" width="280" alt="Détail de la recette" />
+</div>
 
 ---
 

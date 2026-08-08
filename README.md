@@ -8,10 +8,10 @@ I built it for personal use while learning to ship a complete React Native proje
 [Android APK](https://github.com/Logarex/AvoCook/releases/latest) ·
 [![APK downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
 
-<p align="center">
-  <img src="assets/screenshots/login.png" width="280" alt="AvoCook login" />
-  <img src="assets/screenshots/recipe.png" width="280" alt="Recipe detail" />
-</p>
+<div align="center">
+  <img src="assets/screenshots/en/login.png" width="280" alt="AvoCook login" />
+  <img src="assets/screenshots/en/recipe.png" width="280" alt="Recipe detail" />
+</div>
 
 ---
 

@@ -32,9 +32,7 @@ jobs:
           # Copy screenshots if they exist
           mkdir -p _deploy/screenshots
           if [ -d "assets/screenshots" ]; then
-            find assets/screenshots -maxdepth 1 \
-              \( -name "*.png" -o -name "*.jpg" -o -name "*.jpeg" -o -name "*.webp" \) \
-              -exec cp {} _deploy/screenshots/ \;
+            cp -r assets/screenshots/* _deploy/screenshots/
           fi
 
           echo "Deployment contents:"

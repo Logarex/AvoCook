@@ -6,10 +6,10 @@ Lo desarrollé para uso personal mientras aprendía a llevar un proyecto React N
 
 [App Store](https://apps.apple.com/app/avocook/id6769012665) · [APK Android](https://github.com/Logarex/AvoCook/releases/latest) · [![Descargas APK](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
 
-<p align="center">
-  <img src="../../assets/screenshots/login.png" width="280" alt="Inicio de sesión AvoCook" />
-  <img src="../../assets/screenshots/recipe.png" width="280" alt="Detalle de la receta" />
-</p>
+<div align="center">
+  <img src="../../assets/screenshots/es/login.png" width="280" alt="Inicio de sesión AvoCook" />
+  <img src="../../assets/screenshots/es/recipe.png" width="280" alt="Detalle de la receta" />
+</div>
 
 ---
 
