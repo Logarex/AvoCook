@@ -36,7 +36,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
 export function LoginScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
   const { login, startLocalMode } = useAuth();
   const { language, setLanguage } = usePreferences();
   const { openGithubIssue, contactByEmail } = useSupportActions();
@@ -49,6 +49,10 @@ export function LoginScreen({ route, navigation }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { tourDone } = useOnboarding();
+
+  const logo = isDark
+    ? require("../../assets/logo-dark.png")
+    : require("../../assets/logo.png");
 
   async function handleLocalMode() {
     await startLocalMode();
@@ -100,7 +104,7 @@ export function LoginScreen({ route, navigation }: Props) {
         <View style={styles.hero}>
           <Image
             accessible={false}
-            source={require("../../assets/logo.png")}
+            source={logo}
             style={styles.logo}
             contentFit="contain"
           />
