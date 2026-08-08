@@ -442,14 +442,12 @@ nav.scrolled {
 .phone-mockup {
   position: absolute;
   width: 218px; height: 456px;
-  border-radius: 38px;
-  border: 1.5px solid var(--border);
-  background: var(--bg-card);
-  overflow: hidden;
-  box-shadow: 0 32px 64px rgba(0,0,0,0.45), 0 0 0 1px var(--border);
+  border-radius: 25.3px;
+  background: transparent;
+  box-shadow: 0 32px 64px rgba(0,0,0,0.45);
 }
 [data-theme="light"] .phone-mockup {
-  box-shadow: 0 24px 56px rgba(16,32,29,0.14), 0 0 0 1px var(--border);
+  box-shadow: 0 24px 56px rgba(16,32,29,0.14);
 }
 .phone-mockup::before {
   content: '';
@@ -558,11 +556,9 @@ nav.scrolled {
 .carousel-slide {
   flex-shrink: 0;
   width: 230px; height: 496px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-  overflow: hidden;
+  border-radius: 26.7px;
+  background: transparent;
   scroll-snap-align: start;
-  background: var(--bg-card);
   box-shadow: var(--shadow-card);
   position: relative;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
