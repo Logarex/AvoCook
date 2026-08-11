@@ -173,6 +173,8 @@ export function TourScreen({ navigation }: Props) {
             onPress={() => void handleSkip()}
             style={styles.skipButton}
             hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t("tour.skip")}
           >
             <AppText variant="label" style={{ color: colors.textMuted }}>
               {t("tour.skip")}
@@ -240,7 +242,14 @@ export function TourScreen({ navigation }: Props) {
       {/* Dot indicators */}
       <View style={styles.dots}>
         {STEPS.map((_, i) => (
-          <Pressable key={i} onPress={() => goTo(i)} hitSlop={6}>
+          <Pressable
+            key={i}
+            onPress={() => goTo(i)}
+            hitSlop={6}
+            accessibilityRole="button"
+            accessibilityLabel={`${t("tour.step")} ${i + 1}`}
+            accessibilityState={{ selected: i === step }}
+          >
             <View
               style={[
                 styles.dot,
@@ -298,6 +307,8 @@ function AIGuide({
           <Pressable
             key={p.id}
             onPress={() => void Linking.openURL(p.url)}
+            accessibilityRole="link"
+            accessibilityLabel={p.label}
             style={({ pressed }) => [
               styles.providerGridItem,
               {
@@ -359,6 +370,8 @@ function ContactLinks({
     <View style={styles.contactContainer}>
       <Pressable
         onPress={openWebsite}
+        accessibilityRole="link"
+        accessibilityLabel="Website"
         style={({ pressed }) => [
           styles.contactCardHorizontal,
           {
@@ -376,6 +389,8 @@ function ContactLinks({
 
       <Pressable
         onPress={openGithub}
+        accessibilityRole="link"
+        accessibilityLabel="GitHub"
         style={({ pressed }) => [
           styles.contactCardHorizontal,
           {
@@ -393,6 +408,8 @@ function ContactLinks({
 
       <Pressable
         onPress={openEmail}
+        accessibilityRole="link"
+        accessibilityLabel="Email"
         style={({ pressed }) => [
           styles.contactCardHorizontal,
           {
@@ -606,12 +623,14 @@ const styles = StyleSheet.create({
   },
   navRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.sm,
     marginTop: spacing.lg,
     width: "100%",
   },
   navBtn: {
     flex: 1,
+    minWidth: "48%",
   },
   dots: {
     alignItems: "center",

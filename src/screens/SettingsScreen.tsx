@@ -1027,11 +1027,13 @@ const styles = StyleSheet.create({
   serverHeader: {
     alignItems: "center",
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.xs
   },
   advancedHeader: {
     alignItems: "center",
     flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "space-between"
   },
   chevronOpen: {

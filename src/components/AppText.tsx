@@ -30,7 +30,8 @@ export function AppText({
 
 const styles = StyleSheet.create({
   base: {
-    letterSpacing: 0
+    letterSpacing: 0,
+    flexShrink: 1
   },
   title: {
     fontSize: 34,

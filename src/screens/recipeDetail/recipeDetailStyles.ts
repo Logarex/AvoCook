@@ -236,6 +236,7 @@ export const styles = StyleSheet.create({
   },
   toolbarActionRow: {
     flexDirection: "row",
+    flexWrap: "wrap",
     gap: spacing.xs,
     justifyContent: "flex-end",
   },

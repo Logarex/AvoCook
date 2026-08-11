@@ -162,7 +162,14 @@ export function OnboardingScreen({ navigation }: Props) {
       {/* Dot indicators */}
       <View style={styles.dots}>
         {[dot0Scale, dot1Scale].map((scale, i) => (
-          <Pressable key={i} onPress={() => goToPage(i)} hitSlop={8}>
+          <Pressable
+            key={i}
+            onPress={() => goToPage(i)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`${t("tour.step")} ${i + 1}`}
+            accessibilityState={{ selected: currentPage === i }}
+          >
             <Animated.View
               style={[
                 styles.dot,

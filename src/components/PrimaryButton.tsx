@@ -89,6 +89,7 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   label: {
-    textAlign: "center"
+    textAlign: "center",
+    flexShrink: 1,
   }
 });
