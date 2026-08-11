@@ -23,7 +23,7 @@ const i18n = createInstance();
 void i18n.use(initReactI18next).init({
   resources,
   lng: resolveAppLanguage(deviceLanguage),
-  fallbackLng: "fr",
+  fallbackLng: "en",
   interpolation: {
     escapeValue: false,
   },

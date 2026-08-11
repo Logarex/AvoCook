@@ -15,5 +15,5 @@ export function isAppLanguage(
 }
 
 export function resolveAppLanguage(language: string | null | undefined): AppLanguage {
-  return isAppLanguage(language) ? language : "fr";
+  return isAppLanguage(language) ? language : "en";
 }
