@@ -79,7 +79,7 @@ function RootNavigator() {
   if (!hydrated || !onboardingHydrated) {
     // simple splash screen while we load the db and stuff
     return (
-      <View style={[styles.loading, { backgroundColor: colors.background }]}>
+      <View style={[styles.loading, { backgroundColor: isDark ? "#10201D" : colors.background }]}>
         <Image
           accessible={false}
           source={loadingLogo}
