@@ -1,3 +1,5 @@
+import i18n from "../i18n";
+
 const unicodeFractions: Record<string, number> = {
   "¼": 0.25,
   "½": 0.5,
@@ -64,5 +66,5 @@ function formatScaledQuantity(value: number) {
     return String(rounded);
   }
 
-  return String(rounded).replace(".", ",");
+  return new Intl.NumberFormat(i18n.language, { maximumFractionDigits: 2 }).format(rounded);
 }

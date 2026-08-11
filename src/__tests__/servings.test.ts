@@ -1,5 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { scaleIngredientLine } from "../utils/servings";
+
+vi.mock("../i18n", () => ({
+  default: { language: "fr" },
+}));
 
 describe("scaleIngredientLine", () => {
   it("scales simple quantities and decimals", () => {
