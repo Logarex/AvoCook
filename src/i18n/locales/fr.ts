@@ -556,6 +556,7 @@ export default {
     emailFailedBody: "Impossible d'ouvrir une application d'e-mail. Vous pouvez nous contacter à contact@nephoos.com",
 
       github: "Signaler un problème sur GitHub",
+      website: "Site Web",
       email: "Contacter le développeur par Email",
       includeLogsTitle: "Inclure les logs ?",
       includeLogsBody: "Voulez-vous copier vos logs anonymisés dans le presse-papiers pour pouvoir les coller dans votre message ?",

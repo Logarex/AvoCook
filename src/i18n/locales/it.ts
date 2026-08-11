@@ -553,6 +553,7 @@ export default {
     emailFailedBody: "Impossibile aprire un'app email. Puoi contattarci a contact@nephoos.com",
 
       github: "Segnala un problema su GitHub",
+      website: "Sito Web",
       email: "Contatta lo sviluppatore tramite Email",
       includeLogsTitle: "Includere i registri?",
       includeLogsBody: "Vuoi copiare i tuoi registri diagnostici resi anonimi negli appunti per incollarli nel tuo messaggio?",

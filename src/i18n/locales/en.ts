@@ -545,7 +545,8 @@ export default {
     emailFailedTitle: "No email app found",
     emailFailedBody: "We couldn't open an email app. You can reach us at contact@nephoos.com",
 
-      github: "Report a problem on GitHub",
+      github: "Report an issue on GitHub",
+      website: "Website",
       email: "Contact the developer via Email",
       includeLogsTitle: "Include logs?",
       includeLogsBody: "Do you want to copy your anonymized diagnostic logs to your clipboard so you can paste them into your message?",

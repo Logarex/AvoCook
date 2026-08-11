@@ -15,6 +15,7 @@ import {
   Share,
   Share2,
   HelpCircle,
+  Globe,
   Mail,
   Plus,
   Settings,
@@ -350,9 +351,29 @@ function ContactLinks({
   function openEmail() {
     void Linking.openURL("mailto:avocook@nephoos.com?subject=AvoCook");
   }
+  function openWebsite() {
+    void Linking.openURL("https://logarex.github.io/AvoCook/");
+  }
 
   return (
     <View style={styles.contactContainer}>
+      <Pressable
+        onPress={openWebsite}
+        style={({ pressed }) => [
+          styles.contactCardHorizontal,
+          {
+            backgroundColor: pressed ? colors.chip : "transparent",
+            borderColor: colors.border,
+          },
+        ]}
+      >
+        <Globe color={colors.primary} size={20} />
+        <AppText variant="label" style={{ fontSize: 14 }}>
+          Web
+        </AppText>
+        <ExternalLink color={colors.textMuted} size={14} />
+      </Pressable>
+
       <Pressable
         onPress={openGithub}
         style={({ pressed }) => [

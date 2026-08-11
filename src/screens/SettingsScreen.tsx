@@ -941,6 +941,12 @@ export function SettingsScreen({ navigation }: Props) {
             variant="ghost"
           />
           <PrimaryButton
+            icon={Globe}
+            label={t("support.website", "Website")}
+            onPress={() => Linking.openURL("https://logarex.github.io/AvoCook/")}
+            variant="ghost"
+          />
+          <PrimaryButton
             icon={Mail}
             label={t("support.email", "Contact Us")}
             onPress={contactByEmail}
