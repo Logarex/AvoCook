@@ -645,7 +645,7 @@ export default {
     },
     update: {
       title: "¿Qué hay de nuevo?",
-      subtitle: "Descubre las novedades de la versión 3.4.0",
+      subtitle: "Descubre las novedades de la versión 3.4.1",
       feat1Title: "Más rápida y ligera",
       feat1Body: "La aplicación ha sido optimizada eliminando elementos innecesarios, lo que resulta en una experiencia más rápida y estable.",
       feat2Title: "Navegación alfabética",

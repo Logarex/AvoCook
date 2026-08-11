@@ -170,16 +170,15 @@ export const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     position: "absolute",
-    right: -12,
+    right: 0,
     top: 0,
-    width: 24,
+    width: 28,
     zIndex: 10,
     borderLeftWidth: StyleSheet.hairlineWidth,
   },
   alphabetLetterButton: {
     paddingHorizontal: 4,
     paddingVertical: 2,
-    marginLeft: 6,
   },
   alphabetLetter: {
     fontSize: 11,

@@ -639,7 +639,7 @@ export default {
     },
     update: {
       title: "What's new?",
-      subtitle: "Discover what's new in version 3.4.0",
+      subtitle: "Discover what's new in version 3.4.1",
       feat1Title: "Faster and lighter",
       feat1Body: "The app has been optimized by removing unnecessary elements, resulting in a faster, more stable experience with fewer bugs.",
       feat2Title: "Alphabetical navigation",
