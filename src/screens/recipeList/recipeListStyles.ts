@@ -170,7 +170,7 @@ export const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     position: "absolute",
-    right: 0,
+    right: -spacing.md,
     top: 0,
     width: 28,
     zIndex: 10,
