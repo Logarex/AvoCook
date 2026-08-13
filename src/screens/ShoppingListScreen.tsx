@@ -407,6 +407,7 @@ export function ShoppingListScreen({ navigation }: Props) {
               initialNumToRender={15}
               maxToRenderPerBatch={15}
               windowSize={7}
+              keyboardShouldPersistTaps="handled"
               removeClippedSubviews={true}
               ListEmptyComponent={
                 <EmptyState
@@ -478,15 +479,10 @@ function ShoppingListRow({
   const [draftLabel, setDraftLabel] = useState(item.label);
   const inputRef = React.useRef<TextInput>(null);
 
+
   React.useEffect(() => {
     setDraftLabel(item.label);
   }, [item.label]);
-
-  React.useEffect(() => {
-    if (editing) {
-      inputRef.current?.focus();
-    }
-  }, [editing]);
 
   function commitLabel() {
     const label = draftLabel.trim();
@@ -546,6 +542,7 @@ function ShoppingListRow({
         {editing ? (
           <TextInput
             accessibilityLabel={t("shoppingList.editItem")}
+            autoFocus
             onChangeText={setDraftLabel}
             onSubmitEditing={commitLabel}
             placeholderTextColor={colors.textMuted}

@@ -72,7 +72,7 @@ export function Screen({
       style={[styles.safeArea, { backgroundColor: colors.background }]}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={scroll && Platform.OS === "ios" ? "padding" : undefined}
         style={styles.flex}
       >
         {scroll ? (
