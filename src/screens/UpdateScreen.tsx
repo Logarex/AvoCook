@@ -8,7 +8,7 @@ import {
 } from "lucide-react-native";
 import { Image } from "expo-image";
 import React from "react";
-import { StyleSheet, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "../components/AppText";
@@ -21,6 +21,9 @@ import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Update">;
 
+// Background color matching the dark logo artwork
+const DARK_BG = "#0D2B26";
+
 export function UpdateScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useAppTheme();
@@ -31,14 +34,32 @@ export function UpdateScreen({ navigation }: Props) {
     ? require("../../assets/logo-dark.png")
     : require("../../assets/logo.png");
 
+  const backgroundColor = isDark ? DARK_BG : colors.background;
+
   async function handleContinue() {
     await markUpdateSeen();
     navigation.replace("Recipes");
   }
 
   return (
-    <View style={[styles.page, { paddingTop: Math.max(insets.top, spacing.xl), paddingBottom: Math.max(insets.bottom, spacing.xl) }]}>
-      <View style={{ flex: 1, justifyContent: "center" }}>
+    <View
+      style={[
+        styles.root,
+        {
+          backgroundColor,
+          paddingTop: Math.max(insets.top, spacing.lg),
+          paddingBottom: Math.max(insets.bottom, spacing.lg),
+        },
+      ]}
+    >
+      {/* Scrollable content — only scrolls on very small screens */}
+      <ScrollView
+        style={styles.flex}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
+      >
         {/* Hero */}
         <View style={styles.hero}>
           <Image
@@ -55,13 +76,13 @@ export function UpdateScreen({ navigation }: Props) {
           </AppText>
         </View>
 
-
+        {/* Feature cards */}
         <View style={styles.featuresColumn}>
           <GlassPanel style={styles.featureCardHorizontal}>
             <View style={[styles.featureIconCircle, { backgroundColor: colors.chip }]}>
-              <ShieldCheck color={colors.primary} size={24} />
+              <ShieldCheck color={colors.primary} size={22} />
             </View>
-            <View style={{ flex: 1, gap: 2 }}>
+            <View style={styles.featureText}>
               <AppText variant="label">{t("update.feat1Title")}</AppText>
               <AppText muted variant="caption">
                 {t("update.feat1Body")}
@@ -71,9 +92,9 @@ export function UpdateScreen({ navigation }: Props) {
 
           <GlassPanel style={styles.featureCardHorizontal}>
             <View style={[styles.featureIconCircle, { backgroundColor: colors.chip }]}>
-              <Plug color={colors.primary} size={24} />
+              <Plug color={colors.primary} size={22} />
             </View>
-            <View style={{ flex: 1, gap: 2 }}>
+            <View style={styles.featureText}>
               <AppText variant="label">{t("update.feat2Title")}</AppText>
               <AppText muted variant="caption">
                 {t("update.feat2Body")}
@@ -83,9 +104,9 @@ export function UpdateScreen({ navigation }: Props) {
 
           <GlassPanel style={styles.featureCardHorizontal}>
             <View style={[styles.featureIconCircle, { backgroundColor: colors.chip }]}>
-              <Sparkles color={colors.primary} size={24} />
+              <Sparkles color={colors.primary} size={22} />
             </View>
-            <View style={{ flex: 1, gap: 2 }}>
+            <View style={styles.featureText}>
               <AppText variant="label">{t("update.feat3Title")}</AppText>
               <AppText muted variant="caption">
                 {t("update.feat3Body")}
@@ -95,9 +116,9 @@ export function UpdateScreen({ navigation }: Props) {
 
           <GlassPanel style={styles.featureCardHorizontal}>
             <View style={[styles.featureIconCircle, { backgroundColor: colors.chip }]}>
-              <Wrench color={colors.primary} size={24} />
+              <Wrench color={colors.primary} size={22} />
             </View>
-            <View style={{ flex: 1, gap: 2 }}>
+            <View style={styles.featureText}>
               <AppText variant="label">{t("update.feat4Title")}</AppText>
               <AppText muted variant="caption">
                 {t("update.feat4Body")}
@@ -105,10 +126,10 @@ export function UpdateScreen({ navigation }: Props) {
             </View>
           </GlassPanel>
         </View>
-      </View>
+      </ScrollView>
 
-      {/* CTA */}
-      <View style={styles.pageActions}>
+      {/* CTA — always visible, pinned at bottom */}
+      <View style={[styles.pageActions, { paddingHorizontal: spacing.xl }]}>
         <PrimaryButton
           icon={ArrowRight}
           label={t("update.continue")}
@@ -120,42 +141,52 @@ export function UpdateScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  page: {
+  root: {
     flex: 1,
+  },
+  flex: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
     paddingHorizontal: spacing.xl,
-    paddingBottom: spacing.xxl,
+    paddingVertical: spacing.md,
   },
   hero: {
     alignItems: "center",
-    gap: spacing.sm,
-    marginBottom: spacing.xl,
-    marginTop: spacing.sm,
+    gap: spacing.xs,
+    marginBottom: spacing.lg,
   },
   logo: {
-    height: 72,
-    width: 72,
+    height: 64,
+    width: 64,
+    marginBottom: spacing.xxs,
   },
   center: {
     textAlign: "center",
   },
   featuresColumn: {
     flexDirection: "column",
-    gap: spacing.md,
-    marginBottom: spacing.sm,
+    gap: spacing.sm,
   },
   featureCardHorizontal: {
     flexDirection: "row",
     alignItems: "center",
-    gap: spacing.md,
-    paddingVertical: spacing.md,
+    gap: spacing.sm,
+    paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
   },
   featureIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: "center",
     justifyContent: "center",
+  },
+  featureText: {
+    flex: 1,
+    gap: 2,
   },
   pageActions: {
     gap: spacing.sm,
