@@ -335,6 +335,8 @@ export default {
       photoUrl: "Foto-URL",
       choosePhoto: "Foto auswählen",
       removePhoto: "Foto entfernen",
+      photoUploading: "Hochladen…",
+      photoUploadFailed: "Foto-Upload fehlgeschlagen.",
       keywords: "Kommagetrennte Schlagwörter",
       category: "Kategorie",
       prepMinutes: "Vorbereitungszeit in Minuten",

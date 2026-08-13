@@ -335,6 +335,8 @@ export default {
       photoUrl: "URL de la photo",
       choosePhoto: "Choisir une photo",
       removePhoto: "Retirer la photo",
+      photoUploading: "Envoi en cours…",
+      photoUploadFailed: "L’envoi de la photo a échoué.",
       keywords: "Mots-clés séparés par des virgules",
       category: "Catégorie",
       prepMinutes: "Préparation en minutes",

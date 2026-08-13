@@ -77,6 +77,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const [photoUrl, setPhotoUrl] = useState(
     getEditableRecipeImageSource(initialRecipe)
   );
+  const [photoLocalUri, setPhotoLocalUri] = useState("");
   const [category, setCategory] = useState(initialRecipe.recipeCategory);
   const [keywords, setKeywords] = useState(initialRecipe.keywords);
   const [recipeYield, setRecipeYield] = useState(
@@ -116,6 +117,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const [fiber, setFiber] = useState(initialNutrition.fiber);
   const [protein, setProtein] = useState(initialNutrition.protein);
   const [saving, setSaving] = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const categorySuggestions = useMemo(() => {
     const normalizedCategory = normalizeSuggestionSearch(category);
@@ -147,11 +149,13 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
     () => getKeywordSuggestions(keywords, recipes),
     [keywords, recipes]
   );
-  const photoClient = isCookbookImageEndpoint(photoUrl) ? getClient() : null;
-  const photoSource = photoUrl
+  const client = getClient();
+  const photoClient = isCookbookImageEndpoint(photoUrl) ? client : null;
+  const photoDisplayUri = photoLocalUri || photoUrl;
+  const photoSource = photoDisplayUri
     ? {
-        uri: photoUrl,
-        headers: photoClient?.getImageHeaders()
+        uri: photoDisplayUri,
+        headers: !photoLocalUri ? photoClient?.getImageHeaders() : undefined
       }
     : null;
 
@@ -162,6 +166,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
     setSourceUrl(initialRecipe.url);
     setShowSourceFields(Boolean(initialRecipe.sourceName || initialRecipe.url));
     setPhotoUrl(getEditableRecipeImageSource(initialRecipe));
+    setPhotoLocalUri("");
     setCategory(initialRecipe.recipeCategory);
     setKeywords(initialRecipe.keywords);
     setRecipeYield(String(initialRecipe.recipeYield || 1));
@@ -207,7 +212,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
       const photoLocalMeta =
         photoUrl === initialPhotoUrl
           ? initialRecipe.localMeta
-          : getLocalMetaAfterPhotoChange(initialRecipe.localMeta, photoUrl);
+          : getLocalMetaAfterPhotoChange(initialRecipe.localMeta, photoUrl, photoLocalUri || undefined);
       const localMeta = getLocalMetaAfterServingsVisibilityChange(
         photoLocalMeta,
         showServings
@@ -273,8 +278,26 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
       quality: 0.86
     });
 
-    if (!result.canceled && result.assets[0]?.uri) {
-      setPhotoUrl(await persistRecipeImage(result.assets[0].uri));
+    if (result.canceled || !result.assets[0]?.uri) {
+      return;
+    }
+
+    const localUri = result.assets[0].uri;
+    setUploadingPhoto(true);
+    setError(null);
+    try {
+      if (client) {
+        const remotePath = await client.uploadRecipeImage(localUri);
+        setPhotoUrl(remotePath);
+        setPhotoLocalUri(localUri);
+      } else {
+        setPhotoUrl(await persistRecipeImage(localUri));
+        setPhotoLocalUri("");
+      }
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : t("editor.photoUploadFailed"));
+    } finally {
+      setUploadingPhoto(false);
     }
   }
 
@@ -349,22 +372,23 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         autoCorrect={false}
         keyboardType="url"
         label={t("editor.photoUrl")}
-        onChangeText={setPhotoUrl}
+        onChangeText={(url) => { setPhotoUrl(url); setPhotoLocalUri(""); }}
         value={photoUrl}
       />
       <View style={styles.row}>
         <PrimaryButton
+          disabled={uploadingPhoto}
           icon={ImagePlus}
-          label={t("editor.choosePhoto")}
+          label={uploadingPhoto ? t("editor.photoUploading") : t("editor.choosePhoto")}
           onPress={() => void handleChoosePhoto()}
           style={styles.rowItem}
           variant="ghost"
         />
         <PrimaryButton
-          disabled={!photoUrl}
+          disabled={!photoUrl || uploadingPhoto}
           icon={X}
           label={t("editor.removePhoto")}
-          onPress={() => setPhotoUrl("")}
+          onPress={() => { setPhotoUrl(""); setPhotoLocalUri(""); }}
           style={styles.rowItem}
           variant="ghost"
         />
@@ -781,15 +805,17 @@ function formatNutritionValue(value: string, unit: "g" | "kcal" | "mg") {
 
 function getLocalMetaAfterPhotoChange(
   localMeta: ReturnType<typeof normalizeRecipe>["localMeta"],
-  photoUrl: string
+  photoUrl: string,
+  cachedLocalUri?: string
 ) {
   const nextLocalMeta: NonNullable<
     ReturnType<typeof normalizeRecipe>["localMeta"]
   > = { ...(localMeta ?? {}) };
   delete nextLocalMeta.cachedImage;
 
-  if (/^file:\/\//i.test(photoUrl)) {
-    nextLocalMeta.cachedImage = photoUrl;
+  const cacheUri = cachedLocalUri || (/^file:\/\//i.test(photoUrl) ? photoUrl : undefined);
+  if (cacheUri) {
+    nextLocalMeta.cachedImage = cacheUri;
   }
 
   return Object.keys(nextLocalMeta).length ? nextLocalMeta : undefined;

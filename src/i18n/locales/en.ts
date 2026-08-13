@@ -331,6 +331,8 @@ export default {
       photoUrl: "Photo URL",
       choosePhoto: "Choose photo",
       removePhoto: "Remove photo",
+      photoUploading: "Uploading…",
+      photoUploadFailed: "Photo upload failed.",
       keywords: "Comma-separated keywords",
       category: "Category",
       prepMinutes: "Prep minutes",

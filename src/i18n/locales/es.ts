@@ -334,6 +334,8 @@ export default {
       photoUrl: "URL de la foto",
       choosePhoto: "Elegir foto",
       removePhoto: "Eliminar foto",
+      photoUploading: "Subiendo…",
+      photoUploadFailed: "Error al subir la foto.",
       keywords: "Palabras clave separadas por comas",
       category: "Categoría",
       prepMinutes: "Minutos de preparación",
