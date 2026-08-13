@@ -22,7 +22,7 @@ import { useAppTheme } from "../theme/ThemeProvider";
 type Props = NativeStackScreenProps<RootStackParamList, "Update">;
 
 // Background color matching the dark logo artwork
-const DARK_BG = "#0D2B26";
+const DARK_BG = "#10201D";
 
 export function UpdateScreen({ navigation }: Props) {
   const { t } = useTranslation();
