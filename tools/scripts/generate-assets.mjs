@@ -5,7 +5,7 @@ import { deflateSync } from "node:zlib";
 const colors = {
   amber: [244, 196, 89, 255],
   cream: [247, 243, 234, 255],
-  darkBackground: [16, 32, 29, 255],
+  darkBackground: [20, 18, 15, 255],
   darkCream: [255, 249, 240, 255],
   green: [47, 111, 100, 255],
   greenDark: [22, 76, 69, 255],
@@ -100,6 +100,11 @@ const darkPalette = {
   base: colors.greenLight
 };
 
+const darkPaletteLegacy = {
+  ...darkPalette,
+  inner: [16, 32, 29, 255]
+};
+
 function drawMark(canvas, palette, scale = 1, offsetY = 0) {
   const cx = canvas.width / 2;
   const cy = canvas.height / 2 + offsetY;
@@ -188,4 +193,10 @@ writeAsset("assets/splash.png", 1242, 2436, 0.74, -80, colors.cream, lightPalett
 writeAsset("assets/favicon.png", 64, 64, 0.054);
 writeAsset("assets/icon-dark.png", 1024, 1024, 1, 0, colors.darkBackground, darkPalette, opaquePng);
 writeAsset("assets/logo-dark.png", 1024, 1024, 1, 0, colors.darkBackground, darkPalette, opaquePng);
+writeAsset("assets/logo-dark-transparent.png", 1024, 1024, 1, 0, [0, 0, 0, 0], darkPalette, { alpha: true });
 writeAsset("assets/splash-dark.png", 1242, 2436, 0.74, -80, colors.darkBackground, darkPalette, opaquePng);
+
+// Legacy assets with the old dark background (#10201D)
+writeAsset("assets/icon-dark-legacy.png", 1024, 1024, 1, 0, [16, 32, 29, 255], darkPaletteLegacy, opaquePng);
+writeAsset("assets/logo-dark-legacy.png", 1024, 1024, 1, 0, [16, 32, 29, 255], darkPaletteLegacy, opaquePng);
+writeAsset("assets/splash-dark-legacy.png", 1242, 2436, 0.74, -80, [16, 32, 29, 255], darkPaletteLegacy, opaquePng);

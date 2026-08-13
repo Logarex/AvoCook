@@ -51,7 +51,7 @@ export function LoginScreen({ route, navigation }: Props) {
   const { tourDone } = useOnboarding();
 
   const logo = isDark
-    ? require("../../assets/logo-dark.png")
+    ? require("../../assets/logo-dark-transparent.png")
     : require("../../assets/logo.png");
 
   async function handleLocalMode() {
@@ -89,7 +89,10 @@ export function LoginScreen({ route, navigation }: Props) {
   }
 
   return (
-    <Screen contentStyle={styles.screen} showScrollTop={false}>
+    <Screen
+      contentStyle={styles.screen}
+      showScrollTop={false}
+    >
       <View style={styles.topArea}>
         <LanguagePicker
           variant="minimal"

@@ -21,8 +21,7 @@ import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Update">;
 
-// Background color matching the dark logo artwork
-const DARK_BG = "#10201D";
+
 
 export function UpdateScreen({ navigation }: Props) {
   const { t } = useTranslation();
@@ -31,10 +30,10 @@ export function UpdateScreen({ navigation }: Props) {
   const { markUpdateSeen } = useOnboarding();
 
   const logo = isDark
-    ? require("../../assets/logo-dark.png")
+    ? require("../../assets/logo-dark-transparent.png")
     : require("../../assets/logo.png");
 
-  const backgroundColor = isDark ? DARK_BG : colors.background;
+  const backgroundColor = colors.background;
 
   async function handleContinue() {
     await markUpdateSeen();

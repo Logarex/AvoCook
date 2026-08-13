@@ -73,13 +73,13 @@ function RootNavigator() {
   const reducedMotion = useReducedMotion();
   const { introDone, tourDone, showUpdateScreen, onboardingHydrated } = useOnboarding();
   const loadingLogo = isDark
-    ? require("../assets/logo-dark.png")
+    ? require("../assets/logo-dark-transparent.png")
     : require("../assets/logo.png");
 
   if (!hydrated || !onboardingHydrated) {
     // simple splash screen while we load the db and stuff
     return (
-      <View style={[styles.loading, { backgroundColor: isDark ? "#10201D" : colors.background }]}>
+      <View style={[styles.loading, { backgroundColor: colors.background }]}>
         <Image
           accessible={false}
           source={loadingLogo}

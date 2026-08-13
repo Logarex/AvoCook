@@ -18,8 +18,8 @@
   --gold:          #C9A04A;
 
   /* Dark mode (default) */
-  --bg:            #10201D;
-  --bg-subtle:     #0D1B17;
+  --bg:            #14120F;
+  --bg-subtle:     #211E19;
   --bg-card:       rgba(255,255,255,0.055);
   --bg-card-hover: rgba(255,255,255,0.09);
   --bg-badge:      rgba(90,138,94,0.18);

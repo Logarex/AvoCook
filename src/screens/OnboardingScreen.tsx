@@ -74,7 +74,7 @@ export function OnboardingScreen({ navigation }: Props) {
   const scrollX = useRef(new Animated.Value(0)).current;
 
   const logo = isDark
-    ? require("../../assets/logo-dark.png")
+    ? require("../../assets/logo-dark-transparent.png")
     : require("../../assets/logo.png");
 
   function goToPage(index: number) {

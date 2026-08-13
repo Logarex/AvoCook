@@ -368,62 +368,66 @@ function ContactLinks({
 
   return (
     <View style={styles.contactContainer}>
-      <Pressable
-        onPress={openWebsite}
-        accessibilityRole="link"
-        accessibilityLabel="Website"
-        style={({ pressed }) => [
-          styles.contactCardHorizontal,
-          {
-            backgroundColor: pressed ? colors.chip : "transparent",
-            borderColor: colors.border,
-          },
-        ]}
-      >
-        <Globe color={colors.primary} size={20} />
-        <AppText variant="label" style={{ fontSize: 14 }}>
-          Web
-        </AppText>
-        <ExternalLink color={colors.textMuted} size={14} />
-      </Pressable>
+      <View style={{ flexDirection: "row", gap: spacing.sm, width: "100%" }}>
+        <Pressable
+          onPress={openGithub}
+          accessibilityRole="link"
+          accessibilityLabel="GitHub"
+          style={({ pressed }) => [
+            styles.contactCardHorizontal,
+            {
+              backgroundColor: pressed ? colors.chip : "transparent",
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <Bug color={colors.primary} size={20} />
+          <AppText variant="label" style={{ fontSize: 14 }}>
+            GitHub
+          </AppText>
+          <ExternalLink color={colors.textMuted} size={14} />
+        </Pressable>
 
-      <Pressable
-        onPress={openGithub}
-        accessibilityRole="link"
-        accessibilityLabel="GitHub"
-        style={({ pressed }) => [
-          styles.contactCardHorizontal,
-          {
-            backgroundColor: pressed ? colors.chip : "transparent",
-            borderColor: colors.border,
-          },
-        ]}
-      >
-        <Bug color={colors.primary} size={20} />
-        <AppText variant="label" style={{ fontSize: 14 }}>
-          GitHub
-        </AppText>
-        <ExternalLink color={colors.textMuted} size={14} />
-      </Pressable>
+        <Pressable
+          onPress={openEmail}
+          accessibilityRole="link"
+          accessibilityLabel="Email"
+          style={({ pressed }) => [
+            styles.contactCardHorizontal,
+            {
+              backgroundColor: pressed ? colors.chip : "transparent",
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <Mail color={colors.primary} size={20} />
+          <AppText variant="label" style={{ fontSize: 14 }}>
+            Email
+          </AppText>
+          <ExternalLink color={colors.textMuted} size={14} />
+        </Pressable>
+      </View>
 
-      <Pressable
-        onPress={openEmail}
-        accessibilityRole="link"
-        accessibilityLabel="Email"
-        style={({ pressed }) => [
-          styles.contactCardHorizontal,
-          {
-            backgroundColor: pressed ? colors.chip : "transparent",
-            borderColor: colors.border,
-          },
-        ]}
-      >
-        <Mail color={colors.primary} size={20} />
-        <AppText variant="label" style={{ fontSize: 14 }}>
-          Email
-        </AppText>
-        <ExternalLink color={colors.textMuted} size={14} />
-      </Pressable>
+      <View style={{ flexDirection: "row", width: "100%" }}>
+        <Pressable
+          onPress={openWebsite}
+          accessibilityRole="link"
+          accessibilityLabel="Website"
+          style={({ pressed }) => [
+            styles.contactCardHorizontal,
+            {
+              backgroundColor: pressed ? colors.chip : "transparent",
+              borderColor: colors.border,
+            },
+          ]}
+        >
+          <Globe color={colors.primary} size={20} />
+          <AppText variant="label" style={{ fontSize: 14 }}>
+            Web
+          </AppText>
+          <ExternalLink color={colors.textMuted} size={14} />
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -584,7 +588,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   contactContainer: {
-    flexDirection: "row",
+    flexDirection: "column",
     gap: spacing.sm,
     marginTop: spacing.xl,
     width: "100%",

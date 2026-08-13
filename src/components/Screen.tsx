@@ -25,13 +25,15 @@ type ScreenProps = {
   scroll?: boolean;
   contentStyle?: StyleProp<ViewStyle>;
   showScrollTop?: boolean;
+  backgroundColor?: string;
 };
 
 export function Screen({
   children,
   scroll = true,
   contentStyle,
-  showScrollTop = scroll
+  showScrollTop = scroll,
+  backgroundColor
 }: ScreenProps) {
   const scrollRef = React.useRef<ScrollView>(null);
   const [contentHeight, setContentHeight] = React.useState(0);
@@ -69,7 +71,7 @@ export function Screen({
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
-      style={[styles.safeArea, { backgroundColor: colors.background }]}
+      style={[styles.safeArea, { backgroundColor: backgroundColor ?? colors.background }]}
     >
       <KeyboardAvoidingView
         behavior={scroll && Platform.OS === "ios" ? "padding" : undefined}
