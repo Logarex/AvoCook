@@ -148,7 +148,10 @@ export function inferRecipeCategory(recipe: Pick<
   );
 
   for (const rule of categoryRules) {
-    if (rule.keywords.some((keyword) => text.includes(normalizeSearchText(keyword)))) {
+    if (rule.keywords.some((keyword) => {
+      const normalized = normalizeSearchText(keyword);
+      return new RegExp(`\\b${normalized}\\b`).test(text);
+    })) {
       return rule.category;
     }
   }

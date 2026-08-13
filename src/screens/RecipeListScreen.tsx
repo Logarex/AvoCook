@@ -285,7 +285,7 @@ export function RecipeListScreen({ navigation }: Props) {
 
   function handleStartRenameCategory(categoryName: string) {
     setEditingCategory(categoryName);
-    setNewCategory(categoryName);
+    setNewCategory(getRecipeCategoryLabel(categoryName, t));
     setShowCategoryCreator(true);
     setShowCategoryPicker(false);
   }
