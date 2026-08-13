@@ -25,9 +25,10 @@ jobs:
           cp -r site/. _deploy/
 
           # Copy logos
-          for f in assets/logo.png assets/icon.svg; do
+          for f in assets/icon.svg; do
             [ -f "$f" ] && cp "$f" _deploy/
           done
+          [ -f "assets/logo-transparent.png" ] && cp "assets/logo-transparent.png" _deploy/logo.png
           [ -f "assets/logo-dark-transparent.png" ] && cp "assets/logo-dark-transparent.png" _deploy/logo-dark.png
 
           # Copy screenshots if they exist

@@ -189,6 +189,7 @@ const opaquePng = { alpha: false };
 writeAsset("assets/icon.png", 1024, 1024, 1, 0, colors.cream, lightPalette, opaquePng);
 writeAsset("assets/adaptive-icon.png", 1024, 1024, 1, 0, colors.cream, lightPalette, opaquePng);
 writeAsset("assets/logo.png", 1024, 1024, 1, 0, colors.cream, lightPalette, opaquePng);
+writeAsset("assets/logo-transparent.png", 1024, 1024, 1, 0, [0, 0, 0, 0], lightPalette, { alpha: true });
 writeAsset("assets/splash.png", 1242, 2436, 0.74, -80, colors.cream, lightPalette, opaquePng);
 writeAsset("assets/favicon.png", 64, 64, 0.054);
 writeAsset("assets/icon-dark.png", 1024, 1024, 1, 0, colors.darkBackground, darkPalette, opaquePng);
