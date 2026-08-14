@@ -11,6 +11,7 @@ import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
+import { useLongActionToast } from "../components/LongActionToast";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import {
@@ -36,6 +37,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
   const [prompt, setPrompt] = useState("");
   const [submitting, setSubmitting] = useState<"url" | "file" | "photo" | "text" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { watchLongAction } = useLongActionToast();
   const [cameraPermission, requestCameraPermission, getCameraPermission] = ImagePicker.useCameraPermissions({ get: false });
 
   const hasLlmKey = Boolean(llmSettings.apiKey.trim());
@@ -214,6 +216,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
     }
 
     setSubmitting("photo");
+    const stopLongActionNotice = watchLongAction("longActions.importRecipe");
     try {
       const recipe = await extractRecipeFromPhoto(
         base64,
@@ -257,6 +260,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         setError(t("importRecipe.photoFailed"));
       }
     } finally {
+      stopLongActionNotice();
       setSubmitting(null);
     }
   }
@@ -264,6 +268,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
   async function handleTextPromptSubmit() {
     setSubmitting("text");
     setError(null);
+    const stopLongActionNotice = watchLongAction("longActions.importRecipe");
     try {
       const recipe = await generateRecipeFromText(
         prompt,
@@ -298,6 +303,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         setError(t("importRecipe.textFailed", "Failed to generate recipe."));
       }
     } finally {
+      stopLongActionNotice();
       setSubmitting(null);
     }
   }

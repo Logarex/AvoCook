@@ -10,6 +10,7 @@ import {
   Database,
   Download,
   Bug,
+  Check,
   Eye,
   EyeOff,
   
@@ -85,6 +86,7 @@ export function SettingsScreen({ navigation }: Props) {
     setLlmSettings
   } = usePreferences();
   const [message, setMessage] = useState<string | null>(null);
+  const [llmMessage, setLlmMessage] = useState<string | null>(null);
   const [backupAction, setBackupAction] = useState<"export" | "import" | null>(
     null
   );
@@ -163,8 +165,8 @@ export function SettingsScreen({ navigation }: Props) {
     Keyboard.dismiss();
     if (llmDraft) {
       void setLlmSettings(llmDraft);
-      setMessage(t("common.saved", "Saved"));
-      setTimeout(() => setMessage(null), 3000);
+      setLlmMessage(t("common.saved", "Saved"));
+      setTimeout(() => setLlmMessage(null), 3000);
     }
   }
 
@@ -894,6 +896,14 @@ export function SettingsScreen({ navigation }: Props) {
               </>
             ) : null}
 
+            {llmMessage ? (
+              <View style={[styles.warningRow, { marginBottom: spacing.md, backgroundColor: colors.success + "1A", padding: spacing.sm, borderRadius: radius.md, alignItems: "center" }]}>
+                <Check color={colors.success} size={20} />
+                <AppText accessibilityLiveRegion="polite" style={[styles.warningText, { color: colors.success, fontWeight: "500" }]}>
+                  {llmMessage}
+                </AppText>
+              </View>
+            ) : null}
             <PrimaryButton
               icon={Save}
               label={t("common.save", "Save")}
