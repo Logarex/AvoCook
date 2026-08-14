@@ -66,8 +66,14 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
       } else {
         navigation.goBack();
       }
-    } catch {
-      setError(t("importRecipe.failed"));
+    } catch (error) {
+      if (error instanceof Error && error.message === "PAPILLES_BLOCKED") {
+        setError(t("importRecipe.papillesBlocked", "L'import depuis Papilles & Pupilles est désactivé à la demande de son auteure afin de préserver son modèle gratuit."));
+      } else if (error instanceof Error && error.message === "INCOMPLETE_RECIPE") {
+        setError(t("importRecipe.incompleteRecipe", "L'import automatique est bloqué par ce site. L'auteur a probablement désactivé le partage des ingrédients et des étapes pour protéger son contenu."));
+      } else {
+        setError(t("importRecipe.failed"));
+      }
     } finally {
       setSubmitting(null);
     }
@@ -84,8 +90,14 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
       } else {
         navigation.goBack();
       }
-    } catch {
-      setError(t("importRecipe.failed"));
+    } catch (error) {
+      if (error instanceof Error && error.message === "PAPILLES_BLOCKED") {
+        setError(t("importRecipe.papillesBlocked", "L'import depuis Papilles & Pupilles est désactivé à la demande de son auteure afin de préserver son modèle gratuit."));
+      } else if (error instanceof Error && error.message === "INCOMPLETE_RECIPE") {
+        setError(t("importRecipe.incompleteRecipe", "L'import automatique est bloqué par ce site. L'auteur a probablement désactivé le partage des ingrédients et des étapes pour protéger son contenu."));
+      } else {
+        setError(t("importRecipe.failed"));
+      }
     } finally {
       setSubmitting(null);
     }

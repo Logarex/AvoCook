@@ -483,6 +483,10 @@ export async function importRecipe(
   knownRecipes: Recipe[] = [],
   options: RecipeRepositoryOptions = {}
 ) {
+  if (url.toLowerCase().includes("papillesetpupilles.fr")) {
+    throw new Error("PAPILLES_BLOCKED");
+  }
+
   await migrateDatabase();
   const existingRecipes = await getExistingRecipesForImport(knownRecipes);
 

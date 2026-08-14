@@ -398,6 +398,8 @@ export default {
       generateTextAction: "Générer la recette",
       notFoodError: "Le contenu fourni n'est pas lié à la nourriture ou aux boissons.",
       textFailed: "Échec de la génération de la recette.",
+      papillesBlocked: "L'import depuis Papilles & Pupilles est désactivé à la demande de son auteure afin de préserver son modèle gratuit.",
+      incompleteRecipe: "L'import automatique est bloqué par ce site. L'auteur a probablement désactivé le partage des ingrédients et des étapes pour protéger son contenu.",
     },
     settings: {
       switchToLocal: "Passer en mode local",

@@ -75,10 +75,18 @@ export async function importRecipeFromWeb(url: string): Promise<Recipe> {
             ? semanticData.recipeInstructions
             : recipeJsonLd.recipeInstructions,
       };
-      return jsonLdToRecipe(merged, url);
+      const mergedRecipe = jsonLdToRecipe(merged, url);
+      if (mergedRecipe.recipeIngredient.length === 0 && mergedRecipe.recipeInstructions.length === 0) {
+        throw new Error("INCOMPLETE_RECIPE");
+      }
+      return mergedRecipe;
     }
 
-    return jsonLdToRecipe(recipeJsonLd, url);
+    const fallbackRecipe = jsonLdToRecipe(recipeJsonLd, url);
+    if (fallbackRecipe.recipeIngredient.length === 0 && fallbackRecipe.recipeInstructions.length === 0) {
+      throw new Error("INCOMPLETE_RECIPE");
+    }
+    return fallbackRecipe;
   }
 
   // No JSON-LD Recipe at all → try Semantic HTML fallback
