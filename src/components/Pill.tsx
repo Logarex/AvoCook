@@ -8,7 +8,7 @@ export function Pill({ label }: { label: string }) {
   const { colors } = useAppTheme();
   return (
     <View style={[styles.pill, { backgroundColor: colors.chip }]}>
-      <AppText variant="caption">{label}</AppText>
+      <AppText numberOfLines={1} variant="caption">{label}</AppText>
     </View>
   );
 }

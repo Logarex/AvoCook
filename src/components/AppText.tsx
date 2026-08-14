@@ -15,9 +15,12 @@ export function AppText({
   ...props
 }: AppTextProps) {
   const { colors } = useAppTheme();
+  const adjustsFontSizeToFit = props.adjustsFontSizeToFit ?? (props.numberOfLines === 1);
+
   return (
     <Text
       {...props}
+      adjustsFontSizeToFit={adjustsFontSizeToFit}
       style={[
         styles.base,
         styles[variant],

@@ -61,6 +61,7 @@ export function PrimaryButton({
       <View style={styles.content}>
         {Icon ? <Icon color={foregroundColor} size={18} strokeWidth={2.5} /> : null}
         <AppText
+          numberOfLines={1}
           variant="label"
           style={[styles.label, { color: foregroundColor }]}
         >

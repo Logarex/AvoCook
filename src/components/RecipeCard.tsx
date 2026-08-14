@@ -76,7 +76,7 @@ export const RecipeCard = React.memo(function RecipeCard({
         )}
       </View>
       <View style={styles.body}>
-        <AppText variant="label" numberOfLines={1}>
+        <AppText variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>
           {recipe.name}
         </AppText>
         {recipe.description ? (

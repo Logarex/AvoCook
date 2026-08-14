@@ -47,6 +47,8 @@ export function SegmentedControl<T extends string>({
               <Check color={colors.textInverted} size={15} strokeWidth={3} />
             ) : null}
             <AppText
+              adjustsFontSizeToFit
+              numberOfLines={1}
               variant="label"
               style={[
                 styles.optionLabel,
