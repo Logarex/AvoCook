@@ -286,14 +286,6 @@ export function LoginScreen({ route, navigation }: Props) {
       <View style={styles.spacer} />
 
       <View style={styles.bottomArea}>
-        {!showNextcloud ? (
-          <View style={styles.localWarning}>
-            <AlertTriangle color={colors.warning} size={16} style={styles.warningIcon} />
-            <AppText muted variant="caption" style={styles.localWarningText}>
-              {t("auth.localDataWarning")}
-            </AppText>
-          </View>
-        ) : null}
       </View>
     </Screen>
   );
@@ -400,17 +392,5 @@ const styles = StyleSheet.create({
   bottomArea: {
     minHeight: 48,
     justifyContent: "center"
-  },
-  localWarning: {
-    alignItems: "flex-start",
-    flexDirection: "row",
-    gap: spacing.sm
-  },
-  warningIcon: {
-    marginTop: 2
-  },
-  localWarningText: {
-    flex: 1,
-    lineHeight: 18
   }
 });
