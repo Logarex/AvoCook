@@ -397,7 +397,7 @@ export default {
       notFoodError: "Il contenuto fornito non è correlato a cibo o bevande.",
       textFailed: "Impossibile generare la ricetta.",
       papillesBlocked: "L'importazione da Papilles & Pupilles è disattivata su richiesta dell'autrice per preservare il suo modello gratuito.",
-      incompleteRecipe: "L'importazione automatica è bloccata da questo sito. L'autore ha probabilmente disattivato la condivisione di ingredienti e passaggi per proteggere i propri contenuti.",
+      incompleteRecipe: "Nessuna ricetta è stata estratta. Se si tratta di un food blog, l'autore ha probabilmente bloccato l'importazione automatica.",
     },
     settings: {
       switchToLocal: "Passa alla modalità locale",

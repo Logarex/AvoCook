@@ -69,8 +69,11 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
     } catch (error) {
       if (error instanceof Error && error.message === "PAPILLES_BLOCKED") {
         setError(t("importRecipe.papillesBlocked", "L'import depuis Papilles & Pupilles est désactivé à la demande de son auteure afin de préserver son modèle gratuit."));
-      } else if (error instanceof Error && error.message === "INCOMPLETE_RECIPE") {
-        setError(t("importRecipe.incompleteRecipe", "L'import automatique est bloqué par ce site. L'auteur a probablement désactivé le partage des ingrédients et des étapes pour protéger son contenu."));
+      } else if (
+        error instanceof Error && 
+        (error.message === "INCOMPLETE_RECIPE" || error.message.includes("No schema.org Recipe") || error.message.includes("Recipe page returned"))
+      ) {
+        setError(t("importRecipe.incompleteRecipe", "Aucune recette n'a pu être extraite. S'il s'agit bien d'un blog culinaire, l'auteur a probablement bloqué l'import automatique."));
       } else {
         setError(t("importRecipe.failed"));
       }
@@ -93,8 +96,11 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
     } catch (error) {
       if (error instanceof Error && error.message === "PAPILLES_BLOCKED") {
         setError(t("importRecipe.papillesBlocked", "L'import depuis Papilles & Pupilles est désactivé à la demande de son auteure afin de préserver son modèle gratuit."));
-      } else if (error instanceof Error && error.message === "INCOMPLETE_RECIPE") {
-        setError(t("importRecipe.incompleteRecipe", "L'import automatique est bloqué par ce site. L'auteur a probablement désactivé le partage des ingrédients et des étapes pour protéger son contenu."));
+      } else if (
+        error instanceof Error && 
+        (error.message === "INCOMPLETE_RECIPE" || error.message.includes("No schema.org Recipe") || error.message.includes("Recipe page returned"))
+      ) {
+        setError(t("importRecipe.incompleteRecipe", "Aucune recette n'a pu être extraite. S'il s'agit bien d'un blog culinaire, l'auteur a probablement bloqué l'import automatique."));
       } else {
         setError(t("importRecipe.failed"));
       }
