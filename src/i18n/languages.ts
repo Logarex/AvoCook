@@ -3,7 +3,8 @@ export const SUPPORTED_LANGUAGES = [
   { value: "en", nativeName: "English", shortLabel: "EN" },
   { value: "de", nativeName: "Deutsch", shortLabel: "DE" },
   { value: "es", nativeName: "Español", shortLabel: "ES" },
-  { value: "it", nativeName: "Italiano", shortLabel: "IT" }
+  { value: "it", nativeName: "Italiano", shortLabel: "IT" },
+  { value: "da", nativeName: "Dansk", shortLabel: "DA" }
 ] as const;
 
 export type AppLanguage = (typeof SUPPORTED_LANGUAGES)[number]["value"];

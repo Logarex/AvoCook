@@ -8,6 +8,7 @@ import en from "./locales/en";
 import de from "./locales/de";
 import es from "./locales/es";
 import it from "./locales/it";
+import da from "./locales/da";
 
 export const resources = {
   fr,
@@ -15,6 +16,7 @@ export const resources = {
   de,
   es,
   it,
+  da,
 } as const;
 
 const deviceLanguage = Localization.getLocales()[0]?.languageCode;

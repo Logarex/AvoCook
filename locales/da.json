@@ -1,0 +1,10 @@
+{
+  "NSCalendarsUsageDescription": "AvoCook kræver kalenderadgang, fordi den deler den samme systemkomponent som påmindelser, der bruges til dine indkøbslister.",
+  "NSCalendarsFullAccessUsageDescription": "AvoCook kræver kalenderadgang, fordi den deler den samme systemkomponent som påmindelser, der bruges til dine indkøbslister.",
+  "NSRemindersUsageDescription": "AvoCook bruger dine påmindelser til at eksportere og synkronisere dine indkøbslister.",
+  "NSRemindersFullAccessUsageDescription": "AvoCook bruger dine påmindelser til at eksportere og synkronisere dine indkøbslister.",
+  "NSPhotoLibraryUsageDescription": "Tillad adgang til billeder for at tilføje et billede til en opskrift.",
+  "NSPhotoLibraryAddUsageDescription": "Tillad at gemme opskriftsbilleder om nødvendigt.",
+  "NSLocalNetworkUsageDescription": "Tillad kun lokal netværksadgang for at oprette forbindelse til en Nextcloud-server hostet på dit netværk.",
+  "NSCameraUsageDescription": "Tillad kameraadgang for at scanne opskrifter fra billeder."
+}

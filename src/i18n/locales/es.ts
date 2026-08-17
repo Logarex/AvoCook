@@ -420,6 +420,7 @@ export default {
       german: "Deutsch",
       spanish: "Español",
       italian: "Italiano",
+      danish: "Danés",
       sectionAppearance: "Apariencia y Lenguaje",
       sectionServer: "Servidor y Sincronización",
       sectionData: "Datos y Copias de Seguridad",

@@ -9,7 +9,8 @@
       "fr": "./locales/fr.json",
       "de": "./locales/de.json",
       "es": "./locales/es.json",
-      "it": "./locales/it.json"
+      "it": "./locales/it.json",
+      "da": "./locales/da.json"
     },
     "orientation": "default",
     "userInterfaceStyle": "automatic",
@@ -89,14 +90,16 @@
               "en",
               "de",
               "es",
-              "it"
+              "it",
+              "da"
             ],
             "android": [
               "fr",
               "en",
               "de",
               "es",
-              "it"
+              "it",
+              "da"
             ]
           }
         }

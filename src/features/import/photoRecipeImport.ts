@@ -104,18 +104,18 @@ function buildExtractionPrompt(userLocale: string): string {
     en: "English",
     de: "German",
     es: "Spanish",
-    it: "Italian"
+    it: "Italian",
+    da: "Danish"
   };
   const language = langMap[userLocale.split("-")[0]] ?? "the user's language";
 
   return `You are a precise recipe extraction assistant. Analyse the image and extract or infer a complete recipe.
 
 Rules:
-- If the image contains text (cookbook page, handwritten note, printed recipe), extract the recipe exactly as written.
-- If the image shows a finished dish without text, infer the most likely recipe for that dish.
+- If the image contains text (cookbook page, handwritten note, printed recipe), extract the recipe exactly as written and PRESERVE the original language. Do not translate the recipe.
+- If the image shows a finished dish without text, infer the most likely recipe for that dish, and write all text values in ${language}.
 - IMPORTANT: You must only extract or infer recipes for FOOD or BEVERAGES. If the image is not related to food, cooking, or recipes, return EXACTLY {"error": "NOT_FOOD"} and nothing else.
 - Return ONLY a valid JSON object following the schema.org/Recipe format. No markdown, no explanation, no code block — just raw JSON.
-- All text values (name, description, ingredients, instructions, keywords) MUST be written in ${language}.
 
 Required JSON fields:
 - "name" (string): recipe title
@@ -154,7 +154,8 @@ function buildTextPrompt(userLocale: string, userPrompt: string): string {
     en: "English",
     de: "German",
     es: "Spanish",
-    it: "Italian"
+    it: "Italian",
+    da: "Danish"
   };
   const language = langMap[userLocale.split("-")[0]] ?? "the user's language";
 

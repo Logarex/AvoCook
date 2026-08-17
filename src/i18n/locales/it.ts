@@ -419,6 +419,7 @@ export default {
       german: "Deutsch",
       spanish: "Español",
       italian: "Italiano",
+      danish: "Danese",
       sectionAppearance: "Aspetto e Lingua",
       sectionServer: "Server e Sincronizzazione",
       sectionData: "Dati e Backup",

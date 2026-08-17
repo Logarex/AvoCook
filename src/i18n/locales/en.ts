@@ -417,6 +417,7 @@ export default {
       german: "Deutsch",
       spanish: "Español",
       italian: "Italiano",
+      danish: "Danish",
       sectionAppearance: "Appearance & Language",
       sectionServer: "Server & Sync",
       sectionData: "Data & Backups",

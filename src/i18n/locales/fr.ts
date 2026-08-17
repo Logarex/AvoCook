@@ -421,6 +421,7 @@ export default {
       german: "Deutsch",
       spanish: "Español",
       italian: "Italiano",
+      danish: "Danois",
       sectionAppearance: "Personnalisation",
       sectionServer: "Serveur & Synchronisation",
       sectionData: "Données & Sauvegardes",
