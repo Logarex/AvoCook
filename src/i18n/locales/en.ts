@@ -315,6 +315,7 @@ export default {
       sharedNotFoundError: "List not found. Please check the code.",
       sharedJoinError: "Error joining list. Please try again.",
       sharedShareMessage: "Join my shopping list on AvoCook using code: {{code}}",
+      syncActiveInfo: "Synchronization active",
     },
     community: {
       title: "Community",

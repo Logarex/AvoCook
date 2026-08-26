@@ -19,6 +19,7 @@ import {
   AppState,
   type AppStateStatus,
   FlatList,
+  Platform,
   Pressable,
   RefreshControl,
   Share,
@@ -278,12 +279,12 @@ export function ShoppingListScreen({ navigation }: Props) {
               {t("shoppingList.title")}
             </AppText>
           </View>
-          {sync.available ? (
+          {sync.available || sharedList.active ? (
             <ConnectionStatus
-              connected={sync.linked}
+              connected={sharedList.active || (Platform.OS === 'ios' && sync.linked)}
               label={
-                sync.linked
-                  ? t("shoppingList.syncLinked")
+                sharedList.active || (Platform.OS === 'ios' && sync.linked)
+                  ? t("shoppingList.syncActiveInfo")
                   : t("shoppingList.syncEnable")
               }
               loading={sync.syncing}

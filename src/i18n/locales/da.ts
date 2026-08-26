@@ -281,6 +281,7 @@ export default {
       sharedNotFoundError: "Liste ikke fundet. Tjek koden.",
       sharedJoinError: "Kunne ikke deltage.",
       sharedShareMessage: "Deltag i min indkøbsliste på AvoCook med koden: {{code}}",
+      syncActiveInfo: "Synkronisering aktiv",
     },
     community: {
       title: "Fællesskab",

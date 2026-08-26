@@ -318,6 +318,7 @@ export default {
       sharedNotFoundError: "Lista no encontrada. Comprueba el código.",
       sharedJoinError: "Error al unirse.",
       sharedShareMessage: "Únete a mi lista de compras en AvoCook con el código: {{code}}",
+      syncActiveInfo: "Sincronización activa",
     },
     community: {
       title: "Comunidad",

@@ -319,6 +319,7 @@ export default {
       sharedNotFoundError: "Liste introuvable. Vérifiez le code.",
       sharedJoinError: "Erreur lors de la jonction. Réessayez.",
       sharedShareMessage: "Rejoins ma liste de courses sur AvoCook avec le code : {{code}}",
+      syncActiveInfo: "Synchronisation active",
     },
     community: {
       title: "Communauté",
