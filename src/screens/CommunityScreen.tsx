@@ -146,19 +146,23 @@ export function CommunityScreen({ navigation }: Props) {
       <Screen scroll={false} contentStyle={styles.container}>
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.titleRow}>
-            <Globe color={colors.primary} size={26} strokeWidth={2.5} />
-            <AppText variant="title" style={styles.title}>
-              {t("community.title")}
-            </AppText>
+          <View style={styles.titleBlock}>
+            <View style={styles.titleRow}>
+              <Globe color={colors.primary} size={25} strokeWidth={2.5} />
+              <AppText variant="title" style={styles.title} numberOfLines={1} adjustsFontSizeToFit>
+                {t("community.title")}
+              </AppText>
+            </View>
           </View>
-          <IconButton
-            icon={Plus}
-            label={t("community.submitRecipe")}
-            onPress={() => setShowSelectModal(true)}
-            tone="primary"
-            style={styles.headerIcon}
-          />
+          <View style={styles.headerActions}>
+            <IconButton
+              icon={Plus}
+              label={t("community.submitRecipe")}
+              onPress={() => setShowSelectModal(true)}
+              tone="primary"
+              style={styles.headerIcon}
+            />
+          </View>
         </View>
 
       {/* Search */}
@@ -167,6 +171,7 @@ export function CommunityScreen({ navigation }: Props) {
           placeholder={t("common.search")}
           value={searchQuery}
           onChangeText={setSearchQuery}
+          style={styles.searchField}
         />
       </View>
 
@@ -266,19 +271,29 @@ export function CommunityScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    gap: spacing.sm,
+    paddingBottom: 0,
     paddingHorizontal: 0,
-    paddingBottom: 0
+    paddingTop: spacing.sm
   },
   header: {
     alignItems: "center",
     flexDirection: "row",
+    gap: spacing.sm,
     justifyContent: "space-between",
-    paddingHorizontal: spacing.md,
-    paddingTop: spacing.sm
+    paddingHorizontal: spacing.md
+  },
+  headerActions: {
+    flexDirection: "row",
+    gap: spacing.xxs
   },
   headerIcon: {
     height: 40,
     width: 40
+  },
+  titleBlock: {
+    flex: 1,
+    minWidth: 0
   },
   titleRow: {
     alignItems: "center",
@@ -286,15 +301,18 @@ const styles = StyleSheet.create({
     gap: spacing.xs
   },
   title: {
-    fontSize: 22
+    flex: 1,
+    lineHeight: 36
   },
   searchRow: {
-    paddingHorizontal: spacing.md,
-    marginTop: spacing.xs,
-    marginBottom: 0
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md
   },
-  searchFlex: {
-    flex: 1
+  searchField: {
+    flex: 1,
+    minHeight: 48
   },
   filterList: {
     alignItems: "center",
