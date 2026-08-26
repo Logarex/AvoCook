@@ -29,15 +29,18 @@ const LANG_OPTIONS: { id: RecipeLanguage; label: string }[] = [
   { id: "da", label: "🇩🇰 Dansk" }
 ];
 
+import { usePreferences } from "../features/preferences/PreferencesProvider";
+
 export function SubmitCommunityRecipeScreen({ navigation }: Props) {
   const { t, i18n } = useTranslation();
   const { colors } = useAppTheme();
+  const { communityPseudonym } = usePreferences();
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [ingredientsText, setIngredientsText] = useState("");
   const [stepsText, setStepsText] = useState("");
-  const [authorName, setAuthorName] = useState("");
+  const [authorName, setAuthorName] = useState(communityPseudonym || "");
   const [language, setLanguage] = useState<RecipeLanguage>(
     (i18n.language.slice(0, 2) as RecipeLanguage) || "en"
   );

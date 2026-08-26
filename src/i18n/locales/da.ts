@@ -310,7 +310,7 @@ export default {
       descPlaceholder: "Kort beskrivelse eller oprindelse af opskriften",
       authorLabel: "Navn eller kaldenavn (valgfrit)",
       authorPlaceholder: "f.eks. Vocalle",
-      anonymousAuthor: "AvoCook Kok",
+      anonymousAuthor: "avoCook Kok",
       selectLanguage: "Opskriftens sprog",
       ingredientsInputLabel: "Ingredienser (én pr. linje)",
       stepsInputLabel: "Fremgangsmåde (én pr. linje)",
@@ -318,7 +318,7 @@ export default {
       publishBtn: "Udgiv opskrift",
       missingTitleError: "Angiv venligst en titel",
       missingIngredientsError: "Angiv venligst mindst én ingrediens",
-      submitSuccessTitle: "Opskrift udgivet! 🎉",
+      submitSuccessTitle: "Opskrift udgivet!",
       submitSuccessBody: "Din opskrift er nu tilgængelig i Fællesskab-fanen.",
       submitFailedBody: "Kunne ikke udgive opskrift."
     },

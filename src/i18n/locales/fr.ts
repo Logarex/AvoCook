@@ -348,7 +348,7 @@ export default {
       descPlaceholder: "Courte description ou origine de la recette",
       authorLabel: "Nom ou pseudo (optionnel)",
       authorPlaceholder: "ex. Vocalle",
-      anonymousAuthor: "Un utilisateur d'AvoCook",
+      anonymousAuthor: "un utilisateur d'AvoCook",
       selectLanguage: "Langue de la recette",
       ingredientsInputLabel: "Ingrédients (un par ligne)",
       stepsInputLabel: "Étapes de préparation (une par ligne)",
@@ -356,7 +356,7 @@ export default {
       publishBtn: "Publier la recette",
       missingTitleError: "Veuillez indiquer un titre",
       missingIngredientsError: "Veuillez indiquer au moins un ingrédient",
-      submitSuccessTitle: "Recette publiée ! 🎉",
+      submitSuccessTitle: "Recette publiée !",
       submitSuccessBody: "Votre recette est maintenant disponible dans l'onglet Communauté.",
       submitFailedBody: "Impossible de publier la recette. Veuillez réessayer."
     },

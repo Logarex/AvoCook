@@ -217,7 +217,9 @@ export function RecipeListScreen({ navigation }: Props) {
     const letters = new Set<string>();
     for (const r of filteredRecipes) {
       if (r.name) {
-        const first = r.name.charAt(0).toUpperCase();
+        let first = r.name.charAt(0).toUpperCase();
+        if (first === 'Œ') first = 'O';
+        if (first === 'Æ') first = 'A';
         const letter = first.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
         if (letter >= 'A' && letter <= 'Z') {
           letters.add(letter);
@@ -232,7 +234,9 @@ export function RecipeListScreen({ navigation }: Props) {
   const scrollToLetter = useCallback((letter: string) => {
     const index = filteredRecipes.findIndex(r => {
       if (!r.name) return false;
-      const first = r.name.charAt(0).toUpperCase();
+      let first = r.name.charAt(0).toUpperCase();
+      if (first === 'Œ') first = 'O';
+      if (first === 'Æ') first = 'A';
       const l = first.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       if (letter === '#') {
         return !(l >= 'A' && l <= 'Z');

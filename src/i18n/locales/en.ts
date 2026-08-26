@@ -344,7 +344,7 @@ export default {
       descPlaceholder: "Short description or origin of the recipe",
       authorLabel: "Author name (optional)",
       authorPlaceholder: "e.g. Vocalle",
-      anonymousAuthor: "An AvoCook user",
+      anonymousAuthor: "an AvoCook user",
       selectLanguage: "Recipe language",
       ingredientsInputLabel: "Ingredients (one per line)",
       stepsInputLabel: "Instructions (one per line)",
@@ -352,7 +352,7 @@ export default {
       publishBtn: "Publish recipe",
       missingTitleError: "Please enter a title",
       missingIngredientsError: "Please enter at least one ingredient",
-      submitSuccessTitle: "Recipe published! 🎉",
+      submitSuccessTitle: "Recipe published!",
       submitSuccessBody: "Your recipe is now available in the community tab.",
       submitFailedBody: "Could not publish recipe. Please try again."
     },

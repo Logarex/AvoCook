@@ -11,6 +11,7 @@ import {
   Download,
   Bug,
   Check,
+  CheckCheck,
   Eye,
   EyeOff,
   
@@ -98,6 +99,12 @@ export function SettingsScreen({ navigation }: Props) {
   const [notificationState, setNotificationState] =
     useState<TimerNotificationState>("unavailable");
   const [showApiKey, setShowApiKey] = useState(false);
+  const [localPseudonym, setLocalPseudonym] = useState(communityPseudonym || "");
+  const [pseudoSavedAnim, setPseudoSavedAnim] = useState(false);
+
+  React.useEffect(() => {
+    setLocalPseudonym(communityPseudonym || "");
+  }, [communityPseudonym]);
   const [llmDraft, setLlmDraft] = useState<LlmSettings | null>(null);
   const currentLlm = llmDraft ?? llmSettings;
   const [availableModels, setAvailableModels] = useState<string[] | null>(null);
@@ -452,12 +459,31 @@ export function SettingsScreen({ navigation }: Props) {
         <AppText muted variant="caption" style={{ marginBottom: spacing.xs }}>
           {t("settings.communityPseudonymHint", "Ce pseudonyme sera utilisé lors du partage de vos recettes dans la communauté.")}
         </AppText>
-        <TextField
-          label={t("settings.communityPseudonym", "Pseudonyme (Communauté)")}
-          value={communityPseudonym || ""}
-          onChangeText={(value) => void setCommunityPseudonym(value || null)}
-          placeholder={t("settings.communityPseudonymPlaceholder", "Ex: Chef Avo")}
-        />
+        <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
+          <TextField
+            containerStyle={{ flex: 1, marginRight: spacing.sm }}
+            label={t("settings.communityPseudonym", "Pseudonyme (Communauté)")}
+            value={localPseudonym}
+            onChangeText={setLocalPseudonym}
+            placeholder={t("settings.communityPseudonymPlaceholder", "Ex: Chef Avo")}
+            textContentType="none"
+            autoComplete="off"
+            autoCorrect={false}
+            importantForAutofill="no"
+          />
+          <IconButton
+            icon={pseudoSavedAnim ? CheckCheck : Check}
+            label={t("common.save", "Enregistrer")}
+            tone={pseudoSavedAnim ? "default" : "primary"}
+            style={pseudoSavedAnim ? { backgroundColor: colors.success } : undefined}
+            onPress={async () => {
+              Keyboard.dismiss();
+              await setCommunityPseudonym(localPseudonym.trim() || null);
+              setPseudoSavedAnim(true);
+              setTimeout(() => setPseudoSavedAnim(false), 2000);
+            }}
+          />
+        </View>
       </GlassPanel>
 
       <GlassPanel style={styles.section}>

@@ -740,7 +740,7 @@ function RecipeDetailContent({
           <StarRating
             rating={userRating}
             interactive
-            size={22}
+            size={26}
             onRatingChange={(r) => void handleRatingChange(r)}
           />
         </View>

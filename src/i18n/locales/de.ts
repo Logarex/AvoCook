@@ -348,7 +348,7 @@ export default {
       descPlaceholder: "Kurze Beschreibung oder Herkunft des Rezeptes",
       authorLabel: "Autor / Name (optional)",
       authorPlaceholder: "z.B. Vocalle",
-      anonymousAuthor: "AvoCook-Koch",
+      anonymousAuthor: "avoCook-Koch",
       selectLanguage: "Sprache des Rezeptes",
       ingredientsInputLabel: "Zutaten (eine pro Zeile)",
       stepsInputLabel: "Zubereitungsschritte (einer pro Zeile)",
@@ -356,7 +356,7 @@ export default {
       publishBtn: "Rezept veröffentlichen",
       missingTitleError: "Bitte einen Titel eingeben",
       missingIngredientsError: "Bitte mindestens eine Zutat eingeben",
-      submitSuccessTitle: "Rezept veröffentlicht! 🎉",
+      submitSuccessTitle: "Rezept veröffentlicht!",
       submitSuccessBody: "Dein Rezept ist jetzt im Community-Tab verfügbar.",
       submitFailedBody: "Rezept konnte nicht veröffentlicht werden."
     },
