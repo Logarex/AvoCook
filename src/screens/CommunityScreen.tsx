@@ -101,11 +101,11 @@ export function CommunityScreen({ navigation }: Props) {
       <GlassPanel style={styles.card}>
         <View style={styles.cardHeader}>
           <View style={styles.cardTitleWrap}>
-            <AppText variant="subtitle" numberOfLines={1}>
+            <AppText variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>
               {item.title}
             </AppText>
             {item.authorName ? (
-              <AppText muted variant="caption">
+              <AppText muted variant="caption" numberOfLines={1} adjustsFontSizeToFit={false}>
                 {t("community.byAuthor", { author: item.authorName })}
               </AppText>
             ) : null}
@@ -118,7 +118,7 @@ export function CommunityScreen({ navigation }: Props) {
         </View>
 
         {item.description ? (
-          <AppText muted variant="body" numberOfLines={2} style={styles.desc}>
+          <AppText muted variant="caption" numberOfLines={2} style={styles.desc}>
             {item.description}
           </AppText>
         ) : null}
@@ -290,7 +290,8 @@ const styles = StyleSheet.create({
   },
   searchRow: {
     paddingHorizontal: spacing.md,
-    marginVertical: spacing.xs
+    marginTop: spacing.xs,
+    marginBottom: 0
   },
   searchFlex: {
     flex: 1
@@ -309,7 +310,9 @@ const styles = StyleSheet.create({
   },
   listContent: {
     gap: spacing.md,
-    padding: spacing.md
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.md,
+    paddingTop: 0
   },
   card: {
     gap: spacing.xs,
