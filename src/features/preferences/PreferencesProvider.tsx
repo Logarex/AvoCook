@@ -35,12 +35,14 @@ type PreferencesContextValue = {
   language: AppLanguage;
   llmSettings: LlmSettings;
   showDefaultCategories: boolean | null;
+  communityPseudonym: string | null;
   setKeepScreenAwake: (enabled: boolean) => Promise<void>;
   setKeepRecipesLocal: (enabled: boolean) => Promise<void>;
   setEnableBackupReminders: (enabled: boolean) => Promise<void>;
   setShowDefaultCategories: (enabled: boolean | null) => Promise<void>;
   setLanguage: (language: AppLanguage) => Promise<void>;
   setLlmSettings: (settings: LlmSettings) => Promise<void>;
+  setCommunityPseudonym: (pseudo: string | null) => Promise<void>;
 };
 
 const KEEP_AWAKE_KEY = "preferences.keepScreenAwake";
@@ -53,6 +55,7 @@ const LLM_PROVIDER_KEY = "preferences.llm.provider";
 const LLM_BASE_URL_KEY = "preferences.llm.baseUrl";
 const LLM_MODEL_KEY = "preferences.llm.model";
 const LLM_API_KEY_SECURE = "preferences.llm.apiKey";
+const COMMUNITY_PSEUDONYM_KEY = "preferences.communityPseudonym";
 
 const DEFAULT_PROVIDER = LLM_PROVIDERS[0];
 const DEFAULT_LLM_SETTINGS: LlmSettings = {
@@ -78,6 +81,7 @@ export function PreferencesProvider({
   const [language, setLanguageState] = useState<AppLanguage>(
     resolveAppLanguage(i18n.language)
   );
+  const [communityPseudonym, setCommunityPseudonymState] = useState<string | null>(null);
   const [llmSettings, setLlmSettingsState] = useState<LlmSettings>(
     DEFAULT_LLM_SETTINGS
   );
@@ -93,7 +97,8 @@ export function PreferencesProvider({
       AsyncStorage.getItem(LLM_PROVIDER_KEY),
       AsyncStorage.getItem(LLM_BASE_URL_KEY),
       AsyncStorage.getItem(LLM_MODEL_KEY),
-      SecureStore.getItemAsync(LLM_API_KEY_SECURE)
+      SecureStore.getItemAsync(LLM_API_KEY_SECURE),
+      AsyncStorage.getItem(COMMUNITY_PSEUDONYM_KEY)
     ]).then(
       ([
         storedKeepAwake,
@@ -105,7 +110,8 @@ export function PreferencesProvider({
         storedProviderId,
         storedBaseUrl,
         storedModel,
-        storedApiKey
+        storedApiKey,
+        storedCommunityPseudonym
       ]) => {
         if (storedKeepAwake === "true" || storedKeepAwake === "false") {
           setKeepScreenAwakeState(storedKeepAwake === "true");
@@ -143,6 +149,9 @@ export function PreferencesProvider({
           baseUrl: storedBaseUrl ?? preset.baseUrl,
           model: storedModel ?? preset.defaultModel
         });
+        if (storedCommunityPseudonym !== null) {
+          setCommunityPseudonymState(storedCommunityPseudonym);
+        }
       }
     );
   }, []);
@@ -190,6 +199,15 @@ export function PreferencesProvider({
     }
   }, []);
 
+  const setCommunityPseudonym = useCallback(async (pseudo: string | null) => {
+    setCommunityPseudonymState(pseudo);
+    if (pseudo === null) {
+      await AsyncStorage.removeItem(COMMUNITY_PSEUDONYM_KEY);
+    } else {
+      await AsyncStorage.setItem(COMMUNITY_PSEUDONYM_KEY, pseudo);
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       keepScreenAwake,
@@ -198,12 +216,14 @@ export function PreferencesProvider({
       showDefaultCategories,
       language,
       llmSettings,
+      communityPseudonym,
       setKeepScreenAwake,
       setKeepRecipesLocal,
       setEnableBackupReminders,
       setShowDefaultCategories,
       setLanguage,
-      setLlmSettings
+      setLlmSettings,
+      setCommunityPseudonym
     }),
     [
       keepScreenAwake,
@@ -212,12 +232,14 @@ export function PreferencesProvider({
       showDefaultCategories,
       language,
       llmSettings,
+      communityPseudonym,
       setKeepScreenAwake,
       setKeepRecipesLocal,
       setEnableBackupReminders,
       setShowDefaultCategories,
       setLanguage,
-      setLlmSettings
+      setLlmSettings,
+      setCommunityPseudonym
     ]
   );
 

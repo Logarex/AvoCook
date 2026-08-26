@@ -34,8 +34,8 @@ export function PrimaryButton({
             ? colors.secondary
             : colors.surfaceGlassStrong;
   const foregroundColor =
-    variant === "ghost" 
-      ? colors.text 
+    variant === "ghost"
+      ? colors.text
       : variant === "danger-secondary"
         ? colors.danger
         : colors.textInverted;

@@ -6,6 +6,7 @@ import { getScreenBottomPadding } from "../../utils/safeArea";
 import {
   FileUp,
   Share2,
+  Globe,
   X,
 } from "lucide-react-native";
 import React from "react";
@@ -19,12 +20,14 @@ export function ShareRecipeModal({
   onClose,
   onSharePdf,
   onShareFile,
+  onShareToCommunity,
   visible,
   disabled,
 }: {
   onClose: () => void;
   onSharePdf: () => void;
   onShareFile: () => void;
+  onShareToCommunity: () => void;
   visible: boolean;
   disabled?: boolean;
 }) {
@@ -83,6 +86,17 @@ export function ShareRecipeModal({
               onPress={() => {
                 onClose();
                 onShareFile();
+              }}
+              style={styles.recipeActionButton}
+              variant="secondary"
+              disabled={disabled}
+            />
+            <PrimaryButton
+              icon={Globe}
+              label={t("community.shareToCommunity", { defaultValue: "Partager à la communauté" })}
+              onPress={() => {
+                onClose();
+                onShareToCommunity();
               }}
               style={styles.recipeActionButton}
               variant="secondary"

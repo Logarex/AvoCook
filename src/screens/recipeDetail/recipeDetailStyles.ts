@@ -165,10 +165,9 @@ export const styles = StyleSheet.create({
   },
   servingFooter: {
     alignItems: "center",
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: "column",
     gap: spacing.sm,
-    justifyContent: "space-between",
+    justifyContent: "center",
   },
   servingValue: {
     alignItems: "center",

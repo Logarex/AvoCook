@@ -14,7 +14,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     gap: spacing.xs,
     paddingBottom: spacing.xxs,
-    paddingRight: spacing.md,
+    paddingHorizontal: spacing.md,
   },
   categoryScroller: {
     flexGrow: 0,
@@ -74,6 +74,7 @@ export const styles = StyleSheet.create({
     gap: spacing.sm,
     justifyContent: "space-between",
     marginBottom: spacing.xs,
+    paddingHorizontal: spacing.md
   },
   headerIcon: {
     height: 40,
@@ -82,6 +83,7 @@ export const styles = StyleSheet.create({
   listContent: {
     gap: spacing.xs,
     paddingBottom: spacing.sm,
+    paddingHorizontal: spacing.md
   },
   listTitle: {
     lineHeight: 36,
@@ -163,6 +165,7 @@ export const styles = StyleSheet.create({
   screenContent: {
     gap: spacing.sm,
     paddingBottom: 0,
+    paddingHorizontal: 0,
     paddingTop: spacing.sm,
   },
   alphabetSidebar: {
@@ -170,7 +173,7 @@ export const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     position: "absolute",
-    right: -spacing.md,
+    right: 0,
     top: 0,
     width: 28,
     zIndex: 10,
@@ -181,7 +184,7 @@ export const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   alphabetLetter: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: "700",
   },
   searchField: {
@@ -192,6 +195,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.xs,
+    paddingHorizontal: spacing.md
   },
   titleBlock: {
     flex: 1,

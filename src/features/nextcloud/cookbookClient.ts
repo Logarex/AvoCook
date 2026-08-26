@@ -67,6 +67,12 @@ export class CookbookClient {
   private webDavUserIdPromise: Promise<string> | null;
   private webDavPathStyle: WebDavPathStyle | null;
 
+  private static currentInstance: CookbookClient | null = null;
+
+  static getCurrent(): CookbookClient | null {
+    return CookbookClient.currentInstance;
+  }
+
   constructor(credentials: NextcloudCredentials) {
     this.serverUrl = normalizeNextcloudUrl(credentials.serverUrl);
     this.username = credentials.username.trim();
@@ -76,6 +82,7 @@ export class CookbookClient {
     this.webDavUserId = credentials.userId?.trim() || null;
     this.webDavUserIdPromise = null;
     this.webDavPathStyle = null;
+    CookbookClient.currentInstance = this;
   }
 
   getRecipeImageUrl(id: string, size: "full" | "thumb" | "thumb16" = "thumb") {
@@ -223,6 +230,33 @@ export class CookbookClient {
     return this.request<string>("/apps/cookbook/api/v1/config", {
       method: "POST",
       body: JSON.stringify(config)
+    });
+  }
+
+  /**
+   * Read a JSON file from WebDAV. Returns null if the file doesn't exist (404).
+   */
+  async getJsonWebDav<T>(path: string): Promise<T | null> {
+    try {
+      const response = await this.requestWebDav(path, { method: "GET" });
+      const text = await response.text();
+      if (!text) return null;
+      return JSON.parse(text) as T;
+    } catch (error) {
+      if (error instanceof CookbookApiError && error.status === 404) {
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Write a JSON file to WebDAV, creating parent directories if needed.
+   */
+  async putJsonWebDav(path: string, data: unknown): Promise<void> {
+    const body = JSON.stringify(data);
+    await this.putWebDavFileWithAutoMkcol(path, body, {
+      "Content-Type": "application/json"
     });
   }
 

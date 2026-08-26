@@ -31,7 +31,11 @@ export function TextField({
   const { colors } = useAppTheme();
   return (
     <View style={[styles.container, containerStyle]}>
-      <AppText variant="label" style={labelStyle}>{label}</AppText>
+      {label ? (
+        <AppText variant="label" style={labelStyle}>
+          {label}
+        </AppText>
+      ) : null}
       <View style={styles.inputWrap}>
         <TextInput
           {...props}

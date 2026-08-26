@@ -39,6 +39,8 @@ import {
   type DetailRecipe,
 } from "./recipeDetail/recipeDetailHelpers";
 
+import { StarRating } from "../components/StarRating";
+import { getRecipeRating, setRecipeRating } from "../features/recipes/recipeRatings";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -64,6 +66,10 @@ import {
 import {
   normalizeRecipe,
 } from "../features/recipes/types";
+import {
+  submitCommunityRecipe,
+  type RecipeLanguage,
+} from "../features/community/communityClient";
 import { isExternalRecipeSourceUrl } from "../features/recipes/recipeSource";
 import type { RootStackParamList } from "../navigation/types";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -186,10 +192,27 @@ function RecipeDetailContent({
   getClient: ReturnType<typeof useAuth>["getClient"];
   getImageSource: () => ImageSource | null;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { colors } = useAppTheme();
   const { watchLongAction } = useLongActionToast();
   const { width: windowWidth } = useWindowDimensions();
+  const [userRating, setUserRating] = useState<number>(0);
+
+  useEffect(() => {
+    let active = true;
+    void getRecipeRating(recipeId).then((r) => {
+      if (active) setUserRating(r);
+    });
+    return () => {
+      active = false;
+    };
+  }, [recipeId]);
+
+  const handleRatingChange = async (newRating: number) => {
+    const next = userRating === newRating ? 0 : newRating;
+    setUserRating(next);
+    await setRecipeRating(recipeId, next);
+  };
   const [shareAction, setShareAction] = useState<
     "print" | "pdf" | "file" | "source" | null
   >(null);
@@ -455,6 +478,43 @@ function RecipeDetailContent({
     }
   }
 
+  async function handleShareToCommunity() {
+    if (!recipe) return;
+    const language = (i18n.language.slice(0, 2) as RecipeLanguage) || "en";
+    Alert.alert(
+      t("community.shareConfirmTitle", { defaultValue: "Partager la recette ?" }),
+      (t("community.shareConfirmBody", { defaultValue: "Voulez-vous partager cette recette avec la communauté ?" })) + `\n\n${recipe.name}`,
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.share"),
+          onPress: async () => {
+            const stopLongActionNotice = watchLongAction("longActions.shareRecipe");
+            try {
+              await submitCommunityRecipe({
+                title: recipe.name,
+                description: recipe.description || "",
+                ingredients: recipe.recipeIngredient,
+                steps: recipe.recipeInstructions,
+                language,
+                authorName: recipe.sourceName || t("community.anonymousAuthor")
+              });
+              Alert.alert(
+                t("community.submitSuccessTitle"),
+                t("community.submitSuccessBody", { defaultValue: "Merci pour votre contribution ! La recette est en ligne." })
+              );
+            } catch (err) {
+              console.warn("community", "Submit recipe failed", err);
+              Alert.alert(t("common.error"), t("community.submitFailedBody"));
+            } finally {
+              stopLongActionNotice();
+            }
+          }
+        }
+      ]
+    );
+  }
+
   async function handleUpdateFromSource() {
     if (!recipe) {
       return;
@@ -646,6 +706,7 @@ function RecipeDetailContent({
         onClose={() => setShowShareMenu(false)}
         onSharePdf={() => void handleSharePdf()}
         onShareFile={() => void handleShareFile()}
+        onShareToCommunity={() => void handleShareToCommunity()}
         disabled={shareAction !== null}
       />
 
@@ -675,6 +736,14 @@ function RecipeDetailContent({
         {recipe.description ? (
           <AppText muted>{recipe.description}</AppText>
         ) : null}
+        <View style={{ marginTop: 6, alignItems: "center" }}>
+          <StarRating
+            rating={userRating}
+            interactive
+            size={22}
+            onRatingChange={(r) => void handleRatingChange(r)}
+          />
+        </View>
       </View>
 
       <View style={styles.pills}>

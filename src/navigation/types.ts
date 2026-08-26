@@ -9,7 +9,7 @@ export type RootStackParamList = {
     | undefined;
   Recipes:
     | {
-        tabTransition?: "fromShopping";
+        tabTransition?: "slide_from_left" | "slide_from_right";
       }
     | undefined;
   RecipeDetail: {
@@ -27,9 +27,18 @@ export type RootStackParamList = {
     | undefined;
   ShoppingList:
     | {
-        tabTransition?: "fromRecipes";
+        tabTransition?: "slide_from_left" | "slide_from_right";
       }
     | undefined;
+  Community: 
+    | {
+        tabTransition?: "slide_from_left" | "slide_from_right";
+      }
+    | undefined;
+  CommunityDetail: {
+    id: string;
+  };
+  SubmitCommunityRecipe: undefined;
   Settings: undefined;
   Privacy: undefined;
 };

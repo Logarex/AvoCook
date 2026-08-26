@@ -21,6 +21,7 @@ export function PrivacyScreen({ navigation }: Props) {
     t("privacy.free"),
     t("privacy.independent"),
     t("privacy.local"),
+    t("privacy.sharedListsAndCommunity"),
     t("privacy.credentials"),
     t("privacy.photos"),
     t("privacy.tracking")

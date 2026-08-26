@@ -10,6 +10,7 @@ import {
   Share as ShareIcon,
   ShoppingCart,
   Trash2,
+  Users,
   X
 } from "lucide-react-native";
 import React, { useMemo, useState, useRef, useCallback, useEffect } from "react";
@@ -36,6 +37,7 @@ import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
 import { ShoppingListActionsModal } from "./ShoppingListActionsModal";
+import { ShoppingListShareModal } from "./ShoppingListShareModal";
 import { useShoppingList } from "../features/shopping/ShoppingListProvider";
 import { registerReminderMappings } from "../features/shopping/remindersSync";
 import type { ShoppingListItem } from "../features/shopping/shoppingList";
@@ -59,10 +61,12 @@ export function ShoppingListScreen({ navigation }: Props) {
     removeItem,
     toggleItem,
     updateItem,
-    sync
+    sync,
+    sharedList
   } = useShoppingList();
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
   const [newItem, setNewItem] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const listRef = useRef<FlatList<ShoppingListItem>>(null);
@@ -86,7 +90,7 @@ export function ShoppingListScreen({ navigation }: Props) {
       navigation.goBack();
       return;
     }
-    navigation.navigate("Recipes", { tabTransition: "fromShopping" });
+    navigation.navigate("Recipes", { tabTransition: "slide_from_left" });
   }, [navigation]);
 
   // ── Pull helper ───────────────────────────────────────────────────────────────
@@ -264,7 +268,7 @@ export function ShoppingListScreen({ navigation }: Props) {
   ), [editingItemId, items.length, handleMoveDown, handleMoveUp, handleRemoveItem, handleStartEditing, handleStopEditing, handleToggleItem, handleUpdateItem]);
 
   return (
-    <PageSwipeGesture onSwipeRight={openRecipes}>
+    <PageSwipeGesture onSwipeRight={() => navigation.navigate("Community", { tabTransition: "slide_from_left" })}>
       <Screen scroll={false} contentStyle={styles.screenContent}>
       <View style={styles.header}>
         <View style={styles.titleBlock}>
@@ -287,32 +291,22 @@ export function ShoppingListScreen({ navigation }: Props) {
           ) : null}
         </View>
         <View style={styles.headerActions}>
-          {sync.available ? (
-            <IconButton
-              disabled={sync.syncing}
-              icon={sync.linked ? Bell : BellOff}
-              label={
-                sync.linked
-                  ? t("shoppingList.syncDisable")
-                  : t("shoppingList.syncEnable")
-              }
-              onPress={() =>
-                sync.linked
-                  ? void sync.disableSync()
-                  : void sync.enableSync(itemsRef.current)
-              }
-              tone={sync.linked ? "primary" : "default"}
-              style={[
-                styles.headerIcon,
-                sync.linked
-                  ? {
-                      backgroundColor: colors.chip,
-                      borderColor: colors.primary
-                    }
-                  : null
-              ]}
-            />
-          ) : null}
+          <IconButton
+            icon={Users}
+            label={t("shoppingList.sharedTitle")}
+            onPress={() => setShowShareModal(true)}
+            tone={sharedList.active ? "primary" : "default"}
+            style={[
+              styles.headerIcon,
+              sharedList.active
+                ? {
+                    backgroundColor: colors.chip,
+                    borderColor: colors.primary
+                  }
+                : null
+            ]}
+          />
+
           <IconButton
             disabled={!items.length}
             icon={ShareIcon}
@@ -390,7 +384,7 @@ export function ShoppingListScreen({ navigation }: Props) {
         </View>
       ) : (
         <>
-          <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.surfaceGlass, borderRadius: radius.md }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", marginHorizontal: spacing.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.surfaceGlass, borderRadius: radius.md }}>
             <AppText muted variant="caption" style={{ fontWeight: "600" }}>
               {t("shoppingList.remainingCount", { count: remainingCount })}
               {checkedCount > 0
@@ -432,7 +426,9 @@ export function ShoppingListScreen({ navigation }: Props) {
         current="shoppingList"
         onNavigate={(tab) => {
           if (tab === "recipes") {
-            openRecipes();
+            navigation.navigate("Recipes", { tabTransition: "slide_from_left" });
+          } else if (tab === "community") {
+            navigation.navigate("Community", { tabTransition: "slide_from_left" });
           }
         }}
       />
@@ -443,6 +439,10 @@ export function ShoppingListScreen({ navigation }: Props) {
         checkedCount={checkedCount}
         onClearChecked={() => void clearChecked()}
         onClearAll={() => void clearAll()}
+      />
+      <ShoppingListShareModal
+        visible={showShareModal}
+        onClose={() => setShowShareModal(false)}
       />
       </Screen>
     </PageSwipeGesture>
@@ -660,7 +660,8 @@ const styles = StyleSheet.create({
   addRow: {
     alignItems: "flex-start",
     flexDirection: "row",
-    gap: spacing.xs
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md
   },
   checkedText: {
     opacity: 0.62,
@@ -678,7 +679,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.sm,
-    justifyContent: "space-between"
+    justifyContent: "space-between",
+    paddingHorizontal: spacing.md
   },
   headerActions: {
     flexDirection: "row",
@@ -732,7 +734,8 @@ const styles = StyleSheet.create({
   },
   listContent: {
     gap: spacing.xs,
-    paddingBottom: spacing.md
+    paddingBottom: spacing.md,
+    paddingHorizontal: spacing.md
   },
   loading: {
     alignItems: "center",
@@ -742,10 +745,12 @@ const styles = StyleSheet.create({
   screenContent: {
     gap: spacing.sm,
     paddingBottom: 0,
+    paddingHorizontal: 0,
     paddingTop: spacing.sm
   },
   syncBanner: {
-    gap: spacing.sm
+    gap: spacing.sm,
+    paddingHorizontal: spacing.md
   },
   syncBannerHeader: {
     alignItems: "flex-start",

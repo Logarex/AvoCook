@@ -1,4 +1,4 @@
-import { BookOpen, ShoppingCart } from "lucide-react-native";
+import { BookOpen, Globe, ShoppingCart } from "lucide-react-native";
 import type { LucideIcon } from "lucide-react-native";
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -9,7 +9,7 @@ import { useAppTheme } from "../theme/ThemeProvider";
 import { getBottomNavigationPadding } from "../utils/safeArea";
 import { AppText } from "./AppText";
 
-export type BottomNavigationTab = "recipes" | "shoppingList";
+export type BottomNavigationTab = "recipes" | "community" | "shoppingList";
 
 type BottomNavigationProps = {
   current: BottomNavigationTab;
@@ -18,6 +18,7 @@ type BottomNavigationProps = {
 
 const tabs: { id: BottomNavigationTab; icon: LucideIcon; labelKey: string }[] = [
   { id: "recipes", icon: BookOpen, labelKey: "recipes.title" },
+  { id: "community", icon: Globe, labelKey: "community.title" },
   { id: "shoppingList", icon: ShoppingCart, labelKey: "shoppingList.title" }
 ];
 

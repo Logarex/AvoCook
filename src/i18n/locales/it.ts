@@ -1,6 +1,7 @@
 export default {
   translation: {
     common: {
+      or: "O",
       saved: "Salvato",
 
       add: "Aggiungi",
@@ -305,6 +306,57 @@ export default {
       syncDisableConfirmDelete: "Elimina i promemoria",
       syncUnavailable:
         "La sincronizzazione con i promemoria nativi non è disponibile su Android.",
+      sharedTitle: "Lista condivisa",
+      sharedActiveLabel: "Lista condivisa attiva",
+      sharedCodeHelp: "Condividi questo codice con partner o famiglia:",
+      sharedLeave: "Esci dalla condivisione",
+      sharedDescription: "Sincronizza la tua lista con un codice a 6 caratteri. Tutte le persone con questo codice vedranno la stessa lista in tempo reale.",
+      sharedJoinBtn: "Unisciti alla lista",
+      sharedCreateBtn: "Crea una lista condivisa",
+      sharedCreateError: "Impossibile creare la lista condivisa.",
+      sharedNotFoundError: "Lista non trovata. Controlla il codice.",
+      sharedJoinError: "Errore durante l'accesso.",
+      sharedShareMessage: "Unisciti alla mia lista della spesa su AvoCook con il codice: {{code}}",
+    },
+    community: {
+      title: "Community",
+      submitRecipe: "Condividi una ricetta",
+      byAuthor: "Di {{author}}",
+      emptyTitle: "Nessuna ricetta della community",
+      emptyBody: "Sii il primo a condividere una ricetta con la community AvoCook!",
+      submitFirst: "Condividi la prima ricetta",
+      rateThisRecipe: "Valuta questa ricetta",
+      voteCount: "{{count}} voti",
+      importToMyRecipes: "Aggiungi alle mie ricette",
+      voteFailedTitle: "Voto non riuscito",
+      voteFailedBody: "Impossibile salvare il tuo voto.",
+      importSuccessTitle: "Ricetta aggiunta! 🎉",
+      importSuccessBody: "Questa ricetta è ora salvata tra le tue ricette.",
+      viewMyRecipes: "Vedi le mie ricette",
+      importFailedBody: "Impossibile importare la ricetta.",
+      reportTitle: "Segnala ricetta",
+      reportConfirmBody: "Vuoi segnalare questa ricetta per contenuti inappropriati?",
+      reportAction: "Segnala",
+      reportedTitle: "Segnalazione ricevuta",
+      reportedBody: "Grazie. Il nostro filtro ha registrato la tua segnalazione.",
+      notFoundTitle: "Ricetta non trovata",
+      submitTitle: "Pubblica una ricetta",
+      submitPrivacyNotice: "Le ricette condivise qui sono visibili a tutti gli utenti AvoCook. Non inserire dati personali.",
+      titlePlaceholder: "es. Torta di mele della nonna",
+      descPlaceholder: "Breve descrizione o origine della ricetta",
+      authorLabel: "Nome o nickname (opzionale)",
+      authorPlaceholder: "es. Vocalle",
+      anonymousAuthor: "Cuoco AvoCook",
+      selectLanguage: "Lingua della ricetta",
+      ingredientsInputLabel: "Ingredienti (uno per riga)",
+      stepsInputLabel: "Passaggi (uno per riga)",
+      onePerLinePlaceholder: "Ingrediente 1\nIngrediente 2\n...",
+      publishBtn: "Pubblica ricetta",
+      missingTitleError: "Inserisci un titolo",
+      missingIngredientsError: "Inserisci almeno un ingrediente",
+      submitSuccessTitle: "Ricetta pubblicata! 🎉",
+      submitSuccessBody: "La tua ricetta è ora disponibile nella scheda Community.",
+      submitFailedBody: "Impossibile pubblicare la ricetta."
     },
     editor: {
       newRecipe: "Nuova ricetta",
@@ -544,6 +596,8 @@ export default {
       independent: "Non è un'app ufficiale Nextcloud e non vende dati.",
       local:
         "In modalità locale, le ricette rimangono su questo dispositivo. Con Nextcloud, vengono sincronizzate solo con il server che scegli.",
+      sharedListsAndCommunity:
+        "Le liste della spesa condivise e le ricette della community utilizzano un archiviazione cloud sicura (Firebase) tramite un identificatore anonimo del dispositivo. Nessun account, e-mail o identità personale viene tracciata.",
       credentials:
         "L'indirizzo del server, il nome utente e la password dell'app sono memorizzati nel deposito sicuro del dispositivo.",
       tracking:

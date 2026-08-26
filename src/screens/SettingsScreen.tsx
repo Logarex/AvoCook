@@ -43,6 +43,7 @@ import { useLongActionToast } from "../components/LongActionToast";
 import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences, type LlmSettings } from "../features/preferences/PreferencesProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import { useShoppingList } from "../features/shopping/ShoppingListProvider";
 import { LLM_PROVIDERS, type LlmProviderId, fetchAvailableModels } from "../features/import/photoRecipeImport";
 import type { RecipeDuplicateGroup } from "../features/recipes/backupDuplicates";
 import { useSupportActions } from "../features/support/useSupportActions";
@@ -69,21 +70,24 @@ export function SettingsScreen({ navigation }: Props) {
     importBackup,
     mergeDuplicateGroup,
     recipes,
-    sync
+    sync: recipeSync
   } = useRecipes();
+  const { sync: shoppingSync, items: shoppingItems } = useShoppingList();
   const {
     keepRecipesLocal,
     keepScreenAwake,
     enableBackupReminders,
     language,
     llmSettings,
+    communityPseudonym,
     showDefaultCategories,
     setShowDefaultCategories,
     setKeepRecipesLocal,
     setKeepScreenAwake,
     setEnableBackupReminders,
     setLanguage,
-    setLlmSettings
+    setLlmSettings,
+    setCommunityPseudonym
   } = usePreferences();
   const [message, setMessage] = useState<string | null>(null);
   const [llmMessage, setLlmMessage] = useState<string | null>(null);
@@ -205,7 +209,7 @@ export function SettingsScreen({ navigation }: Props) {
           const stopLongActionNotice = watchLongAction("longActions.reindex");
           void client
             .reindex()
-            .then(sync)
+            .then(recipeSync)
             .then(() => setMessage(t("settings.reindexDone")))
             .finally(stopLongActionNotice);
         }
@@ -439,6 +443,22 @@ export function SettingsScreen({ navigation }: Props) {
           {message}
         </AppText>
       ) : null}
+
+      <GlassPanel style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <User color={colors.primary} size={22} />
+          <AppText variant="label">{t("settings.sectionProfile", "Profil")}</AppText>
+        </View>
+        <AppText muted variant="caption" style={{ marginBottom: spacing.xs }}>
+          {t("settings.communityPseudonymHint", "Ce pseudonyme sera utilisé lors du partage de vos recettes dans la communauté.")}
+        </AppText>
+        <TextField
+          label={t("settings.communityPseudonym", "Pseudonyme (Communauté)")}
+          value={communityPseudonym || ""}
+          onChangeText={(value) => void setCommunityPseudonym(value || null)}
+          placeholder={t("settings.communityPseudonymPlaceholder", "Ex: Chef Avo")}
+        />
+      </GlassPanel>
 
       <GlassPanel style={styles.section}>
         <View style={styles.sectionHeader}>
@@ -704,6 +724,30 @@ export function SettingsScreen({ navigation }: Props) {
           onPress={() => void handleToggleNotifications()}
           variant={notificationState === "ready" ? "primary" : "ghost"}
         />
+
+        {shoppingSync.available ? (
+          <>
+            <View style={styles.divider} />
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
+              <Bell color={colors.primary} size={22} />
+              <AppText variant="label">{t("shoppingList.syncBannerTitle")}</AppText>
+            </View>
+            <PrimaryButton
+              disabled={shoppingSync.syncing}
+              label={
+                shoppingSync.linked
+                  ? t("shoppingList.syncDisable")
+                  : t("shoppingList.syncEnable")
+              }
+              onPress={() =>
+                shoppingSync.linked
+                  ? void shoppingSync.disableSync()
+                  : void shoppingSync.enableSync(shoppingItems)
+              }
+              variant={shoppingSync.linked ? "danger" : "ghost"}
+            />
+          </>
+        ) : null}
 
         <View style={styles.divider} />
 

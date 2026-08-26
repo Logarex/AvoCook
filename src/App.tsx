@@ -1,10 +1,11 @@
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createNativeStackNavigator, type NativeStackNavigationProp } from "@react-navigation/native-stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useShareIntent } from "expo-share-intent";
 import { Image } from "expo-image";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { registerRootComponent } from "expo";
@@ -15,10 +16,15 @@ import { LongActionToastProvider } from "./components/LongActionToast";
 import { AuthProvider, useAuth } from "./features/auth/AuthProvider";
 import { PreferencesProvider } from "./features/preferences/PreferencesProvider";
 import { RecipesProvider } from "./features/recipes/RecipesProvider";
-import { ShoppingListProvider } from "./features/shopping/ShoppingListProvider";
+import { ShoppingListProvider, useShoppingList } from "./features/shopping/ShoppingListProvider";
 import { TimersProvider } from "./features/timers/TimersProvider";
 import { useReducedMotion } from "./features/accessibility/useReducedMotion";
+import { useTranslation } from "react-i18next";
 import type { RootStackParamList } from "./navigation/types";
+import { initFirebaseAuth } from "./features/firebase/firebaseClient";
+import { CommunityScreen } from "./screens/CommunityScreen";
+import { CommunityDetailScreen } from "./screens/CommunityDetailScreen";
+import { SubmitCommunityRecipeScreen } from "./screens/SubmitCommunityRecipeScreen";
 import { ImportRecipeScreen } from "./screens/ImportRecipeScreen";
 import { LoginScreen } from "./screens/LoginScreen";
 import { OnboardingScreen } from "./screens/OnboardingScreen";
@@ -41,6 +47,7 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 
 export default function App() {
   React.useEffect(() => {
+    initFirebaseAuth();
     SplashScreen.hideAsync().catch(() => {});
   }, []);
 
@@ -109,6 +116,7 @@ function RootNavigator() {
       <StatusBar style={isDark ? "light" : "dark"} />
       <NavigationContainer theme={navTheme}>
         {isAuthenticated ? <ShareIntentHandler /> : null}
+        {isAuthenticated ? <RemindersOnboardingPrompt /> : null}
         <Stack.Navigator
           initialRouteName={initialRoute}
           screenOptions={({ route }) => ({
@@ -130,6 +138,9 @@ function RootNavigator() {
           <Stack.Screen name="RecipeEditor" component={RecipeEditorScreen} />
           <Stack.Screen name="ImportRecipe" component={ImportRecipeScreen} />
           <Stack.Screen name="ShoppingList" component={ShoppingListScreen} />
+          <Stack.Screen name="Community" component={CommunityScreen} />
+          <Stack.Screen name="CommunityDetail" component={CommunityDetailScreen} />
+          <Stack.Screen name="SubmitCommunityRecipe" component={SubmitCommunityRecipeScreen} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
 
           <Stack.Screen name="Privacy" component={PrivacyScreen} />
@@ -181,6 +192,40 @@ function ShareIntentHandler() {
   return null;
 }
 
+function RemindersOnboardingPrompt() {
+  const { sync, items } = useShoppingList();
+  const { t } = useTranslation();
+  const [prompted, setPrompted] = useState(true);
+
+  useEffect(() => {
+    async function checkPrompt() {
+      if (!sync.available) return;
+      const done = await AsyncStorage.getItem("remindersPromptDone");
+      if (!done && !sync.linked) {
+        setPrompted(false);
+      }
+    }
+    void checkPrompt();
+  }, [sync.available, sync.linked]);
+
+  useEffect(() => {
+    if (!prompted && sync.available) {
+      setPrompted(true);
+      void AsyncStorage.setItem("remindersPromptDone", "true");
+      Alert.alert(
+        t("shoppingList.syncBannerTitle"),
+        t("shoppingList.syncBannerBody"),
+        [
+          { text: t("common.cancel"), style: "cancel" },
+          { text: t("shoppingList.syncEnable"), onPress: () => void sync.enableSync(items) }
+        ]
+      );
+    }
+  }, [prompted, sync, items, t]);
+
+  return null;
+}
+
 function getStackAnimation(
   routeName: keyof RootStackParamList,
   routeParams: RootStackParamList[keyof RootStackParamList],
@@ -192,12 +237,12 @@ function getStackAnimation(
 
   const tabTransition = getTabTransition(routeParams);
 
-  if (routeName === "ShoppingList" && tabTransition === "fromRecipes") {
-    return "slide_from_right";
+  if (tabTransition === "slide_from_left") {
+    return "slide_from_left";
   }
 
-  if (routeName === "Recipes" && tabTransition === "fromShopping") {
-    return "slide_from_left";
+  if (tabTransition === "slide_from_right") {
+    return "slide_from_right";
   }
 
   return "slide_from_right";

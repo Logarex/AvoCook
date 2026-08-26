@@ -255,7 +255,7 @@ export function RecipeListScreen({ navigation }: Props) {
   const statusDetail = loading ? t("recipes.loadingRecipes") : undefined;
 
   const openShoppingList = React.useCallback(() => {
-    navigation.navigate("ShoppingList", { tabTransition: "fromRecipes" });
+    navigation.navigate("ShoppingList", { tabTransition: "slide_from_right" });
   }, [navigation]);
 
   async function handleSaveCategory(name: string, isFavorite: boolean) {
@@ -268,7 +268,7 @@ export function RecipeListScreen({ navigation }: Props) {
     } else {
       await createCategory(normalized);
     }
-    
+
     const currentlyFavorite = favoriteCategories.includes(normalized);
     if (isFavorite && !currentlyFavorite) {
       void toggleFavoriteCategory(normalized);
@@ -449,7 +449,7 @@ export function RecipeListScreen({ navigation }: Props) {
   );
 
   return (
-    <PageSwipeGesture onSwipeLeft={openShoppingList}>
+    <PageSwipeGesture onSwipeLeft={() => navigation.navigate("Community", { tabTransition: "slide_from_right" })}>
       <Screen scroll={false} contentStyle={styles.screenContent}>
         <View style={styles.header}>
           <View style={styles.titleBlock}>
@@ -671,7 +671,7 @@ export function RecipeListScreen({ navigation }: Props) {
               style={styles.recipeList}
               contentContainerStyle={[
                 styles.listContent,
-                filteredRecipes.length > 0 && { paddingRight: 24 }
+                filteredRecipes.length > 0 && { paddingRight: 40 }
               ]}
               data={filteredRecipes}
               keyExtractor={(item) => item.id ?? item.name}
@@ -753,7 +753,9 @@ export function RecipeListScreen({ navigation }: Props) {
           current="recipes"
           onNavigate={(tab) => {
             if (tab === "shoppingList") {
-              openShoppingList();
+              navigation.navigate("ShoppingList", { tabTransition: "slide_from_right" });
+            } else if (tab === "community") {
+              navigation.navigate("Community", { tabTransition: "slide_from_right" });
             }
           }}
         />
