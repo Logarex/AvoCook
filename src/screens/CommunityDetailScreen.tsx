@@ -131,7 +131,13 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
     if (!recipe) return;
     const subject = `Proposition de modification - Recette: ${recipe.title}`;
     const body = `Bonjour,\n\nJe souhaite proposer une modification pour la recette communautaire "${recipe.title}" (ID: ${recipe.id}).\n\nVoici ce que je suggère de modifier :\n\n`;
-    Linking.openURL(`mailto:avocook@nephoos.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`);
+    const url = `mailto:avocook@nephoos.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    void Linking.openURL(url).catch(() => {
+      Alert.alert(
+        t("support.emailFailedTitle", "Aucune application d'e-mail trouvée"),
+        t("support.emailFailedBody", "Nous n'avons pas pu ouvrir d'application d'e-mail. Vous pouvez nous écrire à avocook@nephoos.com")
+      );
+    });
   };
 
   if (loading) {
