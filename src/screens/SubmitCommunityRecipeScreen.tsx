@@ -30,6 +30,7 @@ const LANG_OPTIONS: { id: RecipeLanguage; label: string }[] = [
 ];
 
 import { usePreferences } from "../features/preferences/PreferencesProvider";
+import { containsProfanity } from "../utils/profanityFilter";
 
 export function SubmitCommunityRecipeScreen({ navigation }: Props) {
   const { t, i18n } = useTranslation();
@@ -62,6 +63,17 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
 
     if (ingredients.length === 0) {
       Alert.alert(t("common.error"), t("community.missingIngredientsError"));
+      return;
+    }
+
+    if (
+      containsProfanity(title) ||
+      containsProfanity(description) ||
+      containsProfanity(authorName) ||
+      ingredients.some(containsProfanity) ||
+      steps.some(containsProfanity)
+    ) {
+      Alert.alert(t("common.error"), t("community.profanityError"));
       return;
     }
 

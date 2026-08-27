@@ -79,7 +79,7 @@ import { scaleIngredientLine } from "../utils/servings";
 type Props = NativeStackScreenProps<RootStackParamList, "RecipeDetail">;
 export function RecipeDetailScreen({ navigation, route }: Props) {
   const { getClient } = useAuth();
-  const { keepScreenAwake } = usePreferences();
+  const { keepScreenAwake, communityPseudonym } = usePreferences();
   const {
     deleteRecipe,
     getRecipe,
@@ -107,6 +107,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
             addIngredientsToShoppingList={addIngredients}
             getClient={getClient}
             getImageSource={() => getImageSource(recipe, getClient())}
+            communityPseudonym={communityPseudonym}
           />
         </ScreenErrorBoundary>
       </>
@@ -128,6 +129,7 @@ export function RecipeDetailScreen({ navigation, route }: Props) {
         addIngredientsToShoppingList={addIngredients}
         getClient={getClient}
         getImageSource={() => getImageSource(recipe, getClient())}
+        communityPseudonym={communityPseudonym}
       />
     </ScreenErrorBoundary>
   );
@@ -175,6 +177,7 @@ function RecipeDetailContent({
   addIngredientsToShoppingList,
   getClient,
   getImageSource,
+  communityPseudonym,
 }: {
   navigation: Props["navigation"];
   recipeId: string;
@@ -191,6 +194,7 @@ function RecipeDetailContent({
   >["addIngredients"];
   getClient: ReturnType<typeof useAuth>["getClient"];
   getImageSource: () => ImageSource | null;
+  communityPseudonym: string | null;
 }) {
   const { t, i18n } = useTranslation();
   const { colors } = useAppTheme();
@@ -497,7 +501,7 @@ function RecipeDetailContent({
                 ingredients: recipe.recipeIngredient,
                 steps: recipe.recipeInstructions,
                 language,
-                authorName: recipe.sourceName || t("community.anonymousAuthor")
+                authorName: communityPseudonym?.trim() || t("community.anonymousAuthor")
               });
               Alert.alert(
                 t("community.submitSuccessTitle"),

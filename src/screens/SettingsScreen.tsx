@@ -57,6 +57,7 @@ import {
   requestTimerNotificationPermission,
   type TimerNotificationState
 } from "../features/timers/timerNotifications";
+import { containsProfanity } from "../utils/profanityFilter";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Settings">;
 
@@ -478,6 +479,10 @@ export function SettingsScreen({ navigation }: Props) {
             style={pseudoSavedAnim ? { backgroundColor: colors.success } : undefined}
             onPress={async () => {
               Keyboard.dismiss();
+              if (containsProfanity(localPseudonym)) {
+                Alert.alert(t("common.error"), t("settings.profanityError"));
+                return;
+              }
               await setCommunityPseudonym(localPseudonym.trim() || null);
               setPseudoSavedAnim(true);
               setTimeout(() => setPseudoSavedAnim(false), 2000);
