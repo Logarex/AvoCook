@@ -33,10 +33,10 @@ export type CommunityRecipe = {
   authorName: string;
   imageUrl?: string;
   sourceUrl?: string;
-  prepTime?: string;
-  cookTime?: string;
-  servings?: number;
-  nutriScore?: "A" | "B" | "C" | "D" | "E";
+  prepTime?: string | null;
+  cookTime?: string | null;
+  servings?: number | null;
+  nutriScore?: "A" | "B" | "C" | "D" | "E" | null;
   avgRating: number;
   ratingCount: number;
   reportCount: number;
@@ -68,10 +68,10 @@ export type SubmitRecipeInput = {
   authorName: string;
   imageUrl?: string;
   sourceUrl?: string;
-  prepTime?: string;
-  cookTime?: string;
-  servings?: number;
-  nutriScore?: "A" | "B" | "C" | "D" | "E";
+  prepTime?: string | null;
+  cookTime?: string | null;
+  servings?: number | null;
+  nutriScore?: "A" | "B" | "C" | "D" | "E" | null;
 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -88,10 +88,10 @@ function toRecipe(d: QueryDocumentSnapshot<DocumentData>): CommunityRecipe {
     authorName: data.authorName ?? "",
     imageUrl: data.imageUrl ?? undefined,
     sourceUrl: data.sourceUrl ?? undefined,
-    prepTime: data.prepTime ?? undefined,
-    cookTime: data.cookTime ?? undefined,
-    servings: data.servings ?? undefined,
-    nutriScore: data.nutriScore ?? undefined,
+    prepTime: data.prepTime ?? null,
+    cookTime: data.cookTime ?? null,
+    servings: data.servings ?? null,
+    nutriScore: data.nutriScore ?? null,
     avgRating: typeof data.avgRating === "number" ? data.avgRating : 0,
     ratingCount: typeof data.ratingCount === "number" ? data.ratingCount : 0,
     reportCount: typeof data.reportCount === "number" ? data.reportCount : 0,

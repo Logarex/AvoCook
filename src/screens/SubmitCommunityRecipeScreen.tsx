@@ -45,6 +45,10 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
   const [language, setLanguage] = useState<RecipeLanguage>(
     (i18n.language.slice(0, 2) as RecipeLanguage) || "en"
   );
+  const [prepTime, setPrepTime] = useState("");
+  const [cookTime, setCookTime] = useState("");
+  const [servings, setServings] = useState("");
+  const [nutriScore, setNutriScore] = useState<"A" | "B" | "C" | "D" | "E" | "">("");
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async () => {
@@ -85,7 +89,11 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
         ingredients,
         steps,
         language,
-        authorName: authorName.trim() || t("community.anonymousAuthor")
+        authorName: authorName.trim() || t("community.anonymousAuthor"),
+        prepTime: prepTime.trim() || null,
+        cookTime: cookTime.trim() || null,
+        servings: servings ? parseInt(servings, 10) : null,
+        nutriScore: (nutriScore as "A" | "B" | "C" | "D" | "E") || null
       });
       Alert.alert(
         t("community.submitSuccessTitle"),
@@ -181,6 +189,65 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
           </View>
         </View>
 
+        <View style={styles.row}>
+          <TextField
+            label={t("recipes.prepTime")}
+            placeholder={"15m"}
+            value={prepTime}
+            onChangeText={setPrepTime}
+            containerStyle={{ flex: 1 }}
+          />
+          <TextField
+            label={t("recipes.cookTime")}
+            placeholder={"45m"}
+            value={cookTime}
+            onChangeText={setCookTime}
+            containerStyle={{ flex: 1 }}
+          />
+        </View>
+
+        <View style={styles.row}>
+          <TextField
+            label={t("recipes.servings.title")}
+            placeholder={"4"}
+            value={servings}
+            onChangeText={setServings}
+            keyboardType="numeric"
+            containerStyle={{ flex: 1 }}
+          />
+          <View style={{ flex: 1, gap: spacing.xs }}>
+            <AppText variant="label">{t("recipes.health.nutriScore", { defaultValue: "Nutri-Score" })}</AppText>
+            <View style={styles.nutriGrid}>
+              {["A", "B", "C", "D", "E"].map((score) => {
+                const selected = nutriScore === score;
+                return (
+                  <Pressable
+                    key={score}
+                    onPress={() => setNutriScore(selected ? "" : score as any)}
+                    style={[
+                      styles.nutriBtn,
+                      {
+                        backgroundColor: selected ? colors.primary : colors.chip,
+                        borderColor: selected ? colors.primary : colors.border
+                      }
+                    ]}
+                  >
+                    <AppText
+                      variant="caption"
+                      style={{
+                        color: selected ? colors.textInverted : colors.text,
+                        fontWeight: selected ? "600" : "normal"
+                      }}
+                    >
+                      {score}
+                    </AppText>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
+        </View>
+
         <TextField
           label={t("community.ingredientsInputLabel")}
           placeholder={t("community.onePerLinePlaceholder")}
@@ -242,6 +309,22 @@ const styles = StyleSheet.create({
   langBtn: {
     borderRadius: radius.pill,
     paddingHorizontal: spacing.sm
+  },
+  row: {
+    flexDirection: "row",
+    gap: spacing.md
+  },
+  nutriGrid: {
+    flexDirection: "row",
+    gap: spacing.xs
+  },
+  nutriBtn: {
+    borderRadius: radius.pill,
+    width: 28,
+    height: 28,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1
   },
   submitBtn: {
     marginTop: spacing.md

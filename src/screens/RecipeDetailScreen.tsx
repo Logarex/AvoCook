@@ -485,6 +485,7 @@ function RecipeDetailContent({
   async function handleShareToCommunity() {
     if (!recipe) return;
     const language = (i18n.language.slice(0, 2) as RecipeLanguage) || "en";
+    const healthProfile = getRecipeHealthProfile(recipe);
     Alert.alert(
       t("community.shareConfirmTitle", { defaultValue: "Partager la recette ?" }),
       (t("community.shareConfirmBody", { defaultValue: "Voulez-vous partager cette recette avec la communauté ?" })) + `\n\n${recipe.name}`,
@@ -501,7 +502,11 @@ function RecipeDetailContent({
                 ingredients: recipe.recipeIngredient,
                 steps: recipe.recipeInstructions,
                 language,
-                authorName: communityPseudonym?.trim() || t("community.anonymousAuthor")
+                authorName: communityPseudonym?.trim() || t("community.anonymousAuthor"),
+                prepTime: recipe.prepTime || null,
+                cookTime: recipe.cookTime || null,
+                servings: recipe.recipeYield ? Number(recipe.recipeYield) : null,
+                nutriScore: healthProfile.grade !== "?" ? (healthProfile.grade as "A" | "B" | "C" | "D" | "E") : null
               });
               Alert.alert(
                 t("community.submitSuccessTitle"),

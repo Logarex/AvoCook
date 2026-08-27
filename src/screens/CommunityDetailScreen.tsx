@@ -10,7 +10,7 @@ import {
   Linking
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Download, Flag, Star, Clock, Globe, Users, Mail, Link as LinkIcon } from "lucide-react-native";
+import { ArrowLeft, Download, Flag, Star, Clock, Globe, Users, Mail, Link as LinkIcon, HeartPulse } from "lucide-react-native";
 
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -212,6 +212,9 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
         ) : null}
         {recipe.servings ? (
            <Metric icon={Users} label={t("recipes.servings.title")} value={`${recipe.servings}`} />
+        ) : null}
+        {recipe.nutriScore ? (
+           <Metric icon={HeartPulse} label={t("recipes.health.nutriScore", { defaultValue: "Nutri-Score" })} value={recipe.nutriScore} />
         ) : null}
       </View>
 
