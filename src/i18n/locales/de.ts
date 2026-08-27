@@ -1,6 +1,7 @@
 export default {
   translation: {
     common: {
+      error: "Fehler",
       or: "ODER",
       saved: "Gespeichert",
 

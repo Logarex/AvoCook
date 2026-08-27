@@ -1,6 +1,7 @@
 export default {
   translation: {
     common: {
+      error: "Erreur",
       or: "OU",
       saved: "Enregistré",
 

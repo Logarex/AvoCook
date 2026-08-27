@@ -1,6 +1,7 @@
 export default {
   translation: {
     common: {
+      error: "Fejl",
       or: "ELLER",
       saved: "Gemt",
       add: "Tilføj",

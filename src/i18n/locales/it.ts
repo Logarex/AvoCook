@@ -1,6 +1,7 @@
 export default {
   translation: {
     common: {
+      error: "Errore",
       or: "O",
       saved: "Salvato",
 
