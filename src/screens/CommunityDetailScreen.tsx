@@ -3,14 +3,13 @@ import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  ScrollView,
   StyleSheet,
   View,
   Image,
   Linking
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Download, Flag, Star, Clock, Globe, Users, Mail, Link as LinkIcon, HeartPulse } from "lucide-react-native";
+import { ArrowLeft, Download, Flag, Clock, Users, Mail, Link as LinkIcon, HeartPulse } from "lucide-react-native";
 
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -29,6 +28,7 @@ import { normalizeRecipe } from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { humanDuration } from "../utils/duration";
 
 type Props = NativeStackScreenProps<RootStackParamList, "CommunityDetail">;
 
@@ -40,7 +40,6 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
   const [recipe, setRecipe] = useState<CommunityRecipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [userVote, setUserVote] = useState<number>(0);
-  const [voting, setVoting] = useState(false);
   const [importing, setImporting] = useState(false);
 
   useEffect(() => {
@@ -61,7 +60,6 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
 
   const handleVote = async (stars: number) => {
     if (!recipe) return;
-    setVoting(true);
     try {
       await voteOnRecipe(recipe.id, stars);
       setUserVote(stars);
@@ -70,8 +68,6 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
       if (updated) setRecipe(updated);
     } catch {
       Alert.alert(t("community.voteFailedTitle"), t("community.voteFailedBody"));
-    } finally {
-      setVoting(false);
     }
   };
 
@@ -100,7 +96,9 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
         recipeIngredient: recipe.ingredients,
         recipeInstructions: recipe.steps,
         keywords: `${t("community.importKeyword")}, ${recipe.language}`,
-        sourceName: recipe.authorName || t("community.anonymousAuthor")
+        sourceName: recipe.authorName || t("community.anonymousAuthor"),
+        image: recipe.imageUrl || "",
+        imageUrl: recipe.imageUrl || ""
       });
       await createRecipe(localRecipe);
       Alert.alert(
@@ -131,8 +129,8 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
         {
           text: t("community.reportAction"),
           style: "destructive",
-          onPress: async () => {
-            if (recipe) await reportCommunityRecipe(recipe.id);
+          onPress: () => {
+            if (recipe) void reportCommunityRecipe(recipe.id);
             Alert.alert(t("community.reportedTitle"), t("community.reportedBody"));
             navigation.goBack();
           }
@@ -219,10 +217,10 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
 
       <View style={styles.metricsRow}>
         {recipe.prepTime ? (
-           <Metric icon={Clock} label={t("recipes.prepTime")} value={recipe.prepTime} />
+           <Metric icon={Clock} label={t("recipes.prepTime")} value={humanDuration(recipe.prepTime) || recipe.prepTime} />
         ) : null}
         {recipe.cookTime ? (
-           <Metric icon={Clock} label={t("recipes.cookTime")} value={recipe.cookTime} />
+           <Metric icon={Clock} label={t("recipes.cookTime")} value={humanDuration(recipe.cookTime) || recipe.cookTime} />
         ) : null}
         {recipe.servings ? (
            <Metric icon={Users} label={t("recipes.servings.title")} value={`${recipe.servings}`} />

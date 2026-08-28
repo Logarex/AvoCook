@@ -192,7 +192,7 @@ export function ShoppingListProvider({
       setSharedCode(cleanCode);
       setSharedSyncing(false);
       return true;
-    } catch (err) {
+    } catch {
       setSharedSyncing(false);
       setSharedError("Failed to join list");
       return false;

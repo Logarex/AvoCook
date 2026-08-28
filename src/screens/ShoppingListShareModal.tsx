@@ -126,13 +126,13 @@ export function ShoppingListShareModal({
                 <PrimaryButton
                   icon={Share2}
                   label={t("common.share")}
-                  onPress={handleShareCode}
+                  onPress={() => void handleShareCode()}
                   style={styles.btnFlex}
                 />
                 <PrimaryButton
                   icon={LogOut}
                   label={t("shoppingList.sharedLeave")}
-                  onPress={handleLeave}
+                  onPress={() => void handleLeave()}
                   variant="danger"
                   style={styles.btnFlex}
                 />

@@ -1,4 +1,5 @@
 import {
+  deleteDoc,
   doc,
   getDoc,
   setDoc,
@@ -76,7 +77,7 @@ export function mergeShoppingLists(
 
 let _pushTimer: ReturnType<typeof setTimeout> | null = null;
 
-import { deleteDoc } from "firebase/firestore";
+
 
 async function doPush(code: string, items: ShoppingListItem[]): Promise<void> {
   await waitForAuth();

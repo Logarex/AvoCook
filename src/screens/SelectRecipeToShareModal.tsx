@@ -8,7 +8,7 @@ import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
 import { TextField } from "../components/TextField";
 import { getScreenBottomPadding } from "../utils/safeArea";
-import { radius, spacing } from "../theme/colors";
+import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { submitCommunityRecipe, checkCommunityRecipeDuplicate, type RecipeLanguage } from "../features/community/communityClient";
@@ -50,8 +50,9 @@ export function SelectRecipeToShareModal({
         { text: t("common.cancel"), style: "cancel" },
         {
           text: t("common.share"),
-          onPress: async () => {
-            setSubmitting(true);
+          onPress: () => {
+            void (async () => {
+              setSubmitting(true);
             try {
               const finalPseudonym = localPseudonym.trim() || t("community.anonymousAuthor");
               if (!communityPseudonym && localPseudonym.trim()) {
@@ -94,6 +95,7 @@ export function SelectRecipeToShareModal({
             } finally {
               setSubmitting(false);
             }
+            })();
           }
         }
       ]

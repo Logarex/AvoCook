@@ -477,15 +477,17 @@ export function SettingsScreen({ navigation }: Props) {
             label={t("common.save")}
             tone={pseudoSavedAnim ? "default" : "primary"}
             style={pseudoSavedAnim ? { backgroundColor: colors.success } : undefined}
-            onPress={async () => {
-              Keyboard.dismiss();
-              if (containsProfanity(localPseudonym)) {
-                Alert.alert(t("common.error"), t("settings.profanityError"));
-                return;
-              }
-              await setCommunityPseudonym(localPseudonym.trim() || null);
-              setPseudoSavedAnim(true);
-              setTimeout(() => setPseudoSavedAnim(false), 2000);
+            onPress={() => {
+              void (async () => {
+                Keyboard.dismiss();
+                if (containsProfanity(localPseudonym)) {
+                  Alert.alert(t("common.error"), t("settings.profanityError"));
+                  return;
+                }
+                await setCommunityPseudonym(localPseudonym.trim() || null);
+                setPseudoSavedAnim(true);
+                setTimeout(() => setPseudoSavedAnim(false), 2000);
+              })();
             }}
           />
         </View>
@@ -1030,7 +1032,7 @@ export function SettingsScreen({ navigation }: Props) {
           <PrimaryButton
             icon={Globe}
             label={t("support.website")}
-            onPress={() => Linking.openURL("https://logarex.github.io/AvoCook/")}
+            onPress={() => { void Linking.openURL("https://logarex.github.io/AvoCook/"); }}
             variant="ghost"
           />
           <PrimaryButton

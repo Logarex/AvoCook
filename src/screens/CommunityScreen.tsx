@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
-import { Globe, Plus, Search, Star, Filter } from "lucide-react-native";
+import { Globe, Plus } from "lucide-react-native";
 
 import { AppText } from "../components/AppText";
 import { BottomNavigation } from "../components/BottomNavigation";
@@ -20,7 +20,6 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { StarRating } from "../components/StarRating";
 import { SearchField } from "../components/SearchField";
-import { EmptyState } from "../components/EmptyState";
 import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import {
   fetchCommunityRecipes,
@@ -53,7 +52,7 @@ export function CommunityScreen({ navigation }: Props) {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState<RecipeLanguage | "all">("all");
-  const [minRating, setMinRating] = useState<number>(0);
+  const [minRating] = useState<number>(0);
   const [showSelectModal, setShowSelectModal] = useState(false);
 
   const loadData = useCallback(

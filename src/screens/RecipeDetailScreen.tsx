@@ -493,8 +493,9 @@ function RecipeDetailContent({
         { text: t("common.cancel"), style: "cancel" },
         {
           text: t("common.share"),
-          onPress: async () => {
-            const stopLongActionNotice = watchLongAction("longActions.shareRecipe");
+          onPress: () => {
+            void (async () => {
+              const stopLongActionNotice = watchLongAction("longActions.shareRecipe");
             try {
               await submitCommunityRecipe({
                 title: recipe.name,
@@ -518,6 +519,7 @@ function RecipeDetailContent({
             } finally {
               stopLongActionNotice();
             }
+            })();
           }
         }
       ]

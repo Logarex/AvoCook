@@ -1,6 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Send, ShieldAlert } from "lucide-react-native";
 
@@ -18,6 +18,8 @@ import {
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { usePreferences } from "../features/preferences/PreferencesProvider";
+import { containsProfanity } from "../utils/profanityFilter";
 
 type Props = NativeStackScreenProps<RootStackParamList, "SubmitCommunityRecipe">;
 
@@ -30,8 +32,7 @@ const LANG_OPTIONS: { id: RecipeLanguage; label: string }[] = [
   { id: "da", label: "🇩🇰 Dansk" }
 ];
 
-import { usePreferences } from "../features/preferences/PreferencesProvider";
-import { containsProfanity } from "../utils/profanityFilter";
+
 
 export function SubmitCommunityRecipeScreen({ navigation }: Props) {
   const { t, i18n } = useTranslation();

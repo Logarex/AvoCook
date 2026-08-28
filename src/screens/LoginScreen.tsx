@@ -1,13 +1,11 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
-  AlertTriangle,
   Bug,
   ChevronLeft,
   ChefHat,
   Cloud,
   Eye,
   EyeOff,
-  
   Heart,
   HelpCircle,
   LockKeyhole,

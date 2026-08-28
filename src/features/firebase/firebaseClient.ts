@@ -58,27 +58,29 @@ export function getFirebaseAuth(): Auth {
 
 export function initFirebaseAuth(): void {
   const auth = getFirebaseAuth();
-  onAuthStateChanged(auth, async (user) => {
-    if (user) {
-      _user = user;
-      _authReady = true;
-      _authReadyCallbacks.forEach((cb) => cb(user));
-      _authReadyCallbacks = [];
-    } else {
-      // Not signed in → sign in anonymously
-      try {
-        const result = await signInAnonymously(auth);
-        _user = result.user;
+  onAuthStateChanged(auth, (user) => {
+    void (async () => {
+      if (user) {
+        _user = user;
         _authReady = true;
-        _authReadyCallbacks.forEach((cb) => cb(result.user));
+        _authReadyCallbacks.forEach((cb) => cb(user));
         _authReadyCallbacks = [];
-      } catch (error) {
-        console.warn("firebase", "Anonymous sign-in failed", error);
-        _authReady = true;
-        _authReadyCallbacks.forEach((cb) => cb(null));
-        _authReadyCallbacks = [];
+      } else {
+        // Not signed in → sign in anonymously
+        try {
+          const result = await signInAnonymously(auth);
+          _user = result.user;
+          _authReady = true;
+          _authReadyCallbacks.forEach((cb) => cb(result.user));
+          _authReadyCallbacks = [];
+        } catch (error) {
+          console.warn("firebase", "Anonymous sign-in failed", error);
+          _authReady = true;
+          _authReadyCallbacks.forEach((cb) => cb(null));
+          _authReadyCallbacks = [];
+        }
       }
-    }
+    })();
   });
 }
 

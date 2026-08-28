@@ -258,10 +258,6 @@ export function RecipeListScreen({ navigation }: Props) {
       : t("common.offline");
   const statusDetail = loading ? t("recipes.loadingRecipes") : undefined;
 
-  const openShoppingList = React.useCallback(() => {
-    navigation.navigate("ShoppingList", { tabTransition: "slide_from_right" });
-  }, [navigation]);
-
   async function handleSaveCategory(name: string, isFavorite: boolean) {
     const normalized = name.replace(/\s+/g, " ").trim();
     if (!normalized) {

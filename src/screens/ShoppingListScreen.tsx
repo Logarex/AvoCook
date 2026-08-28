@@ -2,7 +2,6 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import {
   Bell,
-  BellOff,
   Check,
   ChevronDown,
   ChevronUp,
@@ -86,13 +85,7 @@ export function ShoppingListScreen({ navigation }: Props) {
     itemsRef.current = items;
   }, [items]);
 
-  const openRecipes = React.useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-    navigation.navigate("Recipes", { tabTransition: "slide_from_left" });
-  }, [navigation]);
+
 
   // ── Pull helper ───────────────────────────────────────────────────────────────
   //
