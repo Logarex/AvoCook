@@ -336,6 +336,7 @@ export default {
       importSuccessBody: "Questa ricetta è ora salvata tra le tue ricette.",
       viewMyRecipes: "Vedi le mie ricette",
       importFailedBody: "Impossibile importare la ricetta.",
+      importDuplicateError: "Questa ricetta è già nel tuo ricettario.",
       reportTitle: "Segnala ricetta",
       reportConfirmBody: "Vuoi segnalare questa ricetta per contenuti inappropriati?",
       reportAction: "Segnala",
@@ -359,7 +360,8 @@ export default {
       missingIngredientsError: "Inserisci almeno un ingrediente",
       submitSuccessTitle: "Ricetta pubblicata!",
       submitSuccessBody: "La tua ricetta è ora disponibile nella scheda Community.",
-      submitFailedBody: "Impossibile pubblicare la ricetta."
+      submitFailedBody: "Impossibile pubblicare la ricetta.",
+      duplicateRecipeError: "Una ricetta simile esiste già nella community."
     },
     editor: {
       newRecipe: "Nuova ricetta",

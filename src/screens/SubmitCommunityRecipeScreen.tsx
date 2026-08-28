@@ -12,6 +12,7 @@ import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
 import {
   submitCommunityRecipe,
+  checkCommunityRecipeDuplicate,
   type RecipeLanguage
 } from "../features/community/communityClient";
 import type { RootStackParamList } from "../navigation/types";
@@ -78,6 +79,16 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
       steps.some(containsProfanity)
     ) {
       Alert.alert(t("common.error"), t("community.profanityError"));
+      return;
+    }
+
+    const isDuplicate = await checkCommunityRecipeDuplicate(
+      title.trim(),
+      authorName.trim() || t("community.anonymousAuthor"),
+      steps
+    );
+    if (isDuplicate) {
+      Alert.alert(t("common.error"), t("community.duplicateRecipeError"));
       return;
     }
 

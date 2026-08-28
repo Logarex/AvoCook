@@ -334,6 +334,7 @@ export default {
       importSuccessBody: "This recipe is now saved in your recipes.",
       viewMyRecipes: "View my recipes",
       importFailedBody: "Could not import recipe.",
+      importDuplicateError: "This recipe is already in your cookbook.",
       reportTitle: "Report recipe",
       reportConfirmBody: "Do you want to report this recipe for inappropriate content?",
       reportAction: "Report",
@@ -357,7 +358,8 @@ export default {
       missingIngredientsError: "Please enter at least one ingredient",
       submitSuccessTitle: "Recipe published!",
       submitSuccessBody: "Your recipe is now available in the community tab.",
-      submitFailedBody: "Could not publish recipe. Please try again."
+      submitFailedBody: "Could not publish recipe. Please try again.",
+      duplicateRecipeError: "A similar recipe already exists in the community."
     },
     editor: {
       newRecipe: "New recipe",

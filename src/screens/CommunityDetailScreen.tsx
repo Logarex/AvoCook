@@ -35,7 +35,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "CommunityDetail">;
 export function CommunityDetailScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
-  const { createRecipe } = useRecipes();
+  const { createRecipe, recipes } = useRecipes();
 
   const [recipe, setRecipe] = useState<CommunityRecipe | null>(null);
   const [loading, setLoading] = useState(true);
@@ -77,6 +77,20 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
 
   const handleImport = async () => {
     if (!recipe) return;
+
+    // Check for a duplicate in the local recipe book (case-insensitive)
+    const titleNorm = recipe.title.trim().toLowerCase();
+    const alreadyExists = recipes.some(
+      (r) => r.name.trim().toLowerCase() === titleNorm
+    );
+    if (alreadyExists) {
+      Alert.alert(
+        t("common.error"),
+        t("community.importDuplicateError")
+      );
+      return;
+    }
+
     setImporting(true);
     try {
       const localRecipe = normalizeRecipe({

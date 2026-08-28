@@ -300,6 +300,7 @@ export default {
       importSuccessBody: "Denne opskrift er nu gemt i dine opskrifter.",
       viewMyRecipes: "Se mine opskrifter",
       importFailedBody: "Kunne ikke importere opskrift.",
+      importDuplicateError: "Denne opskrift er allerede i din opskriftsbog.",
       reportTitle: "Anmeld opskrift",
       reportConfirmBody: "Vil du anmelde denne opskrift for upassende indhold?",
       reportAction: "Anmeld",
@@ -323,7 +324,8 @@ export default {
       missingIngredientsError: "Angiv venligst mindst én ingrediens",
       submitSuccessTitle: "Opskrift udgivet!",
       submitSuccessBody: "Din opskrift er nu tilgængelig i Fællesskab-fanen.",
-      submitFailedBody: "Kunne ikke udgive opskrift."
+      submitFailedBody: "Kunne ikke udgive opskrift.",
+      duplicateRecipeError: "En lignende opskrift findes allerede i fællesskabet."
     },
     editor: {
       newRecipe: "Ny opskrift",
