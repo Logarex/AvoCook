@@ -325,7 +325,14 @@ export default {
       submitSuccessTitle: "Opskrift udgivet!",
       submitSuccessBody: "Din opskrift er nu tilgængelig i Fællesskab-fanen.",
       submitFailedBody: "Kunne ikke udgive opskrift.",
-      duplicateRecipeError: "En lignende opskrift findes allerede i fællesskabet."
+      duplicateRecipeError: "En lignende opskrift findes allerede i fællesskabet.",
+      importCategoryLabel: "Fællesskab",
+      importKeyword: "fællesskab",
+      shareConfirmTitle: "Del opskrift?",
+      shareConfirmBody: "Vil du dele denne opskrift med fællesskabet?",
+      shareToCommunity: "Del i fællesskabet",
+      duplicateTitle: "Dublet registreret",
+      duplicateBody: "En opskrift med samme navn, forfatter eller trin eksisterer allerede."
     },
     editor: {
       newRecipe: "Ny opskrift",
@@ -505,6 +512,10 @@ export default {
       llmPickModel: "Vælg en model",
       closeAdvanced: "Luk",
       replayIntro: "Gense introduktion",
+      sectionProfile: "Profil",
+      communityPseudonym: "Pseudonym (Fællesskab)",
+      communityPseudonymHint: "Dette pseudonym bruges når du deler opskrifter med fællesskabet.",
+      communityPseudonymPlaceholder: "F.eks. Chef Avo",
     },
     logs: {
       title: "Logs",

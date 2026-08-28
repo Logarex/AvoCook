@@ -93,7 +93,7 @@ export function ShareRecipeModal({
             />
             <PrimaryButton
               icon={Globe}
-              label={t("community.shareToCommunity", { defaultValue: "Partager à la communauté" })}
+              label={t("community.shareToCommunity")}
               onPress={() => {
                 onClose();
                 onShareToCommunity();

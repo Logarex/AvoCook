@@ -362,7 +362,14 @@ export default {
       submitSuccessTitle: "¡Receta publicada!",
       submitSuccessBody: "Tu receta ya está disponible en la pestaña Comunidad.",
       submitFailedBody: "No se pudo publicar la receta.",
-      duplicateRecipeError: "Ya existe una receta similar en la comunidad."
+      duplicateRecipeError: "Ya existe una receta similar en la comunidad.",
+      importCategoryLabel: "Comunidad",
+      importKeyword: "comunidad",
+      shareConfirmTitle: "¿Compartir receta?",
+      shareConfirmBody: "¿Quieres compartir esta receta con la comunidad?",
+      shareToCommunity: "Compartir en la comunidad",
+      duplicateTitle: "Duplicado detectado",
+      duplicateBody: "Ya existe una receta con el mismo nombre, autor o pasos."
     },
     editor: {
       newRecipe: "Nueva receta",
@@ -566,6 +573,10 @@ export default {
       llmPickModel: "Elegir un modelo",
       closeAdvanced: "Cerrar",
       replayIntro: "Repetir introducción y tour",
+      sectionProfile: "Perfil",
+      communityPseudonym: "Seudónimo (Comunidad)",
+      communityPseudonymHint: "Este seudónimo se usará al compartir tus recetas con la comunidad.",
+      communityPseudonymPlaceholder: "Ej: Chef Avo",
     },
     logs: {
       title: "Registros",

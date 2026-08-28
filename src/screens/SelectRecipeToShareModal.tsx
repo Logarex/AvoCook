@@ -44,8 +44,8 @@ export function SelectRecipeToShareModal({
   const handleSelectRecipe = (recipe: typeof recipes[number]) => {
     const language = (i18n.language.slice(0, 2) as RecipeLanguage) || "en";
     Alert.alert(
-      t("community.shareConfirmTitle", { defaultValue: "Partager la recette ?" }),
-      t("community.shareConfirmBody", { defaultValue: "Voulez-vous partager cette recette avec la communauté ?" }) + `\n\n${recipe.name}`,
+      t("community.shareConfirmTitle"),
+      t("community.shareConfirmBody") + `\n\n${recipe.name}`,
       [
         { text: t("common.cancel"), style: "cancel" },
         {
@@ -60,7 +60,7 @@ export function SelectRecipeToShareModal({
               
               const isDuplicate = await checkCommunityRecipeDuplicate(recipe.name, finalPseudonym, recipe.recipeInstructions || []);
               if (isDuplicate) {
-                Alert.alert(t("community.duplicateTitle", "Doublon détecté"), t("community.duplicateBody", "Une recette avec le même nom, le même auteur ou les mêmes étapes existe déjà."));
+                Alert.alert(t("community.duplicateTitle"), t("community.duplicateBody"));
                 setSubmitting(false);
                 return;
               }
@@ -147,11 +147,11 @@ export function SelectRecipeToShareModal({
           {!communityPseudonym ? (
             <View style={styles.pseudoContainer}>
               <AppText muted variant="caption">
-                {t("settings.communityPseudonymHint", "Ce pseudonyme sera utilisé lors du partage de vos recettes dans la communauté.")}
+                {t("settings.communityPseudonymHint")}
               </AppText>
               <TextField
-                label={t("settings.communityPseudonym", "Pseudonyme")}
-                placeholder={t("settings.communityPseudonymPlaceholder", "Ex: Chef Avo")}
+                label={t("settings.communityPseudonym")}
+                placeholder={t("settings.communityPseudonymPlaceholder")}
                 value={localPseudonym}
                 onChangeText={setLocalPseudonym}
                 editable={!submitting}

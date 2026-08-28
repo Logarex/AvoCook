@@ -70,12 +70,12 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
       }
     } catch (error) {
       if (error instanceof Error && error.message === "PAPILLES_BLOCKED") {
-        setError(t("importRecipe.papillesBlocked", "L'import depuis Papilles & Pupilles est désactivé à la demande de son auteure afin de préserver son modèle gratuit."));
+        setError(t("importRecipe.papillesBlocked"));
       } else if (
         error instanceof Error && 
         (error.message === "INCOMPLETE_RECIPE" || error.message.includes("No schema.org Recipe") || error.message.includes("Recipe page returned"))
       ) {
-        setError(t("importRecipe.incompleteRecipe", "Aucune recette n'a pu être extraite. S'il s'agit bien d'un blog culinaire, l'auteur a probablement bloqué l'import automatique."));
+        setError(t("importRecipe.incompleteRecipe"));
       } else {
         setError(t("importRecipe.failed"));
       }
@@ -97,12 +97,12 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
       }
     } catch (error) {
       if (error instanceof Error && error.message === "PAPILLES_BLOCKED") {
-        setError(t("importRecipe.papillesBlocked", "L'import depuis Papilles & Pupilles est désactivé à la demande de son auteure afin de préserver son modèle gratuit."));
+        setError(t("importRecipe.papillesBlocked"));
       } else if (
         error instanceof Error && 
         (error.message === "INCOMPLETE_RECIPE" || error.message.includes("No schema.org Recipe") || error.message.includes("Recipe page returned"))
       ) {
-        setError(t("importRecipe.incompleteRecipe", "Aucune recette n'a pu être extraite. S'il s'agit bien d'un blog culinaire, l'auteur a probablement bloqué l'import automatique."));
+        setError(t("importRecipe.incompleteRecipe"));
       } else {
         setError(t("importRecipe.failed"));
       }
@@ -159,19 +159,19 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
 
   async function handleScanPhoto() {
     Alert.alert(
-      t("importRecipe.photoSourceTitle", "Choose source"),
+      t("importRecipe.photoSourceTitle"),
       "",
       [
         {
-          text: t("common.cancel", "Cancel"),
+          text: t("common.cancel"),
           style: "cancel"
         },
         {
-          text: t("importRecipe.photoSourceCamera", "Camera"),
+          text: t("importRecipe.photoSourceCamera"),
           onPress: () => void processCamera()
         },
         {
-          text: t("importRecipe.photoSourceGallery", "Photo Library"),
+          text: t("importRecipe.photoSourceGallery"),
           onPress: () => void processImage(ImagePicker.launchImageLibraryAsync)
         }
       ]
@@ -249,7 +249,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
           (err.modelDocsUrl ? "\n" + t("importRecipe.photoModelDocsHint") : "")
         );
       } else if (err instanceof LlmNotFoodError) {
-        setError(t("importRecipe.notFoodError", "The provided content is not related to food or beverages."));
+        setError(t("importRecipe.notFoodError"));
       } else if (err instanceof LlmApiError && err.status === 401) {
         setError(t("importRecipe.photoApiKeyInvalid"));
       } else if (err instanceof LlmApiError && err.status === 403) {
@@ -292,7 +292,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
           (err.modelDocsUrl ? "\n" + t("importRecipe.photoModelDocsHint") : "")
         );
       } else if (err instanceof LlmNotFoodError) {
-        setError(t("importRecipe.notFoodError", "The provided content is not related to food or beverages."));
+        setError(t("importRecipe.notFoodError"));
       } else if (err instanceof LlmApiError && err.status === 401) {
         setError(t("importRecipe.photoApiKeyInvalid"));
       } else if (err instanceof LlmApiError && err.status === 403) {
@@ -300,7 +300,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
       } else if (err instanceof LlmApiError && err.status === 429) {
         setError(t("importRecipe.photoApiKeyQuotaExceeded"));
       } else {
-        setError(t("importRecipe.textFailed", "Failed to generate recipe."));
+        setError(t("importRecipe.textFailed"));
       }
     } finally {
       stopLongActionNotice();
@@ -330,7 +330,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
       <View style={styles.toolbar}>
         <IconButton
           icon={ArrowLeft}
-          label={t("common.back", "Retour")}
+          label={t("common.back")}
           onPress={() => navigation.goBack()}
         />
         <View style={styles.toolbarTitleContainer}>
@@ -380,7 +380,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
       <GlassPanel style={styles.section}>
         <View style={styles.sectionHeader}>
           <Sparkles color={colors.primary} size={22} />
-          <AppText variant="label">{t("importRecipe.aiTitle", "Intelligence Artificielle")}</AppText>
+          <AppText variant="label">{t("importRecipe.aiTitle")}</AppText>
         </View>
 
         {hasLlmKey ? (
@@ -400,11 +400,11 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
             <View style={styles.divider} />
 
             <AppText muted variant="caption">
-              {t("importRecipe.textHint", "Ou décrivez la recette avec du texte :")}
+              {t("importRecipe.textHint")}
             </AppText>
             <TextField
               autoCapitalize="sentences"
-              label={t("importRecipe.promptLabel", "Description de la recette")}
+              label={t("importRecipe.promptLabel")}
               onChangeText={setPrompt}
               value={prompt}
               multiline
@@ -412,7 +412,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
             <PrimaryButton
               disabled={!prompt.trim() || submitting !== null}
               icon={Sparkles}
-              label={submitting === "text" ? t("common.loading") : t("importRecipe.generateTextAction", "Générer la recette")}
+              label={submitting === "text" ? t("common.loading") : t("importRecipe.generateTextAction")}
               // eslint-disable-next-line @typescript-eslint/no-misused-promises
               onPress={handleTextPromptSubmit}
               variant="ghost"

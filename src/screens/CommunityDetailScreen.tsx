@@ -96,11 +96,11 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
       const localRecipe = normalizeRecipe({
         name: recipe.title,
         description: recipe.description,
-        recipeCategory: "Communauté",
+        recipeCategory: t("community.importCategoryLabel"),
         recipeIngredient: recipe.ingredients,
         recipeInstructions: recipe.steps,
-        keywords: `communauté, ${recipe.language}`,
-        sourceName: recipe.authorName || "Communauté AvoCook"
+        keywords: `${t("community.importKeyword")}, ${recipe.language}`,
+        sourceName: recipe.authorName || t("community.anonymousAuthor")
       });
       await createRecipe(localRecipe);
       Alert.alert(
@@ -148,8 +148,8 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
     const url = `mailto:avocook@nephoos.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     void Linking.openURL(url).catch(() => {
       Alert.alert(
-        t("support.emailFailedTitle", "Aucune application d'e-mail trouvée"),
-        t("support.emailFailedBody", "Nous n'avons pas pu ouvrir d'application d'e-mail. Vous pouvez nous écrire à avocook@nephoos.com")
+        t("support.emailFailedTitle"),
+        t("support.emailFailedBody")
       );
     });
   };

@@ -177,7 +177,7 @@ export function SettingsScreen({ navigation }: Props) {
     Keyboard.dismiss();
     if (llmDraft) {
       void setLlmSettings(llmDraft);
-      setLlmMessage(t("common.saved", "Saved"));
+      setLlmMessage(t("common.saved"));
       setTimeout(() => setLlmMessage(null), 3000);
     }
   }
@@ -227,8 +227,8 @@ export function SettingsScreen({ navigation }: Props) {
 
   async function handleLogout() {
     Alert.alert(
-      t("settings.logoutConfirmTitle", "Déconnexion"),
-      t("settings.logoutConfirmBody", "Vos informations de connexion seront supprimées de cet appareil."),
+      t("settings.logoutConfirmTitle"),
+      t("settings.logoutConfirmBody"),
       [
         { text: t("common.cancel"), style: "cancel" },
         {
@@ -247,8 +247,8 @@ export function SettingsScreen({ navigation }: Props) {
   async function handleSwitchMode() {
     if (isLocalMode) {
       Alert.alert(
-        t("settings.switchToNextcloudConfirmTitle", "Passer sur Nextcloud ?"),
-        t("settings.switchToNextcloudConfirmBody", "Vos recettes locales ne seront pas synchronisées avec Nextcloud, elles resteront uniquement sur cet appareil. Aucune donnée n'est perdue !"),
+        t("settings.switchToNextcloudConfirmTitle"),
+        t("settings.switchToNextcloudConfirmBody"),
         [
           { text: t("common.cancel"), style: "cancel" },
           {
@@ -263,8 +263,8 @@ export function SettingsScreen({ navigation }: Props) {
       );
     } else {
       Alert.alert(
-        t("settings.switchToLocalConfirmTitle", "Passer en mode local ?"),
-        t("settings.switchToLocalConfirmBody", "Vos recettes Nextcloud ne seront plus synchronisées sur cet appareil. Vos recettes locales sont conservées séparément. Aucune donnée n'est perdue !"),
+        t("settings.switchToLocalConfirmTitle"),
+        t("settings.switchToLocalConfirmBody"),
         [
           { text: t("common.cancel"), style: "cancel" },
           {
@@ -455,18 +455,18 @@ export function SettingsScreen({ navigation }: Props) {
       <GlassPanel style={styles.section}>
         <View style={styles.sectionHeader}>
           <User color={colors.primary} size={22} />
-          <AppText variant="label">{t("settings.sectionProfile", "Profil")}</AppText>
+          <AppText variant="label">{t("settings.sectionProfile")}</AppText>
         </View>
         <AppText muted variant="caption" style={{ marginBottom: spacing.xs }}>
-          {t("settings.communityPseudonymHint", "Ce pseudonyme sera utilisé lors du partage de vos recettes dans la communauté.")}
+          {t("settings.communityPseudonymHint")}
         </AppText>
         <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
           <TextField
             containerStyle={{ flex: 1, marginRight: spacing.sm }}
-            label={t("settings.communityPseudonym", "Pseudonyme (Communauté)")}
+            label={t("settings.communityPseudonym")}
             value={localPseudonym}
             onChangeText={setLocalPseudonym}
-            placeholder={t("settings.communityPseudonymPlaceholder", "Ex: Chef Avo")}
+            placeholder={t("settings.communityPseudonymPlaceholder")}
             textContentType="none"
             autoComplete="off"
             autoCorrect={false}
@@ -474,7 +474,7 @@ export function SettingsScreen({ navigation }: Props) {
           />
           <IconButton
             icon={pseudoSavedAnim ? CheckCheck : Check}
-            label={t("common.save", "Enregistrer")}
+            label={t("common.save")}
             tone={pseudoSavedAnim ? "default" : "primary"}
             style={pseudoSavedAnim ? { backgroundColor: colors.success } : undefined}
             onPress={async () => {
@@ -981,7 +981,7 @@ export function SettingsScreen({ navigation }: Props) {
             ) : null}
             <PrimaryButton
               icon={Save}
-              label={t("common.save", "Save")}
+              label={t("common.save")}
               onPress={handleSaveLlmSettings}
               disabled={!llmDraft && llmSettings.apiKey === currentLlm.apiKey && llmSettings.model === currentLlm.model && llmSettings.baseUrl === currentLlm.baseUrl && llmSettings.providerId === currentLlm.providerId}
             />
@@ -997,7 +997,7 @@ export function SettingsScreen({ navigation }: Props) {
         <View style={{ gap: 8 }}>
           <PrimaryButton
             icon={Star}
-            label={t("update.settingsButton", "Quoi de neuf dans cette version")}
+            label={t("update.settingsButton")}
             onPress={() => navigation.navigate("Update")}
             variant="ghost"
           />
@@ -1021,19 +1021,19 @@ export function SettingsScreen({ navigation }: Props) {
           />
           <PrimaryButton
             icon={Bug}
-            label={t("support.github", "Open Issue")}
+            label={t("support.github")}
             onPress={openGithubIssue}
             variant="ghost"
           />
           <PrimaryButton
             icon={Globe}
-            label={t("support.website", "Website")}
+            label={t("support.website")}
             onPress={() => Linking.openURL("https://logarex.github.io/AvoCook/")}
             variant="ghost"
           />
           <PrimaryButton
             icon={Mail}
-            label={t("support.email", "Contact Us")}
+            label={t("support.email")}
             onPress={contactByEmail}
             variant="ghost"
           />

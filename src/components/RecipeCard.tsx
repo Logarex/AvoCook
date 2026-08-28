@@ -96,7 +96,7 @@ export const RecipeCard = React.memo(function RecipeCard({
           {recipe.recipeCategory ? (
             <View style={styles.metaItem}>
               <Tag color={colors.textMuted} size={14} />
-              <AppText muted variant="caption" numberOfLines={1} style={{ flexShrink: 1 }}>
+              <AppText muted variant="caption" numberOfLines={1} adjustsFontSizeToFit={false} style={{ flexShrink: 1 }}>
                 {recipe.recipeCategory}
               </AppText>
             </View>

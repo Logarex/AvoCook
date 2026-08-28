@@ -487,8 +487,8 @@ function RecipeDetailContent({
     const language = (i18n.language.slice(0, 2) as RecipeLanguage) || "en";
     const healthProfile = getRecipeHealthProfile(recipe);
     Alert.alert(
-      t("community.shareConfirmTitle", { defaultValue: "Partager la recette ?" }),
-      (t("community.shareConfirmBody", { defaultValue: "Voulez-vous partager cette recette avec la communauté ?" })) + `\n\n${recipe.name}`,
+      t("community.shareConfirmTitle"),
+      t("community.shareConfirmBody") + `\n\n${recipe.name}`,
       [
         { text: t("common.cancel"), style: "cancel" },
         {
