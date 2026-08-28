@@ -29,6 +29,18 @@ export function TextField({
   ...props
 }: TextFieldProps) {
   const { colors } = useAppTheme();
+  
+  const [internalValue, setInternalValue] = React.useState(props.value);
+  
+  React.useEffect(() => {
+    setInternalValue(props.value);
+  }, [props.value]);
+
+  const handleChangeText = (text: string) => {
+    setInternalValue(text);
+    props.onChangeText?.(text);
+  };
+
   return (
     <View style={[styles.container, containerStyle]}>
       {label ? (
@@ -39,6 +51,8 @@ export function TextField({
       <View style={styles.inputWrap}>
         <TextInput
           {...props}
+          value={props.value !== undefined ? internalValue : undefined}
+          onChangeText={handleChangeText}
           accessibilityLabel={props.accessibilityLabel ?? label}
           multiline={multiline}
           placeholderTextColor={colors.textMuted}

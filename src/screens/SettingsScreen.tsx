@@ -467,10 +467,10 @@ export function SettingsScreen({ navigation }: Props) {
             value={localPseudonym}
             onChangeText={setLocalPseudonym}
             placeholder={t("settings.communityPseudonymPlaceholder")}
-            textContentType="none"
+            textContentType="nickname"
             autoComplete="off"
             autoCorrect={false}
-            importantForAutofill="no"
+            importantForAutofill="noExcludeDescendants"
           />
           <IconButton
             icon={pseudoSavedAnim ? CheckCheck : Check}

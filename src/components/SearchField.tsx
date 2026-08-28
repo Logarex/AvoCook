@@ -28,6 +28,17 @@ export function SearchField({
   const { t } = useTranslation();
   const { colors } = useAppTheme();
 
+  const [internalValue, setInternalValue] = React.useState(value);
+
+  React.useEffect(() => {
+    setInternalValue(value);
+  }, [value]);
+
+  const handleChangeText = (text: string) => {
+    setInternalValue(text);
+    onChangeText(text);
+  };
+
   return (
     <View
       style={[
@@ -45,13 +56,13 @@ export function SearchField({
         accessibilityLabel={placeholder}
         autoCapitalize="none"
         autoCorrect={false}
-        onChangeText={onChangeText}
+        onChangeText={handleChangeText}
         placeholder={placeholder}
         placeholderTextColor={colors.textMuted}
         returnKeyType="search"
         selectionColor={colors.primary}
         style={[styles.input, { color: colors.text }]}
-        value={value}
+        value={internalValue}
       />
       {value ? (
         <Pressable
