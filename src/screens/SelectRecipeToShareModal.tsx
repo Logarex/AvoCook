@@ -35,13 +35,15 @@ export function SelectRecipeToShareModal({
   const [submitting, setSubmitting] = useState(false);
   const [localPseudonym, setLocalPseudonym] = useState(communityPseudonym || "");
 
-  const filteredRecipes = recipes.filter((r) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return r.name.toLowerCase().includes(q);
-  }).sort((a, b) => a.name.localeCompare(b.name));
+  const filteredRecipes = React.useMemo(() => {
+    return recipes.filter((r) => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return r.name.toLowerCase().includes(q);
+    }).sort((a, b) => a.name.localeCompare(b.name));
+  }, [recipes, searchQuery]);
 
-  const handleSelectRecipe = (recipe: typeof recipes[number]) => {
+  const handleSelectRecipe = React.useCallback((recipe: typeof recipes[number]) => {
     const language = (i18n.language.slice(0, 2) as RecipeLanguage) || "en";
     Alert.alert(
       t("community.shareConfirmTitle"),
@@ -104,14 +106,29 @@ export function SelectRecipeToShareModal({
         }
       ]
     );
-  };
+  }, [t, localPseudonym, communityPseudonym, setCommunityPseudonym, i18n.language, onSuccess, onClose]);
 
-  // Re-sync local state when modal opens
   React.useEffect(() => {
     if (visible) {
       setLocalPseudonym(communityPseudonym || "");
     }
   }, [visible, communityPseudonym]);
+
+  const renderItem = React.useCallback(({ item }: { item: typeof recipes[number] }) => (
+    <Pressable
+      onPress={() => handleSelectRecipe(item)}
+      disabled={submitting}
+      style={({ pressed }) => [
+        styles.recipeItem,
+        {
+          backgroundColor: pressed ? colors.chip : "transparent",
+          borderColor: colors.border
+        }
+      ]}
+    >
+      <AppText variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>{item.name}</AppText>
+    </Pressable>
+  ), [handleSelectRecipe, submitting, colors]);
 
   return (
     <Modal
@@ -175,21 +192,11 @@ export function SelectRecipeToShareModal({
               keyExtractor={(item) => item.id ?? ""}
               contentContainerStyle={styles.listContent}
               style={{ maxHeight: 400 }}
-              renderItem={({ item }) => (
-                <Pressable
-                  onPress={() => handleSelectRecipe(item)}
-                  disabled={submitting}
-                  style={({ pressed }) => [
-                    styles.recipeItem,
-                    {
-                      backgroundColor: pressed ? colors.chip : "transparent",
-                      borderColor: colors.border
-                    }
-                  ]}
-                >
-                  <AppText variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>{item.name}</AppText>
-                </Pressable>
-              )}
+              initialNumToRender={15}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+              removeClippedSubviews={true}
+              renderItem={renderItem}
               ListEmptyComponent={
                 <AppText muted style={styles.emptyText}>
                   {t("recipes.emptyTitle")}

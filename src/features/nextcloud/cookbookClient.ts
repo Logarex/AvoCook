@@ -66,6 +66,7 @@ export class CookbookClient {
   private webDavUserId: string | null;
   private webDavUserIdPromise: Promise<string> | null;
   private webDavPathStyle: WebDavPathStyle | null;
+  private readonly _imageHeaders: Record<string, string>;
 
   private static currentInstance: CookbookClient | null = null;
 
@@ -82,6 +83,7 @@ export class CookbookClient {
     this.webDavUserId = credentials.userId?.trim() || null;
     this.webDavUserIdPromise = null;
     this.webDavPathStyle = null;
+    this._imageHeaders = { Authorization: this.authorization };
     CookbookClient.currentInstance = this;
   }
 
@@ -92,9 +94,7 @@ export class CookbookClient {
   }
 
   getImageHeaders() {
-    return {
-      Authorization: this.authorization
-    };
+    return this._imageHeaders;
   }
 
   async getCapabilities() {

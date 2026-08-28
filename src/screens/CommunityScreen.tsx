@@ -82,17 +82,19 @@ export function CommunityScreen({ navigation }: Props) {
     }, [loadData])
   );
 
-  const filteredRecipes = recipes.filter((r) => {
-    if (!searchQuery.trim()) return true;
-    const q = searchQuery.toLowerCase();
-    return (
-      r.title.toLowerCase().includes(q) ||
-      r.description.toLowerCase().includes(q) ||
-      r.authorName.toLowerCase().includes(q)
-    );
-  });
+  const filteredRecipes = React.useMemo(() => {
+    return recipes.filter((r) => {
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        r.title.toLowerCase().includes(q) ||
+        r.description.toLowerCase().includes(q) ||
+        r.authorName.toLowerCase().includes(q)
+      );
+    });
+  }, [recipes, searchQuery]);
 
-  const renderRecipeItem = ({ item }: { item: CommunityRecipe }) => (
+  const renderRecipeItem = useCallback(({ item }: { item: CommunityRecipe }) => (
     <Pressable
       onPress={() => navigation.navigate("CommunityDetail", { id: item.id })}
       style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
@@ -135,7 +137,7 @@ export function CommunityScreen({ navigation }: Props) {
         </View>
       </GlassPanel>
     </Pressable>
-  );
+  ), [navigation, colors, t]);
 
   return (
     <PageSwipeGesture
@@ -221,6 +223,10 @@ export function CommunityScreen({ navigation }: Props) {
           keyExtractor={(item) => item.id}
           renderItem={renderRecipeItem}
           contentContainerStyle={styles.listContent}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
+          removeClippedSubviews={true}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

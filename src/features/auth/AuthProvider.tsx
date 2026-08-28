@@ -139,12 +139,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLocalMode(false);
   }, []);
 
-  const getClient = useCallback(() => {
+  const clientInstance = useMemo(() => {
     if (!credentials) {
       return null;
     }
     return new CookbookClient(credentials);
   }, [credentials]);
+
+  const getClient = useCallback(() => {
+    return clientInstance;
+  }, [clientInstance]);
 
   const value = useMemo(
     () => ({
