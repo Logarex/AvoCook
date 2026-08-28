@@ -556,6 +556,28 @@ export function RecipeListScreen({ navigation }: Props) {
               onPress={() => setCategory(item.id)}
             />
           ))}
+          <Pressable
+            accessibilityLabel={t("common.add")}
+            accessibilityRole="button"
+            onPress={() => setShowCategoryPicker(true)}
+            style={({ pressed }) => [
+              styles.categoryChip,
+              {
+                backgroundColor: colors.surfaceGlassStrong,
+                borderColor: colors.primary,
+                borderStyle: "dashed",
+                opacity: pressed ? 0.78 : 1,
+              },
+            ]}
+          >
+            <Plus color={colors.primary} size={16} strokeWidth={3} />
+            <AppText
+              variant="label"
+              style={{ color: colors.primary }}
+            >
+              {t("common.add")}
+            </AppText>
+          </Pressable>
         </ScrollView>
 
         {updateInfo && !dismissedUpdate ? (
