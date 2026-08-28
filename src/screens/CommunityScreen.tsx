@@ -28,6 +28,7 @@ import {
 } from "../features/community/communityClient";
 import { SelectRecipeToShareModal } from "./SelectRecipeToShareModal";
 import type { RootStackParamList } from "../navigation/types";
+import type { QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
@@ -54,6 +55,41 @@ export function CommunityScreen({ navigation }: Props) {
   const [selectedLanguage, setSelectedLanguage] = useState<RecipeLanguage | "all">("all");
   const [minRating] = useState<number>(0);
   const [showSelectModal, setShowSelectModal] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  
+  // Search cache to optimize full-text search without heavy operations
+  const [searchCache, setSearchCache] = useState<CommunityRecipe[] | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
+
+  // Clear search cache when filters change
+  React.useEffect(() => {
+    setSearchCache(null);
+  }, [selectedLanguage, minRating]);
+
+  // Load search cache when user starts typing
+  React.useEffect(() => {
+    if (searchQuery.trim().length > 0 && searchCache === null && !isSearching) {
+      const loadSearchCache = async () => {
+        setIsSearching(true);
+        try {
+          const res = await fetchCommunityRecipes({
+            language: selectedLanguage,
+            minRating,
+            sortBy: "alphabetical",
+            pageSize: 200 // Fetch a large batch once for local search
+          });
+          setSearchCache(res.recipes);
+        } catch (err) {
+          console.warn("community", "Failed to fetch search cache", err);
+        } finally {
+          setIsSearching(false);
+        }
+      };
+      void loadSearchCache();
+    }
+  }, [searchQuery, searchCache, isSearching, selectedLanguage, minRating]);
 
   const loadData = useCallback(
     async (isRefresh = false) => {
@@ -63,9 +99,12 @@ export function CommunityScreen({ navigation }: Props) {
         const res = await fetchCommunityRecipes({
           language: selectedLanguage,
           minRating,
-          sortBy: "recent"
+          sortBy: "alphabetical",
+          pageSize: 20
         });
         setRecipes(res.recipes);
+        setLastDoc(res.lastDoc);
+        setHasMore(res.hasMore);
       } catch (err) {
         console.warn("community", "Failed to fetch community recipes", err);
       } finally {
@@ -76,6 +115,27 @@ export function CommunityScreen({ navigation }: Props) {
     [selectedLanguage, minRating]
   );
 
+  const loadMore = useCallback(async () => {
+    if (loading || loadingMore || !hasMore || refreshing) return;
+    setLoadingMore(true);
+    try {
+      const res = await fetchCommunityRecipes({
+        language: selectedLanguage,
+        minRating,
+        sortBy: "alphabetical",
+        pageSize: 20,
+        after: lastDoc || undefined
+      });
+      setRecipes((prev) => [...prev, ...res.recipes]);
+      setLastDoc(res.lastDoc);
+      setHasMore(res.hasMore);
+    } catch (err) {
+      console.warn("community", "Failed to fetch more community recipes", err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [loading, loadingMore, hasMore, refreshing, selectedLanguage, minRating, lastDoc]);
+
   useFocusEffect(
     useCallback(() => {
       void loadData();
@@ -83,7 +143,8 @@ export function CommunityScreen({ navigation }: Props) {
   );
 
   const filteredRecipes = React.useMemo(() => {
-    return recipes.filter((r) => {
+    const source = searchQuery.trim() ? (searchCache || recipes) : recipes;
+    return source.filter((r) => {
       if (!searchQuery.trim()) return true;
       const q = searchQuery.toLowerCase();
       return (
@@ -92,7 +153,7 @@ export function CommunityScreen({ navigation }: Props) {
         r.authorName.toLowerCase().includes(q)
       );
     });
-  }, [recipes, searchQuery]);
+  }, [recipes, searchCache, searchQuery]);
 
   const renderRecipeItem = useCallback(({ item }: { item: CommunityRecipe }) => (
     <Pressable
@@ -212,7 +273,7 @@ export function CommunityScreen({ navigation }: Props) {
       />
 
       {/* Recipe list */}
-      {loading ? (
+      {loading || (searchQuery.trim().length > 0 && isSearching) ? (
         <View style={styles.loading}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
@@ -227,6 +288,15 @@ export function CommunityScreen({ navigation }: Props) {
           maxToRenderPerBatch={10}
           windowSize={5}
           removeClippedSubviews={true}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            loadingMore ? (
+              <View style={{ padding: spacing.md, alignItems: "center" }}>
+                <ActivityIndicator color={colors.primary} />
+              </View>
+            ) : null
+          }
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

@@ -488,7 +488,6 @@ function ShoppingListRow({
     }
     if (label !== item.label) {
       void onUpdate(item.id, label);
-      return;
     }
     onStopEditing();
   }

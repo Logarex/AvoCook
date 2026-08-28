@@ -48,7 +48,7 @@ export type CommunityRecipe = {
 export type FetchRecipesOptions = {
   language?: RecipeLanguage | "all";
   minRating?: number;
-  sortBy?: "recent" | "topRated" | "mostVoted";
+  sortBy?: "recent" | "topRated" | "mostVoted" | "alphabetical";
   pageSize?: number;
   after?: QueryDocumentSnapshot<DocumentData>;
 };
@@ -117,18 +117,22 @@ export async function fetchCommunityRecipes(
 
   const coll = collection(getDb(), "communityRecipes");
   const orderField =
-    sortBy === "topRated"
+    sortBy === "alphabetical"
+      ? "title"
+      : sortBy === "topRated"
       ? "avgRating"
       : sortBy === "mostVoted"
       ? "ratingCount"
       : "createdAt";
 
+  const direction = sortBy === "alphabetical" ? "asc" : "desc";
+
   // To avoid requiring complex composite indexes in Firebase, we just query by the order field
   // and do the filtering client-side. We fetch a larger batch to ensure we have enough results.
-  const constraints: QueryConstraint[] = [orderBy(orderField, "desc")];
+  const constraints: QueryConstraint[] = [orderBy(orderField, direction)];
   
   if (afterDoc) constraints.push(startAfter(afterDoc));
-  constraints.push(limit(100)); // Fetch more to allow client-side filtering
+  constraints.push(limit(Math.max(100, pageSize * 2))); // Fetch more to allow client-side filtering
 
   const snap = await getDocs(query(coll, ...constraints));
   
