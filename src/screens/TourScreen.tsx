@@ -22,6 +22,7 @@ import {
   ShoppingCart,
   Smartphone,
   Timer,
+  Users,
 } from "lucide-react-native";
 import React, { useCallback, useRef, useState } from "react";
 import {
@@ -65,9 +66,11 @@ function getTourSteps(isLocalMode: boolean, isIos: boolean): TourStep[] {
     { icon: Plus, titleKey: "tour.step2Title", bodyKey: "tour.step2Body" },
     { icon: Download, titleKey: "tour.step3Title", bodyKey: "tour.step3Body" },
     { icon: Camera, titleKey: "tour.step4Title", bodyKey: "tour.step4Body", extra: (ctx) => <AIGuide colors={ctx.colors} t={ctx.t} /> },
+    { icon: Users, titleKey: "tour.stepCommunityTitle", bodyKey: "tour.stepCommunityBody" },
     { icon: ChefHat, titleKey: "tour.step5Title", bodyKey: "tour.step5Body" },
     { icon: ListFilter, titleKey: "tour.stepSortTitle", bodyKey: "tour.stepSortBody", extra: (ctx) => <SortGuide {...ctx} /> },
     { icon: ShoppingCart, titleKey: "tour.step6Title", bodyKey: "tour.step6Body" },
+    { icon: Share2, titleKey: "tour.stepSharedListTitle", bodyKey: "tour.stepSharedListBody" },
   ];
 
   if (isIos) {

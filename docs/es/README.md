@@ -11,32 +11,13 @@ Lo desarrollé para uso personal mientras aprendía a llevar un proyecto React N
   <img src="../../assets/screenshots/es/recipe.png" width="280" alt="Detalle de la receta" />
 </div>
 
-## Novedades en la v4.0.0
-
-**Plataforma de Recetas Comunitaria**
-- **Compartir, Calificar e Importar:** Un nuevo gran espacio para descubrir, calificar, reportar e importar recetas directamente desde la comunidad AvoCook.
-- **Perfiles Comunitarios:** Configura un seudónimo comunitario para compartir tus mejores platos.
-- **Metadatos Enriquecidos:** Las recetas comunitarias soportan información nutricional y tiempos de preparación.
-- **Moderación y Calidad:** Un filtro global de groserías mantiene la plataforma segura, mientras un sistema de detección de duplicados previene el spam.
-
-**Listas de Compras Compartidas en Tiempo Real**
-- **Colaboración con Código de 6 Dígitos:** Ahora es posible compartir y colaborar en listas de compras usando un simple código.
-- **Indicador de Sincronización:** Se ha añadido un indicador de estado de sincronización para saber cuándo se está actualizando la lista.
-
-**Mejoras de Interfaz (UI)**
-- **Selector de Categoría Rápido:** Nuevo botón para abrir el selector de categorías desde la lista de recetas.
-- **Mejores Modales:** El modal "Seleccionar receta para compartir" ordena las recetas alfabéticamente y mejora el escalado de fuentes.
-- **Ajustes y Tipografía:** Etiquetas multilínea en los ajustes y mejoras en la tipografía general.
-- **Normalización de Caracteres:** Mejora en la búsqueda y ordenación.
-
-**Mejoras internas e Idiomas**
-- **Idioma Danés:** ¡Soporte completo para danés! Las importaciones de recetas ahora preservan mejor su idioma original.
-- **Motor de Traducción:** Migración de textos estáticos a claves i18n para un soporte de traducción absoluto.
-- **Rendimiento:** Manejo de estado asíncrono altamente optimizado para una experiencia mucho más ágil.
-
----
-
 ## Funcionalidades
+
+### Plataforma de la Comunidad
+
+- Descubre, califica e importa recetas de la comunidad AvoCook;
+- Comparte tus mejores comidas configurando un perfil de la comunidad;
+- Plataforma segura y moderada con detección de spam integrada.
 
 ### Recetas
 
@@ -55,6 +36,7 @@ Lo desarrollé para uso personal mientras aprendía a llevar un proyecto React N
 
 ### Lista de la compra
 
+- Colabora en listas de compras en tiempo real mediante un código de 6 dígitos;
 - Copiar los ingredientes al portapapeles con un toque;
 - Exportar una lista de la compra a Recordatorios de iOS para aprovechar el sistema de compartir de Apple y la integración con Siri.
 

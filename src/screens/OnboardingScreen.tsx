@@ -11,9 +11,10 @@ import {
   
   Smartphone,
   ShoppingCart,
+  Share2,
   Star,
   Timer,
-  
+  Users,
 } from "lucide-react-native";
 import { Image } from "expo-image";
 import React, { useRef, useState } from "react";
@@ -40,6 +41,7 @@ import { usePreferences } from "../features/preferences/PreferencesProvider";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { useAuth } from "../features/auth/AuthProvider";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -60,6 +62,8 @@ const FEATURES: FeatureRow[] = [
   { icon: Star, titleKey: "feature6Title", bodyKey: "feature6Body" },
   { icon: ExternalLink, titleKey: "feature7Title", bodyKey: "feature7Body" },
   { icon: Cloud, titleKey: "feature8Title", bodyKey: "feature8Body" },
+  { icon: Users, titleKey: "feature10Title", bodyKey: "feature10Body" },
+  { icon: Share2, titleKey: "feature11Title", bodyKey: "feature11Body" },
   { icon: HelpCircle, titleKey: "feature9Title", bodyKey: "feature9Body" },
 ];
 
@@ -69,9 +73,12 @@ export function OnboardingScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { language, setLanguage } = usePreferences();
   const { markIntroDone } = useOnboarding();
+  const { credentials, isLocalMode } = useAuth();
   const scrollViewRef = useRef<ScrollView>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const scrollX = useRef(new Animated.Value(0)).current;
+
+  const isAuthenticated = Boolean(credentials || isLocalMode);
 
   const logo = isDark
     ? require("../../assets/logo-dark-transparent.png")
@@ -84,7 +91,11 @@ export function OnboardingScreen({ navigation }: Props) {
 
   async function handleStart() {
     await markIntroDone();
-    navigation.replace("Login");
+    if (isAuthenticated) {
+      navigation.replace("Tour");
+    } else {
+      navigation.replace("Login");
+    }
   }
 
   const dotInputRange = [0, SCREEN_WIDTH];

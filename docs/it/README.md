@@ -13,32 +13,13 @@ L'ho sviluppato per uso personale mentre imparavo a portare avanti un progetto R
 
 ---
 
-## Novità della v4.0.0
-
-**Piattaforma di Ricette Comunitaria**
-- **Condividi, Valuta e Importa:** Un nuovo grande spazio per scoprire, valutare, segnalare e importare ricette direttamente dalla comunità AvoCook.
-- **Profili Comunitari:** Imposta uno pseudonimo comunitario per condividere i tuoi piatti migliori.
-- **Metadati Ricchi:** Le ricette comunitarie supportano completamente informazioni nutrizionali e tempi di preparazione.
-- **Moderazione e Qualità:** Un filtro globale per le volgarità mantiene la piattaforma sicura e un sistema di rilevamento dei duplicati previene lo spam.
-
-**Liste della Spesa Condivise in Tempo Reale**
-- **Collaborazione con Codice a 6 Cifre:** Ora puoi condividere e collaborare alle liste della spesa con un semplice codice.
-- **Indicatore di Sincronizzazione:** Aggiunto un indicatore di stato della sincronizzazione visibile.
-
-**Miglioramenti dell'Interfaccia (UI)**
-- **Selezione Rapida Categorie:** Nuovo pulsante per il filtro categorie direttamente nella lista ricette.
-- **Migliori Modali:** La modale di selezione ricette ora le ordina alfabeticamente.
-- **Impostazioni e Tipografia:** Etichette multilinea nelle impostazioni e tipografia migliorata.
-- **Normalizzazione dei Caratteri:** Ricerca e ordinamento ottimizzati per i caratteri speciali.
-
-**Sotto il cofano e Lingue**
-- **Lingua Danese:** Supporto completo per il danese! Le importazioni preservano meglio la lingua originale.
-- **Motore di Traduzione:** Tutte le stringhe rimaste sono state migrate alle chiavi i18n per una traduzione assoluta.
-- **Prestazioni:** Gestione degli stati asincroni fortemente ottimizzata per una maggiore reattività.
-
----
-
 ## Funzionalità
+
+### Piattaforma Comunità
+
+- Scopri, valuta e importa ricette dalla comunità AvoCook;
+- Condividi i tuoi piatti migliori impostando un profilo comunitario;
+- Piattaforma sicura e moderata con rilevamento dello spam integrato.
 
 ### Ricette
 
@@ -57,6 +38,7 @@ L'ho sviluppato per uso personale mentre imparavo a portare avanti un progetto R
 
 ### Lista della spesa
 
+- Collabora alle liste della spesa in tempo reale tramite un codice a 6 cifre;
 - Copiare gli ingredienti negli appunti con un tocco;
 - Esportare una lista della spesa in Promemoria iOS per sfruttare la condivisione Apple e l'integrazione con Siri.
 

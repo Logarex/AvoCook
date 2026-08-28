@@ -15,32 +15,13 @@ I built it for personal use while learning to ship a complete React Native proje
 
 ---
 
-## What's new in v4.0.0
-
-**Community Recipe Platform**
-- **Share, Rate & Import:** A massive new space to discover, rate, report, and import recipes directly from the AvoCook community.
-- **Community Profiles:** Set up a community pseudonym (with persistent storage) to share your best meals.
-- **Rich Metadata:** Community recipes fully support nutritional information and prep timing metadata.
-- **Moderation & Quality:** A global built-in profanity filter keeps the platform safe, while a new duplicate detection system prevents spam for both local imports and community submissions. 
-
-**Real-Time Shared Shopping Lists**
-- **6-Digit Code Collaboration:** It is now possible to share and collaborate on grocery lists with other people using a simple 6-digit code.
-- **Sync Indicator:** Added an active synchronization status indicator to the Shopping List screen so everyone knows when the list is updating.
-
-**UI Polish & Enhancements**
-- **Quick Category Picker:** Added a new button to trigger the category picker directly within the Recipe List screen.
-- **Better Modals:** The "Select Recipe to Share" modal now sorts recipes alphabetically and prevents awkward font scaling on different devices.
-- **Settings & Typography:** Enabled multi-line labels for buttons in settings and improved the overall typography and spacing across search and community screens. 
-- **Character Normalization:** Special characters in recipe lists are now normalized for better searching and sorting.
-
-**Localization & Under the hood**
-- **Danish Language:** Full Danish localization support has been added! Recipe imports will now better preserve their original language.
-- **Translation Engine:** Migrated remaining hardcoded strings to i18n keys for absolute translation support across all screens (including new error keys).
-- **Performance:** Heavily optimized asynchronous state handling across all screens and removed obsolete asset scripts for a snappier experience. Removed deprecated Play Integrity requirements.
-
----
-
 ## Features
+
+### Community Platform
+
+- Discover, rate, and import recipes from the AvoCook community;
+- Share your best meals by setting up a community profile;
+- Safe and moderated platform with built-in spam detection.
 
 ### Recipes
 
@@ -59,6 +40,7 @@ I built it for personal use while learning to ship a complete React Native proje
 
 ### Shopping list
 
+- Collaborate on grocery lists in real-time using a 6-digit code;
 - Copy ingredients to the clipboard with a tap;
 - Export a shopping list to iOS Reminders to take advantage of Apple's sharing and Siri integration.
 

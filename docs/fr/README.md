@@ -13,32 +13,13 @@ Je l'ai développé pour mon usage personnel en apprenant à mener un projet Rea
 
 ---
 
-## Nouveautés de la v4.0.0
-
-**Plateforme de Recettes Communautaires**
-- **Partager, Noter & Importer :** Un grand espace inédit pour découvrir, noter, signaler et importer des recettes directement depuis la communauté AvoCook.
-- **Profils Communautaires :** Créez un pseudonyme communautaire persistant pour partager vos meilleurs plats.
-- **Métadonnées Riches :** Les recettes communautaires prennent pleinement en charge les informations nutritionnelles et les temps de préparation.
-- **Modération & Qualité :** Un filtre anti-gros mots intégré sécurise la plateforme, et un nouveau système de détection des doublons empêche le spam lors des imports locaux et des publications.
-
-**Listes de Courses Partagées en Temps Réel**
-- **Collaboration par code à 6 chiffres :** Partagez et collaborez désormais sur vos listes de courses à l'aide d'un simple code.
-- **Indicateur de Synchro :** Un indicateur visuel de l'état de synchronisation s'affiche pour vous informer des mises à jour en direct.
-
-**Améliorations de l'Interface**
-- **Sélecteur de Catégorie Rapide :** Un nouveau bouton permet de déclencher le filtre par catégorie directement dans la liste de recettes.
-- **Meilleures Modales :** La modale de sélection de recettes à partager trie désormais les recettes par ordre alphabétique et évite les problèmes d'échelle de police.
-- **Paramètres & Typographie :** Libellés multilignes dans les paramètres, et amélioration globale de la typographie et des espacements sur la recherche et la communauté.
-- **Normalisation des Caractères :** Les caractères spéciaux sont normalisés pour faciliter la recherche et le tri.
-
-**Sous le capot & Langues**
-- **Langue Danoise :** Prise en charge complète de la langue danoise ! L'importation de recettes préserve aussi mieux la langue d'origine.
-- **Moteur de Traduction :** Migration des dernières chaînes codées en dur pour une prise en charge absolue de la traduction.
-- **Performances :** Optimisation majeure de la gestion asynchrone des états et retrait de scripts obsolètes pour une interface plus réactive.
-
----
-
 ## Fonctionnalités
+
+### Plateforme Communautaire
+
+- Découvrez, notez et importez des recettes de la communauté AvoCook ;
+- Partagez vos meilleurs plats en créant un profil communautaire ;
+- Plateforme modérée et sécurisée avec détection de spam intégrée.
 
 ### Recettes
 
@@ -57,6 +38,7 @@ Je l'ai développé pour mon usage personnel en apprenant à mener un projet Rea
 
 ### Liste de courses
 
+- Collaborez sur vos listes de courses en temps réel à l'aide d'un code à 6 chiffres ;
 - Copier les ingrédients dans le presse-papiers en un geste ;
 - Exporter une liste de courses vers les Rappels iOS pour profiter du partage Apple et de l'intégration Siri.
 
