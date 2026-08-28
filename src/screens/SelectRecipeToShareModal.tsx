@@ -39,7 +39,7 @@ export function SelectRecipeToShareModal({
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return r.name.toLowerCase().includes(q);
-  });
+  }).sort((a, b) => a.name.localeCompare(b.name));
 
   const handleSelectRecipe = (recipe: typeof recipes[number]) => {
     const language = (i18n.language.slice(0, 2) as RecipeLanguage) || "en";
@@ -181,7 +181,7 @@ export function SelectRecipeToShareModal({
                     }
                   ]}
                 >
-                  <AppText variant="label" numberOfLines={1}>{item.name}</AppText>
+                  <AppText variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>{item.name}</AppText>
                 </Pressable>
               )}
               ListEmptyComponent={
