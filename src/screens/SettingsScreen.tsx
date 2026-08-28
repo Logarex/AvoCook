@@ -809,6 +809,7 @@ export function SettingsScreen({ navigation }: Props) {
             onPress={() => void handleExportBackup()}
             style={styles.backupButton}
             variant="ghost"
+            numberOfLines={2}
           />
           <PrimaryButton
             disabled={backupAction !== null}
@@ -821,6 +822,7 @@ export function SettingsScreen({ navigation }: Props) {
             onPress={() => handleImportBackup()}
             style={styles.backupButton}
             variant="ghost"
+            numberOfLines={2}
           />
         </View>
       </GlassPanel>

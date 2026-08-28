@@ -12,6 +12,7 @@ type PrimaryButtonProps = {
   variant?: "primary" | "secondary" | "ghost" | "danger" | "danger-secondary";
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
+  numberOfLines?: number;
 };
 
 export function PrimaryButton({
@@ -20,7 +21,8 @@ export function PrimaryButton({
   icon: Icon,
   variant = "primary",
   disabled = false,
-  style
+  style,
+  numberOfLines = 1,
 }: PrimaryButtonProps) {
   const { colors } = useAppTheme();
   const backgroundColor =
@@ -61,7 +63,7 @@ export function PrimaryButton({
       <View style={styles.content}>
         {Icon ? <Icon color={foregroundColor} size={18} strokeWidth={2.5} /> : null}
         <AppText
-          numberOfLines={1}
+          numberOfLines={numberOfLines}
           variant="label"
           style={[styles.label, { color: foregroundColor }]}
         >

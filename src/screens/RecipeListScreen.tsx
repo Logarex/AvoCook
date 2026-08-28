@@ -632,6 +632,7 @@ export function RecipeListScreen({ navigation }: Props) {
                   }}
                   style={styles.updateActionButton}
                   variant="ghost"
+                  numberOfLines={2}
                 />
               ) : null}
               <PrimaryButton
@@ -641,6 +642,7 @@ export function RecipeListScreen({ navigation }: Props) {
                   void Linking.openURL(url);
                 }}
                 style={styles.updateActionButton}
+                numberOfLines={2}
               />
             </View>
           </GlassPanel>
@@ -681,6 +683,7 @@ export function RecipeListScreen({ navigation }: Props) {
                 label={t("settings.exportBackup")}
                 onPress={() => void handleBackupReminderExport()}
                 style={styles.updateActionButton}
+                numberOfLines={2}
               />
             </View>
           </GlassPanel>
