@@ -66,20 +66,24 @@ export function SelectRecipeToShareModal({
                 return;
               }
 
-              await submitCommunityRecipe({
-                title: recipe.name,
+              const payload: any = {
+                title: recipe.name || "",
                 description: recipe.description || "",
-                ingredients: recipe.recipeIngredient,
-                steps: recipe.recipeInstructions,
+                ingredients: recipe.recipeIngredient || [],
+                steps: recipe.recipeInstructions || [],
                 language,
                 authorName: finalPseudonym,
-                sourceUrl: recipe.url || undefined,
-                prepTime: recipe.prepTime || undefined,
-                cookTime: recipe.cookTime || undefined,
-                servings: recipe.recipeYield,
-                nutriScore: (recipe.localMeta?.nutriScoreOverride && recipe.localMeta.nutriScoreOverride !== "?") ? recipe.localMeta.nutriScoreOverride : undefined,
-                imageUrl: Array.isArray(recipe.image) ? recipe.image[0] : (recipe.image || undefined)
-              });
+                prepTime: recipe.prepTime || null,
+                cookTime: recipe.cookTime || null,
+                servings: recipe.recipeYield ? Number(recipe.recipeYield) : null,
+                nutriScore: (recipe.localMeta?.nutriScoreOverride && recipe.localMeta.nutriScoreOverride !== "?") ? recipe.localMeta.nutriScoreOverride : null,
+              };
+
+              if (recipe.url) payload.sourceUrl = recipe.url;
+              const imgUrl = Array.isArray(recipe.image) ? recipe.image[0] : recipe.image;
+              if (imgUrl) payload.imageUrl = imgUrl;
+
+              await submitCommunityRecipe(payload);
               Alert.alert(
                 t("community.submitSuccessTitle"),
                 t("community.submitSuccessBody", { defaultValue: "Merci pour votre contribution ! La recette est en ligne." })

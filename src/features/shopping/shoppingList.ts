@@ -55,11 +55,16 @@ export function addIngredientsToShoppingList(
       id: createId(),
       label,
       checked: false,
-      recipeId: source.recipeId ?? undefined,
-      recipeName: normalizeShoppingText(source.recipeName ?? ""),
       createdAt: now,
       updatedAt: now
     };
+    if (source.recipeId) {
+      item.recipeId = source.recipeId;
+    }
+    const rName = normalizeShoppingText(source.recipeName ?? "");
+    if (rName) {
+      item.recipeName = rName;
+    }
     const duplicateKey = getDuplicateKey(item);
     if (!options.allowDuplicates && existingKeys.has(duplicateKey)) {
       continue;
