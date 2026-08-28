@@ -361,6 +361,7 @@ export function ShoppingListScreen({ navigation }: Props) {
           placeholder={t("shoppingList.itemPlaceholder")}
           returnKeyType="done"
           value={newItem}
+          autoCorrect={false}
         />
         <IconButton
           disabled={!newItem.trim()}
@@ -552,6 +553,7 @@ function ShoppingListRow({
               }
             ]}
             value={draftLabel}
+            autoCorrect={false}
           />
         ) : (
           <Pressable

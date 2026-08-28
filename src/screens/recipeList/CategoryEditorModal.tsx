@@ -69,6 +69,7 @@ export function CategoryEditorModal({
             label={t("recipes.categoryName")}
             onChangeText={setName}
             value={name}
+            autoCorrect={false}
             rightElement={
               <Pressable
                 accessibilityLabel={t("recipes.toggleFavorite")}
