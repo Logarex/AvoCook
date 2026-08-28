@@ -13,6 +13,31 @@ Ich habe es für den persönlichen Gebrauch entwickelt und dabei gelernt, ein vo
 
 ---
 
+## Was ist neu in v4.0.0
+
+**Community-Rezeptplattform**
+- **Teilen, Bewerten & Importieren:** Ein neuer großer Bereich, um Rezepte direkt aus der AvoCook-Community zu entdecken, zu bewerten, zu melden und zu importieren.
+- **Community-Profile:** Erstelle ein Community-Pseudonym, um deine besten Gerichte zu teilen.
+- **Erweiterte Metadaten:** Community-Rezepte unterstützen Nährwertangaben und Zubereitungszeiten.
+- **Moderation & Qualität:** Ein globaler Schimpfwortfilter hält die Plattform sicher, und eine Duplikaterkennung verhindert Spam.
+
+**Echtzeit-Geteilte Einkaufslisten**
+- **Zusammenarbeit mit 6-stelligem Code:** Es ist jetzt möglich, Einkaufslisten über einen einfachen Code mit anderen zu teilen.
+- **Synchronisationsanzeige:** Ein Statusindikator zeigt an, wann die Liste aktualisiert wird.
+
+**UI-Verbesserungen**
+- **Schnelle Kategorieauswahl:** Neuer Button zum Öffnen der Kategorieauswahl direkt in der Rezeptliste.
+- **Bessere Modalfenster:** Das Modal "Rezept zum Teilen auswählen" sortiert Rezepte nun alphabetisch.
+- **Einstellungen & Typografie:** Mehrzeilige Labels in den Einstellungen und verbesserte Typografie insgesamt.
+- **Zeichennormalisierung:** Bessere Suche und Sortierung für Sonderzeichen.
+
+**Lokalisierung & Unter der Haube**
+- **Dänische Sprache:** Volle Unterstützung für Dänisch! Rezeptimporte erhalten nun besser ihre Originalsprache.
+- **Übersetzungs-Engine:** Alle fest codierten Strings wurden in i18n-Schlüssel migriert.
+- **Leistung:** Stark optimierte asynchrone Statusverwaltung für eine flüssigere Bedienung.
+
+---
+
 ## Funktionen
 
 ### Rezepte
