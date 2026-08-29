@@ -197,6 +197,17 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
     pickerFn: (options: ImagePicker.ImagePickerOptions) => Promise<ImagePicker.ImagePickerResult>
   ) {
     setError(null);
+
+    // Step 1: Show instructions explaining what to crop
+    await new Promise<void>((resolve) => {
+      Alert.alert(
+        t("importRecipe.cropInstructionsTitle"),
+        t("importRecipe.cropInstructionsBody"),
+        [{ text: t("common.continue"), onPress: () => resolve() }]
+      );
+    });
+
+    // Step 2: Pick / shoot the recipe image (with editing enabled for recipe text)
     const result = await pickerFn({
       mediaTypes: ["images"],
       quality: 0.4,
@@ -226,16 +237,71 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         llmSettings.model,
         i18n.language
       );
-      
+
+      // Step 3: Persist the cropped recipe-text image as the recipe photo by default
+      let recipePhotoUri: string | null = null;
       try {
-        const photoLocalUri = await persistRecipeImage(asset.uri);
-        recipe.image = photoLocalUri;
-        recipe.imageUrl = photoLocalUri;
+        recipePhotoUri = await persistRecipeImage(asset.uri);
+        recipe.image = recipePhotoUri;
+        recipe.imageUrl = recipePhotoUri;
       } catch (imgErr) {
         console.error("app", "Failed to persist recipe image", imgErr);
       }
 
+      // Step 4: Ask user if they want to pick a separate meal photo
+      stopLongActionNotice();
+      setSubmitting(null);
+
+      await new Promise<void>((resolve) => {
+        Alert.alert(
+          t("importRecipe.mealPhotoTitle"),
+          t("importRecipe.mealPhotoBody"),
+          [
+            {
+              text: t("importRecipe.mealPhotoPickNew"),
+              onPress: () => {
+                void (async () => {
+                  try {
+                    const mealResult = await ImagePicker.launchImageLibraryAsync({
+                      mediaTypes: ["images"],
+                      quality: 0.7,
+                      allowsEditing: true,
+                      aspect: [4, 3]
+                    });
+                    if (!mealResult.canceled && mealResult.assets[0]) {
+                      const mealUri = await persistRecipeImage(mealResult.assets[0].uri);
+                      recipe.image = mealUri;
+                      recipe.imageUrl = mealUri;
+                    }
+                  } catch {
+                    // ignore, keep the recipe-text crop
+                  }
+                  resolve();
+                })();
+              }
+            },
+            {
+              text: t("importRecipe.mealPhotoUseCurrent"),
+              onPress: () => resolve()
+            },
+            {
+              text: t("importRecipe.mealPhotoSkip"),
+              style: "cancel",
+              onPress: () => {
+                // No photo at all
+                recipe.image = "";
+                recipe.imageUrl = "";
+                resolve();
+              }
+            }
+          ]
+        );
+      });
+
+      setSubmitting("photo");
+      const stopLongActionNotice2 = watchLongAction("longActions.importRecipe");
       const saved = await createRecipe(recipe);
+      stopLongActionNotice2();
       if (saved.id) {
         navigation.replace("RecipeDetail", { id: saved.id });
       } else {

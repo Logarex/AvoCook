@@ -369,7 +369,18 @@ export default {
       shareConfirmBody: "¿Quieres compartir esta receta con la comunidad?",
       shareToCommunity: "Compartir en la comunidad",
       duplicateTitle: "Duplicado detectado",
-      duplicateBody: "Ya existe una receta con el mismo nombre, autor o pasos."
+      duplicateBody: "Ya existe una receta con el mismo nombre, autor o pasos.",
+      updateOrNewTitle: "Receta existente",
+      updateOrNewBody: "¿Deseas actualizar la receta existente o publicar una nueva entrada?",
+      updateExisting: "Actualizar",
+      publishAsNew: "Publicar como nueva",
+      updateSuccessTitle: "¡Receta actualizada!",
+      updateSuccessBody: "Tu receta de la comunidad ha sido actualizada.",
+      deleteTitle: "Eliminar mi receta",
+      deleteConfirmBody: "¿Deseas eliminar permanentemente tu receta de la comunidad? Esta acción es irreversible.",
+      deletedTitle: "Receta eliminada",
+      deletedBody: "Tu receta ha sido retirada de la comunidad.",
+      deleteFailedBody: "No se pudo eliminar la receta. Inténtalo de nuevo."
     },
     editor: {
       newRecipe: "Nueva receta",
@@ -463,6 +474,13 @@ export default {
       textFailed: "Error al generar la receta.",
       papillesBlocked: "La importación desde Papilles & Pupilles está desactivada a petición de su autora para preservar su modelo gratuito.",
       incompleteRecipe: "No se pudo extraer ninguna receta. Si se trata de un blog de cocina, es probable que el autor haya bloqueado la importación automática.",
+      cropInstructionsTitle: "Encuadra la receta",
+      cropInstructionsBody: "Aís la parte de la imagen que contiene el texto de la receta (título, ingredientes, pasos). Si tu foto muestra solo un plato terminado, la IA creará la receta a partir del plato.",
+      mealPhotoTitle: "Foto del plato",
+      mealPhotoBody: "¿Quieres añadir una foto del plato terminado a tu receta?",
+      mealPhotoPickNew: "Elegir foto del plato",
+      mealPhotoUseCurrent: "Usar foto actual",
+      mealPhotoSkip: "Sin foto",
     },
     settings: {
       switchToLocal: "Cambiar a modo local",
@@ -577,6 +595,8 @@ export default {
       communityPseudonym: "Seudónimo (Comunidad)",
       communityPseudonymHint: "Este seudónimo se usará al compartir tus recetas con la comunidad.",
       communityPseudonymPlaceholder: "Ej: Chef Avo",
+      pseudonymTaken: "Este pseudonimo ya lo usa otro usuario. Por favor, elige uno diferente.",
+      pseudonymSaveFailed: "No se pudo guardar el pseudonimo. Inténtalo de nuevo.",
     },
     logs: {
       title: "Registros",

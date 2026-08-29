@@ -370,7 +370,18 @@ export default {
       shareConfirmBody: "Voulez-vous partager cette recette avec la communauté ?",
       shareToCommunity: "Partager à la communauté",
       duplicateTitle: "Doublon détecté",
-      duplicateBody: "Une recette avec le même nom, le même auteur ou les mêmes étapes existe déjà."
+      duplicateBody: "Une recette avec le même nom, le même auteur ou les mêmes étapes existe déjà.",
+      updateOrNewTitle: "Recette existante",
+      updateOrNewBody: "Vous avez déjà publié une recette avec ce nom. Voulez-vous mettre à jour l'existante ou publier une nouvelle entrée ?",
+      updateExisting: "Mettre à jour",
+      publishAsNew: "Publier comme nouvelle",
+      updateSuccessTitle: "Recette mise à jour !",
+      updateSuccessBody: "Votre recette communautaire a été mise à jour.",
+      deleteTitle: "Supprimer ma recette",
+      deleteConfirmBody: "Voulez-vous définitivement supprimer votre recette de la communauté ? Cette action est irréversible.",
+      deletedTitle: "Recette supprimée",
+      deletedBody: "Votre recette a été retirée de la communauté.",
+      deleteFailedBody: "Impossible de supprimer la recette. Réessayez."
     },
     editor: {
       newRecipe: "Nouvelle recette",
@@ -464,6 +475,13 @@ export default {
       textFailed: "Échec de la génération de la recette.",
       papillesBlocked: "L'import depuis Papilles & Pupilles est désactivé à la demande de son auteure afin de préserver son modèle gratuit.",
       incompleteRecipe: "Aucune recette n'a pu être extraite. S'il s'agit bien d'un blog culinaire, l'auteur a probablement bloqué l'import automatique.",
+      cropInstructionsTitle: "Cadrez la recette",
+      cropInstructionsBody: "Isolez la partie de l'image contenant le texte de la recette (titre, ingrédients, étapes). Si votre photo montre uniquement un plat cuisiné, l'IA créera la recette à partir du plat.",
+      mealPhotoTitle: "Photo du plat",
+      mealPhotoBody: "Voulez-vous ajouter une photo du plat cuisiné à votre recette ?",
+      mealPhotoPickNew: "Choisir une photo du plat",
+      mealPhotoUseCurrent: "Utiliser la photo actuelle",
+      mealPhotoSkip: "Pas de photo",
     },
     settings: {
       switchToLocal: "Passer en mode local",
@@ -580,6 +598,8 @@ export default {
       communityPseudonym: "Pseudonyme (Communauté)",
       communityPseudonymHint: "Ce pseudonyme sera utilisé lors du partage de vos recettes dans la communauté.",
       communityPseudonymPlaceholder: "Ex : Chef Avo",
+      pseudonymTaken: "Ce pseudonyme est déjà utilisé par un autre utilisateur. Choisissez-en un autre.",
+      pseudonymSaveFailed: "Impossible d'enregistrer le pseudonyme. Réessayez.",
     },
     logs: {
       title: "Journaux",

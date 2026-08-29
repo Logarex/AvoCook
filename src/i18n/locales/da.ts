@@ -332,7 +332,18 @@ export default {
       shareConfirmBody: "Vil du dele denne opskrift med fællesskabet?",
       shareToCommunity: "Del i fællesskabet",
       duplicateTitle: "Dublet registreret",
-      duplicateBody: "En opskrift med samme navn, forfatter eller trin eksisterer allerede."
+      duplicateBody: "En opskrift med samme navn, forfatter eller trin eksisterer allerede.",
+      updateOrNewTitle: "Eksisterende opskrift",
+      updateOrNewBody: "Du har allerede offentliggjort en opskrift med dette navn. Vil du opdatere den eksisterende eller udgive en ny?",
+      updateExisting: "Opdater",
+      publishAsNew: "Udgiv som ny",
+      updateSuccessTitle: "Opskrift opdateret!",
+      updateSuccessBody: "Din fællesskabsopskrift er blevet opdateret.",
+      deleteTitle: "Slet min opskrift",
+      deleteConfirmBody: "Vil du permanent fjerne din opskrift fra fællesskabet? Denne handling kan ikke fortrydes.",
+      deletedTitle: "Opskrift slettet",
+      deletedBody: "Din opskrift er blevet fjernet fra fællesskabet.",
+      deleteFailedBody: "Kunne ikke slette opskriften. Prøv igen."
     },
     editor: {
       newRecipe: "Ny opskrift",
@@ -419,6 +430,13 @@ export default {
       textFailed: "Kunne ikke generere opskrift.",
       papillesBlocked: "Import fra Papilles & Pupilles er deaktiveret på forfatterens anmodning.",
       incompleteRecipe: "Ingen opskrift kunne udtrækkes. Hvis dette er en madblog, har forfatteren sandsynligvis blokeret for automatiske importer.",
+      cropInstructionsTitle: "Indrammer opskriften",
+      cropInstructionsBody: "Isolér den del af billedet, der indeholder opskriftteksten (titel, ingredienser, trin). Hvis dit foto kun viser en færdig ret, vil AI'en oprette opskriften ud fra retten.",
+      mealPhotoTitle: "Foto af retten",
+      mealPhotoBody: "Vil du tilføje et foto af den færdige ret til din opskrift?",
+      mealPhotoPickNew: "Vælg foto af retten",
+      mealPhotoUseCurrent: "Brug nuværende foto",
+      mealPhotoSkip: "Intet foto",
     },
     settings: {
       switchToLocal: "Skift til Lokal Tilstand",
@@ -516,6 +534,8 @@ export default {
       communityPseudonym: "Pseudonym (Fællesskab)",
       communityPseudonymHint: "Dette pseudonym bruges når du deler opskrifter med fællesskabet.",
       communityPseudonymPlaceholder: "F.eks. Chef Avo",
+      pseudonymTaken: "Dette pseudonym bruges allerede af en anden bruger. Vælg venligst et andet.",
+      pseudonymSaveFailed: "Kunne ikke gemme pseudonymet. Prøv igen.",
     },
     logs: {
       title: "Logs",

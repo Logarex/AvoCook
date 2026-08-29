@@ -9,7 +9,7 @@ import {
   Linking
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Download, Flag, Clock, Users, Mail, Link as LinkIcon, HeartPulse } from "lucide-react-native";
+import { ArrowLeft, Download, Flag, Clock, Users, Mail, Link as LinkIcon, HeartPulse, Trash2 } from "lucide-react-native";
 
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -19,10 +19,12 @@ import { Screen } from "../components/Screen";
 import { StarRating } from "../components/StarRating";
 import {
   getCommunityRecipe,
+  deleteCommunityRecipe,
   voteOnRecipe,
   reportCommunityRecipe,
   type CommunityRecipe
 } from "../features/community/communityClient";
+import { getAnonymousUid } from "../features/firebase/firebaseClient";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { normalizeRecipe } from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
@@ -41,6 +43,12 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
   const [loading, setLoading] = useState(true);
   const [userVote, setUserVote] = useState<number>(0);
   const [importing, setImporting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
+  const currentUid = getAnonymousUid();
+  const isAuthor = Boolean(
+    recipe?.authorUid && currentUid && recipe.authorUid === currentUid
+  );
 
   useEffect(() => {
     let active = true;
@@ -120,6 +128,34 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
     }
   };
 
+  const handleDelete = () => {
+    if (!recipe || !currentUid) return;
+    Alert.alert(
+      t("community.deleteTitle"),
+      t("community.deleteConfirmBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: () => {
+            setDeleting(true);
+            void deleteCommunityRecipe(recipe.id, currentUid)
+              .then(() => {
+                Alert.alert(t("community.deletedTitle"), t("community.deletedBody"));
+                navigation.goBack();
+              })
+              .catch((err) => {
+                console.warn("community", "Delete failed", err);
+                Alert.alert(t("common.error"), t("community.deleteFailedBody"));
+              })
+              .finally(() => setDeleting(false));
+          }
+        }
+      ]
+    );
+  };
+
   const handleReport = () => {
     Alert.alert(
       t("community.reportTitle"),
@@ -184,12 +220,23 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
           label={t("common.back")}
           onPress={() => navigation.goBack()}
         />
-        <IconButton
-          icon={Flag}
-          label={t("community.reportAction")}
-          onPress={handleReport}
-          tone="danger"
-        />
+        <View style={styles.headerActions}>
+          {isAuthor ? (
+            <IconButton
+              icon={Trash2}
+              label={t("community.deleteTitle")}
+              onPress={handleDelete}
+              disabled={deleting}
+              tone="danger"
+            />
+          ) : null}
+          <IconButton
+            icon={Flag}
+            label={t("community.reportAction")}
+            onPress={handleReport}
+            tone="danger"
+          />
+        </View>
       </View>
 
       {/* Hero Title */}
@@ -321,6 +368,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between"
+  },
+  headerActions: {
+    flexDirection: "row",
+    gap: spacing.xs
   },
   hero: {
     gap: spacing.xs,

@@ -46,6 +46,7 @@ import { usePreferences, type LlmSettings } from "../features/preferences/Prefer
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { useShoppingList } from "../features/shopping/ShoppingListProvider";
 import { LLM_PROVIDERS, type LlmProviderId, fetchAvailableModels } from "../features/import/photoRecipeImport";
+import { checkPseudonymAvailable, reservePseudonym, releasePseudonym } from "../features/community/communityClient";
 import type { RecipeDuplicateGroup } from "../features/recipes/backupDuplicates";
 import { useSupportActions } from "../features/support/useSupportActions";
 import { useOnboarding } from "../features/onboarding/useOnboarding";
@@ -106,6 +107,17 @@ export function SettingsScreen({ navigation }: Props) {
   React.useEffect(() => {
     setLocalPseudonym(communityPseudonym || "");
   }, [communityPseudonym]);
+
+  // Migration: silently try to reserve the existing pseudonym in Firestore
+  // (for users who set their pseudonym before the uniqueness feature was added)
+  React.useEffect(() => {
+    if (!communityPseudonym) return;
+    void reservePseudonym(communityPseudonym).catch(() => {
+      // Ignore errors — if it's already taken by another user we'll catch it at save time
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const [llmDraft, setLlmDraft] = useState<LlmSettings | null>(null);
   const currentLlm = llmDraft ?? llmSettings;
   const [availableModels, setAvailableModels] = useState<string[] | null>(null);
@@ -484,7 +496,28 @@ export function SettingsScreen({ navigation }: Props) {
                   Alert.alert(t("common.error"), t("settings.profanityError"));
                   return;
                 }
-                await setCommunityPseudonym(localPseudonym.trim() || null);
+                const trimmed = localPseudonym.trim();
+                // Check uniqueness and reserve in Firestore whenever the pseudonym is non-empty
+                // (handles both changes AND first-time reservation for existing users)
+                if (trimmed) {
+                  try {
+                    const available = await checkPseudonymAvailable(trimmed);
+                    if (!available) {
+                      Alert.alert(t("common.error"), t("settings.pseudonymTaken"));
+                      return;
+                    }
+                    // Release old pseudonym if it changed
+                    if (communityPseudonym && communityPseudonym !== trimmed) {
+                      await releasePseudonym(communityPseudonym).catch(() => {});
+                    }
+                    await reservePseudonym(trimmed);
+                  } catch (err) {
+                    console.warn("community", "Pseudonym reservation failed", err);
+                    Alert.alert(t("common.error"), t("settings.pseudonymSaveFailed"));
+                    return;
+                  }
+                }
+                await setCommunityPseudonym(trimmed || null);
                 setPseudoSavedAnim(true);
                 setTimeout(() => setPseudoSavedAnim(false), 2000);
               })();

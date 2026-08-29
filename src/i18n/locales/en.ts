@@ -366,7 +366,18 @@ export default {
       shareConfirmBody: "Do you want to share this recipe with the community?",
       shareToCommunity: "Share to community",
       duplicateTitle: "Duplicate detected",
-      duplicateBody: "A recipe with the same name, author or steps already exists."
+      duplicateBody: "A recipe with the same name, author or steps already exists.",
+      updateOrNewTitle: "Existing Recipe",
+      updateOrNewBody: "You already published a recipe with this name. Would you like to update the existing one or publish a new entry?",
+      updateExisting: "Update existing",
+      publishAsNew: "Publish as new",
+      updateSuccessTitle: "Recipe updated!",
+      updateSuccessBody: "Your community recipe has been updated.",
+      deleteTitle: "Delete my recipe",
+      deleteConfirmBody: "Do you want to permanently remove your recipe from the community? This action cannot be undone.",
+      deletedTitle: "Recipe deleted",
+      deletedBody: "Your recipe has been removed from the community.",
+      deleteFailedBody: "Could not delete the recipe. Please try again."
     },
     editor: {
       newRecipe: "New recipe",
@@ -460,6 +471,13 @@ export default {
       textFailed: "Failed to generate recipe.",
       papillesBlocked: "Import from Papilles & Pupilles is disabled at the author's request to preserve its free model.",
       incompleteRecipe: "No recipe could be extracted. If this is indeed a food blog, the author has likely blocked automatic imports.",
+      cropInstructionsTitle: "Frame the recipe",
+      cropInstructionsBody: "Isolate the part of the image containing the recipe text (title, ingredients, steps). If your photo shows only a finished dish, the AI will create the recipe from the dish.",
+      mealPhotoTitle: "Meal photo",
+      mealPhotoBody: "Would you like to add a photo of the finished dish to your recipe?",
+      mealPhotoPickNew: "Choose a meal photo",
+      mealPhotoUseCurrent: "Use current photo",
+      mealPhotoSkip: "No photo",
     },
     settings: {
       switchToLocal: "Switch to Local Mode",
@@ -572,6 +590,8 @@ export default {
       communityPseudonym: "Pseudonym (Community)",
       communityPseudonymHint: "This pseudonym will be used when sharing your recipes with the community.",
       communityPseudonymPlaceholder: "E.g. Chef Avo",
+      pseudonymTaken: "This pseudonym is already used by another user. Please choose a different one.",
+      pseudonymSaveFailed: "Could not save the pseudonym. Please try again.",
     },
     logs: {
       title: "Logs",

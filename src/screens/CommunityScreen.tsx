@@ -1,8 +1,9 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -58,7 +59,11 @@ export function CommunityScreen({ navigation }: Props) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
-  
+
+  // Reload throttle: skip reloading if data is less than 5 minutes old
+  const lastLoadedAt = useRef<number>(0);
+  const RELOAD_THROTTLE_MS = 5 * 60 * 1000;
+
   // Search cache to optimize full-text search without heavy operations
   const [searchCache, setSearchCache] = useState<CommunityRecipe[] | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -93,6 +98,10 @@ export function CommunityScreen({ navigation }: Props) {
 
   const loadData = useCallback(
     async (isRefresh = false) => {
+      // Throttle: skip reload if data is fresh and this is not a manual refresh
+      if (!isRefresh && Date.now() - lastLoadedAt.current < RELOAD_THROTTLE_MS && recipes.length > 0) {
+        return;
+      }
       if (isRefresh) setRefreshing(true);
       else setLoading(true);
       try {
@@ -105,6 +114,7 @@ export function CommunityScreen({ navigation }: Props) {
         setRecipes(res.recipes);
         setLastDoc(res.lastDoc);
         setHasMore(res.hasMore);
+        lastLoadedAt.current = Date.now();
       } catch (err) {
         console.warn("community", "Failed to fetch community recipes", err);
       } finally {
@@ -112,6 +122,7 @@ export function CommunityScreen({ navigation }: Props) {
         setRefreshing(false);
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [selectedLanguage, minRating]
   );
 
@@ -160,41 +171,53 @@ export function CommunityScreen({ navigation }: Props) {
       onPress={() => navigation.navigate("CommunityDetail", { id: item.id })}
       style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
     >
-      <GlassPanel style={styles.card}>
-        <View style={styles.cardHeader}>
-          <View style={styles.cardTitleWrap}>
-            <AppText variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>
-              {item.title}
-            </AppText>
-            {item.authorName ? (
-              <AppText muted variant="caption" numberOfLines={1} adjustsFontSizeToFit={false}>
-                {t("community.byAuthor", { author: item.authorName })}
+      <GlassPanel style={[styles.card, item.imageUrl ? styles.cardWithImage : null]}>
+        <View style={styles.cardInner}>
+          <View style={styles.cardContent}>
+            <View style={styles.cardHeader}>
+              <View style={styles.cardTitleWrap}>
+                <AppText variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>
+                  {item.title}
+                </AppText>
+                {item.authorName ? (
+                  <AppText muted variant="caption" numberOfLines={1} adjustsFontSizeToFit={false}>
+                    {t("community.byAuthor", { author: item.authorName })}
+                  </AppText>
+                ) : null}
+              </View>
+              <View style={[styles.langChip, { backgroundColor: colors.chip }]}>
+                <AppText variant="caption" style={{ fontWeight: "600" }}>
+                  {LANGUAGES.find((l) => l.id === item.language)?.code || "ALL"}
+                </AppText>
+              </View>
+            </View>
+
+            {item.description ? (
+              <AppText muted variant="caption" numberOfLines={2} style={styles.desc}>
+                {item.description}
               </AppText>
             ) : null}
-          </View>
-          <View style={[styles.langChip, { backgroundColor: colors.chip }]}>
-            <AppText variant="caption" style={{ fontWeight: "600" }}>
-              {LANGUAGES.find((l) => l.id === item.language)?.code || "ALL"}
-            </AppText>
-          </View>
-        </View>
 
-        {item.description ? (
-          <AppText muted variant="caption" numberOfLines={2} style={styles.desc}>
-            {item.description}
-          </AppText>
-        ) : null}
+            <View style={styles.cardFooter}>
+              <StarRating
+                rating={item.avgRating}
+                size={16}
+                showCount
+                count={item.ratingCount}
+              />
+              <AppText variant="caption" muted>
+                {item.ingredients.length} {t("editor.ingredients").toLowerCase()}
+              </AppText>
+            </View>
+          </View>
 
-        <View style={styles.cardFooter}>
-          <StarRating
-            rating={item.avgRating}
-            size={16}
-            showCount
-            count={item.ratingCount}
-          />
-          <AppText variant="caption" muted>
-            {item.ingredients.length} {t("editor.ingredients").toLowerCase()}
-          </AppText>
+          {item.imageUrl ? (
+            <Image
+              source={{ uri: item.imageUrl }}
+              style={styles.cardImage}
+              resizeMode="cover"
+            />
+          ) : null}
         </View>
       </GlassPanel>
     </Pressable>
@@ -408,10 +431,27 @@ const styles = StyleSheet.create({
     paddingTop: 0
   },
   card: {
-    gap: spacing.xs,
     padding: spacing.md,
-    height: 116,
-    justifyContent: "space-between"
+    minHeight: 104
+  },
+  cardWithImage: {
+    paddingRight: 0
+  },
+  cardInner: {
+    flexDirection: "row",
+    alignItems: "stretch"
+  },
+  cardContent: {
+    flex: 1,
+    gap: spacing.xs,
+    justifyContent: "space-between",
+    paddingRight: spacing.sm
+  },
+  cardImage: {
+    width: 88,
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+    backgroundColor: "rgba(0,0,0,0.05)"
   },
   cardHeader: {
     alignItems: "flex-start",

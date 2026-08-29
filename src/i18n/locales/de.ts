@@ -370,7 +370,18 @@ export default {
       shareConfirmBody: "Möchtest du dieses Rezept mit der Community teilen?",
       shareToCommunity: "In der Community teilen",
       duplicateTitle: "Duplikat erkannt",
-      duplicateBody: "Ein Rezept mit demselben Namen, Autor oder denselben Schritten existiert bereits."
+      duplicateBody: "Ein Rezept mit demselben Namen, Autor oder denselben Schritten existiert bereits.",
+      updateOrNewTitle: "Bestehendes Rezept",
+      updateOrNewBody: "Du hast bereits ein Rezept mit diesem Namen veröffentlicht. Möchtest du das bestehende aktualisieren oder ein neues veröffentlichen?",
+      updateExisting: "Aktualisieren",
+      publishAsNew: "Als neu veröffentlichen",
+      updateSuccessTitle: "Rezept aktualisiert!",
+      updateSuccessBody: "Dein Community-Rezept wurde aktualisiert.",
+      deleteTitle: "Mein Rezept löschen",
+      deleteConfirmBody: "Möchtest du dein Rezept dauerhaft aus der Community entfernen? Diese Aktion ist unwiderruflich.",
+      deletedTitle: "Rezept gelöscht",
+      deletedBody: "Dein Rezept wurde aus der Community entfernt.",
+      deleteFailedBody: "Das Rezept konnte nicht gelöscht werden. Versuche es erneut."
     },
     editor: {
       newRecipe: "Neues Rezept",
@@ -464,6 +475,13 @@ export default {
       textFailed: "Rezept konnte nicht generiert werden.",
       papillesBlocked: "Der Import von Papilles & Pupilles ist auf Wunsch der Autorin deaktiviert, um ihr kostenloses Modell zu erhalten.",
       incompleteRecipe: "Es konnte kein Rezept extrahiert werden. Wenn dies ein Food-Blog ist, hat der Autor wahrscheinlich den automatischen Import blockiert.",
+      cropInstructionsTitle: "Rezept ausschneiden",
+      cropInstructionsBody: "Isoliere den Bereich des Bildes, der den Rezepttext enthält (Titel, Zutaten, Schritte). Wenn dein Foto nur ein fertiges Gericht zeigt, erstellt die KI das Rezept anhand des Gerichts.",
+      mealPhotoTitle: "Foto des Gerichts",
+      mealPhotoBody: "Möchtest du deinem Rezept ein Foto des fertigen Gerichts hinzufügen?",
+      mealPhotoPickNew: "Foto des Gerichts wählen",
+      mealPhotoUseCurrent: "Aktuelles Foto verwenden",
+      mealPhotoSkip: "Kein Foto",
     },
     settings: {
       switchToLocal: "Zum lokalen Modus wechseln",
@@ -579,6 +597,8 @@ export default {
       communityPseudonym: "Pseudonym (Community)",
       communityPseudonymHint: "Dieses Pseudonym wird verwendet, wenn du Rezepte mit der Community teilst.",
       communityPseudonymPlaceholder: "z.B. Chef Avo",
+      pseudonymTaken: "Dieses Pseudonym wird bereits von einem anderen Nutzer verwendet. Bitte wähle ein anderes.",
+      pseudonymSaveFailed: "Das Pseudonym konnte nicht gespeichert werden. Versuche es erneut.",
     },
     logs: {
       title: "Protokolle",
