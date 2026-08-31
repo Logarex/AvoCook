@@ -27,7 +27,6 @@ import {
   type CommunityRecipe,
   type RecipeLanguage
 } from "../features/community/communityClient";
-import { resolveAppLanguage } from "../i18n/languages";
 import { SelectRecipeToShareModal } from "./SelectRecipeToShareModal";
 import type { RootStackParamList } from "../navigation/types";
 import type { QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
@@ -59,9 +58,7 @@ export function CommunityScreen({ navigation }: Props) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState<RecipeLanguage | "all">(() =>
-    resolveAppLanguage(i18n.language)
-  );
+  const [selectedLanguage, setSelectedLanguage] = useState<RecipeLanguage | "all">("all");
   const [minRating] = useState<number>(0);
   const [showSelectModal, setShowSelectModal] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
