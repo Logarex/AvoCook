@@ -379,13 +379,21 @@ export function ShoppingListScreen({ navigation }: Props) {
         </View>
       ) : (
         <>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", marginHorizontal: spacing.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.surfaceGlass, borderRadius: radius.md }}>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, marginHorizontal: spacing.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.surfaceGlass, borderRadius: radius.md, flexWrap: "wrap" }}>
             <AppText muted variant="caption" style={{ fontWeight: "600" }}>
               {t("shoppingList.remainingCount", { count: remainingCount })}
               {checkedCount > 0
                 ? ` • ${t("shoppingList.checkedCount", { count: checkedCount })}`
                 : ""}
             </AppText>
+            {sharedList.active && sharedList.participantCount ? (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: colors.chip, paddingHorizontal: spacing.xs, paddingVertical: 2, borderRadius: radius.sm }}>
+                <Users color={colors.primary} size={13} strokeWidth={2.5} />
+                <AppText variant="caption" style={{ color: colors.primary, fontWeight: "600" }}>
+                  {t("shoppingList.participantCount", { count: sharedList.participantCount })}
+                </AppText>
+              </View>
+            ) : null}
           </View>
           <View style={{ flex: 1 }}>
             <FlatList

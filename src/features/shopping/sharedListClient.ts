@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   deleteDoc,
   doc,
@@ -13,7 +14,19 @@ import { getDb, waitForAuth } from "../firebase/firebaseClient";
 import type { ShoppingListItem } from "./shoppingList";
 import { normalizeShoppingListItems } from "./shoppingList";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+const DEVICE_ID_STORAGE_KEY = "shopping.deviceId";
+let _cachedDeviceId: string | null = null;
+
+export async function getDeviceId(): Promise<string> {
+  if (_cachedDeviceId) return _cachedDeviceId;
+  let id = await AsyncStorage.getItem(DEVICE_ID_STORAGE_KEY);
+  if (!id) {
+    id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    await AsyncStorage.setItem(DEVICE_ID_STORAGE_KEY, id);
+  }
+  _cachedDeviceId = id;
+  return id;
+}
 
 export type SharedListState = {
   active: boolean;
@@ -25,11 +38,11 @@ export type SharedListState = {
 type RemoteList = {
   items: ShoppingListItem[];
   updatedAt: unknown;
+  participantCount?: number;
+  lastUpdatedBy?: string;
 };
 
-// ─── Code generation ──────────────────────────────────────────────────────────
-
-const CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I/O/0/1 (confusing)
+const CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
 function generateCode(): string {
   let code = "";
@@ -43,12 +56,6 @@ function listRef(code: string) {
   return doc(getDb(), "sharedLists", code.toUpperCase().trim());
 }
 
-// ─── Merge ────────────────────────────────────────────────────────────────────
-
-/**
- * Merges two item arrays. Last-updatedAt-wins per item id.
- * Returns merged list and whether there were changes vs local.
- */
 export function mergeShoppingLists(
   local: ShoppingListItem[],
   remote: ShoppingListItem[]
@@ -73,17 +80,14 @@ export function mergeShoppingLists(
   return { merged: hasChanges ? remote : local, hasChanges };
 }
 
-// ─── Push debounce ────────────────────────────────────────────────────────────
-
 let _pushTimer: ReturnType<typeof setTimeout> | null = null;
-
-
 
 async function doPush(code: string, items: ShoppingListItem[]): Promise<void> {
   await waitForAuth();
+  const deviceId = await getDeviceId();
   await setDoc(
     listRef(code),
-    { items, updatedAt: serverTimestamp() },
+    { items, updatedAt: serverTimestamp(), lastUpdatedBy: deviceId },
     { merge: true }
   );
 }
@@ -105,26 +109,22 @@ export function cancelPush(): void {
   _pushTimer = null;
 }
 
-// ─── Create shared list ───────────────────────────────────────────────────────
-
 export async function createSharedList(
   items: ShoppingListItem[]
 ): Promise<string> {
   await waitForAuth();
-  // Try up to 5 codes to avoid rare collision
+  const deviceId = await getDeviceId();
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = generateCode();
     const ref = listRef(code);
     const snap = await getDoc(ref);
     if (!snap.exists()) {
-      await setDoc(ref, { items, updatedAt: serverTimestamp(), participantCount: 1 });
+      await setDoc(ref, { items, updatedAt: serverTimestamp(), participantCount: 1, lastUpdatedBy: deviceId });
       return code;
     }
   }
   throw new Error("Could not generate a unique list code. Please try again.");
 }
-
-// ─── Join shared list ─────────────────────────────────────────────────────────
 
 export async function fetchSharedList(
   code: string
@@ -133,14 +133,11 @@ export async function fetchSharedList(
   const snap = await getDoc(listRef(code));
   if (!snap.exists()) return null;
   
-  // Increment participant count when joining
   await updateDoc(listRef(code), { participantCount: increment(1) }).catch(() => {});
   
   const data = snap.data() as RemoteList;
   return normalizeShoppingListItems(data.items ?? []);
 }
-
-// ─── Leave shared list ────────────────────────────────────────────────────────
 
 export async function leaveSharedList(code: string): Promise<void> {
   await waitForAuth();
@@ -149,7 +146,6 @@ export async function leaveSharedList(code: string): Promise<void> {
   if (!snap.exists()) return;
   
   const data = snap.data();
-  // Default to 2 if missing to be safe and avoid accidental deletion of old active lists
   const count = typeof data.participantCount === "number" ? data.participantCount : 2;
   
   if (count <= 1) {
@@ -159,11 +155,9 @@ export async function leaveSharedList(code: string): Promise<void> {
   }
 }
 
-// ─── Realtime subscription ────────────────────────────────────────────────────
-
 export function subscribeToSharedList(
   code: string,
-  onUpdate: (items: ShoppingListItem[]) => void,
+  onUpdate: (payload: { items: ShoppingListItem[]; participantCount?: number; lastUpdatedBy?: string }) => void,
   onError: (err: unknown) => void
 ): Unsubscribe {
   return onSnapshot(
@@ -172,7 +166,11 @@ export function subscribeToSharedList(
       if (!snap.exists()) return;
       const data = snap.data() as RemoteList;
       const items = normalizeShoppingListItems(data.items ?? []);
-      onUpdate(items);
+      onUpdate({
+        items,
+        participantCount: typeof data.participantCount === "number" ? data.participantCount : undefined,
+        lastUpdatedBy: typeof data.lastUpdatedBy === "string" ? data.lastUpdatedBy : undefined
+      });
     },
     onError
   );

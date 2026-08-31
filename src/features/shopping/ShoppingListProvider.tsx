@@ -26,6 +26,9 @@ import {
 } from "./shoppingStore";
 import { useRemindersSync } from "./useRemindersSync";
 import type { UseRemindersSyncReturn } from "./useRemindersSync";
+import { usePreferences } from "../preferences/PreferencesProvider";
+import i18n from "../../i18n";
+import { scheduleTimerNotification } from "../timers/timerNotifications";
 import {
   createSharedList,
   fetchSharedList,
@@ -33,7 +36,8 @@ import {
   schedulePush,
   subscribeToSharedList,
   cancelPush,
-  leaveSharedList
+  leaveSharedList,
+  getDeviceId
 } from "./sharedListClient";
 
 const SHARED_CODE_STORAGE_KEY = "shopping.sharedListCode";
@@ -43,6 +47,7 @@ export type SharedListState = {
   code: string | null;
   syncing: boolean;
   error: string | null;
+  participantCount: number | null;
   createList: () => Promise<string>;
   joinList: (code: string) => Promise<boolean>;
   leaveList: () => Promise<void>;
@@ -82,11 +87,17 @@ export function ShoppingListProvider({
   const itemsRef = useRef(items);
   const sync = useRemindersSync();
   const syncRef = useRef(sync);
+  const { enableShoppingNotifications } = usePreferences();
+  const enableShoppingNotificationsRef = useRef(enableShoppingNotifications);
   
-  // Shared list state
   const [sharedCode, setSharedCode] = useState<string | null>(null);
   const [sharedSyncing, setSharedSyncing] = useState(false);
   const [sharedError, setSharedError] = useState<string | null>(null);
+  const [participantCount, setParticipantCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    enableShoppingNotificationsRef.current = enableShoppingNotifications;
+  }, [enableShoppingNotifications]);
 
   useEffect(() => {
     syncRef.current = sync;
@@ -134,14 +145,48 @@ export function ShoppingListProvider({
 
     const unsub = subscribeToSharedList(
       sharedCode,
-      (remoteItems) => {
+      (payload) => {
         setSharedSyncing(false);
-        const { merged, hasChanges } = mergeShoppingLists(itemsRef.current, remoteItems);
-        if (hasChanges || itemsRef.current.length === 0) {
-          itemsRef.current = merged;
-          setItems(merged);
-          void saveShoppingListItems(merged);
+        if (typeof payload.participantCount === "number") {
+          setParticipantCount(payload.participantCount);
         }
+        void (async () => {
+          const currentDeviceId = await getDeviceId();
+          const prevItems = itemsRef.current;
+          const { merged, hasChanges } = mergeShoppingLists(prevItems, payload.items);
+
+          if (hasChanges && payload.lastUpdatedBy && payload.lastUpdatedBy !== currentDeviceId && prevItems.length > 0) {
+            const prevIds = new Set(prevItems.map((i) => i.id));
+            const newIds = new Set(payload.items.map((i) => i.id));
+            const addedCount = payload.items.filter((i) => !prevIds.has(i.id)).length;
+            const removedCount = prevItems.filter((i) => !newIds.has(i.id)).length;
+
+            if ((addedCount > 0 || removedCount > 0) && enableShoppingNotificationsRef.current) {
+              let bodyKey = "shoppingList.notificationAdded";
+              if (addedCount > 0 && removedCount > 0) {
+                bodyKey = "shoppingList.notificationAddedAndRemoved";
+              } else if (removedCount > 0) {
+                bodyKey = "shoppingList.notificationRemoved";
+              }
+              const title = i18n.t("shoppingList.notificationTitle", { defaultValue: "Liste de courses partagée" });
+              const body = i18n.t(bodyKey, { added: addedCount, removed: removedCount, count: addedCount || removedCount, defaultValue: "Des modifications ont été apportées à la liste." });
+
+              void scheduleTimerNotification({
+                title,
+                body,
+                recipeId: "shopping",
+                timerId: "shopping_" + Date.now(),
+                seconds: 1
+              });
+            }
+          }
+
+          if (hasChanges || itemsRef.current.length === 0) {
+            itemsRef.current = merged;
+            setItems(merged);
+            void saveShoppingListItems(merged);
+          }
+        })();
       },
       (err) => {
         setSharedSyncing(false);
@@ -207,6 +252,7 @@ export function ShoppingListProvider({
     await AsyncStorage.removeItem(SHARED_CODE_STORAGE_KEY);
     setSharedCode(null);
     setSharedError(null);
+    setParticipantCount(null);
   }, [sharedCode]);
 
   const refreshItems = useCallback(async (): Promise<void> => {
@@ -294,11 +340,12 @@ export function ShoppingListProvider({
       code: sharedCode,
       syncing: sharedSyncing,
       error: sharedError,
+      participantCount,
       createList,
       joinList,
       leaveList
     }),
-    [sharedCode, sharedSyncing, sharedError, createList, joinList, leaveList]
+    [sharedCode, sharedSyncing, sharedError, participantCount, createList, joinList, leaveList]
   );
 
   const value = useMemo(

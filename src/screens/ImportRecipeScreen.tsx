@@ -474,6 +474,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
               onChangeText={setPrompt}
               value={prompt}
               multiline
+              numberOfLines={4}
             />
             <PrimaryButton
               disabled={!prompt.trim() || submitting !== null}

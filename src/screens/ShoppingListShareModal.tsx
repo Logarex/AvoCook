@@ -120,6 +120,14 @@ export function ShoppingListShareModal({
                 <AppText style={styles.codeText} adjustsFontSizeToFit numberOfLines={1}>
                   {sharedList.code}
                 </AppText>
+                {sharedList.participantCount ? (
+                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: spacing.xs }}>
+                    <Users color={colors.primary} size={15} strokeWidth={2.5} />
+                    <AppText variant="caption" style={{ color: colors.primary, fontWeight: "600" }}>
+                      {t("shoppingList.participantCount", { count: sharedList.participantCount })}
+                    </AppText>
+                  </View>
+                ) : null}
               </View>
 
               <View style={styles.btnRow}>

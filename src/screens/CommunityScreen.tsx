@@ -27,6 +27,7 @@ import {
   type CommunityRecipe,
   type RecipeLanguage
 } from "../features/community/communityClient";
+import { resolveAppLanguage } from "../i18n/languages";
 import { SelectRecipeToShareModal } from "./SelectRecipeToShareModal";
 import type { RootStackParamList } from "../navigation/types";
 import type { QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
@@ -35,33 +36,41 @@ import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Community">;
 
-const LANGUAGES: { id: RecipeLanguage | "all"; label: string; code: string }[] = [
-  { id: "all", label: "Tous", code: "ALL" },
-  { id: "fr", label: "Français", code: "FR" },
+const RAW_LANGUAGES: { id: RecipeLanguage; label: string; code: string }[] = [
+  { id: "da", label: "Dansk", code: "DA" },
   { id: "de", label: "Deutsch", code: "DE" },
   { id: "en", label: "English", code: "EN" },
   { id: "es", label: "Español", code: "ES" },
-  { id: "it", label: "Italiano", code: "IT" },
-  { id: "da", label: "Dansk", code: "DA" }
+  { id: "fr", label: "Français", code: "FR" },
+  { id: "it", label: "Italiano", code: "IT" }
 ];
 
 export function CommunityScreen({ navigation }: Props) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { colors } = useAppTheme();
+
+  const sortedLanguages = React.useMemo(() => {
+    const allItem = { id: "all" as const, label: t("common.all", { defaultValue: "Tous" }), code: "ALL" };
+    const sorted = [...RAW_LANGUAGES].sort((a, b) => a.label.localeCompare(b.label));
+    return [allItem, ...sorted];
+  }, [t]);
 
   const [recipes, setRecipes] = useState<CommunityRecipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState<RecipeLanguage | "all">("all");
+  const [selectedLanguage, setSelectedLanguage] = useState<RecipeLanguage | "all">(() =>
+    resolveAppLanguage(i18n.language)
+  );
   const [minRating] = useState<number>(0);
   const [showSelectModal, setShowSelectModal] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
 
-  // Reload throttle: skip reloading if data is less than 5 minutes old
+  // Reload throttle: skip reloading if data is less than 5 minutes old unless language changes
   const lastLoadedAt = useRef<number>(0);
+  const lastLoadedLang = useRef<string | null>(null);
   const RELOAD_THROTTLE_MS = 5 * 60 * 1000;
 
   // Search cache to optimize full-text search without heavy operations
@@ -98,23 +107,24 @@ export function CommunityScreen({ navigation }: Props) {
 
   const loadData = useCallback(
     async (isRefresh = false) => {
-      // Throttle: skip reload if data is fresh and this is not a manual refresh
-      if (!isRefresh && Date.now() - lastLoadedAt.current < RELOAD_THROTTLE_MS && recipes.length > 0) {
+      const langChanged = lastLoadedLang.current !== selectedLanguage;
+      // Throttle: skip reload only if same language, data is fresh, and this is not a refresh/filter change
+      if (!isRefresh && !langChanged && Date.now() - lastLoadedAt.current < RELOAD_THROTTLE_MS && recipes.length > 0) {
         return;
       }
-      if (isRefresh) setRefreshing(true);
-      else setLoading(true);
+      if (isRefresh || langChanged) setLoading(true);
       try {
         const res = await fetchCommunityRecipes({
           language: selectedLanguage,
           minRating,
           sortBy: "alphabetical",
-          pageSize: 20
+          pageSize: 50
         });
         setRecipes(res.recipes);
         setLastDoc(res.lastDoc);
         setHasMore(res.hasMore);
         lastLoadedAt.current = Date.now();
+        lastLoadedLang.current = selectedLanguage;
       } catch (err) {
         console.warn("community", "Failed to fetch community recipes", err);
       } finally {
@@ -125,6 +135,10 @@ export function CommunityScreen({ navigation }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [selectedLanguage, minRating]
   );
+
+  React.useEffect(() => {
+    void loadData(true);
+  }, [selectedLanguage, minRating, loadData]);
 
   const loadMore = useCallback(async () => {
     if (loading || loadingMore || !hasMore || refreshing) return;
@@ -171,7 +185,7 @@ export function CommunityScreen({ navigation }: Props) {
       onPress={() => navigation.navigate("CommunityDetail", { id: item.id })}
       style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
     >
-      <GlassPanel style={[styles.card, item.imageUrl ? styles.cardWithImage : null]}>
+      <GlassPanel style={styles.card}>
         <View style={styles.cardInner}>
           <View style={styles.cardContent}>
             <View style={styles.cardHeader}>
@@ -187,7 +201,7 @@ export function CommunityScreen({ navigation }: Props) {
               </View>
               <View style={[styles.langChip, { backgroundColor: colors.chip }]}>
                 <AppText variant="caption" style={{ fontWeight: "600" }}>
-                  {LANGUAGES.find((l) => l.id === item.language)?.code || "ALL"}
+                  {sortedLanguages.find((l) => l.id === item.language)?.code || (item.language ? item.language.toUpperCase() : "ALL")}
                 </AppText>
               </View>
             </View>
@@ -221,7 +235,7 @@ export function CommunityScreen({ navigation }: Props) {
         </View>
       </GlassPanel>
     </Pressable>
-  ), [navigation, colors, t]);
+  ), [navigation, colors, t, sortedLanguages]);
 
   return (
     <PageSwipeGesture
@@ -264,7 +278,7 @@ export function CommunityScreen({ navigation }: Props) {
       <FlatList
         horizontal
         showsHorizontalScrollIndicator={false}
-        data={LANGUAGES}
+        data={sortedLanguages}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.filterList}
         style={{ flexGrow: 0 }}
@@ -434,12 +448,9 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     minHeight: 104
   },
-  cardWithImage: {
-    paddingRight: 0
-  },
   cardInner: {
     flexDirection: "row",
-    alignItems: "stretch"
+    alignItems: "center"
   },
   cardContent: {
     flex: 1,
@@ -448,9 +459,9 @@ const styles = StyleSheet.create({
     paddingRight: spacing.sm
   },
   cardImage: {
-    width: 88,
-    borderTopRightRadius: 12,
-    borderBottomRightRadius: 12,
+    width: 84,
+    height: 84,
+    borderRadius: radius.md,
     backgroundColor: "rgba(0,0,0,0.05)"
   },
   cardHeader: {

@@ -32,6 +32,7 @@ type PreferencesContextValue = {
   keepScreenAwake: boolean;
   keepRecipesLocal: boolean;
   enableBackupReminders: boolean;
+  enableShoppingNotifications: boolean;
   language: AppLanguage;
   llmSettings: LlmSettings;
   showDefaultCategories: boolean | null;
@@ -39,6 +40,7 @@ type PreferencesContextValue = {
   setKeepScreenAwake: (enabled: boolean) => Promise<void>;
   setKeepRecipesLocal: (enabled: boolean) => Promise<void>;
   setEnableBackupReminders: (enabled: boolean) => Promise<void>;
+  setEnableShoppingNotifications: (enabled: boolean) => Promise<void>;
   setShowDefaultCategories: (enabled: boolean | null) => Promise<void>;
   setLanguage: (language: AppLanguage) => Promise<void>;
   setLlmSettings: (settings: LlmSettings) => Promise<void>;
@@ -48,6 +50,7 @@ type PreferencesContextValue = {
 const KEEP_AWAKE_KEY = "preferences.keepScreenAwake";
 const KEEP_RECIPES_LOCAL_KEY = "preferences.keepRecipesLocal";
 const ENABLE_BACKUP_REMINDERS_KEY = "preferences.enableBackupReminders";
+const ENABLE_SHOPPING_NOTIFICATIONS_KEY = "preferences.enableShoppingNotifications";
 const SHOW_DEFAULT_CATEGORIES_KEY = "preferences.showDefaultCategories";
 const LANGUAGE_KEY = "preferences.language";
 const LANGUAGE_USER_SET_KEY = "preferences.language.userSet";
@@ -77,6 +80,7 @@ export function PreferencesProvider({
   const [keepScreenAwake, setKeepScreenAwakeState] = useState(true);
   const [keepRecipesLocal, setKeepRecipesLocalState] = useState(true);
   const [enableBackupReminders, setEnableBackupRemindersState] = useState(true);
+  const [enableShoppingNotifications, setEnableShoppingNotificationsState] = useState(true);
   const [showDefaultCategories, setShowDefaultCategoriesState] = useState<boolean | null>(null);
   const [language, setLanguageState] = useState<AppLanguage>(
     resolveAppLanguage(i18n.language)
@@ -91,6 +95,7 @@ export function PreferencesProvider({
       AsyncStorage.getItem(KEEP_AWAKE_KEY),
       AsyncStorage.getItem(KEEP_RECIPES_LOCAL_KEY),
       AsyncStorage.getItem(ENABLE_BACKUP_REMINDERS_KEY),
+      AsyncStorage.getItem(ENABLE_SHOPPING_NOTIFICATIONS_KEY),
       AsyncStorage.getItem(SHOW_DEFAULT_CATEGORIES_KEY),
       AsyncStorage.getItem(LANGUAGE_KEY),
       AsyncStorage.getItem(LANGUAGE_USER_SET_KEY),
@@ -104,6 +109,7 @@ export function PreferencesProvider({
         storedKeepAwake,
         storedKeepRecipesLocal,
         storedEnableBackupReminders,
+        storedEnableShoppingNotifications,
         storedShowDefaultCategories,
         storedLanguage,
         storedUserSet,
@@ -127,6 +133,12 @@ export function PreferencesProvider({
           storedEnableBackupReminders === "false"
         ) {
           setEnableBackupRemindersState(storedEnableBackupReminders === "true");
+        }
+        if (
+          storedEnableShoppingNotifications === "true" ||
+          storedEnableShoppingNotifications === "false"
+        ) {
+          setEnableShoppingNotificationsState(storedEnableShoppingNotifications === "true");
         }
         if (
           storedShowDefaultCategories === "true" ||
@@ -171,6 +183,11 @@ export function PreferencesProvider({
     await AsyncStorage.setItem(ENABLE_BACKUP_REMINDERS_KEY, String(enabled));
   }, []);
 
+  const setEnableShoppingNotifications = useCallback(async (enabled: boolean) => {
+    setEnableShoppingNotificationsState(enabled);
+    await AsyncStorage.setItem(ENABLE_SHOPPING_NOTIFICATIONS_KEY, String(enabled));
+  }, []);
+
   const setShowDefaultCategories = useCallback(async (enabled: boolean | null) => {
     setShowDefaultCategoriesState(enabled);
     if (enabled === null) {
@@ -213,6 +230,7 @@ export function PreferencesProvider({
       keepScreenAwake,
       keepRecipesLocal,
       enableBackupReminders,
+      enableShoppingNotifications,
       showDefaultCategories,
       language,
       llmSettings,
@@ -220,6 +238,7 @@ export function PreferencesProvider({
       setKeepScreenAwake,
       setKeepRecipesLocal,
       setEnableBackupReminders,
+      setEnableShoppingNotifications,
       setShowDefaultCategories,
       setLanguage,
       setLlmSettings,
@@ -229,6 +248,7 @@ export function PreferencesProvider({
       keepScreenAwake,
       keepRecipesLocal,
       enableBackupReminders,
+      enableShoppingNotifications,
       showDefaultCategories,
       language,
       llmSettings,
@@ -236,6 +256,7 @@ export function PreferencesProvider({
       setKeepScreenAwake,
       setKeepRecipesLocal,
       setEnableBackupReminders,
+      setEnableShoppingNotifications,
       setShowDefaultCategories,
       setLanguage,
       setLlmSettings,

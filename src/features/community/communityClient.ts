@@ -19,6 +19,7 @@ import {
   type QueryConstraint
 } from "firebase/firestore";
 import { getDb, waitForAuth, getAnonymousUid } from "../firebase/firebaseClient";
+import { cleanTranslatedText } from "./communityTranslation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -111,12 +112,16 @@ function toRecipe(d: QueryDocumentSnapshot<DocumentData>): CommunityRecipe {
   const data = d.data();
   return {
     id: d.id,
-    title: data.title ?? "",
-    description: data.description ?? "",
-    ingredients: Array.isArray(data.ingredients) ? data.ingredients : [],
-    steps: Array.isArray(data.steps) ? data.steps : [],
+    title: cleanTranslatedText(data.title ?? ""),
+    description: cleanTranslatedText(data.description ?? ""),
+    ingredients: Array.isArray(data.ingredients)
+      ? data.ingredients.map((ing) => cleanTranslatedText(String(ing)))
+      : [],
+    steps: Array.isArray(data.steps)
+      ? data.steps.map((step) => cleanTranslatedText(String(step)))
+      : [],
     language: data.language ?? "en",
-    authorName: data.authorName ?? "",
+    authorName: cleanTranslatedText(data.authorName ?? ""),
     authorUid: data.authorUid ?? undefined,
     imageUrl: data.imageUrl ?? undefined,
     sourceUrl: data.sourceUrl ?? undefined,
@@ -159,12 +164,11 @@ export async function fetchCommunityRecipes(
 
   const direction = sortBy === "alphabetical" ? "asc" : "desc";
 
-  // To avoid requiring complex composite indexes in Firebase, we just query by the order field
-  // and do the filtering client-side. We fetch a larger batch to ensure we have enough results.
+  const fetchLimit = language !== "all" ? 300 : Math.max(100, pageSize * 2);
   const constraints: QueryConstraint[] = [orderBy(orderField, direction)];
   
   if (afterDoc) constraints.push(startAfter(afterDoc));
-  constraints.push(limit(Math.max(100, pageSize * 2))); // Fetch more to allow client-side filtering
+  constraints.push(limit(fetchLimit));
 
   const snap = await getDocs(query(coll, ...constraints));
   
@@ -177,7 +181,7 @@ export async function fetchCommunityRecipes(
     return true;
   });
 
-  const hasMore = snap.docs.length === 100;
+  const hasMore = snap.docs.length >= fetchLimit;
   const sliced = filteredDocs.slice(0, pageSize);
 
   const uid = getAnonymousUid();
@@ -287,7 +291,6 @@ export async function deleteCommunityRecipe(
   if (data.authorUid && data.authorUid !== authorUid) {
     throw new Error("Not authorized to delete this recipe");
   }
-  // Hard delete the document
   await deleteDoc(ref);
 }
 
@@ -303,11 +306,8 @@ export async function checkCommunityRecipeDuplicate(
   const snap = await getDocs(q);
   for (const d of snap.docs) {
     const data = d.data();
-    // Match by authorUid first (most reliable)
     if (authorUid && data.authorUid && data.authorUid === authorUid) return true;
-    // Fallback: match by authorName
     if (data.authorName === authorName) return true;
-    // Match by steps content
     const existingSteps = Array.isArray(data.steps) ? data.steps : [];
     if (existingSteps.length > 0 && steps.length > 0 && existingSteps.join("") === steps.join("")) {
       return true;
@@ -316,16 +316,10 @@ export async function checkCommunityRecipeDuplicate(
   return false;
 }
 
-// ─── Pseudonym uniqueness ─────────────────────────────────────────────────────
-
 function normalizePseudonym(pseudo: string): string {
   return pseudo.trim().toLowerCase().replace(/\s+/g, "_");
 }
 
-/**
- * Check if a pseudonym is available (not taken by another user).
- * Returns true if available.
- */
 export async function checkPseudonymAvailable(pseudo: string): Promise<boolean> {
   await waitForAuth();
   const key = normalizePseudonym(pseudo);
@@ -333,15 +327,10 @@ export async function checkPseudonymAvailable(pseudo: string): Promise<boolean> 
   const ref = doc(getDb(), "pseudonyms", key);
   const snap = await getDoc(ref);
   if (!snap.exists()) return true;
-  // It's available if the current user already owns it
   const uid = getAnonymousUid();
   return uid !== null && (snap.data() as { uid: string }).uid === uid;
 }
 
-/**
- * Reserve a pseudonym for the current user.
- * Throws if already taken by another user.
- */
 export async function reservePseudonym(pseudo: string): Promise<void> {
   await waitForAuth();
   const uid = getAnonymousUid();
@@ -357,9 +346,6 @@ export async function reservePseudonym(pseudo: string): Promise<void> {
   await setDoc(ref, { uid, pseudonym: pseudo.trim(), reservedAt: serverTimestamp() });
 }
 
-/**
- * Release a pseudonym (e.g. when user changes their name).
- */
 export async function releasePseudonym(pseudo: string): Promise<void> {
   await waitForAuth();
   const uid = getAnonymousUid();
@@ -372,8 +358,6 @@ export async function releasePseudonym(pseudo: string): Promise<void> {
     await deleteDoc(ref);
   }
 }
-
-// ─── Vote ─────────────────────────────────────────────────────────────────────
 
 export async function voteOnRecipe(
   recipeId: string,
@@ -394,8 +378,6 @@ export async function voteOnRecipe(
 
   await setDoc(ratingRef, { stars, at: serverTimestamp() });
 
-  // Recalculate average:
-  // new_avg = (old_avg * count + new_stars - old_stars) / (old_count + (prevStars === 0 ? 1 : 0))
   const recipeSnap = await getDoc(recipeRef);
   if (!recipeSnap.exists()) return;
   const data = recipeSnap.data() as { avgRating: number; ratingCount: number };
@@ -409,8 +391,6 @@ export async function voteOnRecipe(
     ratingCount: isNew ? increment(1) : data.ratingCount,
   });
 }
-
-// ─── Get single recipe ────────────────────────────────────────────────────────
 
 export async function getCommunityRecipe(
   recipeId: string
@@ -431,27 +411,11 @@ export async function getCommunityRecipe(
   return recipe;
 }
 
-// ─── Report ───────────────────────────────────────────────────────────────────
-
 export async function reportCommunityRecipe(recipeId: string): Promise<void> {
   await waitForAuth();
   const ref = doc(getDb(), "communityRecipes", recipeId);
   await updateDoc(ref, {
     reportCount: increment(1),
-    // Auto-hide if 3+ reports
     approved: false,
   });
-}
-
-// ─── User vote ────────────────────────────────────────────────────────────────
-
-export async function getUserVote(recipeId: string): Promise<number> {
-  await waitForAuth();
-  const uid = getAnonymousUid();
-  if (!uid) return 0;
-  const snap = await getDoc(
-    doc(getDb(), "communityRecipes", recipeId, "ratings", uid)
-  );
-  if (!snap.exists()) return 0;
-  return (snap.data() as { stars: number }).stars;
 }

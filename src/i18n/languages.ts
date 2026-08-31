@@ -16,5 +16,8 @@ export function isAppLanguage(
 }
 
 export function resolveAppLanguage(language: string | null | undefined): AppLanguage {
-  return isAppLanguage(language) ? language : "en";
+  if (!language) return "en";
+  const baseCode = language.trim().toLowerCase().slice(0, 2);
+  return isAppLanguage(baseCode) ? baseCode : "en";
 }
+

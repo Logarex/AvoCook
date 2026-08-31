@@ -9,7 +9,7 @@ import {
   Linking
 } from "react-native";
 import { useTranslation } from "react-i18next";
-import { ArrowLeft, Download, Flag, Clock, Users, Mail, Link as LinkIcon, HeartPulse, Trash2 } from "lucide-react-native";
+import { ArrowLeft, Download, Flag, Clock, Users, Mail, Link as LinkIcon, HeartPulse, Trash2, Languages } from "lucide-react-native";
 
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -24,6 +24,8 @@ import {
   reportCommunityRecipe,
   type CommunityRecipe
 } from "../features/community/communityClient";
+import { translateCommunityRecipe, hasCorruptedText } from "../features/community/communityTranslation";
+import { resolveAppLanguage } from "../i18n/languages";
 import { getAnonymousUid } from "../features/firebase/firebaseClient";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { normalizeRecipe } from "../features/recipes/types";
@@ -35,7 +37,7 @@ import { humanDuration } from "../utils/duration";
 type Props = NativeStackScreenProps<RootStackParamList, "CommunityDetail">;
 
 export function CommunityDetailScreen({ navigation, route }: Props) {
-  const { t } = useTranslation();
+  const { i18n, t } = useTranslation();
   const { colors } = useAppTheme();
   const { createRecipe, recipes } = useRecipes();
 
@@ -44,6 +46,14 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
   const [userVote, setUserVote] = useState<number>(0);
   const [importing, setImporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const [translatedRecipe, setTranslatedRecipe] = useState<CommunityRecipe | null>(null);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const [showTranslated, setShowTranslated] = useState(false);
+
+  const activeRecipe = showTranslated && translatedRecipe ? translatedRecipe : recipe;
+  const targetLang = resolveAppLanguage(i18n.language);
+  const isDifferentLang = Boolean(recipe && recipe.language && recipe.language !== targetLang);
 
   const currentUid = getAnonymousUid();
   const isAuthor = Boolean(
@@ -71,7 +81,6 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
     try {
       await voteOnRecipe(recipe.id, stars);
       setUserVote(stars);
-      // Reload recipe to update average
       const updated = await getCommunityRecipe(recipe.id);
       if (updated) setRecipe(updated);
     } catch {
@@ -79,11 +88,34 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleImport = async () => {
+  const handleToggleTranslate = async () => {
     if (!recipe) return;
+    if (showTranslated) {
+      setShowTranslated(false);
+      return;
+    }
+    if (translatedRecipe && !hasCorruptedText(translatedRecipe)) {
+      setShowTranslated(true);
+      return;
+    }
+    setIsTranslating(true);
+    try {
+      const res = await translateCommunityRecipe(recipe, targetLang);
+      setTranslatedRecipe(res);
+      setShowTranslated(true);
+    } catch (err) {
+      console.warn("community", "Translation failed", err);
+      Alert.alert(t("common.error"), t("community.translationFailed"));
+    } finally {
+      setIsTranslating(false);
+    }
+  };
+
+  const handleImport = async () => {
+    if (!activeRecipe) return;
 
     // Check for a duplicate in the local recipe book (case-insensitive)
-    const titleNorm = recipe.title.trim().toLowerCase();
+    const titleNorm = activeRecipe.title.trim().toLowerCase();
     const alreadyExists = recipes.some(
       (r) => r.name.trim().toLowerCase() === titleNorm
     );
@@ -98,15 +130,15 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
     setImporting(true);
     try {
       const localRecipe = normalizeRecipe({
-        name: recipe.title,
-        description: recipe.description,
+        name: activeRecipe.title,
+        description: activeRecipe.description,
         recipeCategory: t("community.importCategoryLabel"),
-        recipeIngredient: recipe.ingredients,
-        recipeInstructions: recipe.steps,
-        keywords: `${t("community.importKeyword")}, ${recipe.language}`,
-        sourceName: recipe.authorName || t("community.anonymousAuthor"),
-        image: recipe.imageUrl || "",
-        imageUrl: recipe.imageUrl || ""
+        recipeIngredient: activeRecipe.ingredients,
+        recipeInstructions: activeRecipe.steps,
+        keywords: `${t("community.importKeyword")}, ${activeRecipe.language}`,
+        sourceName: activeRecipe.authorName || t("community.anonymousAuthor"),
+        image: activeRecipe.imageUrl || "",
+        imageUrl: activeRecipe.imageUrl || ""
       });
       await createRecipe(localRecipe);
       Alert.alert(
@@ -198,7 +230,7 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
     );
   }
 
-  if (!recipe) {
+  if (!recipe || !activeRecipe) {
     return (
       <Screen>
         <IconButton
@@ -239,59 +271,83 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
         </View>
       </View>
 
-      {/* Hero Title */}
       <GlassPanel style={styles.hero}>
-        <AppText variant="title">{recipe.title}</AppText>
-        {recipe.description ? (
+        <AppText variant="title">{activeRecipe.title}</AppText>
+        {activeRecipe.description ? (
           <AppText muted style={styles.desc}>
-            {recipe.description}
+            {activeRecipe.description}
           </AppText>
         ) : null}
-        {recipe.authorName ? (
+        {activeRecipe.authorName ? (
           <AppText muted variant="caption">
-            {t("community.byAuthor", { author: recipe.authorName })}
+            {t("community.byAuthor", { author: activeRecipe.authorName })}
           </AppText>
+        ) : null}
+        {showTranslated ? (
+          <View style={[styles.translatedBadge, { backgroundColor: colors.chip }]}>
+            <Languages color={colors.primary} size={14} />
+            <AppText variant="caption" style={{ color: colors.primary, fontWeight: "600" }}>
+              {t("community.translatedNotice", { defaultValue: "Traduit automatiquement" })}
+            </AppText>
+          </View>
         ) : null}
       </GlassPanel>
 
-      {recipe.imageUrl ? (
-        <Image
-          source={{ uri: recipe.imageUrl }}
-          style={styles.image}
-          resizeMode="cover"
+      {isDifferentLang ? (
+        <PrimaryButton
+          icon={Languages}
+          label={
+            isTranslating
+              ? t("community.translating")
+              : showTranslated
+                ? t("community.showOriginal")
+                : t("community.translateRecipe")
+          }
+          disabled={isTranslating}
+          onPress={() => void handleToggleTranslate()}
+          variant="secondary"
+          style={styles.actionBtn}
         />
       ) : null}
 
+      {activeRecipe.imageUrl ? (
+        <View style={styles.imageContainer}>
+          <Image
+            source={{ uri: activeRecipe.imageUrl }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+        </View>
+      ) : null}
+
       <View style={styles.metricsRow}>
-        {recipe.prepTime ? (
-           <Metric icon={Clock} label={t("recipes.prepTime")} value={humanDuration(recipe.prepTime) || recipe.prepTime} />
+        {activeRecipe.prepTime ? (
+           <Metric icon={Clock} label={t("recipes.prepTime")} value={humanDuration(activeRecipe.prepTime) || activeRecipe.prepTime} />
         ) : null}
-        {recipe.cookTime ? (
-           <Metric icon={Clock} label={t("recipes.cookTime")} value={humanDuration(recipe.cookTime) || recipe.cookTime} />
+        {activeRecipe.cookTime ? (
+           <Metric icon={Clock} label={t("recipes.cookTime")} value={humanDuration(activeRecipe.cookTime) || activeRecipe.cookTime} />
         ) : null}
-        {recipe.servings ? (
-           <Metric icon={Users} label={t("recipes.servings.title")} value={`${recipe.servings}`} />
+        {activeRecipe.servings ? (
+           <Metric icon={Users} label={t("recipes.servings.title")} value={`${activeRecipe.servings}`} />
         ) : null}
-        {recipe.nutriScore ? (
-           <Metric icon={HeartPulse} label={t("recipes.health.nutriScore", { defaultValue: "Nutri-Score" })} value={recipe.nutriScore} />
+        {activeRecipe.nutriScore ? (
+           <Metric icon={HeartPulse} label={t("recipes.health.nutriScore", { defaultValue: "Nutri-Score" })} value={activeRecipe.nutriScore} />
         ) : null}
       </View>
 
-      {/* Vote section */}
       <GlassPanel style={styles.votePanel}>
         <AppText variant="label">{t("community.rateThisRecipe")}</AppText>
         <StarRating
-          rating={userVote || recipe.avgRating}
+          rating={userVote || activeRecipe.avgRating}
           interactive
           size={28}
           onRatingChange={(stars) => void handleVote(stars)}
         />
         <AppText muted variant="caption">
-          {recipe.avgRating.toFixed(1)} / 5 ({t("community.voteCount", { count: recipe.ratingCount })})
+          {activeRecipe.avgRating.toFixed(1)} / 5 ({t("community.voteCount", { count: activeRecipe.ratingCount })})
         </AppText>
       </GlassPanel>
 
-      {/* Import to my recipes CTA */}
       <PrimaryButton
         icon={Download}
         label={t("community.importToMyRecipes")}
@@ -300,10 +356,9 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
         style={styles.importBtn}
       />
 
-      {/* Ingredients */}
       <GlassPanel style={styles.section}>
         <AppText variant="subtitle">{t("editor.ingredients")}</AppText>
-        {recipe.ingredients.map((ing, idx) => (
+        {activeRecipe.ingredients.map((ing, idx) => (
           <View key={idx} style={styles.lineRow}>
             <AppText style={styles.bullet}>•</AppText>
             <AppText style={styles.lineText}>{ing}</AppText>
@@ -311,10 +366,9 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
         ))}
       </GlassPanel>
 
-      {/* Instructions */}
       <GlassPanel style={styles.section}>
         <AppText variant="subtitle">{t("editor.instructions")}</AppText>
-        {recipe.steps.map((step, idx) => (
+        {activeRecipe.steps.map((step, idx) => (
           <View key={idx} style={styles.stepRow}>
             <View style={[styles.stepNum, { backgroundColor: colors.chip }]}>
               <AppText variant="caption" style={{ fontWeight: "bold" }}>
@@ -326,11 +380,11 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
         ))}
       </GlassPanel>
 
-      {recipe.sourceUrl ? (
+      {activeRecipe.sourceUrl ? (
         <PrimaryButton
           icon={LinkIcon}
           label={t("recipes.sourceLink", { defaultValue: "Lien source" })}
-          onPress={() => void Linking.openURL(recipe.sourceUrl!)}
+          onPress={() => void Linking.openURL(activeRecipe.sourceUrl!)}
           variant="secondary"
           style={styles.actionBtn}
         />
@@ -377,6 +431,16 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     padding: spacing.lg
   },
+  translatedBadge: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    borderRadius: radius.pill,
+    flexDirection: "row",
+    gap: spacing.xxs,
+    marginTop: spacing.xxs,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4
+  },
   desc: {
     lineHeight: 20
   },
@@ -391,11 +455,17 @@ const styles = StyleSheet.create({
   actionBtn: {
     marginBottom: spacing.xs
   },
-  image: {
+  imageContainer: {
     width: "100%",
     height: 240,
-    borderRadius: radius.md,
-    backgroundColor: "rgba(0,0,0,0.05)"
+    borderRadius: radius.lg,
+    overflow: "hidden",
+    backgroundColor: "rgba(0,0,0,0.05)",
+    marginVertical: spacing.xs
+  },
+  image: {
+    width: "100%",
+    height: "100%"
   },
   metricsRow: {
     flexDirection: "row",

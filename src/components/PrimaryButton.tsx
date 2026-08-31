@@ -61,9 +61,10 @@ export function PrimaryButton({
       ]}
     >
       <View style={styles.content}>
-        {Icon ? <Icon color={foregroundColor} size={18} strokeWidth={2.5} /> : null}
+        {Icon ? <Icon color={foregroundColor} size={19} strokeWidth={2.5} /> : null}
         <AppText
           numberOfLines={numberOfLines}
+          adjustsFontSizeToFit={false}
           variant="label"
           style={[styles.label, { color: foregroundColor }]}
         >
@@ -85,14 +86,13 @@ const styles = StyleSheet.create({
   },
   content: {
     alignItems: "center",
-    flexShrink: 1,
     flexDirection: "row",
-    flexWrap: "wrap",
     gap: spacing.xs,
     justifyContent: "center"
   },
   label: {
     textAlign: "center",
-    flexShrink: 1,
+    fontSize: 15,
+    fontWeight: "600"
   }
 });

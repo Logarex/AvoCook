@@ -80,6 +80,7 @@ export function SettingsScreen({ navigation }: Props) {
     keepRecipesLocal,
     keepScreenAwake,
     enableBackupReminders,
+    enableShoppingNotifications,
     language,
     llmSettings,
     communityPseudonym,
@@ -88,6 +89,7 @@ export function SettingsScreen({ navigation }: Props) {
     setKeepRecipesLocal,
     setKeepScreenAwake,
     setEnableBackupReminders,
+    setEnableShoppingNotifications,
     setLanguage,
     setLlmSettings,
     setCommunityPseudonym
@@ -771,6 +773,26 @@ export function SettingsScreen({ navigation }: Props) {
             thumbColor={Platform.OS === "android" ? (enableBackupReminders ? colors.primary : colors.textMuted) : undefined}
             trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
             value={enableBackupReminders}
+          />
+        </View>
+
+        <View style={styles.divider} />
+
+        <View style={styles.rowSectionInner}>
+          <View style={styles.rowText}>
+            <AppText variant="label">{t("settings.shoppingNotifications")}</AppText>
+            <AppText muted variant="caption">
+              {t("settings.shoppingNotificationsHint")}
+            </AppText>
+          </View>
+          <Switch
+            accessibilityLabel={t("settings.shoppingNotifications")}
+            accessibilityRole="switch"
+            accessibilityState={{ checked: enableShoppingNotifications }}
+            onValueChange={(value) => void setEnableShoppingNotifications(value)}
+            thumbColor={Platform.OS === "android" ? (enableShoppingNotifications ? colors.primary : colors.textMuted) : undefined}
+            trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
+            value={enableShoppingNotifications}
           />
         </View>
 

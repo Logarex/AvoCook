@@ -74,7 +74,8 @@ export function Screen({
       style={[styles.safeArea, { backgroundColor: backgroundColor ?? colors.background }]}
     >
       <KeyboardAvoidingView
-        behavior={scroll && Platform.OS === "ios" ? "padding" : undefined}
+        behavior={scroll ? (Platform.OS === "ios" ? "padding" : "height") : undefined}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 24}
         style={styles.flex}
       >
         {scroll ? (
@@ -83,6 +84,7 @@ export function Screen({
               ref={scrollRef}
               contentContainerStyle={styles.scrollContent}
               keyboardShouldPersistTaps="handled"
+              automaticallyAdjustKeyboardInsets={true}
               onContentSizeChange={(_, height) => setContentHeight(height)}
               onLayout={handleLayout}
               onScroll={handleScroll}
