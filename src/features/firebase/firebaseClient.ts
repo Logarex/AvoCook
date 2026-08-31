@@ -4,12 +4,16 @@ import {
   type Firestore
 } from "firebase/firestore";
 import {
+  initializeAuth,
+  // @ts-expect-error - getReactNativePersistence is provided by firebase/auth under react-native resolution
+  getReactNativePersistence,
   getAuth,
   signInAnonymously,
   onAuthStateChanged,
   type Auth,
   type User
 } from "firebase/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 // These are public client-side keys — security is enforced by Firestore rules.
@@ -48,7 +52,14 @@ export function getDb(): Firestore {
 
 export function getFirebaseAuth(): Auth {
   if (!_auth) {
-    _auth = getAuth(getApp());
+    const app = getApp();
+    try {
+      _auth = initializeAuth(app, {
+        persistence: getReactNativePersistence(AsyncStorage),
+      });
+    } catch {
+      _auth = getAuth(app);
+    }
   }
   return _auth;
 }
