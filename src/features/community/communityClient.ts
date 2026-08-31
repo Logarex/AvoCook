@@ -411,11 +411,53 @@ export async function getCommunityRecipe(
   return recipe;
 }
 
-export async function reportCommunityRecipe(recipeId: string): Promise<void> {
+export const REPORT_THRESHOLD = 3;
+
+export async function reportCommunityRecipe(
+  recipeId: string,
+  reason?: string
+): Promise<void> {
   await waitForAuth();
-  const ref = doc(getDb(), "communityRecipes", recipeId);
+  const db = getDb();
+  const uid = getAnonymousUid();
+
+  // Prevent duplicate reports from the same user
+  if (uid) {
+    const userReportRef = doc(db, "communityRecipes", recipeId, "reports", uid);
+    const userReportSnap = await getDoc(userReportRef);
+    if (userReportSnap.exists()) {
+      return;
+    }
+    await setDoc(userReportRef, {
+      reportedAt: serverTimestamp(),
+      reason: reason ?? "Inappropriate content",
+    });
+  }
+
+  const ref = doc(db, "communityRecipes", recipeId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+
+  const data = snap.data();
+  const currentCount = typeof data.reportCount === "number" ? data.reportCount : 0;
+  const newCount = currentCount + 1;
+  const isAutoSuppressed = newCount >= REPORT_THRESHOLD;
+
   await updateDoc(ref, {
     reportCount: increment(1),
-    approved: false,
+    ...(isAutoSuppressed ? { approved: false } : {}),
+  });
+
+  // Record moderation alert for admin notification
+  await addDoc(collection(db, "communityReports"), {
+    recipeId,
+    recipeTitle: data.title ?? "Unknown",
+    authorUid: data.authorUid ?? null,
+    reportedByUid: uid ?? null,
+    reportCount: newCount,
+    status: isAutoSuppressed ? "auto_suppressed" : "pending_review",
+    reason: reason ?? "Inappropriate content",
+    createdAt: serverTimestamp(),
   });
 }
+
