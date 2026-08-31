@@ -18,6 +18,7 @@ Je l'ai développé pour mon usage personnel en apprenant à mener un projet Rea
 ### Plateforme Communautaire
 
 - Découvrez, notez et importez des recettes de la communauté AvoCook ;
+- Traduisez les recettes de la communauté directement dans l'application ;
 - Partagez vos meilleurs plats en créant un profil communautaire ;
 - Plateforme modérée et sécurisée avec détection de spam intégrée.
 
@@ -38,7 +39,7 @@ Je l'ai développé pour mon usage personnel en apprenant à mener un projet Rea
 
 ### Liste de courses
 
-- Collaborez sur vos listes de courses en temps réel à l'aide d'un code à 6 chiffres ;
+- Collaborez sur vos listes de courses en temps réel à l'aide d'un code à 6 chiffres, avec notifications push et suivi des participants ;
 - Copier les ingrédients dans le presse-papiers en un geste ;
 - Exporter une liste de courses vers les Rappels iOS pour profiter du partage Apple et de l'intégration Siri.
 
@@ -58,7 +59,7 @@ Je l'ai développé pour mon usage personnel en apprenant à mener un projet Rea
 
 ## Langues disponibles
 
-Français · Anglais · Allemand · Espagnol · Italien
+Français · Anglais · Allemand · Espagnol · Italien · Danois
 
 ---
 
@@ -100,12 +101,12 @@ src/
 │   ├── timers/                          # Minuteurs de cuisson
 │   ├── preferences/                     # Paramètres de l'application
 │   └── auth/                            # Authentification Nextcloud
-├── i18n/                                # Internationalisation (i18next, 5 langues)
+├── i18n/                                # Internationalisation (i18next, 6 langues)
 ├── modules/
 │   └── avocook-timer-notifications/     # Module natif pour les notifications minuteur
 └── theme/                               # Couleurs, typographie, styles partagés
 tools/                                   # Plugins de build, vérificateur d'import, assets
-docs/                                    # Documentation dans d'autres langues (fr, de, es, it)
+docs/                                    # Documentation dans d'autres langues (fr, de, es, it, da)
 ```
 
 ---

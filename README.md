@@ -20,6 +20,7 @@ I built it for personal use while learning to ship a complete React Native proje
 ### Community Platform
 
 - Discover, rate, and import recipes from the AvoCook community;
+- Translate community recipes directly within the app;
 - Share your best meals by setting up a community profile;
 - Safe and moderated platform with built-in spam detection.
 
@@ -40,7 +41,7 @@ I built it for personal use while learning to ship a complete React Native proje
 
 ### Shopping list
 
-- Collaborate on grocery lists in real-time using a 6-digit code;
+- Collaborate on grocery lists in real-time using a 6-digit code, push notifications, and active participant tracking;
 - Copy ingredients to the clipboard with a tap;
 - Export a shopping list to iOS Reminders to take advantage of Apple's sharing and Siri integration.
 
@@ -60,7 +61,7 @@ I built it for personal use while learning to ship a complete React Native proje
 
 ## Available languages
 
-French · English · German · Spanish · Italian
+French · English · German · Spanish · Italian · Danish
 
 ---
 
@@ -102,12 +103,12 @@ src/
 │   ├── timers/                    # Cooking timers
 │   ├── preferences/               # App settings
 │   └── auth/                      # Nextcloud authentication
-├── i18n/                          # Internationalisation (i18next, 5 languages)
+├── i18n/                          # Internationalisation (i18next, 6 languages)
 ├── modules/
 │   └── avocook-timer-notifications/  # Native module for timer notifications
 └── theme/                         # Colors, typography, shared styles
 tools/                             # Build plugins, import checker, asset generator
-docs/                              # Documentation in other languages (fr, de, es, it)
+docs/                              # Documentation in other languages (fr, de, es, it, da)
 ```
 
 ---

@@ -18,6 +18,7 @@ L'ho sviluppato per uso personale mentre imparavo a portare avanti un progetto R
 ### Piattaforma Comunità
 
 - Scopri, valuta e importa ricette dalla comunità AvoCook;
+- Traduci le ricette della community direttamente nell'applicazione;
 - Condividi i tuoi piatti migliori impostando un profilo comunitario;
 - Piattaforma sicura e moderata con rilevamento dello spam integrato.
 
@@ -38,7 +39,7 @@ L'ho sviluppato per uso personale mentre imparavo a portare avanti un progetto R
 
 ### Lista della spesa
 
-- Collabora alle liste della spesa in tempo reale tramite un codice a 6 cifre;
+- Collabora alle liste della spesa in tempo reale tramite un codice a 6 cifre, con notifiche push e tracciamento dei partecipanti;
 - Copiare gli ingredienti negli appunti con un tocco;
 - Esportare una lista della spesa in Promemoria iOS per sfruttare la condivisione Apple e l'integrazione con Siri.
 
@@ -58,7 +59,7 @@ L'ho sviluppato per uso personale mentre imparavo a portare avanti un progetto R
 
 ## Lingue disponibili
 
-Francese · Inglese · Tedesco · Spagnolo · Italiano
+Francese · Inglese · Tedesco · Spagnolo · Italiano · Danese
 
 ---
 

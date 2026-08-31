@@ -18,6 +18,7 @@ Ich habe es für den persönlichen Gebrauch entwickelt und dabei gelernt, ein vo
 ### Community-Plattform
 
 - Entdecke, bewerte und importiere Rezepte aus der AvoCook-Community;
+- Übersetze Community-Rezepte direkt in der App;
 - Teile deine besten Gerichte, indem du ein Community-Profil erstellst;
 - Sichere und moderierte Plattform mit integrierter Spam-Erkennung.
 
@@ -38,7 +39,7 @@ Ich habe es für den persönlichen Gebrauch entwickelt und dabei gelernt, ein vo
 
 ### Einkaufsliste
 
-- Arbeite in Echtzeit an Einkaufslisten mit einem 6-stelligen Code zusammen;
+- Arbeite in Echtzeit an Einkaufslisten mit einem 6-stelligen Code zusammen, inkl. Push-Benachrichtigungen und Teilnehmeranzeige;
 - Zutaten mit einem Tippen in die Zwischenablage kopieren;
 - Eine Einkaufsliste in iOS-Erinnerungen exportieren, um Apples Teilen-Funktion und Siri-Integration zu nutzen.
 
@@ -58,7 +59,7 @@ Ich habe es für den persönlichen Gebrauch entwickelt und dabei gelernt, ein vo
 
 ## Verfügbare Sprachen
 
-Französisch · Englisch · Deutsch · Spanisch · Italienisch
+Französisch · Englisch · Deutsch · Spanisch · Italienisch · Dänisch
 
 ---
 

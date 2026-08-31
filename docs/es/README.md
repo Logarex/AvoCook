@@ -16,6 +16,7 @@ Lo desarrollé para uso personal mientras aprendía a llevar un proyecto React N
 ### Plataforma de la Comunidad
 
 - Descubre, califica e importa recetas de la comunidad AvoCook;
+- Traduce recetas de la comunidad directamente en la aplicación;
 - Comparte tus mejores comidas configurando un perfil de la comunidad;
 - Plataforma segura y moderada con detección de spam integrada.
 
@@ -36,7 +37,7 @@ Lo desarrollé para uso personal mientras aprendía a llevar un proyecto React N
 
 ### Lista de la compra
 
-- Colabora en listas de compras en tiempo real mediante un código de 6 dígitos;
+- Colabora en listas de compras en tiempo real mediante un código de 6 dígitos, con notificaciones push y seguimiento de participantes;
 - Copiar los ingredientes al portapapeles con un toque;
 - Exportar una lista de la compra a Recordatorios de iOS para aprovechar el sistema de compartir de Apple y la integración con Siri.
 
@@ -56,7 +57,7 @@ Lo desarrollé para uso personal mientras aprendía a llevar un proyecto React N
 
 ## Idiomas disponibles
 
-Francés · Inglés · Alemán · Español · Italiano
+Francés · Inglés · Alemán · Español · Italiano · Danés
 
 ---
 
