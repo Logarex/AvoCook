@@ -35,7 +35,7 @@ export function useOnboarding(): OnboardingState {
       AsyncStorage.getItem(LAST_SEEN_VERSION_KEY),
     ]).then(([intro, tour, lastVersion]) => {
       const isIntroDone = intro === "true";
-      const currentVersion = Constants.expoConfig?.version || "4.0.0";
+      const currentVersion = Constants.expoConfig?.version || "4.0.1";
 
       setIntroDone(isIntroDone);
       setTourDone(tour === "true");
@@ -62,7 +62,7 @@ export function useOnboarding(): OnboardingState {
   }, []);
 
   const markUpdateSeen = useCallback(async () => {
-    const currentVersion = Constants.expoConfig?.version || "4.0.0";
+    const currentVersion = Constants.expoConfig?.version || "4.0.1";
     setShowUpdateScreen(false);
     await AsyncStorage.setItem(LAST_SEEN_VERSION_KEY, currentVersion);
   }, []);
@@ -73,7 +73,7 @@ export function useOnboarding(): OnboardingState {
     setShowUpdateScreen(false);
     // Remove intro/tour flags but keep current version so that the update
     // screen does NOT fire spuriously after a manual reset from Settings.
-    const currentVersion = Constants.expoConfig?.version || "4.0.0";
+    const currentVersion = Constants.expoConfig?.version || "4.0.1";
     await AsyncStorage.multiRemove([INTRO_DONE_KEY, TOUR_DONE_KEY]);
     await AsyncStorage.setItem(LAST_SEEN_VERSION_KEY, currentVersion);
   }, []);
