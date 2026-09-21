@@ -37,6 +37,7 @@ type PreferencesContextValue = {
   llmSettings: LlmSettings;
   showDefaultCategories: boolean | null;
   communityPseudonym: string | null;
+  nextcloudImageFolder: string;
   setKeepScreenAwake: (enabled: boolean) => Promise<void>;
   setKeepRecipesLocal: (enabled: boolean) => Promise<void>;
   setEnableBackupReminders: (enabled: boolean) => Promise<void>;
@@ -45,6 +46,7 @@ type PreferencesContextValue = {
   setLanguage: (language: AppLanguage) => Promise<void>;
   setLlmSettings: (settings: LlmSettings) => Promise<void>;
   setCommunityPseudonym: (pseudo: string | null) => Promise<void>;
+  setNextcloudImageFolder: (folder: string) => Promise<void>;
 };
 
 const KEEP_AWAKE_KEY = "preferences.keepScreenAwake";
@@ -59,6 +61,7 @@ const LLM_BASE_URL_KEY = "preferences.llm.baseUrl";
 const LLM_MODEL_KEY = "preferences.llm.model";
 const LLM_API_KEY_SECURE = "preferences.llm.apiKey";
 const COMMUNITY_PSEUDONYM_KEY = "preferences.communityPseudonym";
+const NEXTCLOUD_IMAGE_FOLDER_KEY = "preferences.nextcloudImageFolder";
 
 const DEFAULT_PROVIDER = LLM_PROVIDERS[0];
 const DEFAULT_LLM_SETTINGS: LlmSettings = {
@@ -89,6 +92,7 @@ export function PreferencesProvider({
   const [llmSettings, setLlmSettingsState] = useState<LlmSettings>(
     DEFAULT_LLM_SETTINGS
   );
+  const [nextcloudImageFolder, setNextcloudImageFolderState] = useState("");
 
   useEffect(() => {
     void Promise.all([
@@ -103,7 +107,8 @@ export function PreferencesProvider({
       AsyncStorage.getItem(LLM_BASE_URL_KEY),
       AsyncStorage.getItem(LLM_MODEL_KEY),
       SecureStore.getItemAsync(LLM_API_KEY_SECURE),
-      AsyncStorage.getItem(COMMUNITY_PSEUDONYM_KEY)
+      AsyncStorage.getItem(COMMUNITY_PSEUDONYM_KEY),
+      AsyncStorage.getItem(NEXTCLOUD_IMAGE_FOLDER_KEY)
     ]).then(
       ([
         storedKeepAwake,
@@ -117,7 +122,8 @@ export function PreferencesProvider({
         storedBaseUrl,
         storedModel,
         storedApiKey,
-        storedCommunityPseudonym
+        storedCommunityPseudonym,
+        storedNextcloudImageFolder
       ]) => {
         if (storedKeepAwake === "true" || storedKeepAwake === "false") {
           setKeepScreenAwakeState(storedKeepAwake === "true");
@@ -163,6 +169,9 @@ export function PreferencesProvider({
         });
         if (storedCommunityPseudonym !== null) {
           setCommunityPseudonymState(storedCommunityPseudonym);
+        }
+        if (storedNextcloudImageFolder !== null && storedNextcloudImageFolder !== undefined) {
+          setNextcloudImageFolderState(storedNextcloudImageFolder);
         }
       }
     );
@@ -225,6 +234,11 @@ export function PreferencesProvider({
     }
   }, []);
 
+  const setNextcloudImageFolder = useCallback(async (folder: string) => {
+    setNextcloudImageFolderState(folder);
+    await AsyncStorage.setItem(NEXTCLOUD_IMAGE_FOLDER_KEY, folder);
+  }, []);
+
   const value = useMemo(
     () => ({
       keepScreenAwake,
@@ -235,6 +249,7 @@ export function PreferencesProvider({
       language,
       llmSettings,
       communityPseudonym,
+      nextcloudImageFolder,
       setKeepScreenAwake,
       setKeepRecipesLocal,
       setEnableBackupReminders,
@@ -242,7 +257,8 @@ export function PreferencesProvider({
       setShowDefaultCategories,
       setLanguage,
       setLlmSettings,
-      setCommunityPseudonym
+      setCommunityPseudonym,
+      setNextcloudImageFolder
     }),
     [
       keepScreenAwake,
@@ -253,6 +269,7 @@ export function PreferencesProvider({
       language,
       llmSettings,
       communityPseudonym,
+      nextcloudImageFolder,
       setKeepScreenAwake,
       setKeepRecipesLocal,
       setEnableBackupReminders,
@@ -260,7 +277,8 @@ export function PreferencesProvider({
       setShowDefaultCategories,
       setLanguage,
       setLlmSettings,
-      setCommunityPseudonym
+      setCommunityPseudonym,
+      setNextcloudImageFolder
     ]
   );
 

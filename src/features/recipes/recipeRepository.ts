@@ -1463,20 +1463,20 @@ async function deleteStaleRecipeImages(
 
     const localRecipeBefore = await loadAnyLocalRecipeById(recipeId);
     if (localRecipeBefore) {
-      getAvoCookImagePaths(localRecipeBefore).forEach((p) => oldPaths.add(p));
+      getAvoCookImagePaths(localRecipeBefore, client.getImageFolder()).forEach((p) => oldPaths.add(p));
     }
 
     const serverRecipe = await client.getRecipe(recipeId).catch(() => null);
     if (serverRecipe) {
-      getAvoCookImagePaths(serverRecipe).forEach((p) => oldPaths.add(p));
+      getAvoCookImagePaths(serverRecipe, client.getImageFolder()).forEach((p) => oldPaths.add(p));
     }
 
-    const newPaths = new Set(newRecipe ? getAvoCookImagePaths(newRecipe) : []);
+    const newPaths = new Set(newRecipe ? getAvoCookImagePaths(newRecipe, client.getImageFolder()) : []);
 
     const allRecipes = await loadLocalRecipes();
     const otherRecipes = allRecipes.filter((r) => r.id !== recipeId);
     const referencedPaths = new Set(
-      otherRecipes.flatMap((r) => getAvoCookImagePaths(r))
+      otherRecipes.flatMap((r) => getAvoCookImagePaths(r, client.getImageFolder()))
     );
 
     const pathsToDelete = Array.from(oldPaths).filter(
@@ -1521,12 +1521,13 @@ async function deleteRemovedRecipeImagesFromNextcloud(
   await reindexRecipes(client);
 }
 
-function getAvoCookImagePaths(recipe: Recipe) {
+function getAvoCookImagePaths(recipe: Recipe, imageFolder?: string) {
+  const prefix = `/${imageFolder?.trim() || "AvoCook Images"}/`;
   return Array.from(
     new Set(
       [recipe.image, recipe.imageUrl, recipe.imagePlaceholderUrl].filter(
         (value): value is string =>
-          typeof value === "string" && value.startsWith("/AvoCook Images/")
+          typeof value === "string" && value.startsWith(prefix)
       )
     )
   );

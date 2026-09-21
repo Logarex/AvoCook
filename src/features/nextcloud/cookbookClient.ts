@@ -57,6 +57,8 @@ export class CookbookApiError extends Error {
   }
 }
 
+export const DEFAULT_IMAGE_FOLDER = "AvoCook Images";
+
 export class CookbookClient {
   private readonly serverUrl: string;
   private readonly username: string;
@@ -67,6 +69,7 @@ export class CookbookClient {
   private webDavUserIdPromise: Promise<string> | null;
   private webDavPathStyle: WebDavPathStyle | null;
   private readonly _imageHeaders: Record<string, string>;
+  private _imageFolder: string;
 
   private static currentInstance: CookbookClient | null = null;
 
@@ -74,7 +77,7 @@ export class CookbookClient {
     return CookbookClient.currentInstance;
   }
 
-  constructor(credentials: NextcloudCredentials) {
+  constructor(credentials: NextcloudCredentials, imageFolder?: string) {
     this.serverUrl = normalizeNextcloudUrl(credentials.serverUrl);
     this.username = credentials.username.trim();
     this.appPassword = credentials.appPassword.replace(/\s+/g, "");
@@ -84,7 +87,16 @@ export class CookbookClient {
     this.webDavUserIdPromise = null;
     this.webDavPathStyle = null;
     this._imageHeaders = { Authorization: this.authorization };
+    this._imageFolder = imageFolder?.trim() || DEFAULT_IMAGE_FOLDER;
     CookbookClient.currentInstance = this;
+  }
+
+  getImageFolder(): string {
+    return this._imageFolder || DEFAULT_IMAGE_FOLDER;
+  }
+
+  setImageFolder(folder: string) {
+    this._imageFolder = folder.trim() || DEFAULT_IMAGE_FOLDER;
   }
 
   getRecipeImageUrl(id: string, size: "full" | "thumb" | "thumb16" = "thumb") {
@@ -263,7 +275,7 @@ export class CookbookClient {
   async uploadRecipeImage(localUri: string) {
     const { File } = await import("expo-file-system");
     const localFile = new File(localUri);
-    const remotePath = `/AvoCook Images/${getSafeRemoteImageFilename(localUri)}`;
+    const remotePath = `/${this.getImageFolder()}/${getSafeRemoteImageFilename(localUri)}`;
     console.info("sync", "Recipe image upload started", {
       localUri,
       remotePath

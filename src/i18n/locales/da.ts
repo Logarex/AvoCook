@@ -550,6 +550,10 @@ export default {
       communityPseudonymPlaceholder: "F.eks. Chef Avo",
       pseudonymTaken: "Dette pseudonym bruges allerede af en anden bruger. Vælg venligst et andet.",
       pseudonymSaveFailed: "Kunne ikke gemme pseudonymet. Prøv igen.",
+      imageFolderPath: "Nextcloud-billedmappe",
+      imageFolderPathPlaceholder: "AvoCook Images",
+      imageFolderPathHint: "Mappe, hvor opskriftbilleder gemmes på Nextcloud. Lad feltet stå tomt for at bruge standardmappen «AvoCook Images».",
+      imageFolderPathMigrationWarning: "Billeder, der allerede er uploadet til den tidligere mappe (AvoCook Images), forbliver der. De slettes ikke automatisk, når opskrifter ændres.",
     },
     logs: {
       title: "Logs",

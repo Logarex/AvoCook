@@ -85,6 +85,7 @@ export function SettingsScreen({ navigation }: Props) {
     llmSettings,
     communityPseudonym,
     showDefaultCategories,
+    nextcloudImageFolder,
     setShowDefaultCategories,
     setKeepRecipesLocal,
     setKeepScreenAwake,
@@ -92,7 +93,8 @@ export function SettingsScreen({ navigation }: Props) {
     setEnableShoppingNotifications,
     setLanguage,
     setLlmSettings,
-    setCommunityPseudonym
+    setCommunityPseudonym,
+    setNextcloudImageFolder
   } = usePreferences();
   const [message, setMessage] = useState<string | null>(null);
   const [llmMessage, setLlmMessage] = useState<string | null>(null);
@@ -105,10 +107,16 @@ export function SettingsScreen({ navigation }: Props) {
   const [showApiKey, setShowApiKey] = useState(false);
   const [localPseudonym, setLocalPseudonym] = useState(communityPseudonym || "");
   const [pseudoSavedAnim, setPseudoSavedAnim] = useState(false);
+  const [localImageFolder, setLocalImageFolder] = useState(nextcloudImageFolder);
+  const [imageFolderSavedAnim, setImageFolderSavedAnim] = useState(false);
 
   React.useEffect(() => {
     setLocalPseudonym(communityPseudonym || "");
   }, [communityPseudonym]);
+
+  React.useEffect(() => {
+    setLocalImageFolder(nextcloudImageFolder);
+  }, [nextcloudImageFolder]);
 
   // Migration: silently try to reserve the existing pseudonym in Firestore
   // (for users who set their pseudonym before the uniqueness feature was added)
@@ -744,6 +752,43 @@ export function SettingsScreen({ navigation }: Props) {
 
         {!isLocalMode && credentials ? (
           <>
+            <View style={styles.divider} />
+            <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
+              <TextField
+                containerStyle={{ flex: 1, marginRight: spacing.sm }}
+                label={t("settings.imageFolderPath")}
+                value={localImageFolder}
+                onChangeText={setLocalImageFolder}
+                placeholder={t("settings.imageFolderPathPlaceholder")}
+                autoCapitalize="none"
+                autoCorrect={false}
+                autoComplete="off"
+                importantForAutofill="noExcludeDescendants"
+              />
+              <IconButton
+                icon={imageFolderSavedAnim ? CheckCheck : Check}
+                label={t("common.save")}
+                tone={imageFolderSavedAnim ? "default" : "primary"}
+                style={imageFolderSavedAnim ? { backgroundColor: colors.success } : undefined}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  void setNextcloudImageFolder(localImageFolder.trim());
+                  setImageFolderSavedAnim(true);
+                  setTimeout(() => setImageFolderSavedAnim(false), 2000);
+                }}
+              />
+            </View>
+            <AppText muted variant="caption" style={{ marginTop: 4, marginBottom: 4 }}>
+              {t("settings.imageFolderPathHint")}
+            </AppText>
+            {nextcloudImageFolder.trim() !== "" && nextcloudImageFolder.trim() !== "AvoCook Images" ? (
+              <View style={[styles.warningRow, { marginTop: 4, marginBottom: 4 }]}>
+                <AlertTriangle color={colors.warning} size={14} />
+                <AppText muted variant="caption" style={[styles.warningText, { color: colors.warning }]}>
+                  {t("settings.imageFolderPathMigrationWarning")}
+                </AppText>
+              </View>
+            ) : null}
             <View style={styles.divider} />
             <PrimaryButton
               icon={RefreshCw}

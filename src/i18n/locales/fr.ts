@@ -614,6 +614,10 @@ export default {
       communityPseudonymPlaceholder: "Ex : Chef Avo",
       pseudonymTaken: "Ce pseudonyme est déjà utilisé par un autre utilisateur. Choisissez-en un autre.",
       pseudonymSaveFailed: "Impossible d'enregistrer le pseudonyme. Réessayez.",
+      imageFolderPath: "Dossier d'images Nextcloud",
+      imageFolderPathPlaceholder: "AvoCook Images",
+      imageFolderPathHint: "Dossier où les photos de recettes sont stockées sur Nextcloud. Laisser vide pour utiliser le dossier par défaut « AvoCook Images ».",
+      imageFolderPathMigrationWarning: "Les photos déjà uploadées dans l'ancien dossier (AvoCook Images) y restent. Elles ne seront pas supprimées automatiquement lors des modifications de recettes.",
     },
     logs: {
       title: "Journaux",

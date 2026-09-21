@@ -86,7 +86,7 @@ const RecipesContext = createContext<RecipesContextValue | undefined>(
 export function RecipesProvider({ children }: { children: React.ReactNode }) {
   const { t } = useTranslation();
   const { credentials, getClient, isLocalMode } = useAuth();
-  const { keepRecipesLocal, showDefaultCategories } = usePreferences();
+  const { keepRecipesLocal, showDefaultCategories, nextcloudImageFolder } = usePreferences();
   const { watchLongAction } = useLongActionToast();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
@@ -184,6 +184,13 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       setSyncing(false);
     }
   }, [getClient, keepRecipesLocal, repositoryOptions, watchLongAction]);
+
+  useEffect(() => {
+    const client = getClient();
+    if (client) {
+      client.setImageFolder(nextcloudImageFolder);
+    }
+  }, [getClient, nextcloudImageFolder]);
 
   useEffect(() => {
     if (credentials) {
