@@ -31,6 +31,7 @@ export type RecipeLocalMeta = {
   nutriScoreOverride?: NutriScoreGrade;
   servingOverride?: number;
   timers?: RecipeLocalTimer[];
+  communityId?: string;
 };
 
 export type Recipe = {

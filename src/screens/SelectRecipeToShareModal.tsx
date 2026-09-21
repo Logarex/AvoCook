@@ -21,7 +21,7 @@ import {
   type RecipeLanguage
 } from "../features/community/communityClient";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
-import { getAnonymousUid } from "../features/firebase/firebaseClient";
+import { getAnonymousUid, waitForAuth } from "../features/firebase/firebaseClient";
 
 type Props = {
   visible: boolean;
@@ -37,7 +37,7 @@ export function SelectRecipeToShareModal({
   const { t, i18n } = useTranslation();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
-  const { recipes } = useRecipes();
+  const { recipes, updateRecipe } = useRecipes();
   const { communityPseudonym, setCommunityPseudonym } = usePreferences();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,122 +64,132 @@ export function SelectRecipeToShareModal({
           onPress: () => {
             void (async () => {
               setSubmitting(true);
-            try {
-              const finalPseudonym = localPseudonym.trim() || t("community.anonymousAuthor");
-              if (!communityPseudonym && localPseudonym.trim()) {
-                await setCommunityPseudonym(localPseudonym.trim());
-              }
-              
-              const uid = getAnonymousUid();
+              try {
+                const finalPseudonym = localPseudonym.trim() || t("community.anonymousAuthor");
+                if (!communityPseudonym && localPseudonym.trim()) {
+                  await setCommunityPseudonym(localPseudonym.trim());
+                }
+                
+                await waitForAuth();
+                const uid = getAnonymousUid();
 
-              // Check if user already published a recipe with this title
-              const existingId = uid
-                ? await findUserCommunityRecipe(uid, recipe.name)
-                : null;
+                // Check if user already published a recipe with this title or linked ID
+                const existingId = recipe.localMeta?.communityId
+                  ? recipe.localMeta.communityId
+                  : uid
+                  ? await findUserCommunityRecipe(uid, recipe.name)
+                  : null;
 
-              const payload = {
-                title: recipe.name || "",
-                description: recipe.description || "",
-                ingredients: recipe.recipeIngredient || [],
-                steps: recipe.recipeInstructions || [],
-                language,
-                authorName: finalPseudonym,
-                // Sanitize durations: null out zero/empty ISO durations
-                prepTime: sanitizeIsoDuration(recipe.prepTime),
-                cookTime: sanitizeIsoDuration(recipe.cookTime),
-                servings: recipe.recipeYield ? Number(recipe.recipeYield) : null,
-                nutriScore: (recipe.localMeta?.nutriScoreOverride && recipe.localMeta.nutriScoreOverride !== "?") ? recipe.localMeta.nutriScoreOverride as "A" | "B" | "C" | "D" | "E" : null,
-                ...(recipe.url ? { sourceUrl: recipe.url } : {}),
-                ...((() => {
-                  // Only include remote http(s) URLs as imageUrl — never local file:// paths
-                  const rawImg = Array.isArray(recipe.image) ? recipe.image[0] : recipe.image;
-                  const remoteUrl = isRemoteUrl(rawImg) ? rawImg
-                    : isRemoteUrl(recipe.imageUrl) ? recipe.imageUrl
-                    : null;
-                  return remoteUrl ? { imageUrl: remoteUrl } : {};
-                })()),
-              };
+                const rawImg = Array.isArray(recipe.image) ? recipe.image[0] : recipe.image;
+                const imageToUse = rawImg || recipe.imageUrl || undefined;
 
-              if (existingId) {
-                // Ask whether to update or create new
-                setSubmitting(false);
-                Alert.alert(
-                  t("community.updateOrNewTitle"),
-                  t("community.updateOrNewBody"),
-                  [
-                    { text: t("common.cancel"), style: "cancel" },
-                    {
-                      text: t("community.updateExisting"),
-                      onPress: () => void (async () => {
-                        setSubmitting(true);
-                        try {
-                          await updateCommunityRecipe(existingId, payload, uid!);
-                          Alert.alert(t("community.updateSuccessTitle"), t("community.updateSuccessBody"));
-                          if (onSuccess) onSuccess(); else onClose();
-                        } catch (err) {
-                          console.warn("community", "Update recipe failed", err);
-                          Alert.alert(t("common.error"), t("community.submitFailedBody"));
-                        } finally {
-                          setSubmitting(false);
-                        }
-                      })()
-                    },
-                    {
-                      text: t("community.publishAsNew"),
-                      onPress: () => void (async () => {
-                        setSubmitting(true);
-                        try {
-                          await submitCommunityRecipe(payload);
-                          Alert.alert(t("community.submitSuccessTitle"), t("community.submitSuccessBody", { defaultValue: "Merci pour votre contribution ! La recette est en ligne." }));
-                          if (onSuccess) onSuccess(); else onClose();
-                        } catch (err) {
-                          console.warn("community", "Submit recipe failed", err);
-                          Alert.alert(t("common.error"), t("community.submitFailedBody"));
-                        } finally {
-                          setSubmitting(false);
-                        }
-                      })()
-                    }
-                  ]
+                const payload = {
+                  title: recipe.name || "",
+                  description: recipe.description || "",
+                  ingredients: recipe.recipeIngredient || [],
+                  steps: recipe.recipeInstructions || [],
+                  language,
+                  authorName: finalPseudonym,
+                  prepTime: sanitizeIsoDuration(recipe.prepTime),
+                  cookTime: sanitizeIsoDuration(recipe.cookTime),
+                  servings: recipe.recipeYield ? Number(recipe.recipeYield) : null,
+                  nutriScore: (recipe.localMeta?.nutriScoreOverride && recipe.localMeta.nutriScoreOverride !== "?") ? recipe.localMeta.nutriScoreOverride as "A" | "B" | "C" | "D" | "E" : null,
+                  ...(recipe.url ? { sourceUrl: recipe.url } : {}),
+                  ...(imageToUse ? { imageUrl: imageToUse } : {})
+                };
+
+                if (existingId) {
+                  // Ask whether to update or create new
+                  setSubmitting(false);
+                  Alert.alert(
+                    t("community.updateOrNewTitle"),
+                    t("community.updateOrNewBody"),
+                    [
+                      { text: t("common.cancel"), style: "cancel" },
+                      {
+                        text: t("community.updateExisting"),
+                        onPress: () => void (async () => {
+                          setSubmitting(true);
+                          try {
+                            await updateCommunityRecipe(existingId, payload, uid!);
+                            await updateRecipe({
+                              ...recipe,
+                              localMeta: { ...recipe.localMeta, communityId: existingId }
+                            });
+                            Alert.alert(t("community.updateSuccessTitle"), t("community.updateSuccessBody"));
+                            if (onSuccess) onSuccess(); else onClose();
+                          } catch (err) {
+                            console.warn("community", "Update recipe failed", err);
+                            Alert.alert(t("common.error"), t("community.submitFailedBody"));
+                          } finally {
+                            setSubmitting(false);
+                          }
+                        })()
+                      },
+                      {
+                        text: t("community.publishAsNew"),
+                        onPress: () => void (async () => {
+                          setSubmitting(true);
+                          try {
+                            const newId = await submitCommunityRecipe(payload);
+                            await updateRecipe({
+                              ...recipe,
+                              localMeta: { ...recipe.localMeta, communityId: newId }
+                            });
+                            Alert.alert(t("community.submitSuccessTitle"), t("community.submitSuccessBody", { defaultValue: "Merci pour votre contribution ! La recette est en ligne." }));
+                            if (onSuccess) onSuccess(); else onClose();
+                          } catch (err) {
+                            console.warn("community", "Submit recipe failed", err);
+                            Alert.alert(t("common.error"), t("community.submitFailedBody"));
+                          } finally {
+                            setSubmitting(false);
+                          }
+                        })()
+                      }
+                    ]
+                  );
+                  return;
+                }
+
+                // Check global duplicate (same title + same steps from any user)
+                const isDuplicate = await checkCommunityRecipeDuplicate(
+                  recipe.name,
+                  finalPseudonym,
+                  recipe.recipeInstructions || [],
+                  uid
                 );
-                return;
-              }
+                if (isDuplicate) {
+                  Alert.alert(t("community.duplicateTitle"), t("community.duplicateBody"));
+                  setSubmitting(false);
+                  return;
+                }
 
-              // Check global duplicate (same title + same steps from any user)
-              const isDuplicate = await checkCommunityRecipeDuplicate(
-                recipe.name,
-                finalPseudonym,
-                recipe.recipeInstructions || [],
-                uid
-              );
-              if (isDuplicate) {
-                Alert.alert(t("community.duplicateTitle"), t("community.duplicateBody"));
+                const newId = await submitCommunityRecipe(payload);
+                await updateRecipe({
+                  ...recipe,
+                  localMeta: { ...recipe.localMeta, communityId: newId }
+                });
+                Alert.alert(
+                  t("community.submitSuccessTitle"),
+                  t("community.submitSuccessBody", { defaultValue: "Merci pour votre contribution ! La recette est en ligne." })
+                );
+                if (onSuccess) {
+                  onSuccess();
+                } else {
+                  onClose();
+                }
+              } catch (err) {
+                console.warn("community", "Submit recipe failed", err);
+                Alert.alert(t("common.error"), t("community.submitFailedBody"));
+              } finally {
                 setSubmitting(false);
-                return;
               }
-
-              await submitCommunityRecipe(payload);
-              Alert.alert(
-                t("community.submitSuccessTitle"),
-                t("community.submitSuccessBody", { defaultValue: "Merci pour votre contribution ! La recette est en ligne." })
-              );
-              if (onSuccess) {
-                onSuccess();
-              } else {
-                onClose();
-              }
-            } catch (err) {
-              console.warn("community", "Submit recipe failed", err);
-              Alert.alert(t("common.error"), t("community.submitFailedBody"));
-            } finally {
-              setSubmitting(false);
-            }
             })();
           }
         }
       ]
     );
-  }, [t, localPseudonym, communityPseudonym, setCommunityPseudonym, i18n.language, onSuccess, onClose]);
+  }, [communityPseudonym, i18n.language, localPseudonym, onClose, onSuccess, setCommunityPseudonym, t, updateRecipe]);
 
   React.useEffect(() => {
     if (visible) {

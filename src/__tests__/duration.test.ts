@@ -17,4 +17,16 @@ describe("duration utilities", () => {
     expect(humanDuration("PT1H30M")).toBe("1 h 30 min");
     expect(humanDuration("PT20M")).toBe("20 min");
   });
+
+  it("handles raw numeric strings and text formats", () => {
+    expect(isoDurationToMinutes("15")).toBe(15);
+    expect(humanDuration("15")).toBe("15 min");
+    expect(humanDuration("90")).toBe("1 h 30 min");
+    expect(isoDurationToMinutes("1h30")).toBe(90);
+    expect(humanDuration("1h30")).toBe("1 h 30 min");
+    expect(isoDurationToMinutes("15 min")).toBe(15);
+    expect(humanDuration("15 min")).toBe("15 min");
+    expect(humanDuration("0")).toBeNull();
+    expect(humanDuration("PT0M")).toBeNull();
+  });
 });

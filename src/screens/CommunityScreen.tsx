@@ -70,38 +70,6 @@ export function CommunityScreen({ navigation }: Props) {
   const lastLoadedLang = useRef<string | null>(null);
   const RELOAD_THROTTLE_MS = 5 * 60 * 1000;
 
-  // Search cache to optimize full-text search without heavy operations
-  const [searchCache, setSearchCache] = useState<CommunityRecipe[] | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
-
-  // Clear search cache when filters change
-  React.useEffect(() => {
-    setSearchCache(null);
-  }, [selectedLanguage, minRating]);
-
-  // Load search cache when user starts typing
-  React.useEffect(() => {
-    if (searchQuery.trim().length > 0 && searchCache === null && !isSearching) {
-      const loadSearchCache = async () => {
-        setIsSearching(true);
-        try {
-          const res = await fetchCommunityRecipes({
-            language: selectedLanguage,
-            minRating,
-            sortBy: "alphabetical",
-            pageSize: 200 // Fetch a large batch once for local search
-          });
-          setSearchCache(res.recipes);
-        } catch (err) {
-          console.warn("community", "Failed to fetch search cache", err);
-        } finally {
-          setIsSearching(false);
-        }
-      };
-      void loadSearchCache();
-    }
-  }, [searchQuery, searchCache, isSearching, selectedLanguage, minRating]);
-
   const loadData = useCallback(
     async (isRefresh = false) => {
       const langChanged = lastLoadedLang.current !== selectedLanguage;
@@ -115,7 +83,7 @@ export function CommunityScreen({ navigation }: Props) {
           language: selectedLanguage,
           minRating,
           sortBy: "alphabetical",
-          pageSize: 50
+          pageSize: 100
         });
         setRecipes(res.recipes);
         setLastDoc(res.lastDoc);
@@ -145,7 +113,7 @@ export function CommunityScreen({ navigation }: Props) {
         language: selectedLanguage,
         minRating,
         sortBy: "alphabetical",
-        pageSize: 20,
+        pageSize: 30,
         after: lastDoc || undefined
       });
       setRecipes((prev) => [...prev, ...res.recipes]);
@@ -165,17 +133,16 @@ export function CommunityScreen({ navigation }: Props) {
   );
 
   const filteredRecipes = React.useMemo(() => {
-    const source = searchQuery.trim() ? (searchCache || recipes) : recipes;
-    return source.filter((r) => {
-      if (!searchQuery.trim()) return true;
-      const q = searchQuery.toLowerCase();
-      return (
-        r.title.toLowerCase().includes(q) ||
-        r.description.toLowerCase().includes(q) ||
-        r.authorName.toLowerCase().includes(q)
-      );
+    if (!searchQuery.trim()) return recipes;
+    const q = searchQuery.toLowerCase().trim();
+    return recipes.filter((r) => {
+      const titleMatch = Boolean(r.title && r.title.toLowerCase().includes(q));
+      const descMatch = Boolean(r.description && r.description.toLowerCase().includes(q));
+      const authorMatch = Boolean(r.authorName && r.authorName.toLowerCase().includes(q));
+      const ingredientMatch = Array.isArray(r.ingredients) && r.ingredients.some((ing) => String(ing).toLowerCase().includes(q));
+      return titleMatch || descMatch || authorMatch || ingredientMatch;
     });
-  }, [recipes, searchCache, searchQuery]);
+  }, [recipes, searchQuery]);
 
   const renderRecipeItem = useCallback(({ item }: { item: CommunityRecipe }) => (
     <Pressable
@@ -307,7 +274,7 @@ export function CommunityScreen({ navigation }: Props) {
       />
 
       {/* Recipe list */}
-      {loading || (searchQuery.trim().length > 0 && isSearching) ? (
+      {loading ? (
         <View style={styles.loading}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>

@@ -14,6 +14,7 @@ import {
   type User
 } from "firebase/auth";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getStorage, type FirebaseStorage } from "firebase/storage";
 
 // ─── Config ───────────────────────────────────────────────────────────────────
 // These are public client-side keys — security is enforced by Firestore rules.
@@ -32,6 +33,7 @@ const firebaseConfig = {
 let _app: FirebaseApp;
 let _db: Firestore;
 let _auth: Auth;
+let _storage: FirebaseStorage;
 let _user: User | null = null;
 let _authReady = false;
 let _authReadyCallbacks: ((user: User | null) => void)[] = [];
@@ -50,6 +52,13 @@ export function getDb(): Firestore {
   return _db;
 }
 
+export function getFirebaseStorage(): FirebaseStorage {
+  if (!_storage) {
+    _storage = getStorage(getApp());
+  }
+  return _storage;
+}
+
 export function getFirebaseAuth(): Auth {
   if (!_auth) {
     const app = getApp();
@@ -64,10 +73,11 @@ export function getFirebaseAuth(): Auth {
   return _auth;
 }
 
-// ─── Anonymous auth ────────────────────────────────────────────────────────────
-// Each device gets a stable anonymous UID. No email/password/account required.
+let _initCalled = false;
 
 export function initFirebaseAuth(): void {
+  if (_initCalled) return;
+  _initCalled = true;
   const auth = getFirebaseAuth();
   onAuthStateChanged(auth, (user) => {
     void (async () => {
@@ -104,6 +114,7 @@ export function getCurrentUser(): User | null {
  * Use this before any Firestore call that requires auth.
  */
 export function waitForAuth(): Promise<User | null> {
+  initFirebaseAuth();
   if (_authReady) return Promise.resolve(_user);
   return new Promise((resolve) => {
     _authReadyCallbacks.push(resolve);

@@ -26,7 +26,7 @@ import {
 } from "../features/community/communityClient";
 import { translateCommunityRecipe, hasCorruptedText } from "../features/community/communityTranslation";
 import { resolveAppLanguage } from "../i18n/languages";
-import { getAnonymousUid } from "../features/firebase/firebaseClient";
+import { getAnonymousUid, waitForAuth } from "../features/firebase/firebaseClient";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { normalizeRecipe } from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
@@ -46,6 +46,7 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
   const [userVote, setUserVote] = useState<number>(0);
   const [importing, setImporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [currentUid, setCurrentUid] = useState<string | null>(getAnonymousUid());
 
   const [translatedRecipe, setTranslatedRecipe] = useState<CommunityRecipe | null>(null);
   const [isTranslating, setIsTranslating] = useState(false);
@@ -55,7 +56,6 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
   const targetLang = resolveAppLanguage(i18n.language);
   const isDifferentLang = Boolean(recipe && recipe.language && recipe.language !== targetLang);
 
-  const currentUid = getAnonymousUid();
   const isAuthor = Boolean(
     recipe?.authorUid && currentUid && recipe.authorUid === currentUid
   );
@@ -64,6 +64,10 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
     let active = true;
     void (async () => {
       setLoading(true);
+      const user = await waitForAuth();
+      if (active && user?.uid) {
+        setCurrentUid(user.uid);
+      }
       const data = await getCommunityRecipe(route.params.id);
       if (active) {
         setRecipe(data);

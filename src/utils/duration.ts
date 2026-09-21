@@ -19,16 +19,38 @@ export function isoDurationToMinutes(duration?: string | null): number | null {
     return null;
   }
 
-  const match = duration.match(isoDurationPattern);
-  if (!match?.groups) {
+  const trimmed = duration.trim();
+  if (!trimmed) {
     return null;
   }
 
-  const days = Number(match.groups.days ?? 0);
-  const hours = Number(match.groups.hours ?? 0);
-  const minutes = Number(match.groups.minutes ?? 0);
-  const seconds = Number(match.groups.seconds ?? 0);
-  return days * 24 * 60 + hours * 60 + minutes + Math.ceil(seconds / 60);
+  // 1) Direct numeric string (e.g. "15", "90")
+  if (/^\d+$/.test(trimmed)) {
+    const val = Number(trimmed);
+    return val > 0 ? val : null;
+  }
+
+  // 2) Standard ISO 8601 pattern
+  const match = trimmed.match(isoDurationPattern);
+  if (match?.groups) {
+    const days = Number(match.groups.days ?? 0);
+    const hours = Number(match.groups.hours ?? 0);
+    const minutes = Number(match.groups.minutes ?? 0);
+    const seconds = Number(match.groups.seconds ?? 0);
+    const total = days * 24 * 60 + hours * 60 + minutes + Math.ceil(seconds / 60);
+    return total > 0 ? total : null;
+  }
+
+  // 3) Fallback text formats like "1h30", "1 h 30 min", "15 min", "1h"
+  const textMatch = trimmed.match(/^(?:(\d+)\s*h(?:ours?)?)?\s*(\d+)?(?:\s*m(?:in)?)?$/i);
+  if (textMatch && (textMatch[1] || textMatch[2])) {
+    const hours = Number(textMatch[1] ?? 0);
+    const mins = Number(textMatch[2] ?? 0);
+    const total = hours * 60 + mins;
+    return total > 0 ? total : null;
+  }
+
+  return null;
 }
 
 export function humanDuration(duration?: string | null): string | null {
@@ -47,3 +69,4 @@ export function humanDuration(duration?: string | null): string | null {
   }
   return `${remainingMinutes} min`;
 }
+

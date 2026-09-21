@@ -18,8 +18,10 @@ import {
   type DocumentData,
   type QueryConstraint
 } from "firebase/firestore";
-import { getDb, waitForAuth, getAnonymousUid } from "../firebase/firebaseClient";
+import { getDb, waitForAuth, getAnonymousUid, getFirebaseStorage } from "../firebase/firebaseClient";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { cleanTranslatedText } from "./communityTranslation";
+import { isoDurationToMinutes, minutesToIsoDuration } from "../../utils/duration";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -80,32 +82,53 @@ export type SubmitRecipeInput = {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**
- * Sanitize ISO 8601 duration strings: returns null if duration is zero or invalid.
- * e.g. "PT0H0M0S", "PT0M", "P0D" → null
+ * Sanitize duration values into valid ISO 8601 strings (e.g. "PT15M").
+ * Converts raw minute numbers (e.g. "15"), ISO strings ("PT15M"), or text ("15 min").
+ * Returns null if duration is zero or invalid.
  */
 export function sanitizeIsoDuration(value: string | null | undefined): string | null {
   if (!value) return null;
-  // Parse and check if total is zero
-  const match = value.match(
-    /^P(?:(\d+)D)?(?:T(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?)?$/
-  );
-  if (!match) return value; // not ISO duration, return as-is
-  const days = Number(match[1] ?? 0);
-  const hours = Number(match[2] ?? 0);
-  const minutes = Number(match[3] ?? 0);
-  const seconds = Number(match[4] ?? 0);
-  const total = days * 1440 + hours * 60 + minutes + seconds / 60;
-  return total > 0 ? value : null;
+  const mins = isoDurationToMinutes(value);
+  if (!mins || mins <= 0) return null;
+  return minutesToIsoDuration(mins);
 }
 
 /**
  * Returns true only for remote http(s) URLs.
- * Local file:// / content:// / ph:// URIs must NOT be stored in Firestore
- * (no file storage budget).
  */
 export function isRemoteUrl(url: string | null | undefined): url is string {
   if (!url) return false;
   return /^https?:\/\//i.test(url);
+}
+
+/**
+ * Uploads a local image (file://, content://, ph://, data:image/...) to Firebase Storage
+ * and returns the public HTTPS download URL.
+ */
+export async function uploadCommunityImage(localUri: string): Promise<string | null> {
+  if (!localUri) return null;
+  if (isRemoteUrl(localUri)) return localUri;
+
+  await waitForAuth();
+  try {
+    const storage = getFirebaseStorage();
+    const filename = `recipe_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.jpg`;
+    const storageRef = ref(storage, `community_images/${filename}`);
+
+    const response = await fetch(localUri);
+    const blob = await response.blob();
+
+    await uploadBytes(storageRef, blob, { contentType: "image/jpeg" });
+    const b = blob as unknown as { close?: () => void };
+    if (typeof b.close === "function") {
+      b.close();
+    }
+
+    return await getDownloadURL(storageRef);
+  } catch (err) {
+    console.warn("community", "Failed to upload image to Firebase Storage", err);
+    return null;
+  }
 }
 
 function toRecipe(d: QueryDocumentSnapshot<DocumentData>): CommunityRecipe {
@@ -165,12 +188,24 @@ export async function fetchCommunityRecipes(
   const direction = sortBy === "alphabetical" ? "asc" : "desc";
 
   const fetchLimit = language !== "all" ? 300 : Math.max(100, pageSize * 2);
-  const constraints: QueryConstraint[] = [orderBy(orderField, direction)];
-  
-  if (afterDoc) constraints.push(startAfter(afterDoc));
-  constraints.push(limit(fetchLimit));
-
-  const snap = await getDocs(query(coll, ...constraints));
+  let snap;
+  try {
+    const constraints: QueryConstraint[] = [orderBy(orderField, direction)];
+    if (afterDoc) constraints.push(startAfter(afterDoc));
+    constraints.push(limit(fetchLimit));
+    snap = await getDocs(query(coll, ...constraints));
+  } catch (err) {
+    console.warn("community", "Ordered fetch failed, trying fallback query without orderBy", err);
+    try {
+      const fallbackConstraints: QueryConstraint[] = [];
+      if (afterDoc) fallbackConstraints.push(startAfter(afterDoc));
+      fallbackConstraints.push(limit(fetchLimit));
+      snap = await getDocs(query(coll, ...fallbackConstraints));
+    } catch (fallbackErr) {
+      console.error("community", "Fetch community recipes failed completely", fallbackErr);
+      return { recipes: [], lastDoc: null, hasMore: false };
+    }
+  }
   
   // Client-side filtering
   let filteredDocs = snap.docs.filter((d) => {
@@ -189,11 +224,15 @@ export async function fetchCommunityRecipes(
     sliced.map(async (d) => {
       const recipe = toRecipe(d);
       if (uid) {
-        const voteSnap = await getDoc(
-          doc(getDb(), "communityRecipes", d.id, "ratings", uid)
-        );
-        if (voteSnap.exists()) {
-          recipe.userVote = (voteSnap.data() as { stars: number }).stars;
+        try {
+          const voteSnap = await getDoc(
+            doc(getDb(), "communityRecipes", d.id, "ratings", uid)
+          );
+          if (voteSnap.exists()) {
+            recipe.userVote = (voteSnap.data() as { stars: number }).stars;
+          }
+        } catch {
+          // Ignore rating lookup permission failures so recipe listing never fails
         }
       }
       return recipe;
@@ -214,12 +253,21 @@ export async function submitCommunityRecipe(
 ): Promise<string> {
   await waitForAuth();
   const uid = getAnonymousUid();
-  const ref = await addDoc(collection(getDb(), "communityRecipes"), {
+
+  let imageUrl: string | null = null;
+  if (input.imageUrl) {
+    if (isRemoteUrl(input.imageUrl)) {
+      imageUrl = input.imageUrl;
+    } else {
+      imageUrl = await uploadCommunityImage(input.imageUrl);
+    }
+  }
+
+  const refDoc = await addDoc(collection(getDb(), "communityRecipes"), {
     ...input,
     prepTime: sanitizeIsoDuration(input.prepTime ?? null),
     cookTime: sanitizeIsoDuration(input.cookTime ?? null),
-    // Only store remote URLs — local file:// URIs must not go to Firestore
-    imageUrl: isRemoteUrl(input.imageUrl) ? input.imageUrl : null,
+    imageUrl: imageUrl,
     authorUid: uid ?? null,
     avgRating: 0,
     ratingCount: 0,
@@ -227,7 +275,7 @@ export async function submitCommunityRecipe(
     approved: true,
     createdAt: serverTimestamp(),
   });
-  return ref.id;
+  return refDoc.id;
 }
 
 export async function updateCommunityRecipe(
@@ -236,20 +284,30 @@ export async function updateCommunityRecipe(
   authorUid: string
 ): Promise<void> {
   await waitForAuth();
-  const ref = doc(getDb(), "communityRecipes", recipeId);
-  const snap = await getDoc(ref);
+  const refDoc = doc(getDb(), "communityRecipes", recipeId);
+  const snap = await getDoc(refDoc);
   if (!snap.exists()) throw new Error("Recipe not found");
   const data = snap.data();
   // Only allow the original author to update
   if (data.authorUid && data.authorUid !== authorUid) {
     throw new Error("Not authorized to update this recipe");
   }
-  await updateDoc(ref, {
+
+  let imageUrl: string | null = data.imageUrl ?? null;
+  if (input.imageUrl) {
+    if (isRemoteUrl(input.imageUrl)) {
+      imageUrl = input.imageUrl;
+    } else {
+      const uploaded = await uploadCommunityImage(input.imageUrl);
+      if (uploaded) imageUrl = uploaded;
+    }
+  }
+
+  await updateDoc(refDoc, {
     ...input,
     prepTime: sanitizeIsoDuration(input.prepTime ?? null),
     cookTime: sanitizeIsoDuration(input.cookTime ?? null),
-    // Only store remote URLs — local file:// URIs must not go to Firestore
-    imageUrl: isRemoteUrl(input.imageUrl) ? input.imageUrl : null,
+    imageUrl: imageUrl,
     updatedAt: serverTimestamp(),
   });
 }
@@ -371,10 +429,15 @@ export async function voteOnRecipe(
   const ratingRef = doc(getDb(), "communityRecipes", recipeId, "ratings", uid);
   const recipeRef = doc(getDb(), "communityRecipes", recipeId);
 
-  const prevSnap = await getDoc(ratingRef);
-  const prevStars: number = prevSnap.exists()
-    ? (prevSnap.data() as { stars: number }).stars
-    : 0;
+  let prevStars = 0;
+  try {
+    const prevSnap = await getDoc(ratingRef);
+    if (prevSnap.exists()) {
+      prevStars = (prevSnap.data() as { stars: number }).stars;
+    }
+  } catch {
+    prevStars = 0;
+  }
 
   await setDoc(ratingRef, { stars, at: serverTimestamp() });
 
@@ -401,11 +464,15 @@ export async function getCommunityRecipe(
   const recipe = toRecipe(snap as QueryDocumentSnapshot<DocumentData>);
   const uid = getAnonymousUid();
   if (uid) {
-    const voteSnap = await getDoc(
-      doc(getDb(), "communityRecipes", recipeId, "ratings", uid)
-    );
-    if (voteSnap.exists()) {
-      recipe.userVote = (voteSnap.data() as { stars: number }).stars;
+    try {
+      const voteSnap = await getDoc(
+        doc(getDb(), "communityRecipes", recipeId, "ratings", uid)
+      );
+      if (voteSnap.exists()) {
+        recipe.userVote = (voteSnap.data() as { stars: number }).stars;
+      }
+    } catch {
+      // Ignore subcollection permission errors so recipe detail always displays
     }
   }
   return recipe;

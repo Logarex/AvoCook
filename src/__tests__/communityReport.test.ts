@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { REPORT_THRESHOLD, reportCommunityRecipe } from "../features/community/communityClient";
+import { REPORT_THRESHOLD, reportCommunityRecipe, sanitizeIsoDuration } from "../features/community/communityClient";
 import * as firebaseClient from "../features/firebase/firebaseClient";
 import * as firestore from "firebase/firestore";
 
@@ -117,5 +117,12 @@ describe("communityReport", () => {
     // Should return early and not update recipe or log report
     expect(firestore.updateDoc).not.toHaveBeenCalled();
     expect(firestore.addDoc).not.toHaveBeenCalled();
+  });
+
+  it("sanitizes duration values into valid ISO 8601 strings", () => {
+    expect(sanitizeIsoDuration("15")).toBe("PT15M");
+    expect(sanitizeIsoDuration("PT30M")).toBe("PT30M");
+    expect(sanitizeIsoDuration("0")).toBeNull();
+    expect(sanitizeIsoDuration(null)).toBeNull();
   });
 });
