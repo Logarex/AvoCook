@@ -74,6 +74,14 @@ export default {
       values: "Gratuit, code ouvert, sans pub ni tracker.",
       badCredentials:
         "Identifiant ou mot de passe d'application incorrect. Créez un app password Nextcloud dédié.",
+      debugLogsTitle: "Logs & Débogage",
+      shareLogs: "Logs de connexion & Débogage",
+      copied: "Copié !",
+      logCount: "{{count}} entrées enregistrées",
+      noLogsYet: "Aucun log enregistré pour le moment.",
+      sslWarningTitle: "Problème de certificat SSL / TLS",
+      selfSignedNotice:
+        "Les certificats auto-signés sont bloqués par Android par défaut au niveau TLS. Aucune requête n'atteint le serveur Nextcloud (d'où des logs serveur vides). Utilisez un certificat valide (ex: Let's Encrypt) ou ajoutez le certificat aux certificats de confiance Android.",
       tutorial: {
         title: "Créer un mot de passe d'application Nextcloud",
         steps: {

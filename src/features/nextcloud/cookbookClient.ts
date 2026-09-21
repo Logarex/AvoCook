@@ -1,5 +1,6 @@
 import { base64Encode } from "../../utils/base64";
 import { normalizeNextcloudUrl } from "../../utils/url";
+import { logService } from "../logging/logService";
 import { normalizeCookbookImageEndpointReference } from "../recipes/recipeImageReferences";
 import {
   toCookbookCreateRecipe,
@@ -334,6 +335,7 @@ export class CookbookClient {
     const signal = options.signal ?? controller.signal;
 
     try {
+      logService.network(`HTTP ${options.method || "GET"} ${path}`, { serverUrl: this.serverUrl });
       let response = await fetch(`${this.serverUrl}${path}`, {
         ...options,
         credentials: "omit",
@@ -342,6 +344,7 @@ export class CookbookClient {
       });
 
       if (response.status === 404 && !this.serverUrl.endsWith("index.php")) {
+        logService.network(`Fallback check HTTP GET /index.php${path}`);
         const fallbackResponse = await fetch(`${this.serverUrl}/index.php${path}`, {
           ...options,
           credentials: "omit",
@@ -363,6 +366,7 @@ export class CookbookClient {
         : await response.text();
 
       if (!response.ok) {
+        logService.error("network", `HTTP Response Error ${response.status} for ${path}`, { payload });
         throw new CookbookApiError(
           `Cookbook API returned ${response.status}`,
           response.status,
@@ -370,7 +374,11 @@ export class CookbookClient {
         );
       }
 
+      logService.network(`HTTP ${response.status} OK for ${path}`);
       return payload as T;
+    } catch (err) {
+      logService.error("network", `Fetch failed for ${path}`, err);
+      throw err;
     } finally {
       clearTimeout(timeout);
     }

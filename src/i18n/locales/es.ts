@@ -74,6 +74,14 @@ export default {
       values: "Gratis, código abierto, sin anuncios ni rastreadores.",
       badCredentials:
         "Usuario o contraseña de aplicación incorrectos. Crea una contraseña de app dedicada en Nextcloud.",
+      debugLogsTitle: "Registros y Depuración",
+      shareLogs: "Registros de Conexión y Depuración",
+      copied: "¡Copiado!",
+      logCount: "{{count}} entradas registradas",
+      noLogsYet: "Aún no hay registros.",
+      sslWarningTitle: "Problema de Certificado SSL / TLS",
+      selfSignedNotice:
+        "Los certificados autofirmados son bloqueados por Android por defecto. Ninguna petición llega al servidor Nextcloud (por eso los registros del servidor están vacíos). Utiliza un certificado válido (ej. Let's Encrypt) o añade el certificado a los de confianza de Android.",
       tutorial: {
         title: "Crear una contraseña de aplicación en Nextcloud",
         steps: {

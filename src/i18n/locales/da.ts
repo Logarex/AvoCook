@@ -66,6 +66,14 @@ export default {
       localSubtitle: "Gratis lokal tilstand: Dine opskrifter forbliver kun på denne enhed.",
       values: "Gratis, open-source, ingen annoncer og ingen trackere.",
       badCredentials: "Forkert brugernavn eller app-adgangskode. Opret en dedikeret Nextcloud app-adgangskode.",
+      debugLogsTitle: "Logfiler & Fejlfinding",
+      shareLogs: "Forbindelseslogfiler & Fejlfinding",
+      copied: "Kopieret!",
+      logCount: "{{count}} registrerede indtastninger",
+      noLogsYet: "Ingen logfiler registreret endnu.",
+      sslWarningTitle: "SSL / TLS Certifikatproblem",
+      selfSignedNotice:
+        "Selvsignerede certifikater blokeres af Android som standard på TLS-niveau. Ingen anmodning når Nextcloud-serveren (derfor tomme serverlogfiler). Brug et gyldigt certifikat (f.eks. Let's Encrypt) eller tilføj certifikatet til Androids betroede certifikater.",
       tutorial: {
         title: "Opret en Nextcloud app-adgangskode",
         steps: {

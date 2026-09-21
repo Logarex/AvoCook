@@ -6,6 +6,7 @@ import {
   Cloud,
   Eye,
   EyeOff,
+  FileText,
   Heart,
   HelpCircle,
   LockKeyhole,
@@ -16,6 +17,7 @@ import React, { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
+import { DebugLogModal } from "../components/DebugLogModal";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
 import { LanguagePicker } from "../components/LanguagePicker";
@@ -23,6 +25,7 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
+import { logService } from "../features/logging/logService";
 import { useOnboarding } from "../features/onboarding/useOnboarding";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import { useSupportActions } from "../features/support/useSupportActions";
@@ -46,6 +49,7 @@ export function LoginScreen({ route, navigation }: Props) {
   const [showNextcloud, setShowNextcloud] = useState(route.params?.showNextcloud ?? false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDebugModal, setShowDebugModal] = useState(false);
   const { tourDone } = useOnboarding();
 
   const logo = isDark
@@ -60,10 +64,18 @@ export function LoginScreen({ route, navigation }: Props) {
   async function handleLogin() {
     setSubmitting(true);
     setError(null);
+    logService.info("login", `Attempting login to ${serverUrl} as user ${username}`);
     try {
       await login({ serverUrl, username, appPassword });
+      logService.info("login", `Login successful for ${serverUrl}`);
       navigation.replace(tourDone ? "Recipes" : "Tour");
     } catch (caught) {
+      logService.error("login", `Login failed for ${serverUrl}`, {
+        serverUrl,
+        username,
+        error: caught instanceof Error ? caught.message : String(caught),
+        stack: caught instanceof Error ? caught.stack : undefined
+      });
       const statusMatch = caught instanceof Error ? caught.message.match(/\b(\d{3})\b/) : null;
       const httpStatus = statusMatch ? statusMatch[1] : null;
       const message =
@@ -268,6 +280,12 @@ export function LoginScreen({ route, navigation }: Props) {
 
       <View style={styles.supportContainer}>
         <PrimaryButton
+          icon={FileText}
+          label={t("auth.shareLogs", "Logs & Débogage")}
+          onPress={() => setShowDebugModal(true)}
+          variant="ghost"
+        />
+        <PrimaryButton
           icon={Bug}
           label={t("support.github", "Open Issue")}
           onPress={openGithubIssue}
@@ -285,6 +303,12 @@ export function LoginScreen({ route, navigation }: Props) {
 
       <View style={styles.bottomArea}>
       </View>
+
+      <DebugLogModal
+        visible={showDebugModal}
+        onClose={() => setShowDebugModal(false)}
+        serverUrl={serverUrl}
+      />
     </Screen>
   );
 }

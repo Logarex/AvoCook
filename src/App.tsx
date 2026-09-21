@@ -11,6 +11,9 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { registerRootComponent } from "expo";
 import * as SplashScreen from "expo-splash-screen";
 import "./i18n";
+// Activate log collection, fetch interception and global error handlers
+// as early as possible — before any component renders.
+import "./features/logging/logService";
 import { AppText } from "./components/AppText";
 import { LongActionToastProvider } from "./components/LongActionToast";
 import { AuthProvider, useAuth } from "./features/auth/AuthProvider";
@@ -47,6 +50,12 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 
 export default function App() {
   React.useEffect(() => {
+    // Log app startup metadata so every debug report includes device context
+    const { logService } = require("./features/logging/logService");
+    logService.info("app", "App started", {
+      version: require("../package.json").version,
+      buildDate: new Date().toISOString()
+    });
     initFirebaseAuth();
     SplashScreen.hideAsync().catch(() => {});
   }, []);
