@@ -148,15 +148,14 @@ export function normalizeRecipe(input: Partial<Recipe>): Recipe {
 }
 
 export function toCookbookRecipe(recipe: Recipe): Recipe {
-  const { localMeta, ...cookbookRecipe } = recipe;
+  const { localMeta, recipe_id, ...cookbookRecipe } = recipe;
   return omitEmptyCookbookFields(cookbookRecipe);
 }
 
 export function toCookbookCreateRecipe(recipe: Recipe): Recipe {
-  return {
-    ...toCookbookRecipe(recipe),
-    id: null
-  };
+  const payload = toCookbookRecipe(recipe);
+  delete (payload as Partial<Recipe>).id;
+  return payload;
 }
 
 export function hasLocalMetadata(recipe: Recipe) {

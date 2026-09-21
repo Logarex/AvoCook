@@ -298,7 +298,11 @@ export async function updateRecipe(
       image: getRecipeImageDebugState(localRecipe)
     });
     await updateRecipeOnNextcloud(localRecipe, client);
-    const saved = await saveLocalRecipe(localRecipe, false);
+    const serverRecipe = await client.getRecipe(localRecipe.id).catch(() => null);
+    const recipeToSave = serverRecipe
+      ? mergeServerRecipeWithLocalImages(serverRecipe, localRecipe)
+      : localRecipe;
+    const saved = await saveLocalRecipe(recipeToSave, false);
     console.info("sync", "Remote recipe update finished", {
       id: saved.id,
       name: saved.name,
@@ -778,6 +782,15 @@ function mergeRecipeLists(recipes: Recipe[]) {
   return [...recipesById.values(), ...recipesWithoutId];
 }
 
+export function areRecipeDatesEqual(date1?: string, date2?: string): boolean {
+  if (!date1 || !date2) return false;
+  if (date1 === date2) return true;
+  const t1 = Date.parse(date1);
+  const t2 = Date.parse(date2);
+  if (Number.isNaN(t1) || Number.isNaN(t2)) return false;
+  return Math.abs(t1 - t2) < 5000;
+}
+
 function replaceLocalRecipeImageReferences(recipes: Recipe[]) {
   return recipes.map(replaceLocalRecipeImageReferencesWithRemote);
 }
@@ -800,19 +813,8 @@ export async function syncRecipes(
   let existingRecipes = replaceLocalRecipeImageReferences(
     rawExistingRecipes.map((recipe) => client.normalizeRecipeImageUrls(recipe))
   );
-  let stubs = await client.listRecipes();
-  console.info("sync", "Remote recipe stubs loaded", { count: stubs.length });
-  if (persistLocal && hasLegacyRelativeCookbookImage(rawExistingRecipes)) {
-    await reindexRecipes(client);
-    stubs = await client.listRecipes().catch(() => stubs);
-  }
 
-  let recipes = await syncServerRecipesFromStubs(
-    client,
-    stubs,
-    existingRecipes,
-    persistLocal
-  );
+  let recipes = [...existingRecipes];
   const flushResult = await flushSyncQueue(client, recipes, options);
 
   for (const deletedRecipeId of flushResult.deletedRecipeIds) {
@@ -826,6 +828,33 @@ export async function syncRecipes(
   if (flushResult.pushed) {
     await reindexRecipes(client);
   }
+
+  let stubs = await client.listRecipes();
+  console.info("sync", "Remote recipe stubs loaded", { count: stubs.length });
+  if (persistLocal && hasLegacyRelativeCookbookImage(rawExistingRecipes)) {
+    await reindexRecipes(client);
+    stubs = await client.listRecipes().catch(() => stubs);
+  }
+
+  rawExistingRecipes = await loadLocalRecipes();
+  existingRecipes = replaceLocalRecipeImageReferences(
+    rawExistingRecipes.map((recipe) => client.normalizeRecipeImageUrls(recipe))
+  );
+
+  const dirtyLocalRecipesList = await loadDirtyLocalRecipes();
+  const dirtyRecipeIds = new Set(
+    dirtyLocalRecipesList
+      .map((r) => r.id)
+      .filter((id): id is string => Boolean(id))
+  );
+
+  recipes = await syncServerRecipesFromStubs(
+    client,
+    stubs,
+    existingRecipes,
+    persistLocal,
+    dirtyRecipeIds
+  );
 
   rawExistingRecipes = await loadLocalRecipes();
   const dirtyLocalRecipes = replaceLocalRecipeImageReferences(
@@ -922,7 +951,8 @@ async function syncServerRecipesFromStubs(
   client: CookbookClient,
   stubs: Pick<Recipe, "id" | "recipe_id" | "dateModified">[],
   existingRecipes: Recipe[],
-  persistLocal: boolean
+  persistLocal: boolean,
+  dirtyRecipeIds: Set<string> = new Set()
 ) {
   const existingRecipesById = new Map(
     existingRecipes
@@ -944,14 +974,16 @@ async function syncServerRecipesFromStubs(
       }
 
       const existingRecipe = existingRecipesById.get(id);
+      const isDirty = dirtyRecipeIds.has(id);
+
       if (
         existingRecipe &&
-        existingRecipe.dateModified &&
-        stub.dateModified &&
-        existingRecipe.dateModified === stub.dateModified
+        (isDirty ||
+          areRecipeDatesEqual(existingRecipe.dateModified, stub.dateModified))
       ) {
         return {
-          recipe: replaceLocalRecipeImageReferencesWithRemote(existingRecipe)
+          recipe: replaceLocalRecipeImageReferencesWithRemote(existingRecipe),
+          isDirty
         };
       }
 
@@ -972,7 +1004,8 @@ async function syncServerRecipesFromStubs(
                   localMeta: localMetaById.get(id)
                 })
           )
-        )
+        ),
+        isDirty: false
       };
     }
   );
@@ -983,7 +1016,9 @@ async function syncServerRecipesFromStubs(
       continue;
     }
 
-    if (persistLocal || hasLocalMetadata(result.recipe)) {
+    if (result.isDirty) {
+      recipes.push(result.recipe);
+    } else if (persistLocal || hasLocalMetadata(result.recipe)) {
       recipes.push(await saveLocalRecipe(result.recipe, false, false));
     } else {
       recipes.push(result.recipe);

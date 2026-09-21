@@ -43,7 +43,7 @@ describe("CookbookClient", () => {
     const [, options] = fetchMock.mock.calls[0];
     const body = JSON.parse(String(options?.body));
     expect(options?.credentials).toBe("omit");
-    expect(body.id).toBeNull();
+    expect(body.id).toBeUndefined();
     expect(body.localMeta).toBeUndefined();
     expect(body.prepTime).toBeUndefined();
     expect(body.nutrition).toBeUndefined();
