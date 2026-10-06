@@ -53,8 +53,9 @@ export default {
       login: "Anmelden",
       secure: "Anmeldedaten verschlüsselt im Geräteschlüsselbund",
       invalidUrl: "Ungültige Nextcloud-Adresse.",
-      insecureUrl:
-        "Verwende HTTPS, außer für localhost während der Entwicklung.",
+      serverHint: "Verwende https:// oder http:// für einen Server in deinem vertrauenswürdigen lokalen Netzwerk.",
+      httpWarning: "HTTP-Verbindung: Dein App-Passwort und deine Rezepte werden unverschlüsselt übertragen. Verwende nur ein vertrauenswürdiges Netzwerk.",
+      networkError: "Netzwerkverbindung fehlgeschlagen. Prüfe, ob der Server online und von deinem Gerät aus erreichbar ist.",
       failed: "Anmeldung fehlgeschlagen. Prüfe Server und App-Passwort.",
       notFound:
         "Server gefunden, aber die Cookbook-App scheint zu fehlen oder deaktiviert zu sein. Überprüfe die URL oder installiere Cookbook auf deiner Nextcloud.",

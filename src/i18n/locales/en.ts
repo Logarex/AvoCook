@@ -53,7 +53,9 @@ export default {
       login: "Sign in",
       secure: "Credentials encrypted in the device keychain",
       invalidUrl: "Invalid Nextcloud address.",
-      insecureUrl: "Use HTTPS except localhost during development.",
+      serverHint: "Use https://, or http:// for a server on your trusted local network.",
+      httpWarning: "HTTP connection: your app password and recipes are sent without encryption. Use only on a trusted network.",
+      networkError: "Network connection failed. Check that the server is online and reachable from your device.",
       failed: "Unable to sign in. Check the server and app password.",
       notFound:
         "Server found, but the Cookbook app seems missing or disabled. Check the URL or install Cookbook on your Nextcloud.",

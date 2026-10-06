@@ -121,7 +121,7 @@ To test the sync:
 2. Create an **app password** in the security settings (Settings → Security → Devices & sessions).
 3. In AvoCook, go to Settings and enter your server URL, username, and that password.
 
-The app enforces HTTPS for remote servers. Plain HTTP is accepted only for `localhost` during development.
+HTTPS is used by default when no protocol is entered. For a Nextcloud server on your trusted local network, enter an explicit HTTP address, such as `http://192.168.1.50:8080/nextcloud` or `http://nextcloud.local`. HTTP sends your app password and recipes without encryption; use it only on a trusted network. Credentials remain encrypted in the device keychain.
 
 ---
 

@@ -12,6 +12,8 @@ Si vous choisissez de connecter un serveur Nextcloud, les recettes sont synchron
 
 Vos identifiants (URL du serveur, nom d'utilisateur et mot de passe d'application) sont stockés sur l'appareil via Expo SecureStore, qui repose sur l'enclave sécurisée du système (Keychain sur iOS, Keystore sur Android).
 
+HTTPS est utilisé par défaut. Vous pouvez choisir explicitement HTTP pour un serveur sur un réseau local de confiance. Avec HTTP, votre mot de passe d'application, vos recettes et vos images sont transmis sans chiffrement et peuvent être lus ou modifiés par toute personne capable d'intercepter la connexion. L'application affiche un avertissement lorsque vous saisissez une adresse HTTP ; le stockage des identifiants sur l'appareil reste chiffré.
+
 ## Import de recette depuis une URL
 
 Lorsque vous importez une recette en entrant une URL, l'application télécharge cette page pour lire les données de recette disponibles publiquement. Aucune autre donnée n'est envoyée, et la requête est effectuée directement depuis votre appareil.

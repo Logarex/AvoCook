@@ -48,6 +48,7 @@ Essayer au moins Marmiton, 750g ou BBC Good Food.
 
 **Synchronisation Nextcloud**
 - [ ] Se connecter à une instance Nextcloud avec un mot de passe d'application.
+- [ ] Se connecter à une instance HTTP sur un réseau local de confiance (adresse IP et nom d'hôte, avec port/sous-chemin), vérifier l'avertissement, puis synchroniser les recettes et envoyer/afficher une image sur Android et iOS.
 - [ ] Créer une recette dans AvoCook et vérifier qu'elle apparaît dans Nextcloud Cookbook.
 - [ ] Modifier une recette dans Nextcloud Cookbook et vérifier la synchro dans AvoCook.
 
@@ -90,6 +91,9 @@ npx eas build --platform all --profile production
 - L'application est configurée pour iPhone et iPad (`supportsTablet: true`).
 - Elle n'utilise pas de notifications push distantes, de services de localisation ni de Bluetooth.
 - L'autorisation de réseau local est utilisée uniquement pour les serveurs Nextcloud sur le même réseau, ou pour le client Expo en développement.
+- La prise en charge HTTP utilise `NSAllowsArbitraryLoads` car les adresses Nextcloud sont choisies par l'utilisateur, y compris des noms d'hôte personnalisés. À expliquer lors de la validation App Store : AvoCook doit se connecter à des serveurs Nextcloud gérés par les utilisateurs qui peuvent ne prendre en charge que HTTP ; HTTPS reste le choix par défaut et l'application avertit lorsque la connexion n'est pas chiffrée.
+
+Les modifications des paramètres réseau natifs nécessitent une nouvelle compilation Android/iOS. Une mise à jour JavaScript à distance seule ne peut pas activer HTTP sur une installation existante.
 
 ### Android
 

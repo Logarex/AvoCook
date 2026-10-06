@@ -15,77 +15,118 @@ describe("CookbookClient", () => {
     vi.restoreAllMocks();
   });
 
-  it("does not send a local recipe id when creating a recipe", async () => {
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(JSON.stringify(123), {
+  it("validates an HTTP Nextcloud connection and lists recipes without upgrading the protocol", async () => {
+    const serverUrl = "http://192.168.1.50:8080/nextcloud";
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+      const payload = String(url).endsWith("/ocs/v2.php/cloud/user?format=json")
+        ? { ocs: { meta: { status: "ok", statuscode: 100 }, data: { id: "reedstrm" } } }
+        : [{ id: "123", name: "Chocolate cake" }];
+      return new Response(JSON.stringify(payload), {
         headers: { "Content-Type": "application/json" },
         status: 200
-      })
-    );
+      });
+    });
     const client = new CookbookClient({
-      serverUrl: "https://cloud.example.com",
+      serverUrl,
       username: "reedstrm",
       appPassword: "app-password"
     });
 
-    await client.createRecipe(
-      normalizeRecipe({
-        id: "local-abc",
-        name: "Chocolate cake",
-        recipeIngredient: ["flour"],
-        recipeInstructions: ["Bake."],
-        localMeta: {
-          timers: [{ id: "timer-1", label: "Bake", minutes: 20 }]
-        }
-      })
+    expect(await client.validateConnection()).toEqual({ id: "reedstrm" });
+    expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+      `${serverUrl}/ocs/v2.php/cloud/user?format=json`,
+      `${serverUrl}/apps/cookbook/api/v1/recipes`
+    ]);
+    for (const [, options] of fetchMock.mock.calls) {
+      expect(new Headers(options?.headers).get("Authorization")).toBe(
+        `Basic ${base64Encode("reedstrm:app-password")}`
+      );
+    }
+    expect(client.getRecipeImageUrl("123")).toBe(
+      `${serverUrl}/apps/cookbook/api/v1/recipes/123/image?size=thumb`
     );
-
-    const [, options] = fetchMock.mock.calls[0];
-    const body = JSON.parse(String(options?.body));
-    expect(options?.credentials).toBe("omit");
-    expect(body.id).toBeUndefined();
-    expect(body.localMeta).toBeUndefined();
-    expect(body.prepTime).toBeUndefined();
-    expect(body.nutrition).toBeUndefined();
-    expect(body.name).toBe("Chocolate cake");
   });
 
-  it("normalizes relative Cookbook image URLs from recipe details", async () => {
-    vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          id: "3254",
-          name: "Chocolate cake",
-          image: "/apps/cookbook/webapp/recipes/3254/image?size=full",
-          imageUrl: "/apps/cookbook/webapp/recipes/3254/image?size=thumb",
-          imagePlaceholderUrl:
-            "/apps/cookbook/webapp/recipes/3254/image?size=thumb16"
-        }),
-        {
+  it.each(["https://cloud.example.com", "http://192.168.1.50:8080/nextcloud"])(
+    "creates a recipe on %s without sending a local recipe id",
+    async (serverUrl) => {
+      const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(JSON.stringify(123), {
           headers: { "Content-Type": "application/json" },
           status: 200
-        }
-      )
-    );
-    const client = new CookbookClient({
-      serverUrl: "https://cloud.example.com/",
-      username: "reedstrm",
-      userId: "reedstrm",
-      appPassword: "app-password"
-    });
+        })
+      );
+      const client = new CookbookClient({
+        serverUrl,
+        username: "reedstrm",
+        appPassword: "app-password"
+      });
 
-    const recipe = await client.getRecipe("3254");
+      await client.createRecipe(
+        normalizeRecipe({
+          id: "local-abc",
+          name: "Chocolate cake",
+          recipeIngredient: ["flour"],
+          recipeInstructions: ["Bake."],
+          localMeta: {
+            timers: [{ id: "timer-1", label: "Bake", minutes: 20 }]
+          }
+        })
+      );
 
-    expect(recipe.image).toBe(
-      "https://cloud.example.com/apps/cookbook/webapp/recipes/3254/image?size=full"
-    );
-    expect(recipe.imageUrl).toBe(
-      "https://cloud.example.com/apps/cookbook/webapp/recipes/3254/image?size=thumb"
-    );
-    expect(recipe.imagePlaceholderUrl).toBe(
-      "https://cloud.example.com/apps/cookbook/webapp/recipes/3254/image?size=thumb16"
-    );
-  });
+      const [, options] = fetchMock.mock.calls[0];
+      const body = JSON.parse(String(options?.body));
+      expect(options?.credentials).toBe("omit");
+      expect(body.id).toBeUndefined();
+      expect(body.localMeta).toBeUndefined();
+      expect(body.prepTime).toBeUndefined();
+      expect(body.nutrition).toBeUndefined();
+      expect(body.name).toBe("Chocolate cake");
+      expect(String(fetchMock.mock.calls[0][0])).toBe(
+        `${serverUrl}/apps/cookbook/api/v1/recipes`
+      );
+    }
+  );
+
+  it.each(["https://cloud.example.com", "http://nextcloud.local:8080/nextcloud"])(
+    "normalizes relative Cookbook image URLs on %s",
+    async (serverUrl) => {
+      vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            id: "3254",
+            name: "Chocolate cake",
+            image: "/apps/cookbook/webapp/recipes/3254/image?size=full",
+            imageUrl: "/apps/cookbook/webapp/recipes/3254/image?size=thumb",
+            imagePlaceholderUrl:
+              "/apps/cookbook/webapp/recipes/3254/image?size=thumb16"
+          }),
+          {
+            headers: { "Content-Type": "application/json" },
+            status: 200
+          }
+        )
+      );
+      const client = new CookbookClient({
+        serverUrl: `${serverUrl}/`,
+        username: "reedstrm",
+        userId: "reedstrm",
+        appPassword: "app-password"
+      });
+
+      const recipe = await client.getRecipe("3254");
+
+      expect(recipe.image).toBe(
+        `${serverUrl}/apps/cookbook/webapp/recipes/3254/image?size=full`
+      );
+      expect(recipe.imageUrl).toBe(
+        `${serverUrl}/apps/cookbook/webapp/recipes/3254/image?size=thumb`
+      );
+      expect(recipe.imagePlaceholderUrl).toBe(
+        `${serverUrl}/apps/cookbook/webapp/recipes/3254/image?size=thumb16`
+      );
+    }
+  );
 
   it("repairs legacy Cookbook image endpoint sizes from v1 data", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(
@@ -155,34 +196,37 @@ describe("CookbookClient", () => {
     expect(recipe.imagePlaceholderUrl).toBe("/AvoCook Images/baguette.jpg");
   });
 
-  it("uses the resolved Nextcloud user id for WebDAV image uploads", async () => {
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response("", {
-        status: 201
-      })
-    );
-    const client = new CookbookClient({
-      serverUrl: "https://cloud.example.com/",
-      username: "reed@example.com",
-      userId: "reedstrm",
-      appPassword: "app-password"
-    });
+  it.each(["https://cloud.example.com", "http://192.168.1.50:8080/nextcloud"])(
+    "uploads images over WebDAV on %s using the resolved Nextcloud user id",
+    async (serverUrl) => {
+      const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response("", {
+          status: 201
+        })
+      );
+      const client = new CookbookClient({
+        serverUrl: `${serverUrl}/`,
+        username: "reed@example.com",
+        userId: "reedstrm",
+        appPassword: "app-password"
+      });
 
-    const remotePath = await client.uploadRecipeImage(
-      "file:///documents/recipe-images/photo.jpg"
-    );
+      const remotePath = await client.uploadRecipeImage(
+        "file:///documents/recipe-images/photo.jpg"
+      );
 
-    expect(remotePath).toBe("/AvoCook Images/photo.jpg");
-    expect(String(fetchMock.mock.calls[0][0])).toBe(
-      "https://cloud.example.com/remote.php/dav/files/reedstrm/AvoCook%20Images/photo.jpg"
-    );
-    expect(fetchMock.mock.calls[0][1]?.credentials).toBe("omit");
-    expect(
-      new Headers(fetchMock.mock.calls[0][1]?.headers).get(
-        "X-NC-WebDAV-AutoMkcol"
-      )
-    ).toBe("1");
-  });
+      expect(remotePath).toBe("/AvoCook Images/photo.jpg");
+      expect(String(fetchMock.mock.calls[0][0])).toBe(
+        `${serverUrl}/remote.php/dav/files/reedstrm/AvoCook%20Images/photo.jpg`
+      );
+      expect(fetchMock.mock.calls[0][1]?.credentials).toBe("omit");
+      expect(
+        new Headers(fetchMock.mock.calls[0][1]?.headers).get(
+          "X-NC-WebDAV-AutoMkcol"
+        )
+      ).toBe("1");
+    }
+  );
 
   it("falls back to explicit MKCOL when WebDAV auto directory creation is unavailable", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(

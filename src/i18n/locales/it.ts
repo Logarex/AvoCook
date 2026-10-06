@@ -53,7 +53,9 @@ export default {
       login: "Accedi",
       secure: "Credenziali cifrate nel portachiavi del dispositivo",
       invalidUrl: "Indirizzo Nextcloud non valido.",
-      insecureUrl: "Usa HTTPS, tranne localhost durante lo sviluppo.",
+      serverHint: "Usa https://, oppure http:// per un server sulla tua rete locale fidata.",
+      httpWarning: "Connessione HTTP: la password dell'app e le ricette vengono inviate senza cifratura. Usala solo su una rete fidata.",
+      networkError: "Connessione di rete non riuscita. Verifica che il server sia online e raggiungibile dal tuo dispositivo.",
       failed:
         "Accesso non riuscito. Controlla il server e la password dell'app.",
       notFound:

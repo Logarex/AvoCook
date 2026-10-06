@@ -12,6 +12,8 @@ Wenn du dich entscheidest, einen Nextcloud-Server zu verbinden, werden Rezepte d
 
 Deine Anmeldedaten (Server-URL, Benutzername und App-Passwort) werden auf dem Gerät über Expo SecureStore gespeichert, das auf der sicheren Enklave des Systems basiert (Keychain auf iOS, Keystore auf Android).
 
+HTTPS wird standardmäßig verwendet. Du kannst ausdrücklich HTTP für einen Server in einem vertrauenswürdigen lokalen Netzwerk wählen. Mit HTTP werden dein App-Passwort, deine Rezepte und Bilder unverschlüsselt übertragen und können von jedem gelesen oder verändert werden, der die Verbindung abfangen kann. Die App zeigt eine Warnung an, wenn du eine HTTP-Adresse eingibst; die Speicherung der Anmeldedaten auf dem Gerät bleibt verschlüsselt.
+
 ## Rezept-Import über eine URL
 
 Wenn du ein Rezept durch Eingabe einer URL importierst, lädt die App diese Seite herunter, um die öffentlich verfügbaren Rezeptdaten zu lesen. Es werden keine weiteren Daten übertragen, und die Anfrage erfolgt direkt von deinem Gerät.

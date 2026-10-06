@@ -12,6 +12,8 @@ Se scegli di collegare un server Nextcloud, le ricette vengono sincronizzate dir
 
 Le tue credenziali (URL del server, nome utente e password dell'app) sono memorizzate sul dispositivo tramite Expo SecureStore, che si basa sull'enclave sicura del sistema (Keychain su iOS, Keystore su Android).
 
+HTTPS viene usato per impostazione predefinita. Puoi scegliere esplicitamente HTTP per un server su una rete locale fidata. Con HTTP, la password dell'app, le ricette e le immagini vengono trasmesse senza cifratura e possono essere lette o modificate da chiunque sia in grado di intercettare la connessione. L'app mostra un avviso quando inserisci un indirizzo HTTP; le credenziali restano cifrate sul dispositivo.
+
 ## Importazione di ricette da un URL
 
 Quando importi una ricetta inserendo un URL, l'app scarica quella pagina per leggere i dati della ricetta disponibili pubblicamente. Non vengono inviati altri dati, e la richiesta viene effettuata direttamente dal tuo dispositivo.

@@ -51,6 +51,7 @@ export function LoginScreen({ route, navigation }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [showDebugModal, setShowDebugModal] = useState(false);
   const { tourDone } = useOnboarding();
+  const usesHttp = /^http:\/\//i.test(serverUrl.trim());
 
   const logo = isDark
     ? require("../../assets/logo-dark-transparent.png")
@@ -79,10 +80,10 @@ export function LoginScreen({ route, navigation }: Props) {
       const statusMatch = caught instanceof Error ? caught.message.match(/\b(\d{3})\b/) : null;
       const httpStatus = statusMatch ? statusMatch[1] : null;
       const message =
-        caught instanceof Error && caught.message === "INSECURE_URL"
-          ? t("auth.insecureUrl")
+        caught instanceof Error && caught.message === "INVALID_URL"
+          ? t("auth.invalidUrl")
           : isLikelyTlsError(caught)
-            ? t("auth.certificateError")
+            ? t(usesHttp ? "auth.networkError" : "auth.certificateError")
           : caught instanceof Error && /401|403|997|credentials/i.test(caught.message)
             ? t("auth.badCredentials")
           : caught instanceof Error && /404/.test(caught.message)
@@ -185,6 +186,18 @@ export function LoginScreen({ route, navigation }: Props) {
               textContentType="URL"
               value={serverUrl}
             />
+            <AppText muted variant="caption">
+              {t("auth.serverHint")}
+            </AppText>
+            {usesHttp ? (
+              <AppText
+                accessibilityRole="alert"
+                variant="caption"
+                style={{ color: colors.danger }}
+              >
+                {t("auth.httpWarning")}
+              </AppText>
+            ) : null}
             <TextField
               autoCapitalize="none"
               autoCorrect={false}

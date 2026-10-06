@@ -8,7 +8,7 @@ import React, {
   useMemo,
   useState
 } from "react";
-import { assertSecureNextcloudUrl, normalizeNextcloudUrl } from "../../utils/url";
+import { normalizeNextcloudUrl } from "../../utils/url";
 
 import {
   CookbookClient,
@@ -71,7 +71,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (nextCredentials: NextcloudCredentials) => {
     const serverUrl = normalizeNextcloudUrl(nextCredentials.serverUrl);
-    assertSecureNextcloudUrl(serverUrl);
     console.info("auth", "Login started", {
       serverUrl,
       username: nextCredentials.username.trim()

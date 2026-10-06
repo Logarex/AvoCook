@@ -53,8 +53,9 @@ export default {
       login: "Se connecter",
       secure: "Identifiants chiffrés dans le trousseau de l'appareil",
       invalidUrl: "Adresse Nextcloud invalide.",
-      insecureUrl:
-        "Utilisez HTTPS, sauf pour localhost pendant le développement.",
+      serverHint: "Utilisez https://, ou http:// pour un serveur sur votre réseau local de confiance.",
+      httpWarning: "Connexion HTTP : votre mot de passe d'application et vos recettes sont transmis sans chiffrement. Utilisez uniquement un réseau de confiance.",
+      networkError: "Connexion réseau impossible. Vérifiez que le serveur est en ligne et accessible depuis votre appareil.",
       failed: "Connexion impossible. Vérifiez le serveur et l'app password.",
       notFound:
         "Serveur trouvé, mais l'application Cookbook semble introuvable. Vérifiez l'URL ou installez Cookbook sur votre Nextcloud.",

@@ -48,6 +48,7 @@ Run these on a real device, not just a simulator.
 
 **Nextcloud sync**
 - [ ] Connect to a Nextcloud instance using an app password.
+- [ ] Connect to an HTTP instance on a trusted local network (IP address and hostname, with a port/subpath), check the warning, then sync recipes and upload/display an image on Android and iOS.
 - [ ] Create a recipe in AvoCook and verify it appears in Nextcloud Cookbook.
 - [ ] Edit a recipe in Nextcloud Cookbook and verify the sync in AvoCook.
 
@@ -90,6 +91,9 @@ npx eas build --platform all --profile production
 - The app is configured for iPhone and iPad (`supportsTablet: true`).
 - It does not use remote push notifications, location services, or Bluetooth.
 - Local network permission is only used to connect to a Nextcloud server on the same network, or for the Expo client during development.
+- HTTP support uses `NSAllowsArbitraryLoads` because Nextcloud addresses are chosen by the user, including custom hostnames. Explain this during App Store review: AvoCook must connect to user-managed Nextcloud servers that may only support HTTP; HTTPS remains the default and the app warns about unencrypted connections.
+
+Changes to native network settings require a new Android/iOS build. An over-the-air JavaScript update alone cannot enable HTTP on an existing installation.
 
 ### Android
 

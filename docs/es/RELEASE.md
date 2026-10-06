@@ -48,6 +48,7 @@ Realizarlos en un dispositivo real, no solo en un simulador.
 
 **Sincronización Nextcloud**
 - [ ] Conectar con una instancia Nextcloud usando una contraseña de aplicación.
+- [ ] Conectar con una instancia HTTP en una red local de confianza (dirección IP y nombre de host, con puerto/subruta), comprobar la advertencia, luego sincronizar recetas y subir/mostrar una imagen en Android e iOS.
 - [ ] Crear una receta en AvoCook y verificar que aparece en Nextcloud Cookbook.
 - [ ] Editar una receta en Nextcloud Cookbook y verificar la sincronización en AvoCook.
 
@@ -90,6 +91,9 @@ npx eas build --platform all --profile production
 - La app está configurada para iPhone e iPad (`supportsTablet: true`).
 - No usa notificaciones push remotas, servicios de localización ni Bluetooth.
 - El permiso de red local solo se usa para conectarse a un servidor Nextcloud en la misma red, o para el cliente Expo durante el desarrollo.
+- HTTP usa `NSAllowsArbitraryLoads` porque los usuarios eligen sus direcciones Nextcloud, incluidos nombres de host personalizados. Explicarlo durante la revisión de la App Store: AvoCook necesita conectarse a servidores Nextcloud administrados por usuarios que pueden admitir solo HTTP; HTTPS sigue siendo la opción por defecto y la app advierte sobre las conexiones sin cifrar.
+
+Los cambios en los ajustes de red nativos requieren una nueva compilación de Android/iOS. Una actualización de JavaScript por sí sola no puede activar HTTP en una instalación existente.
 
 ### Android
 

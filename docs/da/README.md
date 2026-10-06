@@ -46,6 +46,8 @@ AvoCook er en mobil opskriftsbog — den fungerer helt offline på din enhed ude
 
 > I lokal tilstand forbliver alt på din enhed. Ingen konto, ingen sky, ingen sporing.
 
+HTTPS bruges som standard, hvis ingen protokol angives. Til en Nextcloud-server på dit betroede lokale netværk skal du indtaste en eksplicit HTTP-adresse, f.eks. `http://192.168.1.50:8080/nextcloud` eller `http://nextcloud.local`. HTTP sender din app-adgangskode og dine opskrifter uden kryptering; brug det kun på et betroet netværk. Oplysningerne forbliver krypteret i enhedens nøglering.
+
 ---
 
 ## Tilgængelige sprog

@@ -53,7 +53,9 @@ export default {
       login: "Iniciar sesión",
       secure: "Credenciales cifradas en el llavero del dispositivo",
       invalidUrl: "Dirección de Nextcloud no válida.",
-      insecureUrl: "Usa HTTPS, salvo localhost durante el desarrollo.",
+      serverHint: "Usa https://, o http:// para un servidor en tu red local de confianza.",
+      httpWarning: "Conexión HTTP: tu contraseña de aplicación y tus recetas se envían sin cifrar. Úsala solo en una red de confianza.",
+      networkError: "Error de conexión de red. Comprueba que el servidor está en línea y es accesible desde tu dispositivo.",
       failed:
         "No se pudo iniciar sesión. Revisa el servidor y la contraseña de app.",
       notFound:

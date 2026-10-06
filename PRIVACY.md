@@ -12,6 +12,8 @@ If you choose to connect a Nextcloud server, recipes are synchronised directly b
 
 Your credentials (server URL, username, and app password) are stored on the device using Expo SecureStore, which relies on the system's secure enclave (Keychain on iOS, Keystore on Android).
 
+HTTPS is the default. You can explicitly use HTTP for a server on a trusted local network. With HTTP, your app password, recipes, and images are transmitted without encryption and can be read or modified by anyone able to intercept the connection. The app displays a warning when you enter an HTTP address; credential storage on the device remains encrypted.
+
 ## Recipe import from a URL
 
 When you import a recipe by entering a URL, the app downloads that page to read the publicly available recipe data. No other data is sent, and the request is made directly from your device.
