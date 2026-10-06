@@ -44,14 +44,12 @@ import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
-
 type Props = NativeStackScreenProps<RootStackParamList, "Tour">;
 
 type TourStep = {
   icon: React.ElementType;
   titleKey: string;
   bodyKey: string;
-  /** Extra content rendered below the description */
   extra?: (context: {
     colors: ReturnType<typeof useAppTheme>["colors"];
     t: ReturnType<typeof useTranslation>["t"];
@@ -87,10 +85,6 @@ function getTourSteps(isLocalMode: boolean, isIos: boolean): TourStep[] {
 
   return steps;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Main screen
-// ─────────────────────────────────────────────────────────────────────────────
 
 export function TourScreen({ navigation }: Props) {
   const { t } = useTranslation();
@@ -168,7 +162,6 @@ export function TourScreen({ navigation }: Props) {
         },
       ]}
     >
-      {/* Top Bar with Skip Button */}
       <View style={styles.topBar}>
         <View style={{ flex: 1 }} />
         {!isLast && (
@@ -186,7 +179,6 @@ export function TourScreen({ navigation }: Props) {
         )}
       </View>
 
-      {/* Progress bar */}
       <View
         style={[styles.progressTrack, { backgroundColor: colors.border }]}
       >
@@ -198,7 +190,6 @@ export function TourScreen({ navigation }: Props) {
         />
       </View>
 
-      {/* Main Content Area */}
       <View style={styles.contentWrapper}>
         <View style={styles.centerContainer}>
 
@@ -211,7 +202,6 @@ export function TourScreen({ navigation }: Props) {
             <Icon color={colors.primary} size={48} strokeWidth={1.5} />
           </View>
 
-          {/* Texts */}
           <AppText variant="title" style={styles.stepTitle}>
             {t(current.titleKey as Parameters<typeof t>[0])}
           </AppText>
@@ -225,7 +215,6 @@ export function TourScreen({ navigation }: Props) {
         </View>
       </View>
 
-      {/* Navigation buttons */}
       <View style={styles.navRow}>
         {step > 0 && (
           <PrimaryButton
@@ -242,7 +231,6 @@ export function TourScreen({ navigation }: Props) {
         />
       </View>
 
-      {/* Dot indicators */}
       <View style={styles.dots}>
         {STEPS.map((_, i) => (
           <Pressable
@@ -271,10 +259,6 @@ export function TourScreen({ navigation }: Props) {
     </View>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Extra content: Import Guide
-// ─────────────────────────────────────────────────────────────────────────────
 
 function AIGuide({
   colors,
@@ -347,10 +331,6 @@ function AIGuide({
     </View>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Extra content: Contact links
-// ─────────────────────────────────────────────────────────────────────────────
 
 function ContactLinks({
   colors,
@@ -435,10 +415,6 @@ function ContactLinks({
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Extra content: Sort Guide
-// ─────────────────────────────────────────────────────────────────────────────
-
 function SortGuide({ colors, t }: { colors: any; t: any }) {
   return (
     <View style={styles.guideListContainer}>
@@ -457,10 +433,6 @@ function SortGuide({ colors, t }: { colors: any; t: any }) {
     </View>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Extra content: Manage Recipe Guide
-// ─────────────────────────────────────────────────────────────────────────────
 
 function ManageRecipeGuide({ colors, t, isLocalMode }: { colors: any; t: any; isLocalMode: boolean }) {
   return (
@@ -489,10 +461,6 @@ function ManageRecipeGuide({ colors, t, isLocalMode }: { colors: any; t: any; is
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Extra content: Apple Reminders Guide
-// ─────────────────────────────────────────────────────────────────────────────
-
 function AppleRemindersGuide({ t }: { colors: any; t: any }) {
   return (
     <View style={styles.guideListContainer}>
@@ -511,10 +479,6 @@ function AppleRemindersGuide({ t }: { colors: any; t: any }) {
     </View>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   root: {
@@ -583,7 +547,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     paddingHorizontal: spacing.sm,
     paddingVertical: spacing.sm,
-    width: "48%", // 2 columns
+    width: "48%",
   },
   freeBadgeCompact: {
     borderRadius: radius.pill,

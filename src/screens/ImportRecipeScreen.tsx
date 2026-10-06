@@ -42,7 +42,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
 
   const hasLlmKey = Boolean(llmSettings.apiKey.trim());
 
-  // Auto-import URL shared via share extension
   React.useEffect(() => {
     if (route.params?.url) {
       void handleImportUrl(route.params.url);
@@ -50,7 +49,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [route.params?.url]);
 
-  // Auto-import .avocook file shared via share extension
   React.useEffect(() => {
     if (route.params?.fileUri) {
       void handleImportSharedFile(route.params.fileUri);
@@ -198,7 +196,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
   ) {
     setError(null);
 
-    // Step 1: Show instructions explaining what to crop
     await new Promise<void>((resolve) => {
       Alert.alert(
         t("importRecipe.cropInstructionsTitle"),
@@ -207,7 +204,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
       );
     });
 
-    // Step 2: Pick / shoot the recipe image (with editing enabled for recipe text)
     const result = await pickerFn({
       mediaTypes: ["images"],
       quality: 0.4,
@@ -238,7 +234,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         i18n.language
       );
 
-      // Step 3: Persist the cropped recipe-text image as the recipe photo by default
       let recipePhotoUri: string | null = null;
       try {
         recipePhotoUri = await persistRecipeImage(asset.uri);
@@ -248,7 +243,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         console.error("app", "Failed to persist recipe image", imgErr);
       }
 
-      // Step 4: Ask user if they want to pick a separate meal photo
       stopLongActionNotice();
       setSubmitting(null);
 
@@ -274,7 +268,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
                       recipe.imageUrl = mealUri;
                     }
                   } catch {
-                    // ignore, keep the recipe-text crop
                   }
                   resolve();
                 })();
@@ -288,7 +281,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
               text: t("importRecipe.mealPhotoSkip"),
               style: "cancel",
               onPress: () => {
-                // No photo at all
                 recipe.image = "";
                 recipe.imageUrl = "";
                 resolve();
@@ -406,7 +398,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         <View style={{ width: 44 }} />
       </View>
 
-      {/* Error State */}
       {error ? (
         <GlassPanel style={styles.errorCard} intensity={80}>
           <AppText accessibilityRole="alert" style={{ color: colors.danger, textAlign: "center" }}>
@@ -417,7 +408,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
 
 
 
-      {/* Section 1: URL Import */}
       <GlassPanel style={styles.section}>
         <View style={styles.sectionHeader}>
           <Globe color={colors.primary} size={22} />

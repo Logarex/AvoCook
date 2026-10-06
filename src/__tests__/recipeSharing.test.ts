@@ -1,5 +1,9 @@
 /* eslint-disable import/first */
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { copyFile } = vi.hoisted(() => ({
+  copyFile: vi.fn(async () => {})
+}));
 
 vi.mock("expo-crypto", () => ({
   CryptoDigestAlgorithm: { SHA256: "SHA-256" },
@@ -24,7 +28,7 @@ vi.mock("expo-file-system", () => ({
     }
     static downloadFileAsync = vi.fn();
     base64 = vi.fn(async () => "");
-    copy = vi.fn();
+    copy = copyFile;
     create = vi.fn();
     delete = vi.fn();
     text = vi.fn(async () => "");
@@ -49,8 +53,11 @@ vi.mock("expo-sharing", () => ({
 import {
   createRecipePrintHtml,
   createRecipeShareBackup,
+  shareRecipePdf,
   type RecipePrintLabels
 } from "../features/recipes/recipeSharing";
+import * as Print from "expo-print";
+import * as Sharing from "expo-sharing";
 import { getRecipeShareFilename } from "../features/recipes/recipeShareFilenames";
 import { normalizeRecipe } from "../features/recipes/types";
 
@@ -94,6 +101,31 @@ describe("getRecipeShareFilename", () => {
 });
 
 describe("recipe print and share content", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    copyFile.mockResolvedValue(undefined);
+  });
+
+  it("waits for the PDF copy before opening the share sheet", async () => {
+    let finishCopy!: () => void;
+    copyFile.mockImplementationOnce(() => new Promise<void>((resolve) => {
+      finishCopy = resolve;
+    }));
+    vi.mocked(Print.printToFileAsync).mockResolvedValueOnce({
+      uri: "file:///cache/printed.pdf",
+      numberOfPages: 1
+    });
+    const recipe = normalizeRecipe({ name: "Salade", recipeIngredient: ["quinoa"] });
+
+    const exportResult = shareRecipePdf(recipe, labels, null);
+    await vi.waitFor(() => expect(copyFile).toHaveBeenCalledOnce());
+    expect(Sharing.shareAsync).not.toHaveBeenCalled();
+
+    finishCopy();
+    await exportResult;
+    expect(Sharing.shareAsync).toHaveBeenCalledOnce();
+  });
+
   it("renders the Nutri-Score in printable HTML when nutrition exists", async () => {
     const recipe = normalizeRecipe({
       name: "Salade complète",

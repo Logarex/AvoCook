@@ -33,6 +33,17 @@ describe("logService", () => {
     expect(logs[logs.length - 1].level).toBe("ERROR");
   });
 
+  it("redacts API keys in nested objects and text exports", () => {
+    const secrets = { llm: { apiKey: "key-one", "x-api-key": "key-two", api_key: "key-three" } };
+    logService.info("test", "Settings", secrets);
+    const exported = JSON.stringify(logService.getLogs());
+    for (const secret of ["key-one", "key-two", "key-three"]) {
+      expect(exported).not.toContain(secret);
+    }
+    expect(logService.sanitizeString('apiKey="key-four" x-api-key=key-five'))
+      .not.toMatch(/key-four|key-five/);
+  });
+
   it("correctly identifies SSL self-signed certificate errors", () => {
     expect(logService.isLikelySelfSignedSslError("SSLHandshakeException: Trust anchor for certification path not found")).toBe(true);
     expect(logService.isLikelySelfSignedSslError("TypeError: Network request failed")).toBe(true);

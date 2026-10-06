@@ -36,7 +36,7 @@ export async function persistRecipeImage(
     return file.uri;
   }
 
-  new File(uri).copy(destination);
+  await new File(uri).copy(destination);
   return destination.uri;
 }
 

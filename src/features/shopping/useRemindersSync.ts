@@ -17,7 +17,6 @@ import {
 import type { PullResult } from "./remindersSync";
 import type { ShoppingListItem } from "./shoppingList";
 
-
 const SYNC_ENABLED_KEY = "shopping.reminders.enabled.v1";
 
 export type RemindersSyncState = {
@@ -29,10 +28,6 @@ export type RemindersSyncState = {
 };
 
 export type UseRemindersSyncReturn = RemindersSyncState & {
-  /**
-   * Enable sync and do an initial push of all current unchecked items.
-   * Pass the current items list so they appear in Rappels immediately.
-   */
   enableSync: (currentItems: ShoppingListItem[]) => Promise<void>;
   disableSync: () => Promise<void>;
   pushToSystem: (items: ShoppingListItem[]) => Promise<void>;
@@ -49,7 +44,6 @@ export function useRemindersSync(): UseRemindersSyncReturn {
   const [listName] = useState<string | null>(available ? "AvoCook" : null);
   const [dismissed, setDismissed] = useState(false);
 
-  // ── Load persisted linked state on mount ───────────────────────────────────
   useEffect(() => {
     void AsyncStorage.getItem(SYNC_ENABLED_KEY).then((stored) => {
       if (stored === "true") setLinked(true);
@@ -59,7 +53,6 @@ export function useRemindersSync(): UseRemindersSyncReturn {
     });
   }, []);
 
-  // ── enableSync ─────────────────────────────────────────────────────────────
   const enableSync = useCallback(async (currentItems: ShoppingListItem[]) => {
     if (!available) return;
 
@@ -93,7 +86,6 @@ export function useRemindersSync(): UseRemindersSyncReturn {
       setSyncing(true);
       const listId = await findOrCreateAvoCookList();
       await AsyncStorage.setItem(SYNC_ENABLED_KEY, "true");
-      // Initial push: send all current unchecked items to Rappels right away.
       if (currentItems.length > 0) {
         await pushItemsToReminders(currentItems, listId);
       }
@@ -104,7 +96,6 @@ export function useRemindersSync(): UseRemindersSyncReturn {
       setSyncing(false);
     }
   }, [available, t]);
-  // ── disableSync ────────────────────────────────────────────────────────────
   const disableSync = useCallback(async () => {
     Alert.alert(t("shoppingList.syncDisableConfirmTitle"), "", [
       {
@@ -128,7 +119,6 @@ export function useRemindersSync(): UseRemindersSyncReturn {
               const listId = await getLinkedListId();
               if (listId) await deleteAllReminders(listId);
             } catch {
-              // best-effort
             } finally {
               await AsyncStorage.setItem(SYNC_ENABLED_KEY, "false");
               await clearLinkedListId();
@@ -141,7 +131,6 @@ export function useRemindersSync(): UseRemindersSyncReturn {
     ]);
   }, [t]);
 
-  // ── pushToSystem ───────────────────────────────────────────────────────────
   const pushToSystem = useCallback(
     async (items: ShoppingListItem[]) => {
       if (!linked) return;
@@ -150,13 +139,11 @@ export function useRemindersSync(): UseRemindersSyncReturn {
         if (!listId) return;
         await pushItemsToReminders(items, listId);
       } catch {
-        // Silent: never break the main flow for a push failure
       }
     },
     [linked]
   );
 
-  // ── pullFromSystem ─────────────────────────────────────────────────────────
   const pullFromSystem = useCallback(
     async (currentItems: ShoppingListItem[]): Promise<PullResult | null> => {
       if (!linked) return null;
@@ -172,7 +159,6 @@ export function useRemindersSync(): UseRemindersSyncReturn {
     [linked]
   );
 
-  // ── dismissSyncBanner ─────────────────────────────────────────────────────────
   const dismissSyncBanner = useCallback(async () => {
     setDismissed(true);
     await AsyncStorage.setItem("shopping.reminders.dismissed.v1", "true");

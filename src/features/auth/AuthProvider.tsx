@@ -39,12 +39,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function loadAuth() {
-      // Retry logic: on some Android devices, SecureStore may return null
-      // before the keychain is fully ready after boot/unlock.
+      // SecureStore can return null briefly after Android boot or unlock.
       const tryLoadCredentials = async (attempt: number): Promise<string | null> => {
         const stored = await SecureStore.getItemAsync(CREDENTIALS_KEY);
         if (stored === null && attempt < 2) {
-          // Brief delay then retry — covers race condition on Android
           await new Promise((resolve) => setTimeout(resolve, 350));
           return tryLoadCredentials(attempt + 1);
         }
@@ -57,7 +55,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           AsyncStorage.getItem(LOCAL_MODE_KEY)
         ]);
         if (stored) {
-          setCredentials(JSON.parse(stored) as NextcloudCredentials);
+          const parsed = JSON.parse(stored) as NextcloudCredentials | null;
+          if (!parsed || typeof parsed.serverUrl !== "string" ||
+              typeof parsed.username !== "string" || typeof parsed.appPassword !== "string") {
+            throw new Error("Invalid stored Nextcloud credentials");
+          }
+          setCredentials({
+            ...parsed,
+            serverUrl: normalizeNextcloudUrl(parsed.serverUrl),
+            userId: typeof parsed.userId === "string" ? parsed.userId : undefined
+          });
         }
         setIsLocalMode(localMode === "true" && !stored);
       } catch (error) {
@@ -125,6 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     console.info("auth", "Local mode started");
     await SecureStore.deleteItemAsync(CREDENTIALS_KEY);
     await AsyncStorage.setItem(LOCAL_MODE_KEY, "true");
+    CookbookClient.setCurrent(null);
     setCredentials(null);
     setIsLocalMode(true);
   }, []);
@@ -135,14 +143,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await AsyncStorage.setItem(LOCAL_MODE_KEY, "false");
     await AsyncStorage.removeItem("recipes.firstSyncCompleted");
     setCredentials(null);
+    CookbookClient.setCurrent(null);
     setIsLocalMode(false);
   }, []);
 
   const clientInstance = useMemo(() => {
-    if (!credentials) {
-      return null;
-    }
-    return new CookbookClient(credentials);
+    const client = credentials ? new CookbookClient(credentials) : null;
+    CookbookClient.setCurrent(client);
+    return client;
   }, [credentials]);
 
   const getClient = useCallback(() => {

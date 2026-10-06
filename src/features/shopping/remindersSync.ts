@@ -1,4 +1,4 @@
-import * as Calendar from "expo-calendar";
+import * as Calendar from "expo-calendar/legacy";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 import type { ShoppingListItem } from "./shoppingList";
@@ -6,16 +6,12 @@ import type { ShoppingListItem } from "./shoppingList";
 const REMINDERS_LIST_ID_KEY = "shopping.reminders.listId.v1";
 const REMINDERS_ITEM_MAP_KEY = "shopping.reminders.itemMap.v1";
 
-// Maps AvoCook item id → system reminder id
+// AvoCook item ID -> reminder ID.
 type ItemMap = Record<string, string>;
-
-// ─── Platform guard ───────────────────────────────────────────────────────────
 
 export function isRemindersAvailable(): boolean {
   return Platform.OS === "ios";
 }
-
-// ─── Permissions ──────────────────────────────────────────────────────────────
 
 export async function requestRemindersPermission(): Promise<"granted" | "denied"> {
   if (!isRemindersAvailable()) return "denied";
@@ -31,14 +27,11 @@ export async function getRemindersPermissionStatus(): Promise<
   return status as "granted" | "denied" | "undetermined";
 }
 
-// ─── List management ──────────────────────────────────────────────────────────
-
 const AVOCOOK_LIST_NAME = "AvoCook";
 
 export async function findOrCreateAvoCookList(): Promise<string> {
   const storedId = await AsyncStorage.getItem(REMINDERS_LIST_ID_KEY);
   
-  // 1. Fetch all current reminder calendars
   let calendars: Calendar.Calendar[] = [];
   try {
     calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.REMINDER);
@@ -46,7 +39,6 @@ export async function findOrCreateAvoCookList(): Promise<string> {
     console.error("sync", "Failed to get calendars", e);
   }
 
-  // 2. Check if the stored ID still exists and is modifiable
   if (storedId) {
     const matched = calendars.find((c) => c.id === storedId);
     if (matched && matched.allowsModifications !== false) {
@@ -54,7 +46,6 @@ export async function findOrCreateAvoCookList(): Promise<string> {
     }
   }
 
-  // 3. Check if a list named "AvoCook" already exists
   const existing = calendars.find(
     (c) => c.title === AVOCOOK_LIST_NAME && c.allowsModifications !== false
   );
@@ -63,8 +54,6 @@ export async function findOrCreateAvoCookList(): Promise<string> {
     return existing.id;
   }
 
-  // 4. We need to create a new calendar. Find the best source.
-  // Prioritize iCloud, then Local, then any modifiable source.
   const modifiable = calendars.filter((c) => c.allowsModifications !== false);
   let targetSource = 
     modifiable.find((c) => c.source?.name === "iCloud" || c.source?.type === "caldav")?.source ??
@@ -72,13 +61,11 @@ export async function findOrCreateAvoCookList(): Promise<string> {
     modifiable[0]?.source ??
     calendars[0]?.source;
 
-  // If we still have no source (e.g., user has 0 reminder lists), try default event calendar source
   if (!targetSource) {
     try {
       const defaultEventCalendar = await Calendar.getDefaultCalendarAsync();
       targetSource = defaultEventCalendar.source;
     } catch {
-      // Ignore
     }
   }
 
@@ -99,7 +86,6 @@ export async function findOrCreateAvoCookList(): Promise<string> {
   } catch (e) {
     console.error("sync", "Failed to create new calendar list", e);
     
-    // If creation failed with the chosen source, try falling back to local source explicitly if we didn't already
     if (targetSource && !targetSource.isLocalAccount) {
        try {
           const localSource = calendars.find((c) => c.source?.isLocalAccount)?.source || { isLocalAccount: true, name: "AvoCook", type: "local" };
@@ -121,7 +107,7 @@ export async function findOrCreateAvoCookList(): Promise<string> {
        }
     }
     
-    throw e; // Rethrow so enableSync knows it failed
+    throw e;
   }
 }
 
@@ -132,8 +118,6 @@ export async function getLinkedListId(): Promise<string | null> {
 export async function clearLinkedListId(): Promise<void> {
   await AsyncStorage.removeItem(REMINDERS_LIST_ID_KEY);
 }
-
-// ─── Item map persistence ─────────────────────────────────────────────────────
 
 async function loadItemMap(): Promise<ItemMap> {
   const stored = await AsyncStorage.getItem(REMINDERS_ITEM_MAP_KEY);
@@ -153,10 +137,7 @@ export async function clearItemMap(): Promise<void> {
   await AsyncStorage.removeItem(REMINDERS_ITEM_MAP_KEY);
 }
 
-/**
- * Registers reminder IDs for items that were added from the Rappels app.
- * Call right after addIngredients() so the next push updates (not re-creates) them.
- */
+// Link reminder IDs before the next push to avoid recreating them.
 export async function registerReminderMappings(
   mappings: { avocookId: string; reminderId: string }[]
 ): Promise<void> {
@@ -168,12 +149,8 @@ export async function registerReminderMappings(
   await saveItemMap(itemMap);
 }
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/** Fetch ALL reminders (incomplete + completed) for a given list. Throws on error. */
 async function fetchAllReminders(listId: string): Promise<Calendar.Reminder[]> {
-  // Pass null for status and dates to bypass expo-calendar's date requirement
-  // and fetch all reminders regardless of completion or due dates.
+  // expo-calendar accepts null filters to include completed and undated reminders.
   return Calendar.getRemindersAsync(
     [listId],
     null,
@@ -185,11 +162,7 @@ async function fetchAllReminders(listId: string): Promise<Calendar.Reminder[]> {
   });
 }
 
-// ─── Push lock ────────────────────────────────────────────────────────────────
-// Only one push runs at a time. If a new push arrives while one is running,
-// we store the latest args (only the LAST queued push matters).
-// This prevents concurrent pushes from reading the same stale itemMap
-// and creating duplicate reminders.
+// Queue only the latest push to prevent duplicate reminder creation.
 
 let _pushRunning = false;
 let _queuedPush: { items: ShoppingListItem[]; listId: string } | null = null;
@@ -215,13 +188,6 @@ export async function pushItemsToReminders(
   }
 }
 
-/**
- * Sync rules for push (AvoCook state wins):
- * - If a mapped reminder exists, update it to match AvoCook.
- * - If no mapped reminder exists, try finding an unmapped reminder with the same name.
- * - If still none, create a new reminder.
- * - If an item was previously mapped but is missing from current `items`, delete the reminder.
- */
 async function _executePush(items: ShoppingListItem[], listId: string): Promise<void> {
   const itemMap = await loadItemMap();
   const reminders = await fetchAllReminders(listId);
@@ -238,7 +204,6 @@ async function _executePush(items: ShoppingListItem[], listId: string): Promise<
     const reminderId = itemMap[item.id];
     let matchedReminder = reminderId ? reminders.find((r) => r.id === reminderId) : undefined;
 
-    // Fallback: name matching
     if (!matchedReminder) {
       matchedReminder = reminders.find(
         (r) =>
@@ -263,13 +228,11 @@ async function _executePush(items: ShoppingListItem[], listId: string): Promise<
     };
 
     if (matchedReminder && matchedReminder.id) {
-      // Both exist -> update reminder to match AvoCook
       await Calendar.updateReminderAsync(matchedReminder.id, reminderDetails).catch(
         (e) => console.warn("sync", `Failed to update reminder ${matchedReminder!.id}`, e)
       );
       nextMap[item.id] = matchedReminder.id;
     } else {
-      // New in AvoCook -> create reminder
       const newId = await Calendar.createReminderAsync(listId, reminderDetails).catch(
         (e) => {
           console.warn("sync", `Failed to create reminder for ${item.label}`, e);
@@ -283,7 +246,6 @@ async function _executePush(items: ShoppingListItem[], listId: string): Promise<
     }
   }
 
-  // Deletions: if a reminder was in the old map, but the item is gone from `items`
   const nextMappedReminderIds = new Set(Object.values(nextMap));
   for (const reminder of reminders) {
     if (
@@ -302,14 +264,9 @@ async function _executePush(items: ShoppingListItem[], listId: string): Promise<
   console.info("sync", "Push completed", { nextMapSize: Object.keys(nextMap).length });
 }
 
-// ─── Pull lock ────────────────────────────────────────────────────────────────
-// The pull lock prevents concurrent pulls (e.g., useFocusEffect + AppState
-// firing at the same time) from both reading the same empty itemMap and
-// adding the same new reminder as duplicate AvoCook items.
+// Concurrent focus and foreground pulls can create duplicate items.
 
 let _pullRunning = false;
-
-// ─── Pull: Reminders → App ────────────────────────────────────────────────────
 
 export type NewReminderItem = {
   reminderId: string;
@@ -318,27 +275,16 @@ export type NewReminderItem = {
 };
 
 export type PullResult = {
-  /** Existing AvoCook items whose label or checked state was changed in Rappels. */
   updatedItems: ShoppingListItem[];
-  /** New reminders added directly in Rappels. */
   newReminderItems: NewReminderItem[];
-  /** AvoCook IDs of items that were deleted in Rappels. */
   deletedItemIds: string[];
   hasChanges: boolean;
 };
 
-/**
- * Pull rules (Reminders state wins):
- * - If a mapped reminder exists, update AvoCook item to match reminder.
- * - If an item is unmapped, try to find an unmapped reminder with the same name.
- * - If a reminder was mapped but is now gone, report it in deletedItemIds.
- * - If a reminder is completely new and unmapped, return as newReminderItems.
- */
 export async function pullItemsFromReminders(
   currentItems: ShoppingListItem[],
   listId: string
 ): Promise<PullResult> {
-  // Pull lock: if a pull is already in progress, skip this one.
   if (_pullRunning) {
     return { updatedItems: currentItems, newReminderItems: [], deletedItemIds: [], hasChanges: false };
   }
@@ -370,13 +316,11 @@ async function _executePull(
     remindersCount: reminders.length,
   });
 
-  // ── Update or delete existing items ──────────────────────────────────────
   for (const item of currentItems) {
     const reminderId = itemMap[item.id];
     const matchedReminder = reminderId ? reminders.find((r) => r.id === reminderId) : undefined;
 
     if (matchedReminder && matchedReminder.id) {
-      // Both exist. Reminders wins -> update AvoCook item to match reminder.
       const systemLabel = matchedReminder.title?.trim() ?? item.label;
       const systemChecked = matchedReminder.completed ?? false;
 
@@ -396,20 +340,17 @@ async function _executePull(
         updatedItems.push(item);
       }
     } else {
-      // Reminder is gone! Was it previously mapped?
       if (reminderId) {
         console.info("sync", `Reminder deleted in Rappels, deleting from AvoCook: ${item.label}`);
         deletedItemIds.push(item.id);
         delete nextMap[item.id];
         hasChanges = true;
       } else {
-        // Just an unmapped AvoCook item, leave it alone.
         updatedItems.push(item);
       }
     }
   }
 
-  // ── Detect new reminders added directly in Rappels ─────────────────────────
   const nextMappedReminderIds = new Set(Object.values(nextMap));
   for (const reminder of reminders) {
     if (
@@ -417,7 +358,6 @@ async function _executePull(
       !knownReminderIds.has(reminder.id) &&
       !nextMappedReminderIds.has(reminder.id)
     ) {
-      // Brand new reminder in Reminders!
       if (reminder.title?.trim()) {
         console.info("sync", `New reminder detected from Rappels: ${reminder.title}`);
         newReminderItems.push({
@@ -440,8 +380,6 @@ async function _executePull(
     hasChanges,
   };
 }
-
-// ─── Delete all reminders in the AvoCook list ─────────────────────────────────
 
 export async function deleteAllReminders(listId: string): Promise<void> {
   const allReminders = await fetchAllReminders(listId);

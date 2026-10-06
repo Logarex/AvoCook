@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { findRecipeJsonLd, jsonLdToRecipe, extractSemanticHtmlRecipe } from "../features/import/schemaRecipeParser";
 
-// Helper: parse HTML and convert in one step
 function importFromHtml(html: string, url = "https://example.com/recipe") {
   const jsonLd = findRecipeJsonLd(html);
   if (!jsonLd) throw new Error("No JSON-LD found");
@@ -9,7 +8,6 @@ function importFromHtml(html: string, url = "https://example.com/recipe") {
 }
 
 describe("schemaRecipeParser", () => {
-  // ─── Existing tests (must remain green) ──────────────────────────────────────
 
   it("extracts a Recipe object from JSON-LD graph", () => {
     const html = `
@@ -84,8 +82,6 @@ describe("schemaRecipeParser", () => {
     expect(recipe.imageUrl).toBe("https://example.com/images/cake.jpg");
   });
 
-  // ─── HTML entity decoding ─────────────────────────────────────────────────────
-
   it("decodes decimal numeric HTML entities in JSON-LD values", () => {
     const html = `
       <script type="application/ld+json">
@@ -134,8 +130,6 @@ describe("schemaRecipeParser", () => {
     expect(recipe.description).toContain("Très bon");
   });
 
-  // ─── HTML tag stripping ───────────────────────────────────────────────────────
-
   it("strips HTML tags from instruction text in JSON-LD", () => {
     const html = `
       <script type="application/ld+json">
@@ -150,8 +144,6 @@ describe("schemaRecipeParser", () => {
       </script>
     `;
     const recipe = importFromHtml(html);
-    // Stripping <strong>...</strong> may insert a space before the period;
-    // the important thing is the HTML tags are gone and the text is readable.
     expect(recipe.recipeInstructions[0]).toContain(
       "Faire revenir l\u2019oignon dans un filet d\u2019huile"
     );
@@ -174,8 +166,6 @@ describe("schemaRecipeParser", () => {
     expect(recipe.recipeIngredient[0]).toBe("200 g de tomates cerises");
   });
 
-  // ─── JSON repair ──────────────────────────────────────────────────────────────
-
   it("repairs JSON-LD with trailing commas", () => {
     const html = `
       <script type="application/ld+json">
@@ -191,8 +181,6 @@ describe("schemaRecipeParser", () => {
     expect(recipe.name).toBe("Gâteau");
     expect(recipe.recipeIngredient).toEqual(["200 g farine"]);
   });
-
-  // ─── HowToSection support ─────────────────────────────────────────────────────
 
   it("flattens HowToSection instructions into a single list", () => {
     const html = `
@@ -229,8 +217,6 @@ describe("schemaRecipeParser", () => {
     ]);
   });
 
-  // ─── Semantic HTML fallback ──────────────────────────────────────────────────
-
   it("extracts ingredients and instructions from semantic HTML", () => {
     const html = `
       <html>
@@ -265,8 +251,6 @@ describe("schemaRecipeParser", () => {
     expect(recipe.recipeIngredient).toEqual(["2 aubergines", "4 oeufs"]);
     expect(recipe.recipeInstructions).toEqual(["Préchauffez le four.", "Cuire 30 min."]);
   });
-
-// ─── Edge cases ───────────────────────────────────────────────────────────────
 
   it("handles a recipe where recipeYield is a string like '6 personnes'", () => {
     const recipe = jsonLdToRecipe(

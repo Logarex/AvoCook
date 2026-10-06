@@ -15,15 +15,6 @@
     "orientation": "default",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/logo.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#F7F3EA",
-      "dark": {
-        "image": "./assets/logo-dark.png",
-        "backgroundColor": "#10201D"
-      }
-    },
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -31,6 +22,7 @@
       "supportsTablet": true,
       "buildNumber": "2",
       "bundleIdentifier": "org.epimac.avocook",
+      "appleTeamId": "E5L7NC8M9T",
       "appStoreUrl": "https://apps.apple.com/fr/app/avocook/id6769012665",
       "icon": {
         "light": "./assets/icon.png",
@@ -75,6 +67,14 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "enableSceneSupport": true
+          }
+        }
+      ],
       [
         "expo-calendar",
         {

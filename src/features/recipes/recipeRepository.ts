@@ -16,6 +16,7 @@ import {
 } from "./backupDuplicates";
 import { withInferredCategory } from "./categories";
 import {
+  acknowledgeQueuedRecipeUpdate,
   deleteQueuedOperation,
   deleteQueuedOperationsForRecipe,
   clearLocalRecipeCache,
@@ -23,10 +24,12 @@ import {
   listQueuedOperations,
   loadDirtyLocalRecipes,
   loadLocalRecipes,
+  hasUnreadableLocalRecipes,
   markLocalRecipeDeleted,
   migrateDatabase,
   removeLocalRecipe,
   saveLocalRecipe,
+  saveLocalRecipePreferences,
   loadAnyLocalRecipeById
 } from "./offlineDatabase";
 import {
@@ -83,6 +86,14 @@ export type RecipeRepositoryOptions = {
   ) => Promise<RecipeNameConflictResolution>;
 };
 
+async function pruneLocalRecipeImageCache(recipes?: Recipe[]) {
+  if (await hasUnreadableLocalRecipes()) {
+    console.warn("local", "Image cleanup skipped to preserve unreadable recipes");
+    return;
+  }
+  await pruneRecipeImageCache(recipes ?? await loadLocalRecipes());
+}
+
 export async function initialiseRecipeStore() {
   await migrateDatabase();
   return replaceLocalRecipeImageReferences(await loadLocalRecipes());
@@ -91,13 +102,12 @@ export async function initialiseRecipeStore() {
 export async function clearSyncedLocalRecipes() {
   await migrateDatabase();
   await clearLocalRecipeCache();
-  await pruneRecipeImageCache(await loadLocalRecipes());
+  await pruneLocalRecipeImageCache(await loadLocalRecipes());
 }
 
 export async function updateRecipeLocalPreferences(recipe: Recipe) {
   await migrateDatabase();
-  // only save locally, don't mark as dirty because it's just app preferences
-  return saveLocalRecipe(recipe, false, false);
+  return saveLocalRecipePreferences(recipe);
 }
 
 export async function findDuplicateRecipes() {
@@ -124,8 +134,6 @@ export async function mergeDuplicateRecipes(
   );
 
   if (currentRecipes.length < 2) {
-    // it's possible one of the duplicates was deleted in the meantime, 
-    // nothing to merge if less than 2
     return {
       recipe: currentRecipes[0] ?? null,
       recipes: replaceLocalRecipeImageReferences(await loadLocalRecipes()),
@@ -133,7 +141,6 @@ export async function mergeDuplicateRecipes(
     };
   }
 
-  // merge all data into the first one, then try to guess category
   const mergedRecipe = withInferredCategory(
     replaceLocalRecipeImageReferencesWithRemote(
       mergeDuplicateRecipeData(currentRecipes)
@@ -148,7 +155,7 @@ export async function mergeDuplicateRecipes(
     client
   );
   const recipes = replaceLocalRecipeImageReferences(await loadLocalRecipes());
-  await pruneRecipeImageCache(recipes);
+  await pruneLocalRecipeImageCache(recipes);
 
   return {
     recipe: savedRecipe,
@@ -215,18 +222,21 @@ export async function createRecipe(
       toCookbookCreateRecipe(await prepareRecipeForNextcloud(localRecipe, client))
     );
     const saved = await client.getRecipe(String(serverId));
-    await removeLocalRecipe(localRecipe.id ?? "");
     console.info("sync", "Remote recipe create finished", {
       localId: localRecipe.id,
       serverId,
       name: saved.name,
       image: getRecipeImageDebugState(saved)
     });
-    return saveLocalRecipe(
+    const persisted = await saveLocalRecipe(
       withInferredCategory(mergeServerRecipeWithLocalImages(saved, localRecipe)),
       false,
       false
     );
+    if (localRecipe.id && localRecipe.id !== persisted.id) {
+      await removeLocalRecipe(localRecipe.id);
+    }
+    return persisted;
   } catch (error) {
     console.error("sync", "Remote recipe create failed; queued locally", {
       localId: localRecipe.id,
@@ -287,7 +297,7 @@ export async function updateRecipe(
           ? "missing-id"
           : "local-id"
     });
-    await pruneRecipeImageCache(await loadLocalRecipes());
+    await pruneLocalRecipeImageCache(await loadLocalRecipes());
     return localRecipe;
   }
 
@@ -308,7 +318,7 @@ export async function updateRecipe(
       name: saved.name,
       image: getRecipeImageDebugState(saved)
     });
-    await pruneRecipeImageCache(await loadLocalRecipes());
+    await pruneLocalRecipeImageCache(await loadLocalRecipes());
     return saved;
   } catch (error) {
     console.error("sync", "Remote recipe update failed; queued locally", {
@@ -318,7 +328,7 @@ export async function updateRecipe(
       error: error
     });
     await enqueueSyncOperation("update", localRecipe.id ?? "", localRecipe);
-    await pruneRecipeImageCache(await loadLocalRecipes());
+    await pruneLocalRecipeImageCache(await loadLocalRecipes());
     return localRecipe;
   }
 }
@@ -327,7 +337,7 @@ export async function deleteRecipe(id: string, client: CookbookClient | null) {
   if (!client) {
     await deleteQueuedOperationsForRecipe(id);
     await removeLocalRecipe(id);
-    await pruneRecipeImageCache(await loadLocalRecipes());
+    await pruneLocalRecipeImageCache(await loadLocalRecipes());
     return;
   }
 
@@ -336,7 +346,7 @@ export async function deleteRecipe(id: string, client: CookbookClient | null) {
   if (id.startsWith("local-")) {
     await deleteQueuedOperationsForRecipe(id);
     await removeLocalRecipe(id);
-    await pruneRecipeImageCache(await loadLocalRecipes());
+    await pruneLocalRecipeImageCache(await loadLocalRecipes());
     return;
   }
 
@@ -345,7 +355,7 @@ export async function deleteRecipe(id: string, client: CookbookClient | null) {
   try {
     await client.deleteRecipe(id);
     await removeLocalRecipe(id);
-    await pruneRecipeImageCache(await loadLocalRecipes());
+    await pruneLocalRecipeImageCache(await loadLocalRecipes());
   } catch {
     await enqueueSyncOperation("delete", id, null);
   }
@@ -555,7 +565,7 @@ export async function updateRecipeFromSource(
           recipe.id
         );
       } catch {
-        // The source refresh succeeded; cleanup can be retried by sync/reindex later.
+        // Retry cleanup later; the source refresh already succeeded.
       }
     }
   }
@@ -885,7 +895,7 @@ export async function syncRecipes(
     await reindexRecipes(client);
   }
 
-  await pruneRecipeImageCache(await loadLocalRecipes());
+  await pruneLocalRecipeImageCache(await loadLocalRecipes());
 
   console.info("sync", "Sync finished", { count: recipes.length });
   return recipes;
@@ -917,8 +927,19 @@ async function removeServerDeletedLocalRecipes(
       continue;
     }
 
+    let confirmedDeleted = false;
     if (client) {
-      const serverRecipe = await client.getRecipe(localRecipe.id).catch(() => null);
+      let serverRecipe: Recipe | null = null;
+      try {
+        serverRecipe = await client.getRecipe(localRecipe.id);
+      } catch (error) {
+        confirmedDeleted = error instanceof CookbookApiError && error.status === 404;
+        if (!confirmedDeleted) {
+          console.warn("sync", "Could not confirm remote deletion; keeping local recipe", {
+            id: localRecipe.id
+          });
+        }
+      }
       if (serverRecipe && serverRecipe.name) {
         console.info("sync", "Recipe missing from list but found on server, keeping", {
           id: localRecipe.id
@@ -932,6 +953,12 @@ async function removeServerDeletedLocalRecipes(
         syncedRecipeIds.add(localRecipe.id);
         continue;
       }
+    }
+
+    if (!confirmedDeleted) {
+      syncedRecipes.push(localRecipe);
+      syncedRecipeIds.add(localRecipe.id);
+      continue;
     }
 
     await deleteQueuedOperationsForRecipe(localRecipe.id);
@@ -1136,7 +1163,7 @@ async function reindexRecipes(client: CookbookClient) {
   try {
     await client.reindex();
   } catch {
-    // The pushed recipe is still kept locally; reindex is only a visibility nudge.
+    // The recipe is already saved remotely; reindex refreshes its visibility.
   }
 }
 
@@ -1239,7 +1266,7 @@ export async function importRecipeBackup(
   }
 
   const recipes = await loadLocalRecipes();
-  await pruneRecipeImageCache(recipes);
+  await pruneLocalRecipeImageCache(recipes);
 
   return {
     ...summary,
@@ -1321,9 +1348,11 @@ async function flushSyncQueue(
 
     try {
       await updateRecipeOnNextcloud(operation.payload, client);
-      const saved = await saveLocalRecipe(operation.payload, false);
-      recipes = upsertRecipeInList(recipes, saved);
-      flushedRecipes.push(saved);
+      const saved = await acknowledgeQueuedRecipeUpdate(operation);
+      if (saved) {
+        recipes = upsertRecipeInList(recipes, saved);
+        flushedRecipes.push(saved);
+      }
       pushed = true;
     } catch (error) {
       if (!(error instanceof CookbookApiError) || error.status !== 404) {
@@ -1336,7 +1365,6 @@ async function flushSyncQueue(
       recipes = recipes.filter((recipe) => recipe.id !== operation.recipeId);
       continue;
     }
-    await deleteQueuedOperation(operation.id);
   }
 
   return { deletedRecipeIds, pushed, recipes: flushedRecipes };
@@ -1358,14 +1386,14 @@ async function pushQueuedRecipeAsCreateOrMerge(
 
   if (decision.action === "skip") {
     const existingRecipe = decision.existingRecipe ?? recipe;
-    if (existingRecipe.id && queuedRecipeId !== existingRecipe.id) {
-      await removeLocalRecipe(queuedRecipeId);
-    }
     const saved = await saveLocalRecipe(
       mergeServerRecipeWithLocalImages(existingRecipe, payload),
       false,
       false
     );
+    if (existingRecipe.id && queuedRecipeId !== existingRecipe.id) {
+      await removeLocalRecipe(queuedRecipeId);
+    }
     return {
       pushed: false,
       recipe: saved,
@@ -1376,14 +1404,14 @@ async function pushQueuedRecipeAsCreateOrMerge(
   if (decision.action === "update" && recipe.id && !recipe.id.startsWith("local-")) {
     await updateRecipeOnNextcloud(recipe, client);
     const serverRecipe = await client.getRecipe(recipe.id);
-    if (queuedRecipeId !== recipe.id) {
-      await removeLocalRecipe(queuedRecipeId);
-    }
     const saved = await saveLocalRecipe(
       withInferredCategory(mergeServerRecipeWithLocalImages(serverRecipe, recipe)),
       false,
       false
     );
+    if (queuedRecipeId !== recipe.id) {
+      await removeLocalRecipe(queuedRecipeId);
+    }
     return {
       pushed: true,
       recipe: saved,
@@ -1394,12 +1422,14 @@ async function pushQueuedRecipeAsCreateOrMerge(
   const remoteRecipe = await prepareRecipeForNextcloud(recipe, client);
   const serverId = await client.createRecipe(toCookbookCreateRecipe(remoteRecipe));
   const serverRecipe = await client.getRecipe(String(serverId));
-  await removeLocalRecipe(queuedRecipeId);
   const saved = await saveLocalRecipe(
     withInferredCategory(mergeServerRecipeWithLocalImages(serverRecipe, recipe)),
     false,
     false
   );
+  if (queuedRecipeId !== saved.id) {
+    await removeLocalRecipe(queuedRecipeId);
+  }
   return {
     pushed: true,
     recipe: saved,
@@ -1549,8 +1579,7 @@ async function deleteRemovedRecipeImagesFromNextcloud(
   try {
     await client.deleteCookbookRecipeImages(recipe.name);
   } catch {
-    // The Cookbook update already requests image removal. This WebDAV cleanup
-    // handles stale recipe-folder files when a server keeps them around.
+    // Remove recipe-folder images left behind by some Cookbook servers.
   }
 
   await reindexRecipes(client);

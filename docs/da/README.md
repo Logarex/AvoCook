@@ -9,7 +9,8 @@ AvoCook er en mobil opskriftsbog — den fungerer helt offline på din enhed ude
 ### Fællesskabsplatform
 
 - Opdag, bedøm og importer opskrifter fra AvoCook-fællesskabet;
-- Oversæt fællesskabsopskrifter direkte i appen;
+- Opskrifter fra fællesskabet vises automatisk på appens sprog, både på listen og i opskriftens detaljer;
+- Se den originale opskrift når som helst, eller importer den oversatte version til din opskriftsbog;
 - Del dine bedste retter ved at oprette en fællesskabsprofil;
 - Sikker og modereret platform med indbygget spambeskyttelse.
 
@@ -53,6 +54,33 @@ HTTPS bruges som standard, hvis ingen protokol angives. Til en Nextcloud-server 
 ## Tilgængelige sprog
 
 Fransk · Engelsk · Tysk · Spansk · Italiensk · Dansk
+
+---
+
+## Opsætning til udvikling
+
+Projektet bruger Expo SDK 57, React Native 0.86 og TypeScript. Node.js 22.13 eller nyere er påkrævet. Lokale iOS-builds bruger Xcode 27 og Device Hub; den laveste understøttede iOS-version er 16.4.
+
+```bash
+npm install
+npm run ios      # iOS-simulator
+npm run android  # Android-emulator
+```
+
+Ved første start kompileres et udviklingsbuild med native moduler. Derefter åbner appen direkte.
+
+Projekterne `ios/` og `android/` genereres fra `app.json`, `tools/plugins/` og de lokale moduler i `src/modules/`. Efter en opdatering af SDK'et eller native afhængigheder skal de genereres igen med `npx expo prebuild --clean`, før du bygger på ny. Pluginet `expo-build-properties` aktiverer den scenebaserede UIKit-livscyklus, som Xcode 27 kræver.
+
+Nyttige kommandoer:
+
+```bash
+npm run typecheck                      # TypeScript-kontrol
+npm test                               # Enhedstests (Vitest)
+npm run lint                           # ESLint
+npm run import:check -- <opskrift-url>  # Test import fra en URL
+```
+
+[Rapporten om pålidelighed og sikkerhed](../AUDIT_FIABILITE_SECURITE.md) (på fransk) beskriver kontroller, rettelser og resterende risici, herunder Firebase-adgangsregler og adskillelse mellem Nextcloud-konti.
 
 ---
 

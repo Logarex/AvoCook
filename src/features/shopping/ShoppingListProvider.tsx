@@ -117,7 +117,6 @@ export function ShoppingListProvider({
     }
   }, [sharedCode]);
 
-  // Load local items + shared code on mount
   useEffect(() => {
     let active = true;
     void (async () => {
@@ -137,7 +136,6 @@ export function ShoppingListProvider({
     };
   }, []);
 
-  // Realtime subscription to Firebase shared list
   useEffect(() => {
     if (!sharedCode) return;
     setSharedSyncing(true);

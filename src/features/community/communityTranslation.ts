@@ -1,248 +1,311 @@
 import type { CommunityRecipe } from "./communityClient";
 import { resolveAppLanguage } from "../../i18n/languages";
 
-const TRANSLATION_CACHE = new Map<string, CommunityRecipe>();
+type TranslationResult = { text: string; success: boolean };
+
+const TEXT_CACHE = new Map<string, string>();
+const PENDING_TRANSLATIONS = new Map<string, Promise<TranslationResult>>();
+const MAX_CACHE_ENTRIES = 500;
+const GOOGLE_MAX_BYTES = 1500;
+// MyMemory accepts at most 500 UTF-8 bytes per query.
+const MYMEMORY_MAX_BYTES = 450;
+const REQUEST_TIMEOUT_MS = 10000;
+const MAX_CONCURRENT_REQUESTS = 4;
+const DELIMITER = "\n---\n";
+const PROVIDER_ERROR = /MYMEMORY WARNING|QUERY LENGTH LIMIT|QUOTA EXCEEDED|INVALID KEY|RESPONSE STATUS 4|TOO MANY REQUESTS/i;
+let cacheGeneration = 0;
+let activeRequests = 0;
+const requestQueue: (() => void)[] = [];
 
 export function clearTranslationCache(): void {
-  TRANSLATION_CACHE.clear();
+  cacheGeneration++;
+  TEXT_CACHE.clear();
+  PENDING_TRANSLATIONS.clear();
 }
 
 export function hasCorruptedText(item: string | CommunityRecipe): boolean {
-  const isCorrupt = (str: string) => {
-    if (!str) return false;
-    if (/%[0-9A-Fa-f]{1,2}/i.test(str)) return true;
-    if (/%\s+20/i.test(str)) return true;
-    if (/(?:bl){3,}/i.test(str)) return true;
-    if (/MYMEMORY WARNING/i.test(str)) return true;
-    if (/QUERY LENGTH LIMIT/i.test(str)) return true;
-    if (/QUOTA EXCEEDED/i.test(str)) return true;
-    if (/INVALID KEY/i.test(str)) return true;
-    return false;
-  };
-
-  if (typeof item === "string") {
-    return isCorrupt(item);
-  }
-
-  return (
-    isCorrupt(item.title) ||
-    isCorrupt(item.description) ||
-    item.ingredients.some(isCorrupt) ||
-    item.steps.some(isCorrupt)
-  );
+  const isCorrupt = (text: string) =>
+    /%[0-9A-Fa-f]{2}|%\s+20|(?:bl){3,}/i.test(text) || PROVIDER_ERROR.test(text);
+  if (typeof item === "string") return isCorrupt(item);
+  return [item.title, item.description, ...item.ingredients, ...item.steps].some(isCorrupt);
 }
 
 export function cleanTranslatedText(raw: string): string {
-  if (!raw) return "";
+  if (!raw || PROVIDER_ERROR.test(raw)) return "";
   let text = raw;
-
-  if (
-    /MYMEMORY WARNING/i.test(text) ||
-    /QUERY LENGTH LIMIT/i.test(text) ||
-    /QUOTA EXCEEDED/i.test(text) ||
-    /INVALID KEY/i.test(text) ||
-    /RESPONSE STATUS 4/i.test(text)
-  ) {
-    return "";
-  }
-
-  text = text.replace(/%\s+([0-9A-Fa-f]{1,2})/g, "%$1");
-
-  text = text.replace(/(?:%[0-9A-Fa-f]{2})+/g, (match) => {
-    try {
-      return decodeURIComponent(match);
-    } catch {
-      return match;
-    }
-  });
-
+  // A percentage such as "40% de crème" is not a URI escape.
+  text = text.replace(/%\s+20/g, "%20");
   for (let i = 0; i < 3; i++) {
-    if (!text.includes("%")) break;
-    try {
-      const decoded = decodeURIComponent(text);
-      if (decoded === text) break;
-      text = decoded;
-    } catch {
+    const decoded = text.replace(/(?:%[0-9A-Fa-f]{2})+/g, (match) => {
       try {
-        const decoded = decodeURI(text);
-        if (decoded === text) break;
-        text = decoded;
+        return decodeURIComponent(match);
       } catch {
-        break;
+        return match;
       }
-    }
+    });
+    if (decoded === text) break;
+    text = decoded;
   }
-
-  text = text
-    .replace(/%[0-9A-Fa-f]{1,2}/gi, "")
-    .replace(/(?:bl){3,}/gi, "");
-
-  text = text
-    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">");
-
+  const entities: Record<string, string> = {
+    quot: '"', apos: "'", amp: "&", lt: "<", gt: ">", nbsp: " ", deg: "°",
+    agrave: "à", aacute: "á", acirc: "â", auml: "ä", aring: "å", atilde: "ã", aelig: "æ",
+    ccedil: "ç", egrave: "è", eacute: "é", ecirc: "ê", euml: "ë",
+    igrave: "ì", iacute: "í", icirc: "î", iuml: "ï", ntilde: "ñ",
+    ograve: "ò", oacute: "ó", ocirc: "ô", ouml: "ö", otilde: "õ", oslash: "ø", oelig: "œ",
+    ugrave: "ù", uacute: "ú", ucirc: "û", uuml: "ü", yacute: "ý", yuml: "ÿ", szlig: "ß",
+    rsquo: "’", lsquo: "‘", rdquo: "”", ldquo: "“", hellip: "…", ndash: "–", mdash: "—",
+    laquo: "«", raquo: "»", frac12: "½", frac14: "¼", frac34: "¾", times: "×"
+  };
+  for (let i = 0; i < 3; i++) {
+    const decoded = text.replace(/&(#x[0-9a-f]+|#\d+|\w+);/gi, (match, entity: string) => {
+      if (!entity.startsWith("#")) {
+        const value = entities[entity.toLowerCase()];
+        return value ? (/^[A-Z]/.test(entity) ? value.toUpperCase() : value) : match;
+      }
+      const code = entity[1].toLowerCase() === "x"
+        ? parseInt(entity.slice(2), 16)
+        : Number(entity.slice(1));
+      return code > 0 && code <= 0x10ffff && !(code >= 0xd800 && code <= 0xdfff)
+        ? String.fromCodePoint(code)
+        : match;
+    });
+    if (decoded === text) break;
+    text = decoded;
+  }
   return text
-    .replace(/[ \t]+/g, " ")
-    .replace(/\r\n/g, "\n")
+    .replace(/(?:bl){3,}/gi, "")
+    .replace(/[ \t\u00a0]+/g, " ")
+    .replace(/\r\n?/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 
-async function translateWithGoogleGtx(
-  text: string,
-  fromLang: string,
-  toLang: string
-): Promise<string | null> {
+function byteLength(text: string): number {
+  return Array.from(text).reduce((bytes, char) => {
+    const code = char.codePointAt(0)!;
+    return bytes + (code < 0x80 ? 1 : code < 0x800 ? 2 : code < 0x10000 ? 3 : 4);
+  }, 0);
+}
+
+function splitText(text: string, maxBytes: number): string[] {
+  const chunks: string[] = [];
+  let remaining = text;
+  while (byteLength(remaining) > maxBytes) {
+    let end = 0;
+    let bytes = 0;
+    let wordEnd = 0;
+    let sentenceEnd = 0;
+    for (const char of remaining) {
+      const size = byteLength(char);
+      if (bytes + size > maxBytes) break;
+      bytes += size;
+      end += char.length;
+      if (/\s/.test(char)) {
+        wordEnd = end;
+        if (char === "\n" || /[.!?]\s$/.test(remaining.slice(0, end))) sentenceEnd = end;
+      }
+    }
+    const boundary = sentenceEnd > end / 2 ? sentenceEnd : wordEnd || end;
+    chunks.push(remaining.slice(0, boundary));
+    remaining = remaining.slice(boundary);
+  }
+  if (remaining) chunks.push(remaining);
+  return chunks;
+}
+
+async function fetchTranslationJson(url: string): Promise<unknown> {
+  if (activeRequests >= MAX_CONCURRENT_REQUESTS) {
+    await new Promise<void>((resolve) => requestQueue.push(resolve));
+  } else {
+    activeRequests++;
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(
-      fromLang
-    )}&tl=${encodeURIComponent(toLang)}&dt=t&q=${encodeURIComponent(text)}`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = await res.json();
-    if (Array.isArray(data) && Array.isArray(data[0])) {
-      const translated = data[0]
-        .map((chunk: any) =>
-          Array.isArray(chunk) && typeof chunk[0] === "string" ? chunk[0] : ""
-        )
-        .join("");
-      const cleaned = cleanTranslatedText(translated);
-      return cleaned || null;
-    }
+    const response = await fetch(url, { signal: controller.signal });
+    if (!response.ok) return null;
+    return await response.json();
   } catch {
-    // ignore fetch error
+    return null;
+  } finally {
+    clearTimeout(timeout);
+    const next = requestQueue.shift();
+    if (next) next();
+    else activeRequests--;
   }
-  return null;
 }
 
-async function translateWithMyMemory(
+function validTranslation(raw: string): string | null {
+  if (PROVIDER_ERROR.test(raw) || /(?:bl){3,}/i.test(raw)) return null;
+  const cleaned = cleanTranslatedText(raw);
+  return cleaned && !hasCorruptedText(cleaned) ? cleaned : null;
+}
+
+async function translateWithGoogle(text: string, from: string, to: string): Promise<string | null> {
+  const data = await fetchTranslationJson(
+    `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${encodeURIComponent(from)}&tl=${encodeURIComponent(to)}&dt=t&q=${encodeURIComponent(text)}`
+  );
+  if (!Array.isArray(data) || !Array.isArray(data[0]) || !data[0].length) return null;
+  const chunks: unknown[] = data[0];
+  if (chunks.some((chunk) => !Array.isArray(chunk) || typeof chunk[0] !== "string")) return null;
+  return validTranslation(chunks.map((chunk) => (chunk as string[])[0]).join(""));
+}
+
+async function translateWithMyMemory(text: string, from: string, to: string): Promise<string | null> {
+  const data = await fetchTranslationJson(
+    `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${encodeURIComponent(from)}|${encodeURIComponent(to)}`
+  ) as { responseData?: { translatedText?: unknown }; responseStatus?: number } | null;
+  if (data?.responseStatus !== 200 || typeof data.responseData?.translatedText !== "string") return null;
+  return validTranslation(data.responseData.translatedText);
+}
+
+function cacheKey(text: string, from: string, to: string): string {
+  return JSON.stringify([from, to, text]);
+}
+
+function remember(text: string, from: string, to: string, result: TranslationResult, generation: number): void {
+  // Keep unchanged text retryable when a provider returns the source.
+  if (generation !== cacheGeneration || !result.success || result.text === text) return;
+  const key = cacheKey(text, from, to);
+  TEXT_CACHE.delete(key);
+  TEXT_CACHE.set(key, result.text);
+  if (TEXT_CACHE.size > MAX_CACHE_ENTRIES) TEXT_CACHE.delete(TEXT_CACHE.keys().next().value!);
+}
+
+async function translateChunks(
   text: string,
-  fromLang: string,
-  toLang: string
-): Promise<string | null> {
+  maxBytes: number,
+  translate: (chunk: string) => Promise<TranslationResult>
+): Promise<TranslationResult> {
+  const results = await Promise.all(splitText(text, maxBytes).map(async (chunk) => {
+    const result = await translate(chunk.trim());
+    return { ...result, text: result.text + (chunk.match(/\s+$/)?.[0] ?? "") };
+  }));
+  return {
+    text: cleanTranslatedText(results.map((result) => result.text).join("")),
+    success: results.every((result) => result.success)
+  };
+}
+
+async function translateTextResult(text: string, from: string, to: string): Promise<TranslationResult> {
+  if (!text || from === to) return { text, success: true };
+  const key = cacheKey(text, from, to);
+  const cached = TEXT_CACHE.get(key);
+  if (cached !== undefined) return { text: cached, success: true };
+  const pending = PENDING_TRANSLATIONS.get(key);
+  if (pending) return pending;
+  const generation = cacheGeneration;
+  const request = translateChunks(text, GOOGLE_MAX_BYTES, async (chunk) => {
+    const google = await translateWithGoogle(chunk, from, to);
+    if (google && google !== chunk) return { text: google, success: true };
+    const fallback = await translateChunks(chunk, MYMEMORY_MAX_BYTES, async (part) => {
+      const translated = await translateWithMyMemory(part, from, to);
+      return { text: translated ?? part, success: translated !== null };
+    });
+    return fallback.success ? fallback : { text: google ?? chunk, success: google !== null };
+  });
+  PENDING_TRANSLATIONS.set(key, request);
   try {
-    const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
-      text
-    )}&langpair=${encodeURIComponent(fromLang)}|${encodeURIComponent(toLang)}`;
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    const data = (await res.json()) as {
-      responseData?: { translatedText?: string };
-      responseStatus?: number;
-    };
-    if (
-      data?.responseStatus === 200 &&
-      data?.responseData?.translatedText &&
-      typeof data.responseData.translatedText === "string"
-    ) {
-      const cleaned = cleanTranslatedText(data.responseData.translatedText);
-      return cleaned || null;
+    const result = await request;
+    remember(text, from, to, result, generation);
+    return result;
+  } finally {
+    if (PENDING_TRANSLATIONS.get(key) === request) PENDING_TRANSLATIONS.delete(key);
+  }
+}
+
+export async function translateText(text: string, fromLang: string, toLang: string): Promise<string> {
+  return (await translateTextResult(cleanTranslatedText(text), resolveAppLanguage(fromLang), resolveAppLanguage(toLang))).text;
+}
+
+async function translateBatchResults(items: string[], from: string, to: string): Promise<TranslationResult[]> {
+  const cleaned = items.map(cleanTranslatedText);
+  const results = cleaned.map((text) => ({ text, success: !text || from === to }));
+  if (from === to) return results;
+  const generation = cacheGeneration;
+  const groups: number[][] = [];
+  let group: number[] = [];
+  let bytes = 0;
+  cleaned.forEach((text, index) => {
+    if (!text) return;
+    const cached = TEXT_CACHE.get(cacheKey(text, from, to));
+    if (cached !== undefined) {
+      results[index] = { text: cached, success: true };
+      return;
     }
-  } catch {
-    // ignore fetch error
-  }
-  return null;
-}
-
-export async function translateText(
-  text: string,
-  fromLang: string,
-  toLang: string
-): Promise<string> {
-  const cleanedInput = cleanTranslatedText(text);
-  const src = resolveAppLanguage(fromLang);
-  const tgt = resolveAppLanguage(toLang);
-
-  if (!cleanedInput || src === tgt) return cleanedInput;
-
-  const googleResult = await translateWithGoogleGtx(cleanedInput, src, tgt);
-  if (googleResult) return googleResult;
-
-  const myMemoryResult = await translateWithMyMemory(cleanedInput, src, tgt);
-  if (myMemoryResult) return myMemoryResult;
-
-  return cleanedInput;
-}
-
-export async function translateBatch(
-  items: string[],
-  fromLang: string,
-  toLang: string
-): Promise<string[]> {
-  const cleanedItems = items.map((item) => cleanTranslatedText(item));
-  const src = resolveAppLanguage(fromLang);
-  const tgt = resolveAppLanguage(toLang);
-
-  if (cleanedItems.length === 0 || src === tgt) return cleanedItems;
-
-  const DELIMITER = "\n---\n";
-  const joined = cleanedItems.join(DELIMITER);
-
-  const translatedJoined = await translateText(joined, src, tgt);
-  if (!translatedJoined || translatedJoined === joined) {
-    return cleanedItems;
-  }
-
-  const parts = translatedJoined
-    .split(/\n?---\n?/)
-    .map((p) => cleanTranslatedText(p));
-
-  if (parts.length === cleanedItems.length) {
-    return parts.map((part, idx) => part || cleanedItems[idx]);
-  }
-
-  return cleanedItems;
-}
-
-export async function translateCommunityRecipe(
-  recipe: CommunityRecipe,
-  targetLang: string
-): Promise<CommunityRecipe> {
-  const resolvedTarget = resolveAppLanguage(targetLang);
-  const resolvedSrc = resolveAppLanguage(recipe.language);
-
-  const cacheKey = `${recipe.id}_${resolvedTarget}`;
-  if (TRANSLATION_CACHE.has(cacheKey)) {
-    const cached = TRANSLATION_CACHE.get(cacheKey)!;
-    if (!hasCorruptedText(cached)) {
-      return cached;
+    const size = byteLength(text);
+    if (size > GOOGLE_MAX_BYTES || text.includes("---")) {
+      if (group.length) groups.push(group);
+      groups.push([index]);
+      group = [];
+      bytes = 0;
+      return;
     }
-    TRANSLATION_CACHE.delete(cacheKey);
-  }
+    if (bytes + size + (group.length ? byteLength(DELIMITER) : 0) > GOOGLE_MAX_BYTES) {
+      groups.push(group);
+      group = [];
+      bytes = 0;
+    }
+    bytes += size + (group.length ? byteLength(DELIMITER) : 0);
+    group.push(index);
+  });
+  if (group.length) groups.push(group);
+  await Promise.all(groups.map(async (indices) => {
+    const joined = indices.map((index) => cleaned[index]).join(DELIMITER);
+    const translated = indices.length > 1 ? await translateWithGoogle(joined, from, to) : null;
+    const parts = translated?.split(/\s*---\s*/).map(cleanTranslatedText);
+    await Promise.all(indices.map(async (index, position) => {
+      const part = parts?.length === indices.length ? parts[position] : null;
+      const result = part && part !== cleaned[index] && !hasCorruptedText(part)
+        ? { text: part, success: true }
+        : await translateTextResult(cleaned[index], from, to);
+      results[index] = result;
+      remember(cleaned[index], from, to, result, generation);
+    }));
+  }));
+  return results;
+}
 
-  if (resolvedSrc === resolvedTarget) return recipe;
+export async function translateBatch(items: string[], fromLang: string, toLang: string): Promise<string[]> {
+  return (await translateBatchResults(items, resolveAppLanguage(fromLang), resolveAppLanguage(toLang)))
+    .map((result) => result.text);
+}
 
-  const cleanedRecipe: CommunityRecipe = {
+// Previews retain the source language for filtering.
+export async function translateCommunityRecipePreviews(recipes: CommunityRecipe[], targetLang: string): Promise<CommunityRecipe[]> {
+  const target = resolveAppLanguage(targetLang);
+  const translated = [...recipes];
+  const sourceLanguages = [...new Set(recipes.map((recipe) => resolveAppLanguage(recipe.language)))];
+  await Promise.all(sourceLanguages.map(async (source) => {
+    if (source === target) return;
+    const indices = recipes.flatMap((recipe, index) => resolveAppLanguage(recipe.language) === source ? [index] : []);
+    const fields = indices.flatMap((index) => [recipes[index].title, recipes[index].description]);
+    const results = await translateBatchResults(fields, source, target);
+    indices.forEach((index, position) => {
+      translated[index] = {
+        ...recipes[index],
+        title: results[position * 2].text,
+        description: results[position * 2 + 1].text
+      };
+    });
+  }));
+  return translated;
+}
+
+export async function translateCommunityRecipe(recipe: CommunityRecipe, targetLang: string): Promise<CommunityRecipe> {
+  const target = resolveAppLanguage(targetLang);
+  const source = resolveAppLanguage(recipe.language);
+  if (source === target) return recipe;
+  const results = await translateBatchResults(
+    [recipe.title, recipe.description, ...recipe.ingredients, ...recipe.steps], source, target
+  );
+  if (results.some((result) => !result.success)) throw new Error("Community recipe translation failed");
+  return {
     ...recipe,
-    title: cleanTranslatedText(recipe.title),
-    description: cleanTranslatedText(recipe.description),
-    ingredients: recipe.ingredients.map((ing) => cleanTranslatedText(ing)),
-    steps: recipe.steps.map((step) => cleanTranslatedText(step))
+    language: target,
+    title: results[0].text,
+    description: results[1].text,
+    ingredients: results.slice(2, 2 + recipe.ingredients.length).map((result) => result.text),
+    steps: results.slice(2 + recipe.ingredients.length).map((result) => result.text)
   };
-
-  const [translatedTitle, translatedDesc, translatedIngredients, translatedSteps] =
-    await Promise.all([
-      translateText(cleanedRecipe.title, resolvedSrc, resolvedTarget),
-      cleanedRecipe.description
-        ? translateText(cleanedRecipe.description, resolvedSrc, resolvedTarget)
-        : Promise.resolve(""),
-      translateBatch(cleanedRecipe.ingredients, resolvedSrc, resolvedTarget),
-      translateBatch(cleanedRecipe.steps, resolvedSrc, resolvedTarget)
-    ]);
-
-  const translatedRecipe: CommunityRecipe = {
-    ...cleanedRecipe,
-    title: translatedTitle || cleanedRecipe.title,
-    description: translatedDesc,
-    ingredients: translatedIngredients,
-    steps: translatedSteps
-  };
-
-  TRANSLATION_CACHE.set(cacheKey, translatedRecipe);
-  return translatedRecipe;
 }

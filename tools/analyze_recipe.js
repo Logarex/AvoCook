@@ -1,6 +1,4 @@
 #!/usr/bin/env node
-// Script pour extraire et analyser le JSON-LD d'une recette papilles et pupilles
-// Lance avec: node analyze_recipe.js
 
 const https = require('https');
 const zlib = require('zlib');
@@ -8,7 +6,6 @@ const { Buffer } = require('buffer');
 
 const URL_TO_TEST = 'https://www.papillesetpupilles.fr/2025/11/sabich-maison-la-recette-facile-et-irresistible.html/';
 
-// Simule exactement les headers qu'AvoCook envoie
 const headers = {
   'User-Agent':
     'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) ' +
@@ -51,17 +48,14 @@ const req = https.request(
       console.log('Cloudflare block:', data.includes('cf-error-details') || data.includes('have been blocked'));
       console.log('Has wprm-recipe HTML:', data.includes('wprm-recipe'));
 
-      // Find all JSON-LD scripts
       const scripts = [...data.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
       console.log('\n=== JSON-LD SCRIPTS ===');
       console.log('Number of scripts found:', scripts.length);
 
       if (scripts.length === 0) {
-        // Try with encoded type attribute
         const scriptsEncoded = [...data.matchAll(/<script[^>]+type=["']application(?:\/|&#x2F;)ld(?:\+|&#x2B;)json["'][^>]*>([\s\S]*?)<\/script>/gi)];
         console.log('With encoded type attr:', scriptsEncoded.length);
         
-        // Show raw script tags
         const allScripts = [...data.matchAll(/<script([^>]*)>/gi)];
         console.log('\n--- All <script> tags found ---');
         allScripts.forEach((m, i) => {
@@ -70,7 +64,6 @@ const req = https.request(
           }
         });
         
-        // Show first 2000 chars of page
         console.log('\n--- First 2000 chars of HTML ---');
         console.log(data.substring(0, 2000));
       } else {
@@ -87,7 +80,6 @@ const req = https.request(
                 (Array.isArray(parsed['@graph']) && parsed['@graph'].some(x => x['@type'] === 'Recipe'))) {
               console.log('\n✅ RECIPE FOUND!');
               
-              // Find the recipe object
               let recipe = parsed;
               if (parsed['@graph']) {
                 recipe = parsed['@graph'].find(x => x['@type'] === 'Recipe');
@@ -108,7 +100,6 @@ const req = https.request(
         });
       }
 
-      // WPRM HTML structure check
       if (data.includes('wprm-recipe-ingredient')) {
         console.log('\n=== WPRM HTML INGREDIENTS ===');
         const ingredientMatches = [...data.matchAll(/<li[^>]*class="([^"]*wprm-recipe-ingredient[^"]*)"[^>]*>([\s\S]*?)<\/li>/gi)];

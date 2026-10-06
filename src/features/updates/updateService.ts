@@ -35,7 +35,6 @@ export async function checkForUpdates(): Promise<UpdateInfo | null> {
     try {
       const installer = await DeviceInfo.getInstallerPackageName();
       if (installer === "com.android.vending") {
-        // Application was installed via the Play Store, disable custom update checks
         return null;
       }
     } catch (e) {

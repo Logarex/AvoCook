@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -24,7 +24,7 @@ import {
   reportCommunityRecipe,
   type CommunityRecipe
 } from "../features/community/communityClient";
-import { translateCommunityRecipe, hasCorruptedText } from "../features/community/communityTranslation";
+import { translateCommunityRecipe } from "../features/community/communityTranslation";
 import { resolveAppLanguage } from "../i18n/languages";
 import { getAnonymousUid, waitForAuth } from "../features/firebase/firebaseClient";
 import { useRecipes } from "../features/recipes/RecipesProvider";
@@ -48,13 +48,22 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
   const [deleting, setDeleting] = useState(false);
   const [currentUid, setCurrentUid] = useState<string | null>(getAnonymousUid());
 
-  const [translatedRecipe, setTranslatedRecipe] = useState<CommunityRecipe | null>(null);
-  const [isTranslating, setIsTranslating] = useState(false);
-  const [showTranslated, setShowTranslated] = useState(false);
-
-  const activeRecipe = showTranslated && translatedRecipe ? translatedRecipe : recipe;
-  const targetLang = resolveAppLanguage(i18n.language);
-  const isDifferentLang = Boolean(recipe && recipe.language && recipe.language !== targetLang);
+  const [translation, setTranslation] = useState<{
+    source: CommunityRecipe;
+    target: string;
+    value: CommunityRecipe | null;
+    failed: boolean;
+  } | null>(null);
+  const translationRequest = useRef(0);
+  const [originalView, setOriginalView] = useState<string | null>(null);
+  const targetLang = resolveAppLanguage(i18n.resolvedLanguage ?? i18n.language);
+  const viewScope = JSON.stringify([route.params.id, targetLang]);
+  const showOriginal = originalView === viewScope;
+  const currentTranslation = translation?.source === recipe && translation?.target === targetLang ? translation : null;
+  const isDifferentLang = Boolean(recipe && resolveAppLanguage(recipe.language) !== targetLang);
+  const isTranslating = isDifferentLang && !currentTranslation?.value && !currentTranslation?.failed;
+  const showTranslated = !showOriginal && Boolean(currentTranslation?.value);
+  const activeRecipe = showTranslated ? currentTranslation!.value : recipe;
 
   const isAuthor = Boolean(
     recipe?.authorUid && currentUid && recipe.authorUid === currentUid
@@ -64,21 +73,49 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
     let active = true;
     void (async () => {
       setLoading(true);
-      const user = await waitForAuth();
-      if (active && user?.uid) {
-        setCurrentUid(user.uid);
-      }
-      const data = await getCommunityRecipe(route.params.id);
-      if (active) {
-        setRecipe(data);
-        if (data?.userVote) setUserVote(data.userVote);
-        setLoading(false);
+      setRecipe(null);
+      setUserVote(0);
+      try {
+        const user = await waitForAuth();
+        if (active && user?.uid) setCurrentUid(user.uid);
+        const data = await getCommunityRecipe(route.params.id);
+        if (active) {
+          setRecipe(data);
+          setUserVote(data?.userVote ?? 0);
+        }
+      } catch (err) {
+        console.warn("community", "Failed to fetch community recipe", err);
+      } finally {
+        if (active) setLoading(false);
       }
     })();
     return () => {
       active = false;
     };
   }, [route.params.id]);
+
+  const requestTranslation = useCallback(async () => {
+    if (!recipe || recipe.id !== route.params.id || resolveAppLanguage(recipe.language) === targetLang) return;
+    const request = ++translationRequest.current;
+    setTranslation({ source: recipe, target: targetLang, value: null, failed: false });
+    try {
+      const value = await translateCommunityRecipe(recipe, targetLang);
+      if (request === translationRequest.current) {
+        setTranslation({ source: recipe, target: targetLang, value, failed: false });
+      }
+    } catch (err) {
+      console.warn("community", "Translation failed", err);
+      if (request === translationRequest.current) {
+        setTranslation({ source: recipe, target: targetLang, value: null, failed: true });
+      }
+    }
+  }, [recipe, targetLang, route.params.id]);
+
+  useEffect(() => {
+    void requestTranslation();
+    const requests = translationRequest;
+    return () => { requests.current++; };
+  }, [requestTranslation]);
 
   const handleVote = async (stars: number) => {
     if (!recipe) return;
@@ -92,33 +129,18 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
     }
   };
 
-  const handleToggleTranslate = async () => {
-    if (!recipe) return;
+  const handleToggleTranslate = () => {
     if (showTranslated) {
-      setShowTranslated(false);
+      setOriginalView(viewScope);
       return;
     }
-    if (translatedRecipe && !hasCorruptedText(translatedRecipe)) {
-      setShowTranslated(true);
-      return;
-    }
-    setIsTranslating(true);
-    try {
-      const res = await translateCommunityRecipe(recipe, targetLang);
-      setTranslatedRecipe(res);
-      setShowTranslated(true);
-    } catch (err) {
-      console.warn("community", "Translation failed", err);
-      Alert.alert(t("common.error"), t("community.translationFailed"));
-    } finally {
-      setIsTranslating(false);
-    }
+    setOriginalView(null);
+    if (!currentTranslation?.value) void requestTranslation();
   };
 
   const handleImport = async () => {
     if (!activeRecipe) return;
 
-    // Check for a duplicate in the local recipe book (case-insensitive)
     const titleNorm = activeRecipe.title.trim().toLowerCase();
     const alreadyExists = recipes.some(
       (r) => r.name.trim().toLowerCase() === titleNorm
@@ -213,8 +235,8 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
 
   const handleProposeChange = () => {
     if (!recipe) return;
-    const subject = `Proposition de modification - Recette: ${recipe.title}`;
-    const body = `Bonjour,\n\nJe souhaite proposer une modification pour la recette communautaire "${recipe.title}" (ID: ${recipe.id}).\n\nVoici ce que je suggère de modifier :\n\n`;
+    const subject = t("community.recipeChangeSubject", { title: recipe.title });
+    const body = t("community.recipeChangeBody", { title: recipe.title, id: recipe.id });
     const url = `mailto:avocook@nephoos.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     void Linking.openURL(url).catch(() => {
       Alert.alert(
@@ -224,11 +246,12 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
     });
   };
 
-  if (loading) {
+  if (loading || (recipe && recipe.id !== route.params.id) || (isTranslating && !showOriginal)) {
     return (
       <Screen>
         <View style={styles.center}>
           <ActivityIndicator color={colors.primary} size="large" />
+          {isTranslating ? <AppText muted>{t("community.translating")}</AppText> : null}
         </View>
       </Screen>
     );
@@ -249,7 +272,6 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
 
   return (
     <Screen showScrollTop={false}>
-      {/* Header bar */}
       <View style={styles.header}>
         <IconButton
           icon={ArrowLeft}
@@ -308,10 +330,14 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
                 : t("community.translateRecipe")
           }
           disabled={isTranslating}
-          onPress={() => void handleToggleTranslate()}
+          onPress={handleToggleTranslate}
           variant="secondary"
           style={styles.actionBtn}
         />
+      ) : null}
+
+      {currentTranslation?.failed ? (
+        <AppText muted>{t("community.translationFailed")}</AppText>
       ) : null}
 
       {activeRecipe.imageUrl ? (
@@ -396,7 +422,7 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
 
       <PrimaryButton
         icon={Mail}
-        label={t("community.proposeChange", { defaultValue: "Proposer une modification" })}
+        label={t("community.proposeChange")}
         onPress={handleProposeChange}
         variant="ghost"
         style={styles.actionBtn}

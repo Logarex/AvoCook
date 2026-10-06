@@ -243,7 +243,7 @@ async function collectRecipeImageAsset(
 
   if (client && canUseRemoteRecipeImageFallback(recipe)) {
     return createImageAssetFromUri(client.getRecipeImageUrl(recipe.id, "full"), {
-      headers: client.getImageHeaders(),
+      headers: client.getImageHeaders(client.getRecipeImageUrl(recipe.id, "full")),
       timeoutMs: imageDownloadTimeoutMs
     }).catch(() => null);
   }
@@ -282,7 +282,6 @@ async function createImageAssetFromUri(
           try {
             file.delete();
           } catch {
-            // Best-effort cleanup after skipping a slow remote image.
           }
         })
         .catch(() => undefined);

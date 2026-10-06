@@ -19,6 +19,8 @@ A checklist to run through before publishing a new version. Go through each step
 npm run typecheck   # No TypeScript errors
 npm test            # All tests pass
 npm run lint        # No lint warnings
+npx expo install --check  # Dependencies match the Expo SDK
+npx expo-doctor           # Expo configuration and native dependency checks
 ```
 
 Test a specific URL import:

@@ -95,10 +95,6 @@ export function getPrintLabels(t: (key: string) => string): RecipePrintLabels {
   };
 }
 
-/**
- * Maps JSON-LD Nutrition keys to their i18n translation key.
- * This ensures every nutrition field is displayed in the user's language.
- */
 const NUTRITION_KEY_MAP: Record<string, string> = {
   calories: "editor.caloriesKcal",
   carbohydrateContent: "editor.carbsGrams",
@@ -127,7 +123,6 @@ export function normalizeNutrition(
     .filter(([key, value]) => key !== "@type" && Boolean(value))
     .map(([key, value]) => {
       const i18nKey = NUTRITION_KEY_MAP[key];
-      // Use translated label if we know the key, otherwise strip "Content" suffix
       const label = i18nKey ? t(i18nKey) : key.replace(/Content$/, "");
       return [label, String(value)] as [string, string];
     });
@@ -157,7 +152,7 @@ export function getImageSource(
       uri: publicImage,
       headers:
         client && isCookbookImageEndpoint(publicImage)
-          ? client.getImageHeaders()
+          ? client.getImageHeaders(publicImage)
           : undefined,
     };
   }
@@ -165,7 +160,7 @@ export function getImageSource(
   if (client && canUseRemoteRecipeImageFallback(recipe)) {
     return {
       uri: client.getRecipeImageUrl(recipe.id, "full"),
-      headers: client.getImageHeaders(),
+      headers: client.getImageHeaders(client.getRecipeImageUrl(recipe.id, "full")),
     };
   }
 

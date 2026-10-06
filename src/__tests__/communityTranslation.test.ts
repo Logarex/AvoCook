@@ -1,179 +1,327 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   cleanTranslatedText,
   clearTranslationCache,
   hasCorruptedText,
   translateBatch,
   translateCommunityRecipe,
+  translateCommunityRecipePreviews,
   translateText
 } from "../features/community/communityTranslation";
 import type { CommunityRecipe } from "../features/community/communityClient";
 import { resolveAppLanguage } from "../i18n/languages";
 
+const recipe: CommunityRecipe = {
+  id: "recipe-1",
+  title: "Miso Eggplant",
+  description: "Tasty dish",
+  ingredients: ["1 fresh eggplant", "2 tbsp miso paste"],
+  steps: ["Cut into slices", "Grill gently"],
+  language: "en",
+  authorName: "Chef",
+  authorUid: "uid-1",
+  avgRating: 4.5,
+  ratingCount: 2,
+  reportCount: 0,
+  approved: true,
+  createdAt: "2026-10-06T12:00:00.000Z"
+};
+const french: Record<string, string> = {
+  "Miso Eggplant": "Aubergine au miso",
+  "Tasty dish": "Plat savoureux",
+  "1 fresh eggplant": "1 aubergine fraîche",
+  "2 tbsp miso paste": "2 c. à s. de pâte de miso",
+  "Cut into slices": "Couper en tranches",
+  "Grill gently": "Griller doucement"
+};
+
+function googleResponse(text: string) {
+  return { ok: true, json: async () => [[[text]]] };
+}
+
+function myMemoryResponse(text: string) {
+  return { ok: true, json: async () => ({ responseStatus: 200, responseData: { translatedText: text } }) };
+}
+
+function mockTranslator(translations = french) {
+  const fetchMock = vi.fn(async (url: string) => {
+    const query = new URL(url).searchParams.get("q")!;
+    const translated = query.split("\n---\n").map((text) => translations[text] ?? text).join("\n---\n");
+    return url.includes("googleapis") ? googleResponse(translated) : myMemoryResponse(translated);
+  });
+  vi.stubGlobal("fetch", fetchMock);
+  return fetchMock;
+}
+
 describe("communityTranslation", () => {
   beforeEach(() => {
     clearTranslationCache();
+  });
+  afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
   });
 
-  it("resolves regional language locales properly in resolveAppLanguage", () => {
-    expect(resolveAppLanguage("fr-FR")).toBe("fr");
-    expect(resolveAppLanguage("fr-CA")).toBe("fr");
-    expect(resolveAppLanguage("de-DE")).toBe("de");
-    expect(resolveAppLanguage("en-US")).toBe("en");
-    expect(resolveAppLanguage("es-ES")).toBe("es");
-    expect(resolveAppLanguage("it-IT")).toBe("it");
-    expect(resolveAppLanguage("da-DK")).toBe("da");
+  it("resolves regional locales", () => {
+    for (const [locale, language] of [["fr-FR", "fr"], ["fr-CA", "fr"], ["de-DE", "de"], ["en-US", "en"], ["es-ES", "es"], ["it-IT", "it"], ["da-DK", "da"]]) {
+      expect(resolveAppLanguage(locale)).toBe(language);
+    }
     expect(resolveAppLanguage("unknown-lang")).toBe("en");
   });
 
-  it("detects corrupted text and warning messages with hasCorruptedText", () => {
-    expect(hasCorruptedText("300-400g%20Weinbl%C3%A4tter")).toBe(true);
-    expect(hasCorruptedText("4 % 20 gousses d'ail")).toBe(true);
-    expect(hasCorruptedText("Astuce: blblblblblblblblblbl")).toBe(true);
-    expect(hasCorruptedText("MYMEMORY WARNING: YOU USED ALL YOUR DAILY CREDITS")).toBe(true);
-    expect(hasCorruptedText("QUERY LENGTH LIMIT EXCEEDED")).toBe(true);
+  it("detects corrupted encodings and provider warnings", () => {
+    for (const text of ["300-400g%20Weinbl%C3%A4tter", "4 % 20 gousses d'ail", "Astuce: blblblblblbl", "MYMEMORY WARNING: DAILY CREDITS", "QUERY LENGTH LIMIT EXCEEDED"]) {
+      expect(hasCorruptedText(text)).toBe(true);
+    }
     expect(hasCorruptedText("40% de crème fraîche")).toBe(false);
     expect(hasCorruptedText("1 aubergine fraîche")).toBe(false);
+    expect(hasCorruptedText({ ...recipe, steps: ["QUOTA EXCEEDED"] })).toBe(true);
   });
 
-  it("cleans malformed percent encodings, HTML entities, and warning messages", () => {
-    expect(cleanTranslatedText("300-400g% 20Feuillede vin %C3%A4tter")).toBe("300-400g Feuillede vin ätter");
-    expect(cleanTranslatedText("200 g% 20 Viande hachée")).toBe("200 g Viande hachée");
+  it("decodes valid URI escapes and HTML entities, including Unicode code points", () => {
+    expect(cleanTranslatedText("300-400g% 20Weinbl%C3%A4tter")).toBe("300-400g Weinblätter");
     expect(cleanTranslatedText("4 % 20 gousses d'ail")).toBe("4 gousses d'ail");
-    expect(cleanTranslatedText("2-3% 20EL  pulpe detomate")).toBe("2-3 EL pulpe detomate");
-    expect(cleanTranslatedText("Sel%2Poivre")).toBe("SelPoivre");
-    expect(cleanTranslatedText("H%C3% Cuisse de poulet A4  (en option)")).toBe("Huisse de poulet A4 (en option)");
-    expect(cleanTranslatedText("300-400g%20Weinbl%C3%A4tter")).toBe("300-400g Weinblätter");
-    expect(cleanTranslatedText("Sel &amp; Pfeffer &#39;test&#39;")).toBe("Sel & Pfeffer 'test'");
-    expect(cleanTranslatedText("le blblblblblblblblblbl")).toBe("le");
-    expect(cleanTranslatedText("MYMEMORY WARNING: YOU USED ALL YOUR DAILY CREDITS")).toBe("");
+    expect(cleanTranslatedText("2-3% 20EL  pulpe de tomate")).toBe("2-3 EL pulpe de tomate");
+    expect(cleanTranslatedText("Cr%C3%A8me%2520fra%C3%AEche")).toBe("Crème fraîche");
+    expect(cleanTranslatedText("Sel &amp; poivre &#39;test&#39; &nbsp; &#xE9; &#233; &#x1F951;")).toBe("Sel & poivre 'test' é é 🥑");
+    expect(cleanTranslatedText("&amp;quot;sel&amp;quot;")).toBe('"sel"');
+    expect(cleanTranslatedText("Cr&egrave;me, &Eacute;pinards, &aelig;ble, &Ouml;l, &frac12; citron")).toBe("Crème, Épinards, æble, Öl, ½ citron");
+    expect(cleanTranslatedText("&#99999999; &#xD800;")).toBe("&#99999999; &#xD800;");
+    expect(cleanTranslatedText("MYMEMORY WARNING: DAILY CREDITS")).toBe("");
   });
 
-  it("returns same text if languages match or text is empty", async () => {
-    const text = await translateText("Hello", "en", "en");
-    expect(text).toBe("Hello");
-
-    const empty = await translateText("", "en", "fr");
-    expect(empty).toBe("");
+  it("preserves words and quantities after a percentage and unrecoverable bytes", () => {
+    for (const text of ["40% de crème fraîche", "20% cacao", "35% fat", "50 % butter", "Sel%2Poivre", "H%C3% Cuisse de poulet A4 (en option)"]) {
+      expect(cleanTranslatedText(text)).toBe(text);
+    }
   });
 
-  it("translates text using Google GTX primary provider", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockImplementation((url: string) => {
-      if (url.includes("translate.googleapis.com")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve([[["Bonjour", "Hello", null, null]]])
-        });
-      }
-      return Promise.reject(new Error("Unexpected URL"));
+  it("skips empty text and recipes already in the target language", async () => {
+    const fetchMock = mockTranslator();
+    expect(await translateText("Hello", "en-US", "en")).toBe("Hello");
+    expect(await translateText("", "en", "fr")).toBe("");
+    expect(await translateBatch([], "en", "fr")).toEqual([]);
+    expect(await translateCommunityRecipe(recipe, "en-US")).toBe(recipe);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("joins every Google response segment in order", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => [[["Bonjour "], ["le monde"]]] })));
+    expect(await translateText("Hello world", "en", "fr")).toBe("Bonjour le monde");
+  });
+
+  it.each(["unavailable", "unchanged", "warning", "corrupted", "missing segment"])("uses MyMemory when Google is %s", async (failure) => {
+    const fetchMock = vi.fn(async (url: string) => {
+      if (!url.includes("googleapis")) return myMemoryResponse("Bonjour");
+      if (failure === "unavailable") return { ok: false, json: async () => null };
+      if (failure === "missing segment") return { ok: true, json: async () => [[["Bon"], [null]]] };
+      return googleResponse({ unchanged: "Hello", warning: "MYMEMORY WARNING: DAILY CREDITS", corrupted: "H%C3% broken" }[failure]!);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await translateText("Hello", "en", "fr")).toBe("Bonjour");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps failed translations retryable instead of caching the original", async () => {
+    const fetchMock = vi.fn(async () => ({ ok: false }));
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await translateText("Hello", "en", "fr")).toBe("Hello");
+    fetchMock.mockImplementation(async () => googleResponse("Bonjour"));
+    expect(await translateText("Hello", "en", "fr")).toBe("Bonjour");
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("does not accept MyMemory error text even with an HTTP success", async () => {
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => url.includes("googleapis") ? { ok: false } : myMemoryResponse("QUERY LENGTH LIMIT EXCEEDED")));
+    await expect(translateCommunityRecipe({ ...recipe, description: "", ingredients: [], steps: [] }, "fr"))
+      .rejects.toThrow("translation failed");
+  });
+
+  it("translates a batch in one request while keeping empty items in place", async () => {
+    const fetchMock = mockTranslator();
+    expect(await translateBatch([recipe.ingredients[0], "", recipe.ingredients[1]], "en", "fr"))
+      .toEqual([french[recipe.ingredients[0]], "", french[recipe.ingredients[1]]]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries each item if the provider removes the batch separators", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      const query = new URL(url).searchParams.get("q")!;
+      return googleResponse(query.includes("---") ? "Une seule ligne fusionnée" : french[query]);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await translateBatch(recipe.ingredients, "en", "fr")).toEqual(recipe.ingredients.map((text) => french[text]));
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("retries a single untranslated item without discarding the translated items", async () => {
+    const fetchMock = vi.fn(async (url: string) => {
+      const query = new URL(url).searchParams.get("q")!;
+      if (query.includes("---")) return googleResponse("1 aubergine fraîche\n---\n2 tbsp miso paste");
+      return url.includes("googleapis") ? googleResponse(query) : myMemoryResponse(french[query]);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await translateBatch(recipe.ingredients, "en", "fr")).toEqual(recipe.ingredients.map((text) => french[text]));
+    expect(fetchMock.mock.calls.slice(1).every(([url]) => new URL(url).searchParams.get("q") === recipe.ingredients[1])).toBe(true);
+  });
+
+  it("handles separators already inside a source item without changing the item count", async () => {
+    mockTranslator({ "Mix --- then bake": "Mélanger --- puis cuire", "Add salt": "Ajouter du sel" });
+    expect(await translateBatch(["Mix --- then bake", "Add salt"], "en", "fr"))
+      .toEqual(["Mélanger --- puis cuire", "Ajouter du sel"]);
+  });
+
+  it("splits long Unicode batches without exceeding the Google request budget", async () => {
+    const queries: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      const query = new URL(url).searchParams.get("q")!;
+      queries.push(query);
+      return googleResponse(query.replaceAll("Ingredient", "Ingrédient"));
     }));
-
-    const result = await translateText("Hello", "en", "fr");
-    expect(result).toBe("Bonjour");
-    vi.unstubAllGlobals();
+    const items = Array.from({ length: 40 }, (_, index) => `Ingredient ${index} ${"é🥑 ".repeat(15)}`.trim());
+    expect(await translateBatch(items, "en", "fr")).toEqual(items.map((text) => text.replace("Ingredient", "Ingrédient")));
+    expect(queries.length).toBeGreaterThan(1);
+    expect(queries.every((query) => Buffer.byteLength(query, "utf8") <= 1500)).toBe(true);
   });
 
-  it("falls back to MyMemory API if Google GTX fails", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockImplementation((url: string) => {
-      if (url.includes("translate.googleapis.com")) {
-        return Promise.resolve({ ok: false, status: 500 });
-      }
-      if (url.includes("api.mymemory.translated.net")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve({ responseStatus: 200, responseData: { translatedText: "Bonjour" } })
-        });
-      }
-      return Promise.reject(new Error("Unexpected URL"));
+  it("splits long steps for MyMemory by UTF-8 bytes and preserves word boundaries", async () => {
+    const queries: string[] = [];
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      if (url.includes("googleapis")) return { ok: false };
+      const query = new URL(url).searchParams.get("q")!;
+      queries.push(query);
+      return myMemoryResponse(query.replaceAll("Mix", "Mélanger"));
     }));
-
-    const result = await translateText("Hello", "en", "fr");
-    expect(result).toBe("Bonjour");
-    vi.unstubAllGlobals();
+    const step = "Mix épeautre 🥑 in a bowl. ".repeat(100).trim();
+    expect(await translateText(step, "en", "fr")).toBe(step.replaceAll("Mix", "Mélanger"));
+    expect(queries.length).toBeGreaterThan(1);
+    expect(queries.every((query) => Buffer.byteLength(query, "utf8") <= 500)).toBe(true);
   });
 
-  it("batches multiline items into single translation call", async () => {
-    let callCount = 0;
-    vi.stubGlobal("fetch", vi.fn().mockImplementation((url: string) => {
-      callCount++;
-      const decoded = decodeURIComponent(url);
-      if (decoded.includes("1 fresh eggplant")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve([[["1 aubergine fraîche\n---\n2 c. à s. de pâte de miso", "1 fresh eggplant\n---\n2 tbsp miso paste"]]])
-        });
-      }
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve([[[ "Autre", "Other" ]]])
-      });
-    }));
-
-    const items = ["1 fresh eggplant", "2 tbsp miso paste"];
-    const res = await translateBatch(items, "en", "fr");
-    expect(res).toEqual(["1 aubergine fraîche", "2 c. à s. de pâte de miso"]);
-    expect(callCount).toBe(1); // Single request for batch!
-    vi.unstubAllGlobals();
+  it("translates every recipe field and reuses successful translations", async () => {
+    const fetchMock = mockTranslator();
+    const translated = await translateCommunityRecipe(recipe, "fr-FR");
+    expect(translated).toEqual({
+      ...recipe,
+      language: "fr",
+      title: french[recipe.title],
+      description: french[recipe.description],
+      ingredients: recipe.ingredients.map((text) => french[text]),
+      steps: recipe.steps.map((text) => french[text])
+    });
+    const calls = fetchMock.mock.calls.length;
+    expect(await translateCommunityRecipe(recipe, "fr-CA")).toEqual(translated);
+    expect(fetchMock).toHaveBeenCalledTimes(calls);
+    expect(recipe.language).toBe("en");
+    expect(recipe.title).toBe("Miso Eggplant");
   });
 
-  it("translates full CommunityRecipe fields and caches results", async () => {
-    const dummyRecipe: CommunityRecipe = {
-      id: "recipe-1",
-      title: "Miso Eggplant",
-      description: "Tasty dish",
-      ingredients: ["1 fresh eggplant", "2 tbsp miso paste"],
-      steps: ["Cut into slices", "Grill gently"],
-      language: "en",
-      authorName: "Chef",
-      authorUid: "uid-1",
-      avgRating: 4.5,
-      ratingCount: 2,
-      reportCount: 0,
-      approved: true,
-      createdAt: new Date().toISOString()
-    };
+  it("does not reuse stale content or metadata for the same recipe ID", async () => {
+    const fetchMock = mockTranslator({ ...french, "New title": "Nouveau titre" });
+    await translateCommunityRecipe(recipe, "fr");
+    fetchMock.mockClear();
+    const updated = await translateCommunityRecipe({ ...recipe, title: "New title", avgRating: 5, ratingCount: 10, imageUrl: "https://example.com/new.jpg" }, "fr");
+    expect(updated.title).toBe("Nouveau titre");
+    expect(updated.avgRating).toBe(5);
+    expect(updated.ratingCount).toBe(10);
+    expect(updated.imageUrl).toBe("https://example.com/new.jpg");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(new URL(fetchMock.mock.calls[0][0]).searchParams.get("q")).toBe("New title");
+  });
 
-    vi.stubGlobal("fetch", vi.fn().mockImplementation((url: string) => {
-      const decoded = decodeURIComponent(url);
-      if (decoded.includes("Miso Eggplant")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve([[["Aubergine au miso", "Miso Eggplant"]]])
-        });
-      }
-      if (decoded.includes("Tasty dish")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve([[["Plat savoureux", "Tasty dish"]]])
-        });
-      }
-      if (decoded.includes("1 fresh eggplant")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve([[["1 aubergine fraîche\n---\n2 c. à s. de pâte de miso", "1 fresh eggplant\n---\n2 tbsp miso paste"]]])
-        });
-      }
-      if (decoded.includes("Cut into slices")) {
-        return Promise.resolve({
-          ok: true,
-          json: () => Promise.resolve([[["Couper en tranches\n---\nGriller doucement", "Cut into slices\n---\nGrill gently"]]])
-        });
-      }
+  it("separates cached translations by target language", async () => {
+    const fetchMock = vi.fn(async (url: string) => googleResponse(new URL(url).searchParams.get("tl") === "fr" ? "Bonjour" : "Hallo"));
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await translateText("Hello", "en", "fr")).toBe("Bonjour");
+    expect(await translateText("Hello", "en", "de")).toBe("Hallo");
+    expect(await translateText("Hello", "en", "fr")).toBe("Bonjour");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 
-      return Promise.resolve({
-        ok: true,
-        json: () => Promise.resolve([[["Traduit", "Original"]]])
-      });
+  it("retries only failed fields after a partial recipe translation", async () => {
+    let offline = true;
+    const fetchMock = vi.fn(async (url: string) => {
+      const query = new URL(url).searchParams.get("q")!;
+      if (query.includes("---")) return googleResponse("Invalid batch separators");
+      if (query === "Grill gently" && offline) return { ok: false };
+      return googleResponse(french[query]);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(translateCommunityRecipe(recipe, "fr")).rejects.toThrow("translation failed");
+    offline = false;
+    fetchMock.mockClear();
+    const translated = await translateCommunityRecipe(recipe, "fr");
+    expect(translated.steps).toEqual(recipe.steps.map((text) => french[text]));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(new URL(fetchMock.mock.calls[0][0]).searchParams.get("q")).toBe("Grill gently");
+  });
+
+  it("translates list previews in the user language, keeping authors and source filters", async () => {
+    const fetchMock = mockTranslator({ ...french, "Apfelkuchen": "Tarte aux pommes" });
+    const native = { ...recipe, id: "native", title: "Soupe", language: "fr" as const };
+    const german = { ...recipe, id: "german", title: "Apfelkuchen", description: "", language: "de" as const };
+    const previews = await translateCommunityRecipePreviews([recipe, native, german], "fr-FR");
+    expect(previews.map((item) => item.title)).toEqual(["Aubergine au miso", "Soupe", "Tarte aux pommes"]);
+    expect(previews.map((item) => item.language)).toEqual(["en", "fr", "de"]);
+    expect(previews[0].authorName).toBe(recipe.authorName);
+    expect(previews[0].ingredients).toEqual(recipe.ingredients);
+    expect(previews[1]).toBe(native);
+    fetchMock.mockClear();
+    await translateCommunityRecipe(recipe, "fr");
+    expect(fetchMock.mock.calls.every(([url]) => !new URL(url).searchParams.get("q")!.includes(recipe.title))).toBe(true);
+  });
+
+  it("keeps previews readable when offline and retries once connectivity returns", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => { throw new Error("offline"); }));
+    expect(await translateCommunityRecipePreviews([recipe], "fr")).toEqual([recipe]);
+    mockTranslator();
+    expect((await translateCommunityRecipePreviews([recipe], "fr"))[0].title).toBe("Aubergine au miso");
+  });
+
+  it("deduplicates simultaneous requests for the same text", async () => {
+    const fetchMock = mockTranslator({ Hello: "Bonjour" });
+    expect(await Promise.all([translateText("Hello", "en", "fr"), translateText("Hello", "en", "fr")]))
+      .toEqual(["Bonjour", "Bonjour"]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("limits concurrent provider requests", async () => {
+    let active = 0;
+    let maximum = 0;
+    vi.stubGlobal("fetch", vi.fn(async (url: string) => {
+      active++;
+      maximum = Math.max(maximum, active);
+      await new Promise((resolve) => setTimeout(resolve, 0));
+      active--;
+      return googleResponse(`FR ${new URL(url).searchParams.get("q")}`);
     }));
+    await Promise.all(Array.from({ length: 12 }, (_, index) => translateText(`Text ${index}`, "en", "fr")));
+    expect(maximum).toBeLessThanOrEqual(4);
+  });
 
-    const translated = await translateCommunityRecipe(dummyRecipe, "fr");
+  it("aborts a stalled provider and uses the fallback", async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("fetch", vi.fn((url: string, options: RequestInit) => {
+      if (!url.includes("googleapis")) return Promise.resolve(myMemoryResponse("Bonjour"));
+      return new Promise((_, reject) => options.signal!.addEventListener("abort", () => reject(new Error("aborted"))));
+    }));
+    const result = translateText("Hello", "en", "fr");
+    await vi.advanceTimersByTimeAsync(10000);
+    expect(await result).toBe("Bonjour");
+  });
 
-    expect(translated.title).toBe("Aubergine au miso");
-    expect(translated.description).toBe("Plat savoureux");
-    expect(translated.ingredients).toEqual(["1 aubergine fraîche", "2 c. à s. de pâte de miso"]);
-    expect(translated.steps).toEqual(["Couper en tranches", "Griller doucement"]);
-
-    vi.unstubAllGlobals();
+  it("does not repopulate a cleared cache from a pending request", async () => {
+    let finish!: (response: ReturnType<typeof googleResponse>) => void;
+    const fetchMock = vi.fn(() => new Promise<ReturnType<typeof googleResponse>>((resolve) => { finish = resolve; }));
+    vi.stubGlobal("fetch", fetchMock);
+    const first = translateText("Hello", "en", "fr");
+    clearTranslationCache();
+    finish(googleResponse("Bonjour"));
+    expect(await first).toBe("Bonjour");
+    const second = translateText("Hello", "en", "fr");
+    finish(googleResponse("Salut"));
+    expect(await second).toBe("Salut");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });

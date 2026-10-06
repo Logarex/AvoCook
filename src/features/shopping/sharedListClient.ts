@@ -1,13 +1,13 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as Crypto from "expo-crypto";
 import {
-  deleteDoc,
   doc,
   getDoc,
-  setDoc,
   onSnapshot,
   serverTimestamp,
   updateDoc,
   increment,
+  runTransaction,
   type Unsubscribe
 } from "firebase/firestore";
 import { getDb, waitForAuth } from "../firebase/firebaseClient";
@@ -21,7 +21,7 @@ export async function getDeviceId(): Promise<string> {
   if (_cachedDeviceId) return _cachedDeviceId;
   let id = await AsyncStorage.getItem(DEVICE_ID_STORAGE_KEY);
   if (!id) {
-    id = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    id = Crypto.randomUUID();
     await AsyncStorage.setItem(DEVICE_ID_STORAGE_KEY, id);
   }
   _cachedDeviceId = id;
@@ -45,15 +45,15 @@ type RemoteList = {
 const CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
 function generateCode(): string {
-  let code = "";
-  for (let i = 0; i < 6; i++) {
-    code += CHARS[Math.floor(Math.random() * CHARS.length)];
-  }
-  return code;
+  return Array.from(Crypto.getRandomBytes(6), (byte) => CHARS[byte % CHARS.length]).join("");
 }
 
 function listRef(code: string) {
-  return doc(getDb(), "sharedLists", code.toUpperCase().trim());
+  const normalized = code.toUpperCase().trim();
+  if (!/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/.test(normalized)) {
+    throw new Error("Invalid shared list code");
+  }
+  return doc(getDb(), "sharedLists", normalized);
 }
 
 export function mergeShoppingLists(
@@ -85,10 +85,9 @@ let _pushTimer: ReturnType<typeof setTimeout> | null = null;
 async function doPush(code: string, items: ShoppingListItem[]): Promise<void> {
   await waitForAuth();
   const deviceId = await getDeviceId();
-  await setDoc(
+  await updateDoc(
     listRef(code),
-    { items, updatedAt: serverTimestamp(), lastUpdatedBy: deviceId },
-    { merge: true }
+    { items, updatedAt: serverTimestamp(), lastUpdatedBy: deviceId }
   );
 }
 
@@ -117,11 +116,13 @@ export async function createSharedList(
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = generateCode();
     const ref = listRef(code);
-    const snap = await getDoc(ref);
-    if (!snap.exists()) {
-      await setDoc(ref, { items, updatedAt: serverTimestamp(), participantCount: 1, lastUpdatedBy: deviceId });
-      return code;
-    }
+    const created = await runTransaction(getDb(), async (transaction) => {
+      const snap = await transaction.get(ref);
+      if (snap.exists()) return false;
+      transaction.set(ref, { items, updatedAt: serverTimestamp(), participantCount: 1, lastUpdatedBy: deviceId });
+      return true;
+    });
+    if (created) return code;
   }
   throw new Error("Could not generate a unique list code. Please try again.");
 }
@@ -142,17 +143,17 @@ export async function fetchSharedList(
 export async function leaveSharedList(code: string): Promise<void> {
   await waitForAuth();
   const ref = listRef(code);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) return;
-  
-  const data = snap.data();
-  const count = typeof data.participantCount === "number" ? data.participantCount : 2;
-  
-  if (count <= 1) {
-    await deleteDoc(ref);
-  } else {
-    await updateDoc(ref, { participantCount: increment(-1) }).catch(() => {});
-  }
+  await runTransaction(getDb(), async (transaction) => {
+    const snap = await transaction.get(ref);
+    if (!snap.exists()) return;
+    const data = snap.data();
+    const count = typeof data.participantCount === "number" ? data.participantCount : 2;
+    if (count <= 1) {
+      transaction.delete(ref);
+    } else {
+      transaction.update(ref, { participantCount: increment(-1) });
+    }
+  });
 }
 
 export function subscribeToSharedList(

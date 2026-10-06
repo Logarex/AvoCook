@@ -32,8 +32,6 @@ const LANG_OPTIONS: { id: RecipeLanguage; label: string }[] = [
   { id: "da", label: "🇩🇰 Dansk" }
 ];
 
-
-
 export function SubmitCommunityRecipeScreen({ navigation }: Props) {
   const { t, i18n } = useTranslation();
   const { colors } = useAppTheme();
@@ -168,7 +166,6 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
           onChangeText={setAuthorName}
         />
 
-        {/* Language Selection */}
         <View style={styles.langSelect}>
           <AppText variant="label">{t("community.selectLanguage")}</AppText>
           <View style={styles.langGrid}>

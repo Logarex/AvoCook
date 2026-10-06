@@ -32,8 +32,11 @@ import type { RootStackParamList } from "../navigation/types";
 import type { QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { translateCommunityRecipePreviews } from "../features/community/communityTranslation";
+import { resolveAppLanguage } from "../i18n/languages";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Community">;
+const RELOAD_THROTTLE_MS = 5 * 60 * 1000;
 
 const RAW_LANGUAGES: { id: RecipeLanguage; label: string; code: string }[] = [
   { id: "da", label: "Dansk", code: "DA" },
@@ -47,6 +50,7 @@ const RAW_LANGUAGES: { id: RecipeLanguage; label: string; code: string }[] = [
 export function CommunityScreen({ navigation }: Props) {
   const { i18n, t } = useTranslation();
   const { colors } = useAppTheme();
+  const targetLanguage = resolveAppLanguage(i18n.resolvedLanguage ?? i18n.language);
 
   const sortedLanguages = React.useMemo(() => {
     const allItem = { id: "all" as const, label: t("common.all", { defaultValue: "Tous" }), code: "ALL" };
@@ -65,19 +69,25 @@ export function CommunityScreen({ navigation }: Props) {
   const [hasMore, setHasMore] = useState(true);
   const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
 
-  // Reload throttle: skip reloading if data is less than 5 minutes old unless language changes
+  const sourceRecipes = useRef(new Map<string, CommunityRecipe>());
+  const loadRequest = useRef(0);
+  const loadingMoreRef = useRef(false);
+  const loadScope = JSON.stringify([selectedLanguage, targetLanguage, minRating]);
+
   const lastLoadedAt = useRef<number>(0);
   const lastLoadedLang = useRef<string | null>(null);
-  const RELOAD_THROTTLE_MS = 5 * 60 * 1000;
 
   const loadData = useCallback(
     async (isRefresh = false) => {
-      const langChanged = lastLoadedLang.current !== selectedLanguage;
-      // Throttle: skip reload only if same language, data is fresh, and this is not a refresh/filter change
-      if (!isRefresh && !langChanged && Date.now() - lastLoadedAt.current < RELOAD_THROTTLE_MS && recipes.length > 0) {
+      const langChanged = lastLoadedLang.current !== loadScope;
+      if (!isRefresh && !langChanged && Date.now() - lastLoadedAt.current < RELOAD_THROTTLE_MS && sourceRecipes.current.size > 0) {
         return;
       }
-      if (isRefresh || langChanged) setLoading(true);
+      const request = ++loadRequest.current;
+      setLoading(true);
+      setRefreshing(isRefresh && !langChanged);
+      loadingMoreRef.current = false;
+      setLoadingMore(false);
       try {
         const res = await fetchCommunityRecipes({
           language: selectedLanguage,
@@ -85,28 +95,41 @@ export function CommunityScreen({ navigation }: Props) {
           sortBy: "alphabetical",
           pageSize: 100
         });
-        setRecipes(res.recipes);
+        if (request !== loadRequest.current) return;
+        const translated = await translateCommunityRecipePreviews(res.recipes, targetLanguage);
+        if (request !== loadRequest.current) return;
+        sourceRecipes.current = new Map(res.recipes.map((recipe) => [recipe.id, recipe]));
+        setRecipes(translated);
         setLastDoc(res.lastDoc);
         setHasMore(res.hasMore);
         lastLoadedAt.current = Date.now();
-        lastLoadedLang.current = selectedLanguage;
       } catch (err) {
         console.warn("community", "Failed to fetch community recipes", err);
+        if (request === loadRequest.current) {
+          sourceRecipes.current.clear();
+          setRecipes([]);
+          setHasMore(false);
+        }
       } finally {
-        setLoading(false);
-        setRefreshing(false);
+        if (request === loadRequest.current) {
+          lastLoadedLang.current = loadScope;
+          setLoading(false);
+          setRefreshing(false);
+        }
       }
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [selectedLanguage, minRating]
+    [selectedLanguage, minRating, targetLanguage, loadScope]
   );
 
   React.useEffect(() => {
-    void loadData(true);
-  }, [selectedLanguage, minRating, loadData]);
+    const requests = loadRequest;
+    return () => { requests.current++; };
+  }, [loadScope]);
 
   const loadMore = useCallback(async () => {
-    if (loading || loadingMore || !hasMore || refreshing) return;
+    if (loading || loadingMoreRef.current || !hasMore || refreshing || lastLoadedLang.current !== loadScope) return;
+    const request = loadRequest.current;
+    loadingMoreRef.current = true;
     setLoadingMore(true);
     try {
       const res = await fetchCommunityRecipes({
@@ -116,15 +139,22 @@ export function CommunityScreen({ navigation }: Props) {
         pageSize: 30,
         after: lastDoc || undefined
       });
-      setRecipes((prev) => [...prev, ...res.recipes]);
+      if (request !== loadRequest.current) return;
+      const translated = await translateCommunityRecipePreviews(res.recipes, targetLanguage);
+      if (request !== loadRequest.current) return;
+      res.recipes.forEach((recipe) => sourceRecipes.current.set(recipe.id, recipe));
+      setRecipes((prev) => [...prev, ...translated]);
       setLastDoc(res.lastDoc);
       setHasMore(res.hasMore);
     } catch (err) {
       console.warn("community", "Failed to fetch more community recipes", err);
     } finally {
-      setLoadingMore(false);
+      if (request === loadRequest.current) {
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+      }
     }
-  }, [loading, loadingMore, hasMore, refreshing, selectedLanguage, minRating, lastDoc]);
+  }, [loading, hasMore, refreshing, selectedLanguage, minRating, lastDoc, targetLanguage, loadScope]);
 
   useFocusEffect(
     useCallback(() => {
@@ -133,16 +163,18 @@ export function CommunityScreen({ navigation }: Props) {
   );
 
   const filteredRecipes = React.useMemo(() => {
-    if (!searchQuery.trim()) return recipes;
     const q = searchQuery.toLowerCase().trim();
-    return recipes.filter((r) => {
+    const matches = !q ? recipes : recipes.filter((r) => {
+      const original = sourceRecipes.current.get(r.id);
       const titleMatch = Boolean(r.title && r.title.toLowerCase().includes(q));
       const descMatch = Boolean(r.description && r.description.toLowerCase().includes(q));
+      const originalMatch = Boolean(original && [original.title, original.description].some((text) => text.toLowerCase().includes(q)));
       const authorMatch = Boolean(r.authorName && r.authorName.toLowerCase().includes(q));
       const ingredientMatch = Array.isArray(r.ingredients) && r.ingredients.some((ing) => String(ing).toLowerCase().includes(q));
-      return titleMatch || descMatch || authorMatch || ingredientMatch;
+      return titleMatch || descMatch || originalMatch || authorMatch || ingredientMatch;
     });
-  }, [recipes, searchQuery]);
+    return [...matches].sort((a, b) => a.title.localeCompare(b.title, targetLanguage));
+  }, [recipes, searchQuery, targetLanguage]);
 
   const renderRecipeItem = useCallback(({ item }: { item: CommunityRecipe }) => (
     <Pressable
@@ -207,7 +239,6 @@ export function CommunityScreen({ navigation }: Props) {
       onSwipeLeft={() => navigation.navigate("ShoppingList", { tabTransition: "slide_from_right" })}
     >
       <Screen scroll={false} contentStyle={styles.container}>
-        {/* Header */}
         <View style={styles.header}>
           <View style={styles.titleBlock}>
             <View style={styles.titleRow}>
@@ -228,7 +259,6 @@ export function CommunityScreen({ navigation }: Props) {
           </View>
         </View>
 
-      {/* Search */}
       <View style={styles.searchRow}>
         <SearchField
           placeholder={t("common.search")}
@@ -238,7 +268,6 @@ export function CommunityScreen({ navigation }: Props) {
         />
       </View>
 
-      {/* Language filter pills */}
       <FlatList
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -273,8 +302,7 @@ export function CommunityScreen({ navigation }: Props) {
         }}
       />
 
-      {/* Recipe list */}
-      {loading ? (
+      {loading || lastLoadedLang.current !== loadScope ? (
         <View style={styles.loading}>
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
@@ -289,7 +317,7 @@ export function CommunityScreen({ navigation }: Props) {
           maxToRenderPerBatch={10}
           windowSize={5}
           removeClippedSubviews={true}
-          onEndReached={loadMore}
+          onEndReached={() => void loadMore()}
           onEndReachedThreshold={0.5}
           ListFooterComponent={
             loadingMore ? (
@@ -322,7 +350,6 @@ export function CommunityScreen({ navigation }: Props) {
         />
       )}
 
-      {/* Bottom navigation */}
       <BottomNavigation
         current="community"
         onNavigate={(tab) => {

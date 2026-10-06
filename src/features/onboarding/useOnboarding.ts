@@ -7,18 +7,13 @@ const TOUR_DONE_KEY = "onboarding.tourDone";
 const LAST_SEEN_VERSION_KEY = "onboarding.lastSeenVersion";
 
 type OnboardingState = {
-  /** Whether the user has seen the 2-page intro */
   introDone: boolean;
-  /** Whether the user has completed (or skipped) the guided tour */
   tourDone: boolean;
-  /** True while AsyncStorage is being read */
   onboardingHydrated: boolean;
-  /** True if this user needs to see the update changelog screen */
   showUpdateScreen: boolean;
   markIntroDone: () => Promise<void>;
   markTourDone: () => Promise<void>;
   markUpdateSeen: () => Promise<void>;
-  /** Resets both flags so the user can re-watch everything from Settings */
   resetOnboarding: () => Promise<void>;
 };
 
@@ -43,7 +38,6 @@ export function useOnboarding(): OnboardingState {
       if (isIntroDone && lastVersion && lastVersion !== currentVersion) {
         setShowUpdateScreen(true);
       } else if (!lastVersion) {
-        // First install or user skipped tracking, update the version quietly.
         void AsyncStorage.setItem(LAST_SEEN_VERSION_KEY, currentVersion);
       }
 
@@ -71,8 +65,7 @@ export function useOnboarding(): OnboardingState {
     setIntroDone(false);
     setTourDone(false);
     setShowUpdateScreen(false);
-    // Remove intro/tour flags but keep current version so that the update
-    // screen does NOT fire spuriously after a manual reset from Settings.
+    // Keep the version marker so resetting the tour does not reopen the update screen.
     const currentVersion = Constants.expoConfig?.version || "4.0.1";
     await AsyncStorage.multiRemove([INTRO_DONE_KEY, TOUR_DONE_KEY]);
     await AsyncStorage.setItem(LAST_SEEN_VERSION_KEY, currentVersion);

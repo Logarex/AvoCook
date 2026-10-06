@@ -1,10 +1,6 @@
-/* =========================================
-   AVOCOOK — Translations & App Logic
-   ========================================= */
 
 const translations = {
 
-  /* ---- FRENCH ---- */
   fr: {
     nav_download: "Télécharger",
     hero_title: "Votre carnet de recettes,<br><em>toujours avec vous</em>",
@@ -146,7 +142,6 @@ const translations = {
     apk_sub: "GitHub Releases",
   },
 
-  /* ---- ENGLISH ---- */
   en: {
     nav_download: "Download",
     hero_title: "Your recipe notebook,<br><em>always with you</em>",
@@ -288,7 +283,6 @@ const translations = {
     apk_sub: "GitHub Releases",
   },
 
-  /* ---- GERMAN ---- */
   de: {
     nav_download: "Herunterladen",
     hero_title: "Dein Rezeptheft,<br><em>immer dabei</em>",
@@ -430,7 +424,6 @@ const translations = {
     apk_sub: "GitHub Releases",
   },
 
-  /* ---- SPANISH ---- */
   es: {
     nav_download: "Descargar",
     hero_title: "Tu cuaderno de recetas,<br><em>siempre contigo</em>",
@@ -572,7 +565,6 @@ const translations = {
     apk_sub: "GitHub Releases",
   },
 
-  /* ---- ITALIAN ---- */
   it: {
     nav_download: "Scarica",
     hero_title: "Il tuo taccuino di ricette,<br><em>sempre con te</em>",
@@ -714,7 +706,6 @@ const translations = {
     apk_sub: "GitHub Releases",
   },
 
-  /* ---- DANISH ---- */
   da: {
     nav_download: "Hent",
     hero_title: "Din opskriftsbog,<br><em>altid med dig</em>",
@@ -857,10 +848,6 @@ const translations = {
   },
 };
 
-/* =========================================
-   Language management
-   ========================================= */
-
 function detectLanguage() {
   const params = new URLSearchParams(window.location.search);
   const urlLang = params.get('lang');
@@ -879,25 +866,21 @@ function applyLanguage(lang) {
 
   document.documentElement.lang = lang;
 
-  // Text content
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     if (t[key] !== undefined) el.textContent = t[key];
   });
 
-  // HTML content (hero title with <br> and <em>)
   document.querySelectorAll('[data-i18n-html]').forEach(el => {
     const key = el.getAttribute('data-i18n-html');
     if (t[key] !== undefined) el.innerHTML = t[key];
   });
 
-  // Image sources
   document.querySelectorAll('[data-i18n-img]').forEach(el => {
     const template = el.getAttribute('data-i18n-img');
     el.src = template.replace('{lang}', lang);
   });
 
-  // Update active button
   document.querySelectorAll('.lang-btn').forEach(btn => {
     btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
   });
@@ -905,13 +888,8 @@ function applyLanguage(lang) {
   localStorage.setItem('avocook-lang', lang);
 }
 
-/* =========================================
-   Theme management
-   ========================================= */
-
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
-  // ◑ is a neutral monochrome Unicode character, not an emoji
   const btn = document.getElementById('theme-toggle');
   if (btn) btn.textContent = '◑';
   localStorage.setItem('avocook-theme', theme);
@@ -923,10 +901,6 @@ function initTheme() {
   const preferred = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   applyTheme(preferred);
 }
-
-/* =========================================
-   Scroll animations
-   ========================================= */
 
 function initScrollAnimations() {
   if (!('IntersectionObserver' in window)) {
@@ -945,10 +919,6 @@ function initScrollAnimations() {
   document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
 }
 
-/* =========================================
-   Nav scroll effect
-   ========================================= */
-
 function initNav() {
   const nav = document.getElementById('main-nav');
   if (!nav) return;
@@ -956,10 +926,6 @@ function initNav() {
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 }
-
-/* =========================================
-   Carousel drag-to-scroll
-   ========================================= */
 
 function initCarousel() {
   const track = document.getElementById('carousel');
@@ -982,10 +948,6 @@ function initCarousel() {
   });
 }
 
-/* =========================================
-   Init
-   ========================================= */
-
 document.addEventListener('DOMContentLoaded', () => {
   initTheme();
   applyLanguage(detectLanguage());
@@ -993,12 +955,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initNav();
   initCarousel();
 
-  // Language buttons
   document.querySelectorAll('.lang-btn').forEach(btn => {
     btn.addEventListener('click', () => applyLanguage(btn.getAttribute('data-lang')));
   });
 
-  // Theme toggle
   const themeBtn = document.getElementById('theme-toggle');
   if (themeBtn) {
     themeBtn.addEventListener('click', () => {
@@ -1007,7 +967,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Download dropdown — accessible via hover (CSS) and click/keyboard (JS)
   const dlBtn = document.getElementById('nav-download-btn');
   const dlWrap = dlBtn ? dlBtn.closest('.nav-download-wrap') : null;
   if (dlBtn && dlWrap) {
@@ -1015,7 +974,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const open = dlWrap.classList.toggle('open');
       dlBtn.setAttribute('aria-expanded', String(open));
     });
-    // Close on outside click
     document.addEventListener('click', (e) => {
       if (!dlWrap.contains(e.target)) {
         dlWrap.classList.remove('open');
@@ -1024,7 +982,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Email protection — build address from parts, never hardcoded in HTML
   const emailLink = document.getElementById('contact-email-link');
   if (emailLink) {
     const parts = ['avocook', 'nephoos', 'com'];

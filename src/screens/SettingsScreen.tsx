@@ -118,12 +118,11 @@ export function SettingsScreen({ navigation }: Props) {
     setLocalImageFolder(nextcloudImageFolder);
   }, [nextcloudImageFolder]);
 
-  // Migration: silently try to reserve the existing pseudonym in Firestore
-  // (for users who set their pseudonym before the uniqueness feature was added)
+  // Reserve pseudonyms created before uniqueness checks were introduced.
   React.useEffect(() => {
     if (!communityPseudonym) return;
     void reservePseudonym(communityPseudonym).catch(() => {
-      // Ignore errors — if it's already taken by another user we'll catch it at save time
+      // Validate reservation errors again when saving.
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -136,7 +135,6 @@ export function SettingsScreen({ navigation }: Props) {
   const { openGithubIssue, contactByEmail } = useSupportActions();
   const { resetOnboarding, markUpdateSeen } = useOnboarding();
 
-  // Auto-fetch available models when the API key is already set
   React.useEffect(() => {
     if (currentLlm.apiKey.trim() && availableModels === null && !fetchingModels) {
       void handleFetchModels();
@@ -154,7 +152,6 @@ export function SettingsScreen({ navigation }: Props) {
     };
     setLlmDraft(next);
     void setLlmSettings(next);
-    // Reset model list when switching provider
     setAvailableModels(null);
     setFetchModelsError(null);
   }
@@ -507,8 +504,6 @@ export function SettingsScreen({ navigation }: Props) {
                   return;
                 }
                 const trimmed = localPseudonym.trim();
-                // Check uniqueness and reserve in Firestore whenever the pseudonym is non-empty
-                // (handles both changes AND first-time reservation for existing users)
                 if (trimmed) {
                   try {
                     const available = await checkPseudonymAvailable(trimmed);
@@ -516,7 +511,6 @@ export function SettingsScreen({ navigation }: Props) {
                       Alert.alert(t("common.error"), t("settings.pseudonymTaken"));
                       return;
                     }
-                    // Release old pseudonym if it changed
                     if (communityPseudonym && communityPseudonym !== trimmed) {
                       await releasePseudonym(communityPseudonym).catch(() => {});
                     }

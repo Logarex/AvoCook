@@ -11,8 +11,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { registerRootComponent } from "expo";
 import * as SplashScreen from "expo-splash-screen";
 import "./i18n";
-// Activate log collection, fetch interception and global error handlers
-// as early as possible — before any component renders.
+// Initialize logging before components can issue requests.
 import "./features/logging/logService";
 import { AppText } from "./components/AppText";
 import { LongActionToastProvider } from "./components/LongActionToast";
@@ -45,12 +44,10 @@ import { AppThemeProvider, useAppTheme } from "./theme/ThemeProvider";
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 SplashScreen.preventAutoHideAsync().catch(() => {
-  // Ignore error if it's already prevented
 });
 
 export default function App() {
   React.useEffect(() => {
-    // Log app startup metadata so every debug report includes device context
     const { logService } = require("./features/logging/logService");
     logService.info("app", "App started", {
       version: require("../package.json").version,
@@ -93,7 +90,6 @@ function RootNavigator() {
     : require("../assets/logo.png");
 
   if (!hydrated || !onboardingHydrated) {
-    // simple splash screen while we load the db and stuff
     return (
       <View style={[styles.loading, { backgroundColor: colors.background }]}>
         <Image
@@ -108,7 +104,6 @@ function RootNavigator() {
     );
   }
 
-  // Determine initial route based on onboarding state
   const isAuthenticated = Boolean(credentials || isLocalMode);
   const initialRoute: keyof RootStackParamList = !introDone
     ? "Onboarding"
@@ -168,29 +163,26 @@ function ShareIntentHandler() {
       return;
     }
 
-    // Small delay to ensure the navigator is mounted and ready
+    // Allow the navigator to mount before handling a share.
     const timer = setTimeout(() => {
       try {
-        // Process share intent
         if (shareIntent.type === "weburl" && shareIntent.webUrl) {
           const rawUrl = shareIntent.webUrl.trim();
           if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) {
             navigation.navigate("ImportRecipe", { url: rawUrl });
           }
         } else if (shareIntent.type === "text" && shareIntent.text) {
-          // Sometimes URLs are shared as plain text, often with the page title prepended
+          // Shared text may contain a page title before the URL.
           const rawText = shareIntent.text.trim();
           const urlMatch = rawText.match(/https?:\/\/[^\s]+/);
           if (urlMatch && urlMatch[0]) {
             navigation.navigate("ImportRecipe", { url: urlMatch[0] });
           }
         } else if (shareIntent.type === "file" && shareIntent.files?.[0]?.path) {
-          // File shared from Fichiers / Files app (.avocook backup)
           const filePath = shareIntent.files[0].path;
           navigation.navigate("ImportRecipe", { fileUri: filePath });
         }
       } catch {
-        // Navigation error — navigator may not be ready yet, ignore gracefully
       }
       resetShareIntent();
     }, 150);

@@ -20,7 +20,8 @@ I built it for personal use while learning to ship a complete React Native proje
 ### Community Platform
 
 - Discover, rate, and import recipes from the AvoCook community;
-- Translate community recipes directly within the app;
+- Community recipes automatically appear in your app language, in both the list and the recipe details;
+- View the original recipe at any time, or import the translated version into your recipe book;
 - Share your best meals by setting up a community profile;
 - Safe and moderated platform with built-in spam detection.
 
@@ -67,7 +68,9 @@ French · English · German · Spanish · Italian · Danish
 
 ## Development setup
 
-The project uses Expo, React Native and TypeScript.
+The project uses Expo SDK 57, React Native 0.86 and TypeScript. Node.js 22.13 or newer is required. Local iOS builds use Xcode 27 and Device Hub; the minimum supported iOS version is 16.4.
+
+Local Android builds require JDK 17 and Android SDK 36. Set `JAVA_HOME` to your JDK 17 installation if your system still defaults to an older Java version.
 
 ```bash
 npm install
@@ -77,6 +80,8 @@ npm run android  # Android emulator
 
 A development build with native modules is compiled on the first run. After that, the app opens directly.
 
+The `ios/` and `android/` projects are generated from `app.json`, `tools/plugins/` and the local modules in `src/modules/`. After a native dependency or SDK upgrade, regenerate them with `npx expo prebuild --clean` before building again. The `expo-build-properties` plugin enables the UIKit scene lifecycle required by Xcode 27.
+
 Useful commands:
 
 ```bash
@@ -85,6 +90,8 @@ npm test                   # Unit tests (Vitest)
 npm run lint               # ESLint
 npm run import:check -- <recipe-url>  # Test a recipe import from a URL
 ```
+
+The [reliability and security audit](docs/AUDIT_FIABILITE_SECURITE.md) (in French) records the checks, fixes and remaining risks, including Firebase access rules and isolation between Nextcloud accounts.
 
 ---
 

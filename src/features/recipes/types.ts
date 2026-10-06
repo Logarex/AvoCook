@@ -37,7 +37,7 @@ export type RecipeLocalMeta = {
 export type Recipe = {
   "@type"?: "Recipe";
   id: string | null;
-  // some old Nextcloud versions give a recipe_id instead of id...
+  // Older Nextcloud versions use recipe_id.
   recipe_id?: number;
   name: string;
   description: string;
@@ -56,7 +56,7 @@ export type Recipe = {
   recipeCategory: string;
   tool: string[];
   recipeIngredient: string[];
-  // Instructions can be nested in schema.org but we flatten them here
+  // Flatten nested schema.org instructions.
   recipeInstructions: string[];
   nutrition: Nutrition | Nutrition[] | null;
   localMeta?: RecipeLocalMeta;

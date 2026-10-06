@@ -250,7 +250,6 @@ export function RecipeListScreen({ navigation }: Props) {
 
   const connected = Boolean(credentials || isLocalMode);
   const imageClient = credentials ? getClient() : null;
-  const imageHeaders = imageClient?.getImageHeaders();
   const statusLabel = isLocalMode
     ? t("settings.localMode")
     : credentials
@@ -302,7 +301,6 @@ export function RecipeListScreen({ navigation }: Props) {
       await recordBackupDone();
       void manualTriggerStoreReview();
     } catch {
-      // Ignored (e.g. user cancelled file picker)
     }
   }
 
@@ -335,7 +333,6 @@ export function RecipeListScreen({ navigation }: Props) {
     );
   }
 
-
   const handleRecipeLongPress = useCallback((recipe: Recipe) => {
     setSelectedRecipe(recipe);
   }, []);
@@ -346,8 +343,6 @@ export function RecipeListScreen({ navigation }: Props) {
     }
     setSelectedRecipe(null);
   }
-
-
 
   async function handleShareRecipePdf(recipe: Recipe) {
     setRecipeAction("pdf");
@@ -436,7 +431,7 @@ export function RecipeListScreen({ navigation }: Props) {
             ? imageClient.getRecipeImageUrl(item.id, "thumb")
             : undefined
         }
-        imageHeaders={imageHeaders}
+        imageClient={imageClient}
         recipe={item}
         onLongPress={() => handleRecipeLongPress(item)}
         onPress={() =>
@@ -445,7 +440,7 @@ export function RecipeListScreen({ navigation }: Props) {
         }
       />
     ),
-    [imageClient, imageHeaders, handleRecipeLongPress, navigation]
+    [imageClient, handleRecipeLongPress, navigation]
   );
 
   return (

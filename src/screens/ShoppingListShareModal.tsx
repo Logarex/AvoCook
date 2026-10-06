@@ -72,7 +72,6 @@ export function ShoppingListShareModal({
         message: t("shoppingList.sharedShareMessage", { code: sharedList.code })
       });
     } catch {
-      // Ignored
     }
   };
 
@@ -235,7 +234,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end"
   },
   modalScrim: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0, 0, 0, 0.4)"
   },
   panel: {

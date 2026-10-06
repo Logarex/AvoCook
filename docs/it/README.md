@@ -18,7 +18,8 @@ L'ho sviluppato per uso personale mentre imparavo a portare avanti un progetto R
 ### Piattaforma Comunità
 
 - Scopri, valuta e importa ricette dalla comunità AvoCook;
-- Traduci le ricette della community direttamente nell'applicazione;
+- Le ricette della community vengono mostrate automaticamente nella lingua dell’app, sia nell’elenco sia nei dettagli;
+- Consulta la ricetta originale in qualsiasi momento o importa la versione tradotta nel tuo ricettario;
 - Condividi i tuoi piatti migliori impostando un profilo comunitario;
 - Piattaforma sicura e moderata con rilevamento dello spam integrato.
 
@@ -65,7 +66,7 @@ Francese · Inglese · Tedesco · Spagnolo · Italiano · Danese
 
 ## Configurazione per lo sviluppo
 
-Il progetto utilizza Expo, React Native e TypeScript.
+Il progetto utilizza Expo SDK 57, React Native 0.86 e TypeScript. È richiesto Node.js 22.13 o successivo. Le build iOS locali utilizzano Xcode 27 e Device Hub; la versione minima di iOS supportata è 16.4.
 
 ```bash
 npm install
@@ -75,6 +76,8 @@ npm run android  # Emulatore Android
 
 Al primo avvio viene compilata una build di sviluppo con i moduli nativi. Successivamente l'app si apre direttamente.
 
+I progetti `ios/` e `android/` vengono generati da `app.json`, `tools/plugins/` e dai moduli locali in `src/modules/`. Dopo un aggiornamento dell’SDK o delle dipendenze native, rigenerali con `npx expo prebuild --clean` prima di compilare di nuovo. Il plugin `expo-build-properties` abilita il ciclo di vita di UIKit basato sulle scene richiesto da Xcode 27.
+
 Comandi utili:
 
 ```bash
@@ -83,6 +86,8 @@ npm test                               # Test unitari (Vitest)
 npm run lint                           # ESLint
 npm run import:check -- <url-ricetta>  # Testare l'importazione da un URL
 ```
+
+Il [rapporto su affidabilità e sicurezza](../AUDIT_FIABILITE_SECURITE.md) (in francese) descrive i controlli, le correzioni e i rischi ancora presenti, comprese le regole di accesso Firebase e l'isolamento degli account Nextcloud.
 
 ---
 
@@ -101,12 +106,12 @@ src/
 │   ├── timers/                          # Timer di cottura
 │   ├── preferences/                     # Impostazioni dell'applicazione
 │   └── auth/                            # Autenticazione Nextcloud
-├── i18n/                                # Internazionalizzazione (i18next, 5 lingue)
+├── i18n/                                # Internazionalizzazione (i18next, 6 lingue)
 ├── modules/
 │   └── avocook-timer-notifications/     # Modulo nativo per le notifiche dei timer
 └── theme/                               # Colori, tipografia, stili condivisi
 tools/                                   # Plugin di build, verifica import, asset
-docs/                                    # Documentazione in altre lingue (fr, de, es, it)
+docs/                                    # Documentazione in altre lingue (fr, de, es, it, da)
 ```
 
 ---

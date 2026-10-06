@@ -11,7 +11,7 @@ function getNextBackupMilestone(lastAcknowledgedCount: number): number {
   return nextMultiple * 30;
 }
 
-// Store review milestones: first request on app launch (0), then after 2, 4, 8, 16... recipes.
+// Request store reviews at launch, then after 2, 4, 8, 16... recipes.
 function getNextReviewMilestone(lastRequestedCount: number): number {
   if (lastRequestedCount < 0) return 0;
   if (lastRequestedCount === 0) return 2;
@@ -30,7 +30,6 @@ export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean
   useEffect(() => {
     let mounted = true;
     async function checkMilestones() {
-      // 1. Check Backup Reminders
       if (recipesCount > 0 && enableBackupReminders && isLocalMode) {
         const storedBackupStr = await AsyncStorage.getItem(LAST_BACKUP_REMINDER_COUNT_KEY);
         const lastBackupAckCount = storedBackupStr ? parseInt(storedBackupStr, 10) : 0;
@@ -45,13 +44,12 @@ export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean
         setShowBackupReminder(false);
       }
 
-      // 2. Check Store Review Reminders
       const storedReviewStr = await AsyncStorage.getItem(LAST_STORE_REVIEW_COUNT_KEY);
       const lastReviewReqCount = storedReviewStr !== null ? parseInt(storedReviewStr, 10) : -1;
       
       const nextReviewMilestone = getNextReviewMilestone(lastReviewReqCount);
       if (recipesCount >= nextReviewMilestone) {
-        // Wait a bit so the UI has time to render before the review modal appears
+        // Wait for the screen to render before requesting a review.
         setTimeout(() => {
           if (mounted) {
             let currentMilestone = nextReviewMilestone;
@@ -78,7 +76,6 @@ export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean
 
   const recordBackupDone = useCallback(async () => {
     setShowBackupReminder(false);
-    // If they exported, we advance their acknowledged milestone to the current recipe count
     await AsyncStorage.setItem(LAST_BACKUP_REMINDER_COUNT_KEY, recipesCount.toString());
   }, [recipesCount]);
 
@@ -87,21 +84,18 @@ export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean
       if (await StoreReview.hasAction()) {
         await StoreReview.requestReview();
       }
-      // Record that we triggered it for this milestone, even if it failed/was denied by OS
+      // Count denied or failed requests to avoid repeating the prompt.
       await AsyncStorage.setItem(LAST_STORE_REVIEW_COUNT_KEY, milestone.toString());
     } catch {
-      // Ignore gracefully
     }
   }
 
-  // Allow triggering a review manually (e.g. after a successful backup)
   const manualTriggerStoreReview = useCallback(async () => {
     try {
       if (await StoreReview.hasAction()) {
         await StoreReview.requestReview();
       }
     } catch {
-      // Ignore gracefully
     }
   }, []);
 

@@ -1,6 +1,6 @@
 import * as Crypto from "expo-crypto";
 import * as SQLite from "expo-sqlite";
-import { hasLocalMetadata, normalizeRecipe, type Recipe } from "./types";
+import { hasLocalMetadata, normalizeRecipe, toCookbookRecipe, type Recipe } from "./types";
 
 export type SyncOperationType = "create" | "update" | "delete";
 
@@ -28,11 +28,43 @@ type QueueRow = {
   created_at: string;
 };
 
-const dbPromise = SQLite.openDatabaseAsync("nextcloud-cookbook.db");
+let dbPromise: Promise<SQLite.SQLiteDatabase> | null = null;
+let pendingOperation: Promise<unknown> = Promise.resolve();
+
+function getDatabase() {
+  dbPromise ??= SQLite.openDatabaseAsync("nextcloud-cookbook.db").catch((error: unknown) => {
+    dbPromise = null;
+    throw error;
+  });
+  return dbPromise;
+}
+
+// Serialize every query so other calls cannot join a transaction in progress.
+function withDatabase<T>(task: (db: SQLite.SQLiteDatabase) => Promise<T>): Promise<T> {
+  const result = pendingOperation.then(async () => task(await getDatabase()));
+  pendingOperation = result.catch(() => undefined);
+  return result;
+}
+
+function parseRecipe(payload: string, id: string): Recipe {
+  const parsed: unknown = JSON.parse(payload);
+  if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+    throw new Error(`Invalid stored recipe: ${id}`);
+  }
+  return normalizeRecipe({ ...parsed, id });
+}
+
+function readRecipeRow(row: RecipeRow): Recipe | null {
+  try {
+    return parseRecipe(row.payload, row.id);
+  } catch {
+    console.warn("local", "Unreadable recipe retained in database", { id: row.id });
+    return null;
+  }
+}
 
 export async function migrateDatabase() {
-  const db = await dbPromise;
-  await db.execAsync(`
+  await withDatabase((db) => db.execAsync(`
     CREATE TABLE IF NOT EXISTS recipes (
       id TEXT PRIMARY KEY NOT NULL,
       payload TEXT NOT NULL,
@@ -48,7 +80,8 @@ export async function migrateDatabase() {
       payload TEXT,
       created_at TEXT NOT NULL
     );
-  `);
+    CREATE INDEX IF NOT EXISTS sync_queue_recipe_id ON sync_queue (recipe_id);
+  `));
 }
 
 export function createLocalRecipeId() {
@@ -56,19 +89,28 @@ export function createLocalRecipeId() {
 }
 
 export async function loadLocalRecipes() {
-  const db = await dbPromise;
-  const rows = await db.getAllAsync<RecipeRow>(
-    "SELECT * FROM recipes WHERE deleted = 0 ORDER BY updated_at DESC"
-  );
-  return rows.map((row) => normalizeRecipe(JSON.parse(row.payload) as Recipe));
+  return withDatabase(async (db) => {
+    const rows = await db.getAllAsync<RecipeRow>(
+      "SELECT * FROM recipes WHERE deleted = 0 ORDER BY updated_at DESC"
+    );
+    return rows.flatMap((row) => readRecipeRow(row) ?? []);
+  });
 }
 
 export async function loadDirtyLocalRecipes() {
-  const db = await dbPromise;
-  const rows = await db.getAllAsync<RecipeRow>(
-    "SELECT * FROM recipes WHERE deleted = 0 AND dirty = 1 ORDER BY updated_at DESC"
-  );
-  return rows.map((row) => normalizeRecipe(JSON.parse(row.payload) as Recipe));
+  return withDatabase(async (db) => {
+    const rows = await db.getAllAsync<RecipeRow>(
+      "SELECT * FROM recipes WHERE deleted = 0 AND dirty = 1 ORDER BY updated_at DESC"
+    );
+    return rows.flatMap((row) => readRecipeRow(row) ?? []);
+  });
+}
+
+export async function hasUnreadableLocalRecipes() {
+  return withDatabase(async (db) => {
+    const rows = await db.getAllAsync<RecipeRow>("SELECT * FROM recipes WHERE deleted = 0");
+    return rows.some((row) => readRecipeRow(row) === null);
+  });
 }
 
 export async function saveLocalRecipe(
@@ -76,7 +118,15 @@ export async function saveLocalRecipe(
   dirty = false,
   touchModified = true
 ) {
-  const db = await dbPromise;
+  return withDatabase((db) => writeLocalRecipe(db, recipe, dirty, touchModified));
+}
+
+async function writeLocalRecipe(
+  db: SQLite.SQLiteDatabase,
+  recipe: Recipe,
+  dirty: boolean,
+  touchModified: boolean
+) {
   const id = recipe.id ?? createLocalRecipeId();
   const dateModified = touchModified
     ? new Date().toISOString()
@@ -106,18 +156,64 @@ export async function saveLocalRecipe(
   return payload;
 }
 
+export async function saveLocalRecipePreferences(recipe: Recipe) {
+  return withDatabase(async (db) => {
+    const rows = await db.getAllAsync<RecipeRow>(
+      "SELECT * FROM recipes WHERE id = ?",
+      recipe.id ?? ""
+    );
+    const row = rows[0];
+    if (!row) {
+      return writeLocalRecipe(db, recipe, false, false);
+    }
+    if (row.deleted) {
+      throw new Error("Cannot change preferences of a deleted recipe");
+    }
+    const current = parseRecipe(row.payload, row.id);
+    const saved = normalizeRecipe({ ...current, localMeta: recipe.localMeta });
+    await db.runAsync("UPDATE recipes SET payload = ? WHERE id = ?", JSON.stringify(saved), row.id);
+    return saved;
+  });
+}
+
+export async function acknowledgeQueuedRecipeUpdate(operation: QueuedSyncOperation): Promise<Recipe | null> {
+  return withDatabase(async (db) => {
+    let saved: Recipe | null = null;
+    await db.withTransactionAsync(async () => {
+      const queueRows = await db.getAllAsync<QueueRow>("SELECT * FROM sync_queue WHERE id = ?", operation.id);
+      const recipeRows = await db.getAllAsync<RecipeRow>("SELECT * FROM recipes WHERE id = ?", operation.recipeId);
+      const queued = queueRows[0];
+      const row = recipeRows[0];
+      const current = row ? parseRecipe(row.payload, row.id) : null;
+      saved = row?.deleted ? null : current;
+      if (
+        !queued || !operation.payload || row?.deleted ||
+        queued.operation !== operation.operation || queued.recipe_id !== operation.recipeId ||
+        queued.created_at !== operation.createdAt || queued.payload !== JSON.stringify(operation.payload) ||
+        (current && JSON.stringify(toCookbookRecipe(current)) !== JSON.stringify(toCookbookRecipe(operation.payload)))
+      ) {
+        return;
+      }
+      saved = await writeLocalRecipe(db, {
+        ...operation.payload,
+        localMeta: current ? current.localMeta : operation.payload.localMeta
+      }, false, false);
+      await db.runAsync("DELETE FROM sync_queue WHERE id = ?", operation.id);
+    });
+    return saved;
+  });
+}
+
 export async function removeLocalRecipe(id: string) {
-  const db = await dbPromise;
-  await db.runAsync("DELETE FROM recipes WHERE id = ?", id);
+  await withDatabase((db) => db.runAsync("DELETE FROM recipes WHERE id = ?", id));
 }
 
 export async function markLocalRecipeDeleted(id: string) {
-  const db = await dbPromise;
-  await db.runAsync(
+  await withDatabase((db) => db.runAsync(
     "UPDATE recipes SET deleted = 1, dirty = 1, updated_at = ? WHERE id = ?",
     new Date().toISOString(),
     id
-  );
+  ));
 }
 
 export async function enqueueSyncOperation(
@@ -125,115 +221,118 @@ export async function enqueueSyncOperation(
   recipeId: string,
   payload: Recipe | null
 ) {
-  const db = await dbPromise;
+  await withDatabase((db) => db.withTransactionAsync(async () => {
 
-  if (operation === "delete") {
-    // a delete cancels everything else that was queued for this recipe
-    await db.runAsync("DELETE FROM sync_queue WHERE recipe_id = ?", recipeId);
-  } else if (operation === "create") {
-    // a new create cancels previous creates or updates
-    await db.runAsync(
-      "DELETE FROM sync_queue WHERE recipe_id = ? AND operation IN ('create', 'update')",
-      recipeId
-    );
-  } else {
-    const queuedCreates = await db.getAllAsync<QueueRow>(
-      "SELECT * FROM sync_queue WHERE recipe_id = ? AND operation = 'create' ORDER BY id ASC",
-      recipeId
-    );
-    const queuedCreate = queuedCreates[0];
-
-    await db.runAsync(
-      "DELETE FROM sync_queue WHERE recipe_id = ? AND operation = 'update'",
-      recipeId
-    );
-
-    if (queuedCreate) {
+    if (operation === "delete") {
+      await db.runAsync("DELETE FROM sync_queue WHERE recipe_id = ?", recipeId);
+    } else if (operation === "create") {
       await db.runAsync(
-        "UPDATE sync_queue SET payload = ?, created_at = ? WHERE id = ?",
-        payload ? JSON.stringify(payload) : null,
-        new Date().toISOString(),
-        queuedCreate.id
+        "DELETE FROM sync_queue WHERE recipe_id = ? AND operation IN ('create', 'update')",
+        recipeId
       );
-      console.debug("local", "Queued create operation payload updated", {
-        operation,
-        recipeId,
-        queueId: queuedCreate.id,
-        hasPayload: Boolean(payload),
-        payloadName: payload?.name
-      });
-      return;
+    } else {
+      const queuedCreates = await db.getAllAsync<QueueRow>(
+        "SELECT * FROM sync_queue WHERE recipe_id = ? AND operation = 'create' ORDER BY id ASC",
+        recipeId
+      );
+      const queuedCreate = queuedCreates[0];
+
+      await db.runAsync(
+        "DELETE FROM sync_queue WHERE recipe_id = ? AND operation = 'update'",
+        recipeId
+      );
+
+      if (queuedCreate) {
+        await db.runAsync(
+          "UPDATE sync_queue SET payload = ?, created_at = ? WHERE id = ?",
+          payload ? JSON.stringify(payload) : null,
+          new Date().toISOString(),
+          queuedCreate.id
+        );
+        console.debug("local", "Queued create operation payload updated", {
+          operation,
+          recipeId,
+          queueId: queuedCreate.id,
+          hasPayload: Boolean(payload),
+          payloadName: payload?.name
+        });
+        return;
+      }
     }
-  }
 
-  await db.runAsync(
-    `INSERT INTO sync_queue (operation, recipe_id, payload, created_at)
-     VALUES (?, ?, ?, ?)`,
-    operation,
-    recipeId,
-    payload ? JSON.stringify(payload) : null,
-    new Date().toISOString()
-  );
-  console.debug("local", "Sync operation queued", {
-    operation,
-    recipeId,
-    hasPayload: Boolean(payload),
-    payloadName: payload?.name
-  });
-}
-
-export async function listQueuedOperations() {
-  const db = await dbPromise;
-  const rows = await db.getAllAsync<QueueRow>(
-    "SELECT * FROM sync_queue ORDER BY id ASC"
-  );
-
-  return rows.map<QueuedSyncOperation>((row) => ({
-    id: row.id,
-    operation: row.operation,
-    recipeId: row.recipe_id,
-    payload: row.payload
-      ? normalizeRecipe(JSON.parse(row.payload) as Partial<Recipe>)
-      : null,
-    createdAt: row.created_at
+    await db.runAsync(
+      `INSERT INTO sync_queue (operation, recipe_id, payload, created_at)
+       VALUES (?, ?, ?, ?)`,
+      operation,
+      recipeId,
+      payload ? JSON.stringify(payload) : null,
+      new Date().toISOString()
+    );
+    console.debug("local", "Sync operation queued", {
+      operation,
+      recipeId,
+      hasPayload: Boolean(payload),
+      payloadName: payload?.name
+    });
   }));
 }
 
+export async function listQueuedOperations() {
+  return withDatabase(async (db) => {
+    const rows = await db.getAllAsync<QueueRow>(
+      "SELECT * FROM sync_queue ORDER BY id ASC"
+    );
+
+    return rows.map<QueuedSyncOperation>((row) => {
+      if (!["create", "update", "delete"].includes(row.operation) ||
+          typeof row.recipe_id !== "string" || !row.recipe_id ||
+          (row.operation !== "delete" && !row.payload)) {
+        throw new Error(`Invalid stored sync operation: ${row.id}`);
+      }
+      return {
+        id: row.id,
+        operation: row.operation,
+        recipeId: row.recipe_id,
+        payload: row.payload ? parseRecipe(row.payload, row.recipe_id) : null,
+        createdAt: row.created_at
+      };
+    });
+  });
+}
+
 export async function deleteQueuedOperation(id: number) {
-  const db = await dbPromise;
-  await db.runAsync("DELETE FROM sync_queue WHERE id = ?", id);
+  await withDatabase((db) => db.runAsync("DELETE FROM sync_queue WHERE id = ?", id));
 }
 
 export async function deleteQueuedOperationsForRecipe(recipeId: string) {
-  const db = await dbPromise;
-  await db.runAsync("DELETE FROM sync_queue WHERE recipe_id = ?", recipeId);
+  await withDatabase((db) => db.runAsync("DELETE FROM sync_queue WHERE recipe_id = ?", recipeId));
 }
 
 export async function clearLocalRecipeCache() {
-  const db = await dbPromise;
-  const rows = await db.getAllAsync<RecipeRow>(
-    "SELECT * FROM recipes WHERE dirty = 0"
-  );
+  await withDatabase(async (db) => {
+    const rows = await db.getAllAsync<RecipeRow>(
+      "SELECT * FROM recipes WHERE dirty = 0"
+    );
 
-  for (const row of rows) {
-    const recipe = normalizeRecipe(JSON.parse(row.payload) as Recipe);
-    // don't delete if we have local timers or notes not synced yet
-    if (!hasLocalMetadata(recipe)) {
-      await db.runAsync("DELETE FROM recipes WHERE id = ?", row.id);
+    for (const row of rows) {
+      const recipe = readRecipeRow(row);
+      if (recipe && !hasLocalMetadata(recipe)) {
+        await db.runAsync("DELETE FROM recipes WHERE id = ?", row.id);
+      }
     }
-  }
+  });
 }
 
 export async function loadAnyLocalRecipeById(id: string) {
-  const db = await dbPromise;
-  const rows = await db.getAllAsync<RecipeRow>(
-    "SELECT * FROM recipes WHERE id = ?",
-    id
-  );
-  const row = rows[0];
-  if (!row) {
-    return null;
-  }
-  return normalizeRecipe(JSON.parse(row.payload) as Recipe);
+  return withDatabase(async (db) => {
+    const rows = await db.getAllAsync<RecipeRow>(
+      "SELECT * FROM recipes WHERE id = ?",
+      id
+    );
+    const row = rows[0];
+    if (!row) {
+      return null;
+    }
+    return readRecipeRow(row);
+  });
 }
-

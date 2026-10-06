@@ -3,7 +3,6 @@ import re
 with open("src/screens/SettingsScreen.tsx", "r") as f:
     content = f.read()
 
-# Define the new JSX content
 new_jsx = """  return (
     <Screen showScrollTop={false}>
       <View style={styles.toolbar}>
@@ -568,7 +567,6 @@ new_jsx = """  return (
     </Screen>
   );"""
 
-# The return starts exactly at "  return (" and goes to "    </Screen>\n  );"
 pattern = re.compile(r"  return \(\n    <Screen showScrollTop=\{false\}>.*?</Screen>\n  \);", re.DOTALL)
 new_content = pattern.sub(new_jsx, content)
 

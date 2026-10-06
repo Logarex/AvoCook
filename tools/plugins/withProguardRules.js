@@ -23,12 +23,10 @@ function withProguardRules(config) {
       if (fs.existsSync(proguardPath)) {
         let contents = fs.readFileSync(proguardPath, "utf-8");
         if (!contents.includes("-keep class expo.modules.kotlin.runtime.MainRuntime")) {
-          // Replace old dontwarn rules if they exist
           contents = contents.replace(
             /# Added by withProguardRules[\s\S]*?(?=-keep|-dontwarn|$)/g, 
             ""
           );
-          // Remove specific dontwarns if they were already added
           contents = contents.replace(/-dontwarn expo\.modules\.kotlin\..*\n/g, "");
           contents += rulesToAdd;
           fs.writeFileSync(proguardPath, contents);

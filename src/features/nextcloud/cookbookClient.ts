@@ -78,6 +78,10 @@ export class CookbookClient {
     return CookbookClient.currentInstance;
   }
 
+  static setCurrent(client: CookbookClient | null) {
+    CookbookClient.currentInstance = client;
+  }
+
   constructor(credentials: NextcloudCredentials, imageFolder?: string) {
     this.serverUrl = normalizeNextcloudUrl(credentials.serverUrl);
     this.username = credentials.username.trim();
@@ -89,7 +93,6 @@ export class CookbookClient {
     this.webDavPathStyle = null;
     this._imageHeaders = { Authorization: this.authorization };
     this._imageFolder = imageFolder?.trim() || DEFAULT_IMAGE_FOLDER;
-    CookbookClient.currentInstance = this;
   }
 
   getImageFolder(): string {
@@ -106,8 +109,24 @@ export class CookbookClient {
     )}/image?size=${size}`;
   }
 
-  getImageHeaders() {
-    return this._imageHeaders;
+  getImageHeaders(uri: string): Record<string, string> | undefined {
+    try {
+      const imageUrl = new URL(uri);
+      const serverUrl = new URL(this.serverUrl);
+      const serverPath = serverUrl.pathname.replace(/\/$/, "");
+      const imagePath = imageUrl.pathname.slice(serverPath.length);
+      if (
+        imageUrl.origin === serverUrl.origin &&
+        !imageUrl.username && !imageUrl.password &&
+        imageUrl.pathname.startsWith(`${serverPath}/`) &&
+        /^\/(?:index\.php\/)?apps\/cookbook\/(?:api\/v1|webapp)\/recipes\/[^/]+\/image$/i.test(imagePath)
+      ) {
+        return this._imageHeaders;
+      }
+    } catch {
+      return undefined;
+    }
+    return undefined;
   }
 
   async getCapabilities() {
@@ -143,12 +162,10 @@ export class CookbookClient {
   async validateConnection() {
     try {
       const user = await this.getCurrentUser();
-      // fetch recipes just to make sure the Cookbook app is actually installed
       await this.listRecipes();
       return user;
     } catch (userError) {
       try {
-        // sometimes getting user fails but recipes works? fallback to just testing recipes
         await this.listRecipes();
         return null;
       } catch (cookbookError) {
@@ -246,9 +263,6 @@ export class CookbookClient {
     });
   }
 
-  /**
-   * Read a JSON file from WebDAV. Returns null if the file doesn't exist (404).
-   */
   async getJsonWebDav<T>(path: string): Promise<T | null> {
     try {
       const response = await this.requestWebDav(path, { method: "GET" });
@@ -263,9 +277,6 @@ export class CookbookClient {
     }
   }
 
-  /**
-   * Write a JSON file to WebDAV, creating parent directories if needed.
-   */
   async putJsonWebDav(path: string, data: unknown): Promise<void> {
     const body = JSON.stringify(data);
     await this.putWebDavFileWithAutoMkcol(path, body, {
@@ -434,8 +445,6 @@ export class CookbookClient {
     headers: HeadersInit
   ) {
     try {
-      // try to put the file directly. Nextcloud supports auto mkcol
-      // but not all endpoints do, so we might need a fallback
       await this.requestWebDav(path, {
         method: "PUT",
         body,
@@ -450,7 +459,6 @@ export class CookbookClient {
         throw error;
       }
 
-      // fallback: explicit MKCOL if auto failed
       console.warn(
         "sync",
         "WebDAV auto directory creation failed; trying explicit MKCOL",
@@ -515,9 +523,7 @@ export class CookbookClient {
                 resolvedAuthorization &&
                 !triedAuthorizations.has(resolvedAuthorization)
               ) {
-                // The user id and the login username can differ on Nextcloud
-                // (e.g. "john@example.com" login but "john" user id for WebDAV paths).
-                // We try the login first, then fall back to the resolved user id.
+                // The Nextcloud login and WebDAV user ID can differ.
                 console.warn(
                   "sync",
                   "WebDAV auth rejected login; retrying with resolved user id",
@@ -648,6 +654,9 @@ export class CookbookClient {
 
 function normalizeWebDavPath(path: string) {
   const normalized = path.trim().replace(/^\/+|\/+$/g, "");
+  if (normalized.split("/").some((segment) => segment === "." || segment === "..")) {
+    throw new Error("Invalid Nextcloud file path");
+  }
   return normalized ? `/${normalized}` : "";
 }
 
@@ -668,7 +677,12 @@ function isMissingWebDavParentError(
 
 function getSafeRemoteImageFilename(uri: string) {
   const withoutQuery = uri.split("?")[0] ?? uri;
-  const rawName = decodeURIComponent(withoutQuery.split("/").pop() || "image.jpg");
+  let rawName = withoutQuery.split("/").pop() || "image.jpg";
+  try {
+    rawName = decodeURIComponent(rawName);
+  } catch {
+    // A filename can contain a literal percent sign.
+  }
   const safeName = rawName
     .replace(/[^a-z0-9._-]+/gi, "-")
     .replace(/^-+|-+$/g, "");
@@ -679,6 +693,9 @@ function getSafeRemoteImageFilename(uri: string) {
 
 function getSafeCookbookRecipeFolderName(recipeName: string) {
   const safeName = recipeName.replace(/[\\/:?!"'|&^#]/g, "_");
+  if (!safeName || safeName === "." || safeName === "..") {
+    throw new Error("Invalid Cookbook recipe folder name");
+  }
   return safeName.length > 100 ? `${safeName.slice(0, 97)}___` : safeName;
 }
 

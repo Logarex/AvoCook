@@ -21,8 +21,6 @@ import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Update">;
 
-
-
 export function UpdateScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors, isDark } = useAppTheme();
@@ -51,7 +49,6 @@ export function UpdateScreen({ navigation }: Props) {
         },
       ]}
     >
-      {/* Scrollable content — only scrolls on very small screens */}
       <ScrollView
         style={styles.flex}
         contentContainerStyle={styles.scrollContent}
@@ -59,7 +56,6 @@ export function UpdateScreen({ navigation }: Props) {
         bounces={false}
         overScrollMode="never"
       >
-        {/* Hero */}
         <View style={styles.hero}>
           <Image
             accessible={false}
@@ -75,7 +71,6 @@ export function UpdateScreen({ navigation }: Props) {
           </AppText>
         </View>
 
-        {/* Feature cards */}
         <View style={styles.featuresColumn}>
           <GlassPanel style={styles.featureCardHorizontal}>
             <View style={[styles.featureIconCircle, { backgroundColor: colors.chip }]}>
@@ -127,7 +122,6 @@ export function UpdateScreen({ navigation }: Props) {
         </View>
       </ScrollView>
 
-      {/* CTA — always visible, pinned at bottom */}
       <View style={[styles.pageActions, { paddingHorizontal: spacing.xl }]}>
         <PrimaryButton
           icon={ArrowRight}

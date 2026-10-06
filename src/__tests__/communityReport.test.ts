@@ -43,8 +43,8 @@ describe("communityReport", () => {
     };
 
     vi.mocked(firestore.getDoc)
-      .mockResolvedValueOnce(userReportSnap as any) // User report subcollection check
-      .mockResolvedValueOnce(recipeSnap as any);    // Recipe doc check
+      .mockResolvedValueOnce(userReportSnap as any)
+      .mockResolvedValueOnce(recipeSnap as any);
 
     await reportCommunityRecipe("recipe-1");
 
@@ -55,11 +55,9 @@ describe("communityReport", () => {
       })
     );
 
-    // Verify approved: false is NOT included when report count is < 3
     const updateCall = vi.mocked(firestore.updateDoc).mock.calls[0]?.[1];
     expect(updateCall).not.toHaveProperty("approved");
 
-    // Verify communityReports log was created with pending_review
     expect(firestore.addDoc).toHaveBeenCalledWith(
       undefined,
       expect.objectContaining({
@@ -86,14 +84,12 @@ describe("communityReport", () => {
 
     await reportCommunityRecipe("recipe-2");
 
-    // Verify approved: false IS set when report count reaches 3
     const updateCall = vi.mocked(firestore.updateDoc).mock.calls[0]?.[1];
     expect(updateCall).toEqual({
       reportCount: expect.any(Object),
       approved: false,
     });
 
-    // Verify communityReports log was created with status auto_suppressed
     expect(firestore.addDoc).toHaveBeenCalledWith(
       undefined,
       expect.objectContaining({
@@ -114,7 +110,6 @@ describe("communityReport", () => {
 
     await reportCommunityRecipe("recipe-3");
 
-    // Should return early and not update recipe or log report
     expect(firestore.updateDoc).not.toHaveBeenCalled();
     expect(firestore.addDoc).not.toHaveBeenCalled();
   });

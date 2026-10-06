@@ -16,11 +16,16 @@ export default [
       "@typescript-eslint": tsPlugin
     },
     rules: {
+      // React Compiler diagnostics are opt-in until experiments.reactCompiler is enabled.
+      "react-hooks/immutability": "off",
+      "react-hooks/preserve-manual-memoization": "off",
+      "react-hooks/refs": "off",
+      "react-hooks/set-state-in-effect": "off",
       "@typescript-eslint/no-floating-promises": "error",
       "@typescript-eslint/no-misused-promises": "error"
     }
   },
   {
-    ignores: ["node_modules", "dist", "coverage"]
+    ignores: ["node_modules", "dist", "coverage", "ios/**", "android/**"]
   }
 ];

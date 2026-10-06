@@ -76,23 +76,14 @@ export function ShoppingListScreen({ navigation }: Props) {
   );
   const checkedCount = items.length - remainingCount;
 
-  // Track whether we came from background to trigger a pull
   const wasInBackground = useRef(false);
 
-  // Keep a stable ref of items for use inside callbacks
   const itemsRef = useRef(items);
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
 
-
-
-  // ── Pull helper ───────────────────────────────────────────────────────────────
-  //
-  // Key design: pullFromSystem is stored in a ref so that doPull never depends
-  // on the `sync` object (which changes on every render). This prevents
-  // useFocusEffect from re-firing on every render, which would create a
-  // tight loop of pull → state update → re-render → pull → ...
+  // Keep doPull stable so useFocusEffect does not loop after state updates.
   const pullFromSystemRef = useRef(sync.pullFromSystem);
   useEffect(() => {
     pullFromSystemRef.current = sync.pullFromSystem;
@@ -102,7 +93,6 @@ export function ShoppingListScreen({ navigation }: Props) {
     const result = await pullFromSystemRef.current(itemsRef.current);
     if (!result) return;
 
-    // Apply updates to existing items (user changed them in Rappels)
     for (const item of result.updatedItems) {
       const original = itemsRef.current.find((i) => i.id === item.id);
       if (!original) continue;
@@ -110,15 +100,13 @@ export function ShoppingListScreen({ navigation }: Props) {
       if (original.label !== item.label) await updateItem(item.id, item.label, { skipSync: true });
     }
 
-    // Add items that were created directly in the Rappels app
     if (result.newReminderItems.length > 0) {
       const addResult = await addIngredients(
         result.newReminderItems.map((r) => r.label),
         {},
         { allowDuplicates: true, skipSync: true }
       );
-      // Register the reminderId ↔ avocookId mapping so the next push
-      // updates (not re-creates) these reminders.
+      // Link reminder IDs before the next push to avoid recreating them.
       const mappings = result.newReminderItems
         .map((r, idx) => {
           const added = addResult.added[idx];
@@ -127,7 +115,6 @@ export function ShoppingListScreen({ navigation }: Props) {
         .filter((m): m is { avocookId: string; reminderId: string } => m !== null);
       if (mappings.length > 0) await registerReminderMappings(mappings);
 
-      // If any of the new reminders were already completed, mark them checked in AvoCook
       for (let i = 0; i < result.newReminderItems.length; i++) {
         const added = addResult.added[i];
         const r = result.newReminderItems[i];
@@ -137,13 +124,12 @@ export function ShoppingListScreen({ navigation }: Props) {
       }
     }
 
-    // Remove items that were deleted in Rappels
     if (result.deletedItemIds.length > 0) {
       for (const id of result.deletedItemIds) {
         await removeItem(id, { skipSync: true });
       }
     }
-  }, [toggleItem, updateItem, addIngredients, removeItem]); // ← no `sync` dependency: stable!
+  }, [toggleItem, updateItem, addIngredients, removeItem]);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -151,7 +137,6 @@ export function ShoppingListScreen({ navigation }: Props) {
     setRefreshing(false);
   }, [doPull]);
 
-  // ── AppState listener: pull on app foreground ───────────────────────────────
   useEffect(() => {
     const sub = AppState.addEventListener("change", (next: AppStateStatus) => {
       if (next === "background" || next === "inactive") {
@@ -164,18 +149,13 @@ export function ShoppingListScreen({ navigation }: Props) {
     return () => sub.remove();
   }, [doPull]);
 
-  // ── Focus pull: pull when screen gains focus ────────────────────────────────
   useFocusEffect(
     useCallback(() => {
       void doPull();
     }, [doPull])
   );
 
-  // ── Handlers: compute next state before push for correct timing ──────────────
-  //
-  // React state (and itemsRef) updates AFTER the current render cycle.
-  // By computing the expected next state locally, we can push immediately
-  // with accurate data — no stale reads, no need to wait for a re-render.
+  // Push the computed next state before React applies the state update.
   const handleToggleItem = useCallback(async (id: string) => {
     await toggleItem(id);
   }, [toggleItem]);
@@ -481,7 +461,6 @@ function ShoppingListRow({
   const { colors } = useAppTheme();
   const [draftLabel, setDraftLabel] = useState(item.label);
   const inputRef = React.useRef<TextInput>(null);
-
 
   React.useEffect(() => {
     setDraftLabel(item.label);

@@ -13,6 +13,7 @@ import {
   limit,
   startAfter,
   increment,
+  runTransaction,
   serverTimestamp,
   type QueryDocumentSnapshot,
   type DocumentData,
@@ -22,8 +23,6 @@ import { getDb, waitForAuth, getAnonymousUid, getFirebaseStorage } from "../fire
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { cleanTranslatedText } from "./communityTranslation";
 import { isoDurationToMinutes, minutesToIsoDuration } from "../../utils/duration";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 export type RecipeLanguage = "en" | "fr" | "de" | "es" | "it" | "da";
 
@@ -35,7 +34,7 @@ export type CommunityRecipe = {
   steps: string[];
   language: RecipeLanguage;
   authorName: string;
-  authorUid?: string; // stored but not displayed publicly
+  authorUid?: string; // Not shown publicly.
   imageUrl?: string;
   sourceUrl?: string;
   prepTime?: string | null;
@@ -46,8 +45,8 @@ export type CommunityRecipe = {
   ratingCount: number;
   reportCount: number;
   approved: boolean;
-  createdAt: string; // ISO string (converted from Firestore Timestamp)
-  userVote?: number; // 1-5, populated client-side
+  createdAt: string; // ISO 8601.
+  userVote?: number; // 1-5, populated client-side.
 };
 
 export type FetchRecipesOptions = {
@@ -79,32 +78,18 @@ export type SubmitRecipeInput = {
   nutriScore?: "A" | "B" | "C" | "D" | "E" | null;
 };
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-/**
- * Sanitize duration values into valid ISO 8601 strings (e.g. "PT15M").
- * Converts raw minute numbers (e.g. "15"), ISO strings ("PT15M"), or text ("15 min").
- * Returns null if duration is zero or invalid.
- */
 export function sanitizeIsoDuration(value: string | null | undefined): string | null {
-  if (!value) return null;
+  if (typeof value !== "string" || !value) return null;
   const mins = isoDurationToMinutes(value);
   if (!mins || mins <= 0) return null;
   return minutesToIsoDuration(mins);
 }
 
-/**
- * Returns true only for remote http(s) URLs.
- */
 export function isRemoteUrl(url: string | null | undefined): url is string {
   if (!url) return false;
   return /^https?:\/\//i.test(url);
 }
 
-/**
- * Uploads a local image (file://, content://, ph://, data:image/...) to Firebase Storage
- * and returns the public HTTPS download URL.
- */
 export async function uploadCommunityImage(localUri: string): Promise<string | null> {
   if (!localUri) return null;
   if (isRemoteUrl(localUri)) return localUri;
@@ -133,35 +118,45 @@ export async function uploadCommunityImage(localUri: string): Promise<string | n
 
 function toRecipe(d: QueryDocumentSnapshot<DocumentData>): CommunityRecipe {
   const data = d.data();
+  const text = (value: unknown) => typeof value === "string" ? cleanTranslatedText(value) : "";
+  const count = (value: unknown) => typeof value === "number" && Number.isFinite(value)
+    ? Math.max(0, Math.floor(value)) : 0;
+  let createdAt = new Date().toISOString();
+  try {
+    const date: unknown = data.createdAt?.toDate?.();
+    if (date instanceof Date && Number.isFinite(date.getTime())) {
+      createdAt = date.toISOString();
+    }
+  } catch {
+    console.warn("community", "Invalid recipe timestamp", { id: d.id });
+  }
   return {
     id: d.id,
-    title: cleanTranslatedText(data.title ?? ""),
-    description: cleanTranslatedText(data.description ?? ""),
+    title: text(data.title),
+    description: text(data.description),
     ingredients: Array.isArray(data.ingredients)
-      ? data.ingredients.map((ing) => cleanTranslatedText(String(ing)))
+      ? data.ingredients.filter((ing): ing is string => typeof ing === "string").map(text)
       : [],
     steps: Array.isArray(data.steps)
-      ? data.steps.map((step) => cleanTranslatedText(String(step)))
+      ? data.steps.filter((step): step is string => typeof step === "string").map(text)
       : [],
-    language: data.language ?? "en",
-    authorName: cleanTranslatedText(data.authorName ?? ""),
-    authorUid: data.authorUid ?? undefined,
-    imageUrl: data.imageUrl ?? undefined,
-    sourceUrl: data.sourceUrl ?? undefined,
+    language: ["en", "fr", "de", "es", "it", "da"].includes(data.language) ? data.language : "en",
+    authorName: text(data.authorName),
+    authorUid: typeof data.authorUid === "string" ? data.authorUid : undefined,
+    imageUrl: typeof data.imageUrl === "string" && isRemoteUrl(data.imageUrl) ? data.imageUrl : undefined,
+    sourceUrl: typeof data.sourceUrl === "string" && isRemoteUrl(data.sourceUrl) ? data.sourceUrl : undefined,
     prepTime: sanitizeIsoDuration(data.prepTime) ?? null,
     cookTime: sanitizeIsoDuration(data.cookTime) ?? null,
-    servings: data.servings ?? null,
-    nutriScore: data.nutriScore ?? null,
-    avgRating: typeof data.avgRating === "number" ? data.avgRating : 0,
-    ratingCount: typeof data.ratingCount === "number" ? data.ratingCount : 0,
-    reportCount: typeof data.reportCount === "number" ? data.reportCount : 0,
+    servings: count(data.servings) || null,
+    nutriScore: ["A", "B", "C", "D", "E"].includes(data.nutriScore) ? data.nutriScore : null,
+    avgRating: typeof data.avgRating === "number" && Number.isFinite(data.avgRating)
+      ? Math.max(0, Math.min(5, data.avgRating)) : 0,
+    ratingCount: count(data.ratingCount),
+    reportCount: count(data.reportCount),
     approved: data.approved !== false,
-    createdAt:
-      data.createdAt?.toDate?.()?.toISOString?.() ?? new Date().toISOString(),
+    createdAt,
   };
 }
-
-// ─── Fetch ────────────────────────────────────────────────────────────────────
 
 export async function fetchCommunityRecipes(
   opts: FetchRecipesOptions = {}
@@ -171,9 +166,11 @@ export async function fetchCommunityRecipes(
     language = "all",
     minRating = 0,
     sortBy = "recent",
-    pageSize = 20,
+    pageSize: requestedPageSize = 20,
     after: afterDoc,
   } = opts;
+  const pageSize = Number.isFinite(requestedPageSize)
+    ? Math.max(1, Math.min(100, Math.floor(requestedPageSize))) : 20;
 
   const coll = collection(getDb(), "communityRecipes");
   const orderField =
@@ -207,8 +204,7 @@ export async function fetchCommunityRecipes(
     }
   }
   
-  // Client-side filtering
-  let filteredDocs = snap.docs.filter((d) => {
+  const filteredDocs = snap.docs.filter((d) => {
     const data = d.data();
     if (data.approved === false) return false;
     if (language !== "all" && data.language !== language) return false;
@@ -216,7 +212,7 @@ export async function fetchCommunityRecipes(
     return true;
   });
 
-  const hasMore = snap.docs.length >= fetchLimit;
+  const hasMore = filteredDocs.length > pageSize || snap.docs.length >= fetchLimit;
   const sliced = filteredDocs.slice(0, pageSize);
 
   const uid = getAnonymousUid();
@@ -232,7 +228,6 @@ export async function fetchCommunityRecipes(
             recipe.userVote = (voteSnap.data() as { stars: number }).stars;
           }
         } catch {
-          // Ignore rating lookup permission failures so recipe listing never fails
         }
       }
       return recipe;
@@ -241,18 +236,19 @@ export async function fetchCommunityRecipes(
 
   return {
     recipes,
-    lastDoc: snap.docs[snap.docs.length - 1] ?? null,
+    lastDoc: filteredDocs.length > pageSize
+      ? sliced[sliced.length - 1] ?? null
+      : snap.docs[snap.docs.length - 1] ?? null,
     hasMore,
   };
 }
-
-// ─── Submit ───────────────────────────────────────────────────────────────────
 
 export async function submitCommunityRecipe(
   input: SubmitRecipeInput
 ): Promise<string> {
   await waitForAuth();
   const uid = getAnonymousUid();
+  if (!uid) throw new Error("Not authenticated");
 
   let imageUrl: string | null = null;
   if (input.imageUrl) {
@@ -268,7 +264,7 @@ export async function submitCommunityRecipe(
     prepTime: sanitizeIsoDuration(input.prepTime ?? null),
     cookTime: sanitizeIsoDuration(input.cookTime ?? null),
     imageUrl: imageUrl,
-    authorUid: uid ?? null,
+    authorUid: uid,
     avgRating: 0,
     ratingCount: 0,
     reportCount: 0,
@@ -284,12 +280,13 @@ export async function updateCommunityRecipe(
   authorUid: string
 ): Promise<void> {
   await waitForAuth();
+  const uid = getAnonymousUid();
+  if (!uid || uid !== authorUid) throw new Error("Not authorized to update this recipe");
   const refDoc = doc(getDb(), "communityRecipes", recipeId);
   const snap = await getDoc(refDoc);
   if (!snap.exists()) throw new Error("Recipe not found");
   const data = snap.data();
-  // Only allow the original author to update
-  if (data.authorUid && data.authorUid !== authorUid) {
+  if (data.authorUid !== uid) {
     throw new Error("Not authorized to update this recipe");
   }
 
@@ -312,10 +309,6 @@ export async function updateCommunityRecipe(
   });
 }
 
-/**
- * Find an existing community recipe published by this user with the same title.
- * Returns the recipe id if found, null otherwise.
- */
 export async function findUserCommunityRecipe(
   authorUid: string,
   title: string
@@ -333,20 +326,18 @@ export async function findUserCommunityRecipe(
   return snap.docs[0]!.id;
 }
 
-/**
- * Soft-delete: marks a recipe as not approved and adds the authorUid to a deletedBy field.
- * Only the original author (matched by authorUid) can delete their own recipe.
- */
 export async function deleteCommunityRecipe(
   recipeId: string,
   authorUid: string
 ): Promise<void> {
   await waitForAuth();
+  const uid = getAnonymousUid();
+  if (!uid || uid !== authorUid) throw new Error("Not authorized to delete this recipe");
   const ref = doc(getDb(), "communityRecipes", recipeId);
   const snap = await getDoc(ref);
   if (!snap.exists()) throw new Error("Recipe not found");
   const data = snap.data();
-  if (data.authorUid && data.authorUid !== authorUid) {
+  if (data.authorUid !== uid) {
     throw new Error("Not authorized to delete this recipe");
   }
   await deleteDoc(ref);
@@ -396,12 +387,11 @@ export async function reservePseudonym(pseudo: string): Promise<void> {
   const key = normalizePseudonym(pseudo);
   if (!key) throw new Error("Invalid pseudonym");
   const ref = doc(getDb(), "pseudonyms", key);
-  const snap = await getDoc(ref);
-  if (snap.exists()) {
-    const existing = (snap.data() as { uid: string }).uid;
-    if (existing !== uid) throw new Error("PSEUDONYM_TAKEN");
-  }
-  await setDoc(ref, { uid, pseudonym: pseudo.trim(), reservedAt: serverTimestamp() });
+  await runTransaction(getDb(), async (transaction) => {
+    const snap = await transaction.get(ref);
+    if (snap.exists() && snap.data().uid !== uid) throw new Error("PSEUDONYM_TAKEN");
+    transaction.set(ref, { uid, pseudonym: pseudo.trim(), reservedAt: serverTimestamp() });
+  });
 }
 
 export async function releasePseudonym(pseudo: string): Promise<void> {
@@ -424,34 +414,27 @@ export async function voteOnRecipe(
   await waitForAuth();
   const uid = getAnonymousUid();
   if (!uid) throw new Error("Not authenticated");
-  if (stars < 1 || stars > 5) throw new Error("Stars must be 1–5");
+  if (!Number.isInteger(stars) || stars < 1 || stars > 5) throw new Error("Stars must be 1–5");
 
   const ratingRef = doc(getDb(), "communityRecipes", recipeId, "ratings", uid);
   const recipeRef = doc(getDb(), "communityRecipes", recipeId);
 
-  let prevStars = 0;
-  try {
-    const prevSnap = await getDoc(ratingRef);
-    if (prevSnap.exists()) {
-      prevStars = (prevSnap.data() as { stars: number }).stars;
-    }
-  } catch {
-    prevStars = 0;
-  }
-
-  await setDoc(ratingRef, { stars, at: serverTimestamp() });
-
-  const recipeSnap = await getDoc(recipeRef);
-  if (!recipeSnap.exists()) return;
-  const data = recipeSnap.data() as { avgRating: number; ratingCount: number };
-  const isNew = prevStars === 0;
-  const newCount = isNew ? data.ratingCount + 1 : data.ratingCount;
-  const sumBefore = data.avgRating * data.ratingCount;
-  const newAvg = (sumBefore - prevStars + stars) / Math.max(newCount, 1);
-
-  await updateDoc(recipeRef, {
-    avgRating: Math.round(newAvg * 10) / 10,
-    ratingCount: isNew ? increment(1) : data.ratingCount,
+  await runTransaction(getDb(), async (transaction) => {
+    const prevSnap = await transaction.get(ratingRef);
+    const recipeSnap = await transaction.get(recipeRef);
+    if (!recipeSnap.exists()) throw new Error("Recipe not found");
+    const previous = prevSnap.exists() ? prevSnap.data().stars : 0;
+    const prevStars = Number.isInteger(previous) && previous >= 1 && previous <= 5 ? previous : 0;
+    const data = recipeSnap.data();
+    const ratingCount = Number.isInteger(data.ratingCount) && data.ratingCount >= 0 ? data.ratingCount : 0;
+    const avgRating = Number.isFinite(data.avgRating) ? Math.max(0, Math.min(5, data.avgRating)) : 0;
+    const newCount = prevStars === 0 ? ratingCount + 1 : Math.max(1, ratingCount);
+    const newAvg = (avgRating * ratingCount - prevStars + stars) / newCount;
+    transaction.set(ratingRef, { stars, at: serverTimestamp() });
+    transaction.update(recipeRef, {
+      avgRating: Math.max(0, Math.min(5, Math.round(newAvg * 10) / 10)),
+      ratingCount: newCount
+    });
   });
 }
 
@@ -472,7 +455,6 @@ export async function getCommunityRecipe(
         recipe.userVote = (voteSnap.data() as { stars: number }).stars;
       }
     } catch {
-      // Ignore subcollection permission errors so recipe detail always displays
     }
   }
   return recipe;
@@ -488,7 +470,6 @@ export async function reportCommunityRecipe(
   const db = getDb();
   const uid = getAnonymousUid();
 
-  // Prevent duplicate reports from the same user
   if (uid) {
     const userReportRef = doc(db, "communityRecipes", recipeId, "reports", uid);
     const userReportSnap = await getDoc(userReportRef);
@@ -515,7 +496,6 @@ export async function reportCommunityRecipe(
     ...(isAutoSuppressed ? { approved: false } : {}),
   });
 
-  // Record moderation alert for admin notification
   await addDoc(collection(db, "communityReports"), {
     recipeId,
     recipeTitle: data.title ?? "Unknown",
@@ -527,4 +507,3 @@ export async function reportCommunityRecipe(
     createdAt: serverTimestamp(),
   });
 }
-

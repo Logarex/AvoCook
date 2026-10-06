@@ -168,7 +168,6 @@ class LogService {
         });
       }
     } catch {
-      // Ignore if ErrorUtils is unavailable
     }
   }
 
@@ -199,8 +198,8 @@ class LogService {
     return str
       .replace(/(Basic\s+)[A-Za-z0-9+/=]+/gi, "$1***")
       .replace(/(Bearer\s+)[A-Za-z0-9._-]+/gi, "$1***")
-      .replace(/("?(?:appPassword|password|token|authorization|auth|secret)"?\s*[:=]\s*")[^"]+(")/gi, '$1***$2')
-      .replace(/("?(?:appPassword|password|token|authorization|auth|secret)"?\s*[:=]\s*)[^\s&,;]+/gi, '$1***')
+      .replace(/("?(?:appPassword|password|token|authorization|auth|secret|api[-_]?key|x-api-key)"?\s*[:=]\s*")[^"]+(")/gi, '$1***$2')
+      .replace(/("?(?:appPassword|password|token|authorization|auth|secret|api[-_]?key|x-api-key)"?\s*[:=]\s*)[^\s&,;]+/gi, '$1***')
       .replace(/(password\s+is\s+)[^\s&,;]+/gi, '$1***')
       .replace(/(token\s+is\s+)[^\s&,;]+/gi, '$1***')
       .replace(/(https?:\/\/[^:]+:)[^@]+(@)/gi, "$1***$2");
@@ -218,7 +217,8 @@ class LogService {
         lowerKey.includes("password") ||
         lowerKey.includes("token") ||
         lowerKey.includes("authorization") ||
-        lowerKey.includes("secret")
+        lowerKey.includes("secret") ||
+        lowerKey.replace(/[-_]/g, "").includes("apikey")
       ) {
         sanitized[key] = "***";
       } else if (typeof value === "object" && value !== null) {

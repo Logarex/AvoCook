@@ -1,10 +1,4 @@
-/* =========================================
-   AVOCOOK — Design System
-   ========================================= */
-
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
-
-/* --- Custom Properties --- */
 :root {
   --avocado:       #5A8A5E;
   --avocado-light: #7AB68A;
@@ -16,8 +10,6 @@
   --night-deep:    #0A1612;
   --night-mid:     #172820;
   --gold:          #C9A04A;
-
-  /* Dark mode (default) */
   --bg:            #14120F;
   --bg-subtle:     #211E19;
   --bg-card:       rgba(255,255,255,0.055);
@@ -61,8 +53,6 @@
   --shadow:        0 8px 40px rgba(16,32,29,0.12);
   --shadow-card:   0 2px 16px rgba(16,32,29,0.08);
 }
-
-/* --- Top accent bar --- */
 body::before {
   content: '';
   position: fixed;
@@ -71,8 +61,6 @@ body::before {
   background: linear-gradient(90deg, var(--accent-strong), var(--accent), var(--gold));
   z-index: 999;
 }
-
-/* --- Reset & Base --- */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 body {
@@ -95,8 +83,6 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 }
 
 section { padding: var(--section-pad) 0; }
-
-/* --- Section labels / titles --- */
 .section-label {
   display: inline-flex;
   align-items: center;
@@ -126,10 +112,6 @@ section { padding: var(--section-pad) 0; }
   line-height: 1.7;
 }
 .highlight { color: var(--accent); }
-
-/* =========================================
-   NAV
-   ========================================= */
 nav {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -168,9 +150,7 @@ nav.scrolled {
   object-fit: contain;
   display: block;
 }
-/* Light/dark logo swap */
-/* .logo-dark = file logo-dark.png (which is light-colored, for dark theme) */
-/* .logo-light = file logo.png (which is dark-colored, for light theme) */
+/* Logo filenames refer to the background theme, not the logo color. */
 .nav-logo-img.logo-dark  { display: block; }
 .nav-logo-img.logo-light { display: none; }
 [data-theme="light"] .nav-logo-img.logo-dark  { display: none; }
@@ -184,8 +164,6 @@ nav.scrolled {
   flex-shrink: 0;
 }
 .nav-actions { display: flex; align-items: center; gap: 10px; }
-
-/* Lang selector */
 .lang-selector {
   display: flex;
   align-items: center;
@@ -206,8 +184,6 @@ nav.scrolled {
 }
 .lang-btn:hover { color: var(--text); background: var(--bg-card-hover); }
 .lang-btn.active { color: var(--accent); background: var(--bg-badge); }
-
-/* Theme toggle */
 .theme-toggle {
   width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
@@ -219,8 +195,6 @@ nav.scrolled {
   transition: all var(--transition);
 }
 .theme-toggle:hover { color: var(--text); background: var(--bg-card-hover); }
-
-/* Download dropdown */
 .nav-download-wrap {
   position: relative;
 }
@@ -258,7 +232,6 @@ nav.scrolled {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   z-index: 200;
-  /* Force background behind blur */
   background: color-mix(in srgb, var(--bg) 90%, transparent);
 }
 [data-theme="dark"] .download-dropdown { background: rgba(16,32,29,0.96); }
@@ -291,8 +264,6 @@ nav.scrolled {
 .download-option-label { flex: 1; }
 .download-option-name { font-size: 14px; font-weight: 700; }
 .download-option-sub { font-size: 11.5px; color: var(--text-muted); margin-top: 1px; }
-
-/* Nav CTA */
 .nav-cta {
   display: flex; align-items: center; gap: 6px;
   background: var(--accent);
@@ -310,10 +281,6 @@ nav.scrolled {
   transition: transform var(--transition);
 }
 .nav-download-wrap:hover .nav-cta-arrow { transform: rotate(180deg); }
-
-/* =========================================
-   HERO
-   ========================================= */
 .hero {
   min-height: 100vh;
   display: flex;
@@ -431,8 +398,6 @@ nav.scrolled {
 .hero-stat { display: flex; flex-direction: column; gap: 2px; }
 .hero-stat-value { font-size: 26px; font-weight: 800; letter-spacing: -0.025em; }
 .hero-stat-label { font-size: 13px; color: var(--text-muted); }
-
-/* Phone mockups */
 .hero-phones {
   position: relative;
   height: 560px;
@@ -491,10 +456,6 @@ nav.scrolled {
   padding: 24px;
 }
 .phone-placeholder-icon { font-size: 36px; opacity: 0.45; }
-
-/* =========================================
-   FEATURES
-   ========================================= */
 .features { background: var(--bg-subtle); }
 .features-header { text-align: center; margin-bottom: 56px; }
 .features-header .section-subtitle { margin: 0 auto; }
@@ -541,10 +502,6 @@ nav.scrolled {
   letter-spacing: 0.06em; width: fit-content;
   margin-top: 4px;
 }
-
-/* =========================================
-   SCREENSHOTS
-   ========================================= */
 .screenshots { overflow: hidden; }
 .screenshots-header { text-align: center; margin-bottom: 44px; }
 
@@ -593,10 +550,6 @@ nav.scrolled {
   text-transform: uppercase;
   color: var(--text-faint);
 }
-
-/* =========================================
-   HOW IT WORKS
-   ========================================= */
 .how-it-works { background: var(--bg-subtle); }
 .how-header { margin-bottom: 52px; }
 
@@ -639,10 +592,6 @@ nav.scrolled {
   font-size: 14px; color: var(--text-muted);
 }
 .mode-points li::before { content: '→'; color: var(--accent); font-weight: 700; flex-shrink: 0; }
-
-/* =========================================
-   IMPORT
-   ========================================= */
 .import-inner {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 72px; align-items: center;
@@ -711,10 +660,6 @@ nav.scrolled {
 }
 .info-box-title { font-size: 15px; font-weight: 700; }
 .info-box-text { font-size: 14px; color: var(--text-muted); line-height: 1.65; }
-
-/* =========================================
-   ABOUT
-   ========================================= */
 .about { background: var(--bg-subtle); }
 .about-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 72px; align-items: start; }
 
@@ -746,10 +691,6 @@ nav.scrolled {
   line-height: 1; margin-bottom: 6px;
 }
 .about-number-label { font-size: 13.5px; color: var(--text-muted); line-height: 1.5; }
-
-/* =========================================
-   TECH STACK
-   ========================================= */
 .tech-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -772,10 +713,6 @@ nav.scrolled {
 }
 .tech-card-name { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
 .tech-card-desc { font-size: 13px; color: var(--text-muted); line-height: 1.6; }
-
-/* =========================================
-   OPEN SOURCE
-   ========================================= */
 .opensource { background: var(--bg-subtle); }
 .opensource-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; }
 
@@ -798,10 +735,6 @@ nav.scrolled {
 .opensource-link-name { font-weight: 700; font-size: 14.5px; }
 .opensource-link-sub { font-size: 12.5px; color: var(--text-muted); margin-top: 2px; }
 .opensource-link-arrow { color: var(--text-faint); font-size: 15px; flex-shrink: 0; }
-
-/* =========================================
-   DONATE
-   ========================================= */
 .donate { text-align: center; }
 .donate-inner { max-width: 640px; margin: 0 auto; }
 .donate-title { font-size: clamp(26px, 3.5vw, 40px); }
@@ -830,13 +763,6 @@ nav.scrolled {
 }
 .donate-btn-paypal:hover { background: var(--bg-card-hover); transform: translateY(-3px); }
 .donate-note { font-size: 13px; color: var(--text-faint); margin-top: 20px; }
-
-/* =========================================
-   FOOTER
-   ========================================= */
-/* =========================================
-   CONTACT
-   ========================================= */
 .contact { background: var(--bg-subtle); }
 .contact-inner {
   display: grid;
@@ -878,10 +804,6 @@ nav.scrolled {
 .contact-card-note {
   font-size: 13px; color: var(--text-muted); line-height: 1.62;
 }
-
-/* =========================================
-   FOOTER
-   ========================================= */
 footer {
   padding: 44px 0;
   border-top: 1px solid var(--border);
@@ -900,10 +822,6 @@ footer {
 .footer-links { display: flex; gap: 22px; flex-wrap: wrap; align-items: center; }
 .footer-link { font-size: 13.5px; color: var(--text-muted); transition: color var(--transition); }
 .footer-link:hover { color: var(--text); }
-
-/* =========================================
-   ANIMATIONS
-   ========================================= */
 .fade-up {
   opacity: 0;
   transform: translateY(28px);
@@ -913,10 +831,6 @@ footer {
 .fade-up.delay-1 { transition-delay: 0.1s; }
 .fade-up.delay-2 { transition-delay: 0.2s; }
 .fade-up.delay-3 { transition-delay: 0.32s; }
-
-/* =========================================
-   RESPONSIVE
-   ========================================= */
 @media (max-width: 1024px) {
   .tech-grid { grid-template-columns: repeat(3, 1fr); }
   .hero-inner { grid-template-columns: 1fr 380px; gap: 40px; }

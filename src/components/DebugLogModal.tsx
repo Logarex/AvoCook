@@ -69,7 +69,6 @@ export function DebugLogModal({ visible, onClose, serverUrl }: Props) {
     >
       <View style={styles.backdrop}>
         <GlassPanel style={styles.modalCard}>
-          {/* Header */}
           <View style={styles.header}>
             <View style={styles.titleRow}>
               <FileText color={colors.primary} size={22} />
@@ -85,7 +84,6 @@ export function DebugLogModal({ visible, onClose, serverUrl }: Props) {
             />
           </View>
 
-          {/* SSL Warning Banner if detected */}
           {isSelfSigned ? (
             <View style={[styles.sslBanner, { backgroundColor: colors.danger + "15", borderColor: colors.danger + "40" }]}>
               <AlertTriangle color={colors.danger} size={20} style={{ marginTop: 2 }} />
@@ -103,7 +101,6 @@ export function DebugLogModal({ visible, onClose, serverUrl }: Props) {
             </View>
           ) : null}
 
-          {/* Log count summary */}
           <View style={styles.subHeader}>
             <AppText muted variant="caption">
               {t("auth.logCount", "{{count}} entrées enregistrées", { count: logs.length })}
@@ -118,7 +115,6 @@ export function DebugLogModal({ visible, onClose, serverUrl }: Props) {
             ) : null}
           </View>
 
-          {/* Logs View */}
           <ScrollView
             style={[styles.logsScroll, { backgroundColor: colors.background + "80", borderColor: colors.border }]}
             contentContainerStyle={styles.logsScrollContent}
@@ -165,7 +161,6 @@ export function DebugLogModal({ visible, onClose, serverUrl }: Props) {
             )}
           </ScrollView>
 
-          {/* Actions */}
           <View style={styles.actions}>
             <PrimaryButton
               icon={copied ? Check : Copy}

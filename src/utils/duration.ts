@@ -24,13 +24,11 @@ export function isoDurationToMinutes(duration?: string | null): number | null {
     return null;
   }
 
-  // 1) Direct numeric string (e.g. "15", "90")
   if (/^\d+$/.test(trimmed)) {
     const val = Number(trimmed);
     return val > 0 ? val : null;
   }
 
-  // 2) Standard ISO 8601 pattern
   const match = trimmed.match(isoDurationPattern);
   if (match?.groups) {
     const days = Number(match.groups.days ?? 0);
@@ -41,7 +39,6 @@ export function isoDurationToMinutes(duration?: string | null): number | null {
     return total > 0 ? total : null;
   }
 
-  // 3) Fallback text formats like "1h30", "1 h 30 min", "15 min", "1h"
   const textMatch = trimmed.match(/^(?:(\d+)\s*h(?:ours?)?)?\s*(\d+)?(?:\s*m(?:in)?)?$/i);
   if (textMatch && (textMatch[1] || textMatch[2])) {
     const hours = Number(textMatch[1] ?? 0);

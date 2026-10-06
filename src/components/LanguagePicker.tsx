@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end"
   },
   modalScrim: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0,0,0,0.5)"
   },
   modalSheet: {
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
   separator: {
     height: StyleSheet.hairlineWidth,
     width: "100%",
-    marginLeft: spacing.sm // optional: indents separator like iOS
+    marginLeft: spacing.sm
   },
   optionRow: {
     alignItems: "center",

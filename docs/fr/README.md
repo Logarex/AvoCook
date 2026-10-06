@@ -18,7 +18,8 @@ Je l'ai développé pour mon usage personnel en apprenant à mener un projet Rea
 ### Plateforme Communautaire
 
 - Découvrez, notez et importez des recettes de la communauté AvoCook ;
-- Traduisez les recettes de la communauté directement dans l'application ;
+- Les recettes de la communauté s’affichent automatiquement dans la langue de l’application, dans la liste comme dans le détail ;
+- Consultez l’original à tout moment ou importez la version traduite dans votre carnet de recettes ;
 - Partagez vos meilleurs plats en créant un profil communautaire ;
 - Plateforme modérée et sécurisée avec détection de spam intégrée.
 
@@ -65,7 +66,9 @@ Français · Anglais · Allemand · Espagnol · Italien · Danois
 
 ## Configuration pour le développement
 
-Le projet utilise Expo, React Native et TypeScript.
+Le projet utilise Expo SDK 57, React Native 0.86 et TypeScript. Node.js 22.13 ou plus récent est requis. Les builds iOS locaux utilisent Xcode 27 et Device Hub ; la version minimale d'iOS prise en charge est 16.4.
+
+Les builds Android locaux nécessitent JDK 17 et Android SDK 36. Définissez `JAVA_HOME` vers votre installation de JDK 17 si votre système utilise encore une version plus ancienne de Java par défaut.
 
 ```bash
 npm install
@@ -75,6 +78,8 @@ npm run android  # Émulateur Android
 
 Un build de développement avec les modules natifs est compilé au premier lancement. Ensuite, l'application s'ouvre directement.
 
+Les projets `ios/` et `android/` sont générés à partir de `app.json`, de `tools/plugins/` et des modules locaux de `src/modules/`. Après une mise à jour du SDK ou des dépendances natives, régénérez-les avec `npx expo prebuild --clean` avant de compiler à nouveau. Le plugin `expo-build-properties` active le cycle de vie UIKit fondé sur les scènes, requis par Xcode 27.
+
 Commandes utiles :
 
 ```bash
@@ -83,6 +88,8 @@ npm test                                # Tests unitaires (Vitest)
 npm run lint                            # ESLint
 npm run import:check -- <url-recette>   # Tester l'import depuis une URL
 ```
+
+Le [rapport de fiabilité et de sécurité](../AUDIT_FIABILITE_SECURITE.md) détaille les contrôles, les corrections et les risques restants, notamment les règles d'accès Firebase et l'isolation des comptes Nextcloud.
 
 ---
 

@@ -16,8 +16,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 
-// ─── Config ───────────────────────────────────────────────────────────────────
-// These are public client-side keys — security is enforced by Firestore rules.
+// Firebase client keys are public; Firestore rules control access.
 
 const firebaseConfig = {
   apiKey: "AIzaSyC4oE9zYpcXeZjEL8qtvrzAD6oEjFca6G0",
@@ -27,8 +26,6 @@ const firebaseConfig = {
   messagingSenderId: "204779122565",
   appId: "1:204779122565:web:b85ff2a92fd734b1eddeec",
 };
-
-// ─── Singleton ────────────────────────────────────────────────────────────────
 
 let _app: FirebaseApp;
 let _db: Firestore;
@@ -87,7 +84,8 @@ export function initFirebaseAuth(): void {
         _authReadyCallbacks.forEach((cb) => cb(user));
         _authReadyCallbacks = [];
       } else {
-        // Not signed in → sign in anonymously
+        _user = null;
+        _authReady = false;
         try {
           const result = await signInAnonymously(auth);
           _user = result.user;
@@ -109,15 +107,19 @@ export function getCurrentUser(): User | null {
   return _user;
 }
 
-/**
- * Returns a promise that resolves once Firebase auth is initialized.
- * Use this before any Firestore call that requires auth.
- */
-export function waitForAuth(): Promise<User | null> {
+export function waitForAuth(timeoutMs = 15000): Promise<User | null> {
   initFirebaseAuth();
   if (_authReady) return Promise.resolve(_user);
   return new Promise((resolve) => {
-    _authReadyCallbacks.push(resolve);
+    const callback = (user: User | null) => {
+      clearTimeout(timeout);
+      resolve(user);
+    };
+    const timeout = setTimeout(() => {
+      _authReadyCallbacks = _authReadyCallbacks.filter((pending) => pending !== callback);
+      resolve(null);
+    }, timeoutMs);
+    _authReadyCallbacks.push(callback);
   });
 }
 

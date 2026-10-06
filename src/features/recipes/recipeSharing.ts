@@ -94,7 +94,7 @@ export async function shareRecipePdf(
     if (namedFile.exists) {
       namedFile.delete();
     }
-    file.copy(namedFile);
+    await file.copy(namedFile);
     namedFileUri = namedFile.uri;
     await shareFile(namedFile.uri, {
       UTI: "com.adobe.pdf",
@@ -212,7 +212,7 @@ async function getPrintImageUri(
   if (client && canUseRemoteRecipeImageFallback(recipe)) {
     const imageUrl = client.getRecipeImageUrl(recipe.id, "full");
     const downloaded = await downloadTempPrintImage(imageUrl, {
-      headers: client.getImageHeaders()
+      headers: client.getImageHeaders(imageUrl)
     });
     if (downloaded) {
       return downloaded;
@@ -247,7 +247,6 @@ async function downloadTempPrintImage(
           try {
             file.delete();
           } catch {
-            // Best-effort cleanup after a deliberately skipped slow image.
           }
         })
         .catch(() => undefined);

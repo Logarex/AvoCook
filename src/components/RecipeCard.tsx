@@ -3,9 +3,9 @@ import { Clock, Tag } from "lucide-react-native";
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import {
-  getPreferredDisplayRecipeImage,
-  isCookbookImageEndpoint
+  getPreferredDisplayRecipeImage
 } from "../features/recipes/recipeImageReferences";
+import type { CookbookClient } from "../features/nextcloud/cookbookClient";
 import { Recipe } from "../features/recipes/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -14,13 +14,13 @@ import { AppText } from "./AppText";
 
 export const RecipeCard = React.memo(function RecipeCard({
   fallbackImageUri,
-  imageHeaders,
+  imageClient,
   recipe,
   onLongPress,
   onPress
 }: {
   fallbackImageUri?: string;
-  imageHeaders?: Record<string, string>;
+  imageClient?: CookbookClient | null;
   recipe: Recipe;
   onLongPress?: () => void;
   onPress: () => void;
@@ -30,7 +30,7 @@ export const RecipeCard = React.memo(function RecipeCard({
   const imageSource = imageUri
     ? {
         uri: imageUri,
-        headers: isCookbookImageEndpoint(imageUri) ? imageHeaders : undefined
+        headers: imageClient?.getImageHeaders(imageUri)
       }
     : null;
   const totalTime = humanDuration(recipe.totalTime || recipe.prepTime);

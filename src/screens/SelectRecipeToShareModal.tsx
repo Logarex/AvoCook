@@ -73,7 +73,6 @@ export function SelectRecipeToShareModal({
                 await waitForAuth();
                 const uid = getAnonymousUid();
 
-                // Check if user already published a recipe with this title or linked ID
                 const existingId = recipe.localMeta?.communityId
                   ? recipe.localMeta.communityId
                   : uid
@@ -99,7 +98,6 @@ export function SelectRecipeToShareModal({
                 };
 
                 if (existingId) {
-                  // Ask whether to update or create new
                   setSubmitting(false);
                   Alert.alert(
                     t("community.updateOrNewTitle"),
@@ -151,7 +149,6 @@ export function SelectRecipeToShareModal({
                   return;
                 }
 
-                // Check global duplicate (same title + same steps from any user)
                 const isDuplicate = await checkCommunityRecipeDuplicate(
                   recipe.name,
                   finalPseudonym,
@@ -299,7 +296,7 @@ const styles = StyleSheet.create({
     justifyContent: "flex-end"
   },
   modalScrim: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0, 0, 0, 0.4)"
   },
   panel: {

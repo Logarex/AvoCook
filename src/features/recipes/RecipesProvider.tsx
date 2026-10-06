@@ -147,8 +147,12 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   }, [reloadLocal]);
 
   useEffect(() => {
-    void loadCustomCategories(effectiveShowDefaultCategories).then(setCustomCategories);
-    void loadFavoriteCategories().then(setFavoriteCategories);
+    void loadCustomCategories(effectiveShowDefaultCategories)
+      .then(setCustomCategories)
+      .catch((error: unknown) => console.warn("local", "Could not load categories", error));
+    void loadFavoriteCategories()
+      .then(setFavoriteCategories)
+      .catch((error: unknown) => console.warn("local", "Could not load favorite categories", error));
   }, [effectiveShowDefaultCategories]);
 
   const sync = useCallback(async () => {
@@ -161,27 +165,34 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     }
 
     syncInFlightRef.current = true;
-    
-    const firstSyncCompleted = await AsyncStorage.getItem("recipes.firstSyncCompleted");
-    const isFirstSync = firstSyncCompleted !== "true";
-    
-    const stopLongActionNotice = isFirstSync ? watchLongAction("longActions.sync") : () => {};
+    let stopLongActionNotice = () => {};
     setSyncing(true);
     try {
-      setRecipes(await syncRecipes(client, keepRecipesLocal, repositoryOptions));
-      
+      const firstSyncCompleted = await AsyncStorage.getItem("recipes.firstSyncCompleted")
+        .catch(() => null);
+      const isFirstSync = firstSyncCompleted !== "true";
       if (isFirstSync) {
-        await AsyncStorage.setItem("recipes.firstSyncCompleted", "true");
+        stopLongActionNotice = watchLongAction("longActions.sync");
+      }
+      setRecipes(await syncRecipes(client, keepRecipesLocal, repositoryOptions));
+
+      if (isFirstSync) {
+        await AsyncStorage.setItem("recipes.firstSyncCompleted", "true")
+          .catch((error: unknown) => console.warn("local", "Could not save first sync status", error));
       }
       
       setLastError(null);
     } catch (error) {
       setLastError(error instanceof Error ? error.message : String(error));
-      setRecipes(await initialiseRecipeStore());
+      try {
+        setRecipes(await initialiseRecipeStore());
+      } catch (localError) {
+        console.warn("local", "Could not reload recipes after sync failure", localError);
+      }
     } finally {
-      stopLongActionNotice();
       syncInFlightRef.current = false;
       setSyncing(false);
+      stopLongActionNotice();
     }
   }, [getClient, keepRecipesLocal, repositoryOptions, watchLongAction]);
 
@@ -200,7 +211,9 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (credentials && !keepRecipesLocal && !isLocalMode) {
-      void clearSyncedLocalRecipes();
+      void clearSyncedLocalRecipes().catch((error: unknown) => {
+        setLastError(error instanceof Error ? error.message : String(error));
+      });
     }
   }, [credentials, isLocalMode, keepRecipesLocal]);
 

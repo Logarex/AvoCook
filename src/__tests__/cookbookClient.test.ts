@@ -13,7 +13,75 @@ vi.mock("expo-file-system", () => ({
 describe("CookbookClient", () => {
   afterEach(() => {
     vi.restoreAllMocks();
+    CookbookClient.setCurrent(null);
   });
+
+  it("keeps the active account unchanged while constructing a client for connection validation", () => {
+    const active = new CookbookClient({ serverUrl: "https://active.example", username: "user", appPassword: "secret" });
+    CookbookClient.setCurrent(active);
+    new CookbookClient({ serverUrl: "https://candidate.example", username: "other", appPassword: "wrong" });
+    expect(CookbookClient.getCurrent()).toBe(active);
+    CookbookClient.setCurrent(null);
+    expect(CookbookClient.getCurrent()).toBeNull();
+  });
+
+  it.each(["https://cloud.example.com", "http://192.168.1.50:8080/nextcloud"])(
+    "only attaches image credentials to Cookbook endpoints on %s",
+    (serverUrl) => {
+      const client = new CookbookClient({ serverUrl, username: "user", appPassword: "secret" });
+      expect(client.getImageHeaders(client.getRecipeImageUrl("42"))?.Authorization)
+        .toBe(`Basic ${base64Encode("user:secret")}`);
+      expect(client.getImageHeaders(`${serverUrl}/index.php/apps/cookbook/webapp/recipes/42/image?size=full`))
+        .toHaveProperty("Authorization");
+      for (const uri of [
+        "https://attacker.example/apps/cookbook/api/v1/recipes/42/image",
+        `${serverUrl}/other?path=/apps/cookbook/api/v1/recipes/42/image`,
+        `${serverUrl}/apps/cookbook/api/v1/recipes/42/image/other`,
+        `${serverUrl}/photo.jpg`,
+        "file:///photo.jpg"
+      ]) {
+        expect(client.getImageHeaders(uri)).toBeUndefined();
+      }
+      const url = new URL(client.getRecipeImageUrl("42"));
+      url.protocol = url.protocol === "https:" ? "http:" : "https:";
+      expect(client.getImageHeaders(url.toString())).toBeUndefined();
+      url.protocol = new URL(serverUrl).protocol;
+      url.port = "1234";
+      expect(client.getImageHeaders(url.toString())).toBeUndefined();
+    }
+  );
+
+  it.each(["/Recipes/../photo.jpg", "/Recipes/./photo.jpg"])(
+    "rejects destructive WebDAV paths containing dot segments: %s",
+    async (path) => {
+      const fetchMock = vi.spyOn(globalThis, "fetch");
+      const client = new CookbookClient({
+        serverUrl: "https://cloud.example.com", username: "user", appPassword: "secret", userId: "user"
+      });
+      await expect(client.deleteWebDavFile(path)).rejects.toThrow("Invalid Nextcloud file path");
+      expect(fetchMock).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each(["https://cloud.example.com", "http://192.168.1.50:8080/nextcloud"])(
+    "preserves the POST body and authentication when falling back to index.php on %s",
+    async (serverUrl) => {
+      const fetchMock = vi.spyOn(globalThis, "fetch")
+        .mockResolvedValueOnce(new Response("Not found", { status: 404 }))
+        .mockResolvedValueOnce(new Response("123", { status: 200, headers: { "Content-Type": "application/json" } }));
+      const client = new CookbookClient({ serverUrl, username: "user", appPassword: "secret" });
+      expect(await client.createRecipe(normalizeRecipe({ name: "Cake" }))).toBe(123);
+      expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+        `${serverUrl}/apps/cookbook/api/v1/recipes`,
+        `${serverUrl}/index.php/apps/cookbook/api/v1/recipes`
+      ]);
+      const [first, fallback] = fetchMock.mock.calls.map(([, options]) => options!);
+      expect(fallback.body).toBe(first.body);
+      expect(fallback.method).toBe("POST");
+      expect(new Headers(fallback.headers).get("Authorization"))
+        .toBe(`Basic ${base64Encode("user:secret")}`);
+    }
+  );
 
   it("validates an HTTP Nextcloud connection and lists recipes without upgrading the protocol", async () => {
     const serverUrl = "http://192.168.1.50:8080/nextcloud";

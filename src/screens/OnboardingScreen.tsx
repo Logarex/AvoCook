@@ -147,7 +147,6 @@ export function OnboardingScreen({ navigation }: Props) {
         />
       </View>
 
-      {/* Pages — horizontal paged ScrollView */}
       <ScrollView
         ref={scrollViewRef}
         horizontal
@@ -170,7 +169,6 @@ export function OnboardingScreen({ navigation }: Props) {
         <View style={{ width: SCREEN_WIDTH, flex: 1 }}>{pages[1]}</View>
       </ScrollView>
 
-      {/* Dot indicators */}
       <View style={styles.dots}>
         {[dot0Scale, dot1Scale].map((scale, i) => (
           <Pressable
@@ -198,10 +196,6 @@ export function OnboardingScreen({ navigation }: Props) {
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ─────────────────────────────────────────────────────────────────────────────
-
 function Page1({
   logo,
   colors,
@@ -216,7 +210,6 @@ function Page1({
   return (
     <View style={styles.page}>
       <View style={{ flex: 1, justifyContent: "center" }}>
-        {/* Hero */}
         <View style={styles.hero}>
           <Image
             accessible={false}
@@ -267,7 +260,6 @@ function Page1({
         </View>
       </View>
 
-      {/* CTA */}
       <View style={styles.pageActions}>
         <PrimaryButton
           icon={ChefHat}
@@ -343,10 +335,6 @@ function Page2({
     </View>
   );
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   root: {

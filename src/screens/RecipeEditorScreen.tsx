@@ -155,7 +155,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const photoSource = photoDisplayUri
     ? {
         uri: photoDisplayUri,
-        headers: !photoLocalUri ? photoClient?.getImageHeaders() : undefined
+        headers: !photoLocalUri ? photoClient?.getImageHeaders(photoUrl) : undefined
       }
     : null;
 

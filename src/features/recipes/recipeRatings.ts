@@ -4,8 +4,6 @@ const RATINGS_KEY = "recipe.ratings";
 
 type RatingsMap = Record<string, number>; // recipeId → 1-5
 
-// ─── Local storage ────────────────────────────────────────────────────────────
-
 async function loadRatings(): Promise<RatingsMap> {
   try {
     const raw = await AsyncStorage.getItem(RATINGS_KEY);
@@ -36,7 +34,6 @@ export async function setRecipeRating(
     ratings[recipeId] = Math.max(1, Math.min(5, Math.round(stars)));
   }
   await saveRatings(ratings);
-  // Sync to Nextcloud if available (fire-and-forget)
   void syncRatingsToNextcloud(ratings);
 }
 
@@ -44,19 +41,15 @@ export async function getAllRatings(): Promise<RatingsMap> {
   return loadRatings();
 }
 
-// ─── Nextcloud sync ───────────────────────────────────────────────────────────
-// Stored in /AvoCook/ratings.json via WebDAV. 
-// Imported lazily so it doesn't crash if Nextcloud is not configured.
+// Ratings use /AvoCook/ratings.json; load the client lazily when Nextcloud is configured.
 
 async function syncRatingsToNextcloud(ratings: RatingsMap): Promise<void> {
   try {
     const { CookbookClient } = await import("../nextcloud/cookbookClient");
-    // Get a client instance from the singleton if it exists
     const client = CookbookClient.getCurrent?.();
     if (!client) return;
     await client.putJsonWebDav("/AvoCook/ratings.json", ratings);
   } catch {
-    // Silently ignore if Nextcloud is unavailable
   }
 }
 
@@ -66,7 +59,7 @@ export async function pullRatingsFromNextcloud(
   try {
     const remote = await client.getJsonWebDav<RatingsMap>("/AvoCook/ratings.json");
     if (!remote) return;
-    // Merge: local wins if newer (we don't track timestamps per rating, so merge by max)
+    // Ratings have no timestamps; keep the higher score when merging.
     const local = await loadRatings();
     const merged: RatingsMap = { ...remote };
     for (const [id, stars] of Object.entries(local)) {
@@ -74,6 +67,5 @@ export async function pullRatingsFromNextcloud(
     }
     await saveRatings(merged);
   } catch {
-    // Ignore
   }
 }

@@ -45,6 +45,7 @@ vi.mock("expo-sqlite", () => {
     execAsync: vi.fn(),
     getAllAsync: vi.fn(async () => []),
     runAsync: vi.fn(),
+    withTransactionAsync: vi.fn(async (task: () => Promise<void>) => task()),
   };
   return {
     openDatabaseAsync: vi.fn(async () => dbInstance)

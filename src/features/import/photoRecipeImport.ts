@@ -1,10 +1,6 @@
 import { jsonLdToRecipe } from "./schemaRecipeParser";
 import type { Recipe } from "../recipes/types";
 
-// ---------------------------------------------------------------------------
-// Provider presets
-// ---------------------------------------------------------------------------
-
 export type LlmProviderId =
   | "openai"
   | "gemini"
@@ -20,7 +16,6 @@ export type LlmProviderPreset = {
   baseUrl: string;
   defaultModel: string;
   modelDocsUrl: string;
-  /** Some providers use a different API format */
   apiFormat: "openai" | "anthropic";
 };
 
@@ -36,7 +31,6 @@ export const LLM_PROVIDERS: LlmProviderPreset[] = [
   {
     id: "gemini",
     label: "Google Gemini",
-    // Google provides an OpenAI-compatible endpoint
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
     defaultModel: "gemini-2.5-flash",
     modelDocsUrl: "https://ai.google.dev/gemini-api/docs/models/gemini",
@@ -46,8 +40,6 @@ export const LLM_PROVIDERS: LlmProviderPreset[] = [
     id: "groq",
     label: "Groq (Fast Inference)",
     baseUrl: "https://api.groq.com/openai/v1",
-    // Groq vision models change frequently; check modelDocsUrl for the latest.
-    // meta-llama/llama-4-scout-17b-16e-instruct is the current stable vision model.
     defaultModel: "meta-llama/llama-4-scout-17b-16e-instruct",
     modelDocsUrl: "https://console.groq.com/docs/models",
     apiFormat: "openai"
@@ -64,8 +56,6 @@ export const LLM_PROVIDERS: LlmProviderPreset[] = [
     id: "mistral",
     label: "Mistral (Le Chat)",
     baseUrl: "https://api.mistral.ai/v1",
-    // Use the "latest" alias so Mistral automatically points to their current
-    // multimodal small model without requiring a code update.
     defaultModel: "mistral-small-latest",
     modelDocsUrl: "https://docs.mistral.ai/getting-started/models/models_overview/",
     apiFormat: "openai"
@@ -74,7 +64,6 @@ export const LLM_PROVIDERS: LlmProviderPreset[] = [
     id: "claude",
     label: "Anthropic (Claude)",
     baseUrl: "https://api.anthropic.com",
-    // claude-haiku-4-5 is Anthropic's current fast/affordable vision model (2026).
     defaultModel: "claude-haiku-4-5",
     modelDocsUrl: "https://docs.anthropic.com/en/docs/about-claude/models",
     apiFormat: "anthropic"
@@ -89,16 +78,7 @@ export const LLM_PROVIDERS: LlmProviderPreset[] = [
   }
 ];
 
-// ---------------------------------------------------------------------------
-// Prompt
-// ---------------------------------------------------------------------------
-
-/**
- * Build a language-aware extraction prompt.
- * All text fields in the returned JSON must be in the user's locale language.
- */
 function buildExtractionPrompt(userLocale: string): string {
-  // Map locale codes to natural language names for clarity in the prompt
   const langMap: Record<string, string> = {
     fr: "French",
     en: "English",
@@ -145,9 +125,6 @@ Include these fields whenever possible (even if estimated):
 If a value is genuinely unknown and cannot be reasonably estimated, omit that field entirely. Do not use null.`;
 }
 
-/**
- * Build a text-only generation prompt.
- */
 function buildTextPrompt(userLocale: string, userPrompt: string): string {
   const langMap: Record<string, string> = {
     fr: "French",
@@ -195,18 +172,6 @@ Include these fields whenever possible (even if estimated):
 If a value is genuinely unknown and cannot be reasonably estimated, omit that field entirely. Do not use null.`;
 }
 
-// ---------------------------------------------------------------------------
-// Dynamic model list (fetched live from the provider)
-// ---------------------------------------------------------------------------
-
-/**
- * Fetch the list of model IDs available for the given provider and API key.
- * Uses the /v1/models endpoint (OpenAI-compatible) or Anthropic's equivalent.
- * Returns an array of model IDs sorted alphabetically, or throws LlmApiError.
- *
- * This lets the Settings UI show a real-time picker of available models,
- * so the user is never blocked by a deprecated hardcoded model name.
- */
 export async function fetchAvailableModels(
   apiKey: string,
   providerId: LlmProviderId,
@@ -271,10 +236,6 @@ async function fetchAnthropicModels(apiKey: string, baseUrl: string): Promise<st
   }
 }
 
-// ---------------------------------------------------------------------------
-// Main export
-// ---------------------------------------------------------------------------
-
 export async function extractRecipeFromPhoto(
   imageBase64: string,
   apiKey: string,
@@ -286,8 +247,6 @@ export async function extractRecipeFromPhoto(
   const preset = LLM_PROVIDERS.find((p) => p.id === providerId);
   const format = preset?.apiFormat ?? "openai";
 
-  // For standard providers, always use the preset baseUrl.
-  // Use the user's selected model if available, otherwise fall back to the preset's default.
   const baseUrl = providerId === "custom" ? userBaseUrl : (preset?.baseUrl ?? userBaseUrl);
   const model = userModel || (preset?.defaultModel ?? "");
   const modelDocsUrl = preset?.modelDocsUrl ?? "";
@@ -304,7 +263,6 @@ export async function extractRecipeFromPhoto(
     }
   } catch (err) {
     console.error("network", "Failed to call LLM API for photo import", err);
-    // Re-wrap model-not-found errors with provider docs URL so the UI can help.
     if (err instanceof LlmApiError && isModelNotFoundError(err)) {
       throw new LlmModelNotFoundError(err.status, err.message, model, modelDocsUrl);
     }
@@ -349,10 +307,6 @@ export async function generateRecipeFromText(
 
   return parseRecipeFromLlmResponse(responseText);
 }
-
-// ---------------------------------------------------------------------------
-// OpenAI-compatible API (OpenAI, Gemini, Groq, Mistral, Custom)
-// ---------------------------------------------------------------------------
 
 async function callOpenAiCompatibleApi(
   imageBase64: string | null,
@@ -423,10 +377,6 @@ async function callOpenAiCompatibleApi(
   }
   return resultContent;
 }
-
-// ---------------------------------------------------------------------------
-// Anthropic Messages API (Claude)
-// ---------------------------------------------------------------------------
 
 async function callAnthropicApi(
   imageBase64: string | null,
@@ -501,19 +451,13 @@ async function callAnthropicApi(
   return block.text;
 }
 
-// ---------------------------------------------------------------------------
-// Parse LLM response -> Recipe
-// ---------------------------------------------------------------------------
-
 function parseRecipeFromLlmResponse(responseText: string): Recipe {
   let cleaned = responseText.trim();
   
-  // Try to extract JSON from markdown code block if present
   const markdownMatch = cleaned.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
   if (markdownMatch && markdownMatch[1]) {
     cleaned = markdownMatch[1].trim();
   } else {
-    // If no markdown block, try to find the first { and last }
     const firstBrace = cleaned.indexOf("{");
     const lastBrace = cleaned.lastIndexOf("}");
     if (firstBrace !== -1 && lastBrace !== -1 && lastBrace >= firstBrace) {
@@ -546,10 +490,6 @@ function parseRecipeFromLlmResponse(responseText: string): Recipe {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Custom error
-// ---------------------------------------------------------------------------
-
 export class LlmApiError extends Error {
   readonly status: number;
   constructor(status: number, body: string) {
@@ -559,7 +499,6 @@ export class LlmApiError extends Error {
   }
 }
 
-/** Thrown when the API returns a 400/404 indicating the model name is invalid. */
 export class LlmModelNotFoundError extends LlmApiError {
   readonly model: string;
   readonly modelDocsUrl: string;
@@ -571,7 +510,6 @@ export class LlmModelNotFoundError extends LlmApiError {
   }
 }
 
-/** Thrown when the user uploads an image or uses a prompt that is not related to food/beverages. */
 export class LlmNotFoodError extends Error {
   constructor() {
     super("The provided content is not related to food or beverages.");
@@ -579,10 +517,6 @@ export class LlmNotFoodError extends Error {
   }
 }
 
-/**
- * Heuristic to detect "model not found" errors across providers.
- * Each provider formats this differently in the error body.
- */
 function isModelNotFoundError(err: LlmApiError): boolean {
   if (err.status === 404) return true;
   if (err.status === 400) {
@@ -597,10 +531,6 @@ function isModelNotFoundError(err: LlmApiError): boolean {
   }
   return false;
 }
-
-// ---------------------------------------------------------------------------
-// Response types (minimal)
-// ---------------------------------------------------------------------------
 
 type OpenAiResponse = {
   choices?: { message?: { content?: string } }[];
