@@ -339,6 +339,8 @@ export default {
       syncActiveInfo: "Sincronización activa",
     },
     community: {
+      translationLanguage: "Idioma de traducción",
+      loadFailed: "No se pudieron cargar las recetas. Toca para reintentar.",
       title: "Comunidad",
       submitRecipe: "Compartir receta",
       byAuthor: "Por {{author}}",

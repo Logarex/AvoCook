@@ -338,6 +338,8 @@ export default {
       syncActiveInfo: "Sincronizzazione attiva",
     },
     community: {
+      translationLanguage: "Lingua di traduzione",
+      loadFailed: "Impossibile caricare le ricette. Tocca per riprovare.",
       title: "Community",
       submitRecipe: "Condividi una ricetta",
       byAuthor: "Di {{author}}",

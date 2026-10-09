@@ -17,9 +17,8 @@ import {
   findUserCommunityRecipe,
   checkCommunityRecipeDuplicate,
   sanitizeIsoDuration,
-  isRemoteUrl,
-  type RecipeLanguage
 } from "../features/community/communityClient";
+import { resolveCommunityLanguage } from "../features/community/communityLanguages";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import { getAnonymousUid, waitForAuth } from "../features/firebase/firebaseClient";
 
@@ -53,7 +52,7 @@ export function SelectRecipeToShareModal({
   }, [recipes, searchQuery]);
 
   const handleSelectRecipe = React.useCallback((recipe: typeof recipes[number]) => {
-    const language = (i18n.language.slice(0, 2) as RecipeLanguage) || "en";
+    const language = resolveCommunityLanguage(i18n.resolvedLanguage ?? i18n.language);
     Alert.alert(
       t("community.shareConfirmTitle"),
       t("community.shareConfirmBody") + `\n\n${recipe.name}`,
@@ -186,7 +185,7 @@ export function SelectRecipeToShareModal({
         }
       ]
     );
-  }, [communityPseudonym, i18n.language, localPseudonym, onClose, onSuccess, setCommunityPseudonym, t, updateRecipe]);
+  }, [communityPseudonym, i18n.language, i18n.resolvedLanguage, localPseudonym, onClose, onSuccess, setCommunityPseudonym, t, updateRecipe]);
 
   React.useEffect(() => {
     if (visible) {

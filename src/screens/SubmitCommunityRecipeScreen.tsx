@@ -20,17 +20,11 @@ import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import { containsProfanity } from "../utils/profanityFilter";
+import { COMMUNITY_LANGUAGES, resolveCommunityLanguage } from "../features/community/communityLanguages";
 
 type Props = NativeStackScreenProps<RootStackParamList, "SubmitCommunityRecipe">;
 
-const LANG_OPTIONS: { id: RecipeLanguage; label: string }[] = [
-  { id: "fr", label: "🇫🇷 Français" },
-  { id: "de", label: "🇩🇪 Deutsch" },
-  { id: "en", label: "🇬🇧 English" },
-  { id: "es", label: "🇪🇸 Español" },
-  { id: "it", label: "🇮🇹 Italiano" },
-  { id: "da", label: "🇩🇰 Dansk" }
-];
+const LANG_OPTIONS = COMMUNITY_LANGUAGES.map((option) => ({ id: option.value, label: option.nativeName }));
 
 export function SubmitCommunityRecipeScreen({ navigation }: Props) {
   const { t, i18n } = useTranslation();
@@ -43,7 +37,7 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
   const [stepsText, setStepsText] = useState("");
   const [authorName, setAuthorName] = useState(communityPseudonym || "");
   const [language, setLanguage] = useState<RecipeLanguage>(
-    (i18n.language.slice(0, 2) as RecipeLanguage) || "en"
+    resolveCommunityLanguage(i18n.resolvedLanguage ?? i18n.language)
   );
   const [prepTime, setPrepTime] = useState("");
   const [cookTime, setCookTime] = useState("");

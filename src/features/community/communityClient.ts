@@ -17,14 +17,24 @@ import {
   serverTimestamp,
   type QueryDocumentSnapshot,
   type DocumentData,
-  type QueryConstraint
+  type QueryConstraint,
+  documentId,
+  Timestamp
 } from "firebase/firestore";
 import { getDb, waitForAuth, getAnonymousUid, getFirebaseStorage } from "../firebase/firebaseClient";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { cleanTranslatedText } from "./communityTranslation";
 import { isoDurationToMinutes, minutesToIsoDuration } from "../../utils/duration";
+import { resolveCommunityLanguage, type RecipeLanguage } from "./communityLanguages";
+import { invalidateCommunityCache, updateCachedCommunityRecipe } from "./communityCache";
 
-export type RecipeLanguage = "en" | "fr" | "de" | "es" | "it" | "da";
+export type { RecipeLanguage } from "./communityLanguages";
+
+export type CommunityRecipeCursor = {
+  id: string;
+  field: "title" | "createdAt" | "avgRating" | "ratingCount" | "id";
+  value: string | number | { seconds: number; nanoseconds: number };
+};
 
 export type CommunityRecipe = {
   id: string;
@@ -54,12 +64,12 @@ export type FetchRecipesOptions = {
   minRating?: number;
   sortBy?: "recent" | "topRated" | "mostVoted" | "alphabetical";
   pageSize?: number;
-  after?: QueryDocumentSnapshot<DocumentData>;
+  after?: CommunityRecipeCursor;
 };
 
 export type FetchRecipesResult = {
   recipes: CommunityRecipe[];
-  lastDoc: QueryDocumentSnapshot<DocumentData> | null;
+  lastDoc: CommunityRecipeCursor | null;
   hasMore: boolean;
 };
 
@@ -140,7 +150,7 @@ function toRecipe(d: QueryDocumentSnapshot<DocumentData>): CommunityRecipe {
     steps: Array.isArray(data.steps)
       ? data.steps.filter((step): step is string => typeof step === "string").map(text)
       : [],
-    language: ["en", "fr", "de", "es", "it", "da"].includes(data.language) ? data.language : "en",
+    language: resolveCommunityLanguage(data.language),
     authorName: text(data.authorName),
     authorUid: typeof data.authorUid === "string" ? data.authorUid : undefined,
     imageUrl: typeof data.imageUrl === "string" && isRemoteUrl(data.imageUrl) ? data.imageUrl : undefined,
@@ -184,23 +194,29 @@ export async function fetchCommunityRecipes(
 
   const direction = sortBy === "alphabetical" ? "asc" : "desc";
 
-  const fetchLimit = language !== "all" ? 300 : Math.max(100, pageSize * 2);
+  const fetchLimit = language !== "all" || minRating > 0 ? Math.max(100, pageSize * 2) : pageSize + 1;
+  let cursorField: CommunityRecipeCursor["field"] = orderField;
   let snap;
   try {
-    const constraints: QueryConstraint[] = [orderBy(orderField, direction)];
-    if (afterDoc) constraints.push(startAfter(afterDoc));
+    if (afterDoc?.field === "id") throw new Error("Continue fallback pagination");
+    const constraints: QueryConstraint[] = [orderBy(orderField, direction), orderBy(documentId(), direction)];
+    if (afterDoc) constraints.push(startAfter(
+      typeof afterDoc.value === "object" ? new Timestamp(afterDoc.value.seconds, afterDoc.value.nanoseconds) : afterDoc.value,
+      afterDoc.id
+    ));
     constraints.push(limit(fetchLimit));
     snap = await getDocs(query(coll, ...constraints));
   } catch (err) {
-    console.warn("community", "Ordered fetch failed, trying fallback query without orderBy", err);
+    if (afterDoc?.field !== "id") console.warn("community", "Ordered fetch failed, trying fallback query", err);
     try {
-      const fallbackConstraints: QueryConstraint[] = [];
-      if (afterDoc) fallbackConstraints.push(startAfter(afterDoc));
+      cursorField = "id";
+      const fallbackConstraints: QueryConstraint[] = [orderBy(documentId())];
+      if (afterDoc) fallbackConstraints.push(startAfter(afterDoc.id));
       fallbackConstraints.push(limit(fetchLimit));
       snap = await getDocs(query(coll, ...fallbackConstraints));
     } catch (fallbackErr) {
       console.error("community", "Fetch community recipes failed completely", fallbackErr);
-      return { recipes: [], lastDoc: null, hasMore: false };
+      throw fallbackErr;
     }
   }
   
@@ -215,30 +231,18 @@ export async function fetchCommunityRecipes(
   const hasMore = filteredDocs.length > pageSize || snap.docs.length >= fetchLimit;
   const sliced = filteredDocs.slice(0, pageSize);
 
-  const uid = getAnonymousUid();
-  const recipes = await Promise.all(
-    sliced.map(async (d) => {
-      const recipe = toRecipe(d);
-      if (uid) {
-        try {
-          const voteSnap = await getDoc(
-            doc(getDb(), "communityRecipes", d.id, "ratings", uid)
-          );
-          if (voteSnap.exists()) {
-            recipe.userVote = (voteSnap.data() as { stars: number }).stars;
-          }
-        } catch {
-        }
-      }
-      return recipe;
-    })
-  );
+  const recipes = sliced.map(toRecipe);
+  const last = filteredDocs.length > pageSize ? sliced[sliced.length - 1] : snap.docs[snap.docs.length - 1];
+  const value = last?.data()[cursorField];
 
   return {
     recipes,
-    lastDoc: filteredDocs.length > pageSize
-      ? sliced[sliced.length - 1] ?? null
-      : snap.docs[snap.docs.length - 1] ?? null,
+    lastDoc: last ? {
+      id: last.id,
+      field: cursorField,
+      value: cursorField === "id" ? last.id : cursorField === "createdAt" && value instanceof Timestamp
+        ? { seconds: value.seconds, nanoseconds: value.nanoseconds } : value
+    } : null,
     hasMore,
   };
 }
@@ -271,6 +275,7 @@ export async function submitCommunityRecipe(
     approved: true,
     createdAt: serverTimestamp(),
   });
+  await invalidateCommunityCache();
   return refDoc.id;
 }
 
@@ -307,6 +312,7 @@ export async function updateCommunityRecipe(
     imageUrl: imageUrl,
     updatedAt: serverTimestamp(),
   });
+  await invalidateCommunityCache(recipeId);
 }
 
 export async function findUserCommunityRecipe(
@@ -341,6 +347,7 @@ export async function deleteCommunityRecipe(
     throw new Error("Not authorized to delete this recipe");
   }
   await deleteDoc(ref);
+  await invalidateCommunityCache(recipeId);
 }
 
 export async function checkCommunityRecipeDuplicate(
@@ -443,7 +450,10 @@ export async function getCommunityRecipe(
 ): Promise<CommunityRecipe | null> {
   await waitForAuth();
   const snap = await getDoc(doc(getDb(), "communityRecipes", recipeId));
-  if (!snap.exists()) return null;
+  if (!snap.exists() || snap.data().approved === false) {
+    await invalidateCommunityCache(recipeId);
+    return null;
+  }
   const recipe = toRecipe(snap as QueryDocumentSnapshot<DocumentData>);
   const uid = getAnonymousUid();
   if (uid) {
@@ -457,6 +467,7 @@ export async function getCommunityRecipe(
     } catch {
     }
   }
+  await updateCachedCommunityRecipe(recipe);
   return recipe;
 }
 
@@ -495,6 +506,7 @@ export async function reportCommunityRecipe(
     reportCount: increment(1),
     ...(isAutoSuppressed ? { approved: false } : {}),
   });
+  await invalidateCommunityCache(isAutoSuppressed ? recipeId : undefined);
 
   await addDoc(collection(db, "communityReports"), {
     recipeId,

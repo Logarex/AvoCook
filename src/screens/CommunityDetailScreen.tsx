@@ -5,9 +5,9 @@ import {
   Alert,
   StyleSheet,
   View,
-  Image,
   Linking
 } from "react-native";
+import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Download, Flag, Clock, Users, Mail, Link as LinkIcon, HeartPulse, Trash2, Languages } from "lucide-react-native";
 
@@ -17,6 +17,7 @@ import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { StarRating } from "../components/StarRating";
+import { LanguagePicker } from "../components/LanguagePicker";
 import {
   getCommunityRecipe,
   deleteCommunityRecipe,
@@ -25,7 +26,9 @@ import {
   type CommunityRecipe
 } from "../features/community/communityClient";
 import { translateCommunityRecipe } from "../features/community/communityTranslation";
-import { resolveAppLanguage } from "../i18n/languages";
+import { COMMUNITY_LANGUAGES, resolveCommunityLanguage } from "../features/community/communityLanguages";
+import { getCachedCommunityRecipe, hydrateCommunityCache } from "../features/community/communityCache";
+import { usePreferences } from "../features/preferences/PreferencesProvider";
 import { getAnonymousUid, waitForAuth } from "../features/firebase/firebaseClient";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { normalizeRecipe } from "../features/recipes/types";
@@ -40,9 +43,10 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
   const { i18n, t } = useTranslation();
   const { colors } = useAppTheme();
   const { createRecipe, recipes } = useRecipes();
+  const { communityTranslationLanguage, setCommunityTranslationLanguage } = usePreferences();
 
-  const [recipe, setRecipe] = useState<CommunityRecipe | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [recipe, setRecipe] = useState<CommunityRecipe | null>(() => getCachedCommunityRecipe(route.params.id) ?? null);
+  const [loading, setLoading] = useState(() => !getCachedCommunityRecipe(route.params.id));
   const [userVote, setUserVote] = useState<number>(0);
   const [importing, setImporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -56,11 +60,11 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
   } | null>(null);
   const translationRequest = useRef(0);
   const [originalView, setOriginalView] = useState<string | null>(null);
-  const targetLang = resolveAppLanguage(i18n.resolvedLanguage ?? i18n.language);
+  const targetLang = communityTranslationLanguage ?? resolveCommunityLanguage(i18n.resolvedLanguage ?? i18n.language);
   const viewScope = JSON.stringify([route.params.id, targetLang]);
   const showOriginal = originalView === viewScope;
   const currentTranslation = translation?.source === recipe && translation?.target === targetLang ? translation : null;
-  const isDifferentLang = Boolean(recipe && resolveAppLanguage(recipe.language) !== targetLang);
+  const isDifferentLang = Boolean(recipe && resolveCommunityLanguage(recipe.language) !== targetLang);
   const isTranslating = isDifferentLang && !currentTranslation?.value && !currentTranslation?.failed;
   const showTranslated = !showOriginal && Boolean(currentTranslation?.value);
   const activeRecipe = showTranslated ? currentTranslation!.value : recipe;
@@ -72,10 +76,17 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
   useEffect(() => {
     let active = true;
     void (async () => {
-      setLoading(true);
-      setRecipe(null);
+      const initial = getCachedCommunityRecipe(route.params.id) ?? null;
+      setLoading(!initial);
+      setRecipe(initial);
       setUserVote(0);
       try {
+        await hydrateCommunityCache();
+        const cached = getCachedCommunityRecipe(route.params.id);
+        if (active && cached) {
+          setRecipe(cached);
+          setLoading(false);
+        }
         const user = await waitForAuth();
         if (active && user?.uid) setCurrentUid(user.uid);
         const data = await getCommunityRecipe(route.params.id);
@@ -95,7 +106,7 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
   }, [route.params.id]);
 
   const requestTranslation = useCallback(async () => {
-    if (!recipe || recipe.id !== route.params.id || resolveAppLanguage(recipe.language) === targetLang) return;
+    if (!recipe || recipe.id !== route.params.id || resolveCommunityLanguage(recipe.language) === targetLang) return;
     const request = ++translationRequest.current;
     setTranslation({ source: recipe, target: targetLang, value: null, failed: false });
     try {
@@ -319,6 +330,13 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
         ) : null}
       </GlassPanel>
 
+      <LanguagePicker
+        value={targetLang}
+        options={COMMUNITY_LANGUAGES}
+        label={t("community.translationLanguage")}
+        onChange={(value) => void setCommunityTranslationLanguage(value)}
+      />
+
       {isDifferentLang ? (
         <PrimaryButton
           icon={Languages}
@@ -345,7 +363,8 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
           <Image
             source={{ uri: activeRecipe.imageUrl }}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="memory-disk"
           />
         </View>
       ) : null}

@@ -339,6 +339,8 @@ export default {
       syncActiveInfo: "Synchronisation aktiv",
     },
     community: {
+      translationLanguage: "Übersetzungssprache",
+      loadFailed: "Rezepte konnten nicht geladen werden. Zum Wiederholen antippen.",
       title: "Community",
       submitRecipe: "Rezept teilen",
       byAuthor: "Von {{author}}",

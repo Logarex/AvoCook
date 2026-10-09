@@ -97,6 +97,33 @@ describe("communityTranslation", () => {
     }
   });
 
+  it("recognizes and repairs spaced UTF-8 escapes from Chinese and Japanese translations", () => {
+    for (const title of ["可乐鸡翅", "コーラチキン", "Crème brûlée 🥑"]) {
+      const encoded = encodeURIComponent(title);
+      const spaced = encoded.replace(/%([0-9A-F])([0-9A-F])/g, "% $1 $2");
+      expect(hasCorruptedText(spaced)).toBe(true);
+      expect(cleanTranslatedText(spaced)).toBe(title);
+      if (!/[a-z]/i.test(title)) expect(cleanTranslatedText(encoded.replaceAll("%", " % "))).toBe(title);
+    }
+    expect(cleanTranslatedText("%E 5%8 F% AF %E 4% B9%90% E9% B8% A1% E7% BF % 85")).toBe("可乐鸡翅");
+  });
+
+  it("keeps natural percentages intact when repairing translation encodings", () => {
+    for (const text of ["40% de crème fraîche", "20% cacao", "35% fat", "50 % butter", "10% de 20% de farine"]) {
+      expect(hasCorruptedText(text)).toBe(false);
+      expect(cleanTranslatedText(text)).toBe(text);
+    }
+  });
+
+  it("uses a readable fallback when a provider returns broken spaced byte sequences", async () => {
+    const fetchMock = vi.fn(async (url: string) => url.includes("googleapis")
+      ? googleResponse("% E 5% 8 F% A F% E") : myMemoryResponse("コーラチキン"));
+    vi.stubGlobal("fetch", fetchMock);
+    const chinese = { ...recipe, title: "可乐鸡翅", description: "", language: "zh" as const, ingredients: [], steps: [] };
+    expect((await translateCommunityRecipe(chinese, "ja")).title).toBe("コーラチキン");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it("skips empty text and recipes already in the target language", async () => {
     const fetchMock = mockTranslator();
     expect(await translateText("Hello", "en-US", "en")).toBe("Hello");

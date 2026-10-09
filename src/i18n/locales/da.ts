@@ -302,6 +302,8 @@ export default {
       syncActiveInfo: "Synkronisering aktiv",
     },
     community: {
+      translationLanguage: "Oversættelsessprog",
+      loadFailed: "Kunne ikke indlæse opskrifter. Tryk for at prøve igen.",
       title: "Fællesskab",
       submitRecipe: "Del en opskrift",
       byAuthor: "Af {{author}}",

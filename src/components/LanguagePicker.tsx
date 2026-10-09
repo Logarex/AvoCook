@@ -18,34 +18,38 @@ import { AppText } from "./AppText";
 import { GlassPanel } from "./GlassPanel";
 import { IconButton } from "./IconButton";
 
-type LanguageOption = {
-  value: AppLanguage;
+type LanguageOption<Language extends string> = {
+  value: Language;
   nativeName: string;
   shortLabel: string;
 };
 
-type Props = {
-  value: AppLanguage;
-  options?: readonly LanguageOption[];
-  onChange: (value: AppLanguage) => void;
+type Props<Language extends string> = {
+  value: Language;
+  options?: readonly LanguageOption<Language>[];
+  onChange: (value: Language) => void;
+  label?: string;
   style?: StyleProp<ViewStyle>;
   variant?: "default" | "minimal";
 };
 
-export function LanguagePicker({
+export function LanguagePicker<Language extends string = AppLanguage>({
   value,
-  options = SUPPORTED_LANGUAGES,
+  options,
   onChange,
   style,
-  variant = "default"
-}: Props) {
+  variant = "default",
+  label
+}: Props<Language>) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const [open, setOpen] = useState(false);
 
-  const selected = options.find((o) => o.value === value);
+  const languageOptions = options ?? SUPPORTED_LANGUAGES as unknown as readonly LanguageOption<Language>[];
+  const pickerLabel = label ?? t("settings.language");
+  const selected = languageOptions.find((o) => o.value === value);
 
-  function handleSelect(lang: AppLanguage) {
+  function handleSelect(lang: Language) {
     onChange(lang);
     setOpen(false);
   }
@@ -55,6 +59,7 @@ export function LanguagePicker({
       {variant === "minimal" ? (
         <Pressable
           accessibilityRole="combobox"
+          accessibilityLabel={`${pickerLabel}: ${selected?.nativeName ?? value}`}
           accessibilityState={{ expanded: open }}
           style={({ pressed }) => [
             styles.minimalTrigger,
@@ -71,6 +76,7 @@ export function LanguagePicker({
       ) : (
         <Pressable
           accessibilityRole="combobox"
+          accessibilityLabel={`${pickerLabel}: ${selected?.nativeName ?? value}`}
           accessibilityState={{ expanded: open }}
           style={[
             styles.trigger,
@@ -84,7 +90,7 @@ export function LanguagePicker({
           </View>
           <View style={styles.triggerText}>
             <AppText muted variant="caption">
-              {t("settings.language")}
+              {pickerLabel}
             </AppText>
             <AppText variant="label" numberOfLines={1}>
               {selected?.nativeName ?? value.toUpperCase()}
@@ -117,7 +123,7 @@ export function LanguagePicker({
             <View style={styles.modalHeader}>
               <View style={styles.modalTitleGroup}>
                 <Globe color={colors.primary} size={22} />
-                <AppText variant="subtitle">{t("settings.language")}</AppText>
+                <AppText variant="subtitle">{pickerLabel}</AppText>
               </View>
               <IconButton icon={X} label={t("common.close")} onPress={() => setOpen(false)} />
             </View>
@@ -126,7 +132,7 @@ export function LanguagePicker({
               showsVerticalScrollIndicator={false}
             >
               <View style={[styles.optionsCard, { backgroundColor: colors.backgroundElevated, borderColor: colors.border }]}>
-                {options.map((option, index) => {
+                {languageOptions.map((option, index) => {
                   const isSelected = option.value === value;
                   return (
                     <View key={option.value}>

@@ -6,7 +6,7 @@ import {
   Wrench,
   Sparkles,
 } from "lucide-react-native";
-import { Image } from "expo-image";
+import { AppLogo } from "../components/AppLogo";
 import React from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -23,13 +23,9 @@ type Props = NativeStackScreenProps<RootStackParamList, "Update">;
 
 export function UpdateScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { markUpdateSeen } = useOnboarding();
-
-  const logo = isDark
-    ? require("../../assets/logo-dark-transparent.png")
-    : require("../../assets/logo.png");
 
   const backgroundColor = colors.background;
 
@@ -57,12 +53,7 @@ export function UpdateScreen({ navigation }: Props) {
         overScrollMode="never"
       >
         <View style={styles.hero}>
-          <Image
-            accessible={false}
-            source={logo}
-            style={styles.logo}
-            contentFit="contain"
-          />
+          <AppLogo style={styles.logo} />
           <AppText variant="title" style={styles.center}>
             {t("update.title")}
           </AppText>

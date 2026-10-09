@@ -9,6 +9,7 @@ import React, {
   useState
 } from "react";
 import i18n from "../../i18n";
+import { isRecipeLanguage, type RecipeLanguage } from "../community/communityLanguages";
 import {
   isAppLanguage,
   resolveAppLanguage,
@@ -37,6 +38,7 @@ type PreferencesContextValue = {
   llmSettings: LlmSettings;
   showDefaultCategories: boolean | null;
   communityPseudonym: string | null;
+  communityTranslationLanguage: RecipeLanguage | null;
   nextcloudImageFolder: string;
   setKeepScreenAwake: (enabled: boolean) => Promise<void>;
   setKeepRecipesLocal: (enabled: boolean) => Promise<void>;
@@ -46,6 +48,7 @@ type PreferencesContextValue = {
   setLanguage: (language: AppLanguage) => Promise<void>;
   setLlmSettings: (settings: LlmSettings) => Promise<void>;
   setCommunityPseudonym: (pseudo: string | null) => Promise<void>;
+  setCommunityTranslationLanguage: (language: RecipeLanguage) => Promise<void>;
   setNextcloudImageFolder: (folder: string) => Promise<void>;
 };
 
@@ -61,6 +64,7 @@ const LLM_BASE_URL_KEY = "preferences.llm.baseUrl";
 const LLM_MODEL_KEY = "preferences.llm.model";
 const LLM_API_KEY_SECURE = "preferences.llm.apiKey";
 const COMMUNITY_PSEUDONYM_KEY = "preferences.communityPseudonym";
+const COMMUNITY_TRANSLATION_LANGUAGE_KEY = "preferences.communityTranslationLanguage";
 const NEXTCLOUD_IMAGE_FOLDER_KEY = "preferences.nextcloudImageFolder";
 
 const DEFAULT_PROVIDER = LLM_PROVIDERS[0];
@@ -89,6 +93,7 @@ export function PreferencesProvider({
     resolveAppLanguage(i18n.language)
   );
   const [communityPseudonym, setCommunityPseudonymState] = useState<string | null>(null);
+  const [communityTranslationLanguage, setCommunityTranslationLanguageState] = useState<RecipeLanguage | null>(null);
   const [llmSettings, setLlmSettingsState] = useState<LlmSettings>(
     DEFAULT_LLM_SETTINGS
   );
@@ -108,7 +113,8 @@ export function PreferencesProvider({
       AsyncStorage.getItem(LLM_MODEL_KEY),
       SecureStore.getItemAsync(LLM_API_KEY_SECURE),
       AsyncStorage.getItem(COMMUNITY_PSEUDONYM_KEY),
-      AsyncStorage.getItem(NEXTCLOUD_IMAGE_FOLDER_KEY)
+      AsyncStorage.getItem(NEXTCLOUD_IMAGE_FOLDER_KEY),
+      AsyncStorage.getItem(COMMUNITY_TRANSLATION_LANGUAGE_KEY)
     ]).then(
       ([
         storedKeepAwake,
@@ -123,7 +129,8 @@ export function PreferencesProvider({
         storedModel,
         storedApiKey,
         storedCommunityPseudonym,
-        storedNextcloudImageFolder
+        storedNextcloudImageFolder,
+        storedCommunityTranslationLanguage
       ]) => {
         if (storedKeepAwake === "true" || storedKeepAwake === "false") {
           setKeepScreenAwakeState(storedKeepAwake === "true");
@@ -169,6 +176,9 @@ export function PreferencesProvider({
         });
         if (storedCommunityPseudonym !== null) {
           setCommunityPseudonymState(storedCommunityPseudonym);
+        }
+        if (isRecipeLanguage(storedCommunityTranslationLanguage)) {
+          setCommunityTranslationLanguageState(storedCommunityTranslationLanguage);
         }
         if (storedNextcloudImageFolder !== null && storedNextcloudImageFolder !== undefined) {
           setNextcloudImageFolderState(storedNextcloudImageFolder);
@@ -239,6 +249,13 @@ export function PreferencesProvider({
     await AsyncStorage.setItem(NEXTCLOUD_IMAGE_FOLDER_KEY, folder);
   }, []);
 
+  const setCommunityTranslationLanguage = useCallback(async (language: RecipeLanguage) => {
+    setCommunityTranslationLanguageState(language);
+    try { await AsyncStorage.setItem(COMMUNITY_TRANSLATION_LANGUAGE_KEY, language); } catch {
+      console.warn("community", "Could not save translation language");
+    }
+  }, []);
+
   const value = useMemo(
     () => ({
       keepScreenAwake,
@@ -249,6 +266,7 @@ export function PreferencesProvider({
       language,
       llmSettings,
       communityPseudonym,
+      communityTranslationLanguage,
       nextcloudImageFolder,
       setKeepScreenAwake,
       setKeepRecipesLocal,
@@ -258,6 +276,7 @@ export function PreferencesProvider({
       setLanguage,
       setLlmSettings,
       setCommunityPseudonym,
+      setCommunityTranslationLanguage,
       setNextcloudImageFolder
     }),
     [
@@ -269,6 +288,7 @@ export function PreferencesProvider({
       language,
       llmSettings,
       communityPseudonym,
+      communityTranslationLanguage,
       nextcloudImageFolder,
       setKeepScreenAwake,
       setKeepRecipesLocal,
@@ -278,6 +298,7 @@ export function PreferencesProvider({
       setLanguage,
       setLlmSettings,
       setCommunityPseudonym,
+      setCommunityTranslationLanguage,
       setNextcloudImageFolder
     ]
   );

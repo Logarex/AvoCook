@@ -339,6 +339,8 @@ export default {
       syncActiveInfo: "Synchronisation active",
     },
     community: {
+      translationLanguage: "Langue de traduction",
+      loadFailed: "Chargement impossible. Touchez pour réessayer.",
       title: "Communauté",
       submitRecipe: "Partager une recette",
       byAuthor: "Par {{author}}",

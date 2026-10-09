@@ -2,7 +2,7 @@ import { NavigationContainer, useNavigation } from "@react-navigation/native";
 import { createNativeStackNavigator, type NativeStackNavigationProp } from "@react-navigation/native-stack";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useShareIntent } from "expo-share-intent";
-import { Image } from "expo-image";
+import { AppLogo } from "./components/AppLogo";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
@@ -85,19 +85,11 @@ function RootNavigator() {
   const { colors, isDark, navTheme } = useAppTheme();
   const reducedMotion = useReducedMotion();
   const { introDone, tourDone, showUpdateScreen, onboardingHydrated } = useOnboarding();
-  const loadingLogo = isDark
-    ? require("../assets/logo-dark-transparent.png")
-    : require("../assets/logo.png");
 
   if (!hydrated || !onboardingHydrated) {
     return (
       <View style={[styles.loading, { backgroundColor: colors.background }]}>
-        <Image
-          accessible={false}
-          source={loadingLogo}
-          style={styles.loadingLogo}
-          contentFit="contain"
-        />
+        <AppLogo style={styles.loadingLogo} />
         <ActivityIndicator color={colors.primary} />
         <AppText muted>AvoCook</AppText>
       </View>

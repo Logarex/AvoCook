@@ -39,8 +39,6 @@ import {
   type DetailRecipe,
 } from "./recipeDetail/recipeDetailHelpers";
 
-import { StarRating } from "../components/StarRating";
-import { getRecipeRating, setRecipeRating } from "../features/recipes/recipeRatings";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -68,8 +66,8 @@ import {
 } from "../features/recipes/types";
 import {
   submitCommunityRecipe,
-  type RecipeLanguage,
 } from "../features/community/communityClient";
+import { resolveCommunityLanguage } from "../features/community/communityLanguages";
 import { isExternalRecipeSourceUrl } from "../features/recipes/recipeSource";
 import type { RootStackParamList } from "../navigation/types";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -200,23 +198,6 @@ function RecipeDetailContent({
   const { colors } = useAppTheme();
   const { watchLongAction } = useLongActionToast();
   const { width: windowWidth } = useWindowDimensions();
-  const [userRating, setUserRating] = useState<number>(0);
-
-  useEffect(() => {
-    let active = true;
-    void getRecipeRating(recipeId).then((r) => {
-      if (active) setUserRating(r);
-    });
-    return () => {
-      active = false;
-    };
-  }, [recipeId]);
-
-  const handleRatingChange = async (newRating: number) => {
-    const next = userRating === newRating ? 0 : newRating;
-    setUserRating(next);
-    await setRecipeRating(recipeId, next);
-  };
   const [shareAction, setShareAction] = useState<
     "print" | "pdf" | "file" | "source" | null
   >(null);
@@ -484,7 +465,7 @@ function RecipeDetailContent({
 
   async function handleShareToCommunity() {
     if (!recipe) return;
-    const language = (i18n.language.slice(0, 2) as RecipeLanguage) || "en";
+    const language = resolveCommunityLanguage(i18n.resolvedLanguage ?? i18n.language);
     const healthProfile = getRecipeHealthProfile(recipe);
     Alert.alert(
       t("community.shareConfirmTitle"),
@@ -747,14 +728,6 @@ function RecipeDetailContent({
         {recipe.description ? (
           <AppText muted>{recipe.description}</AppText>
         ) : null}
-        <View style={{ marginTop: 6, alignItems: "center" }}>
-          <StarRating
-            rating={userRating}
-            interactive
-            size={26}
-            onRatingChange={(r) => void handleRatingChange(r)}
-          />
-        </View>
       </View>
 
       <View style={styles.pills}>

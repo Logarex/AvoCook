@@ -115,8 +115,8 @@
           "imageWidth": 220,
           "resizeMode": "contain",
           "dark": {
-            "backgroundColor": "#10201D",
-            "image": "./assets/logo-dark.png"
+            "backgroundColor": "#14120F",
+            "image": "./assets/logo-dark-transparent.png"
           }
         }
       ],

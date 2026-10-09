@@ -21,6 +21,8 @@ I built it for personal use while learning to ship a complete React Native proje
 
 - Discover, rate, and import recipes from the AvoCook community;
 - Community recipes automatically appear in your app language, in both the list and the recipe details;
+- Choose a separate translation language for the community, including Chinese, Portuguese, Dutch, Japanese, Korean, Arabic and Russian;
+- Previously loaded community recipes and successful translations are cached on the device for faster reopening and offline reading;
 - View the original recipe at any time, or import the translated version into your recipe book;
 - Share your best meals by setting up a community profile;
 - Safe and moderated platform with built-in spam detection.

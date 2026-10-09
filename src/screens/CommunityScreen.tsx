@@ -3,54 +3,50 @@ import React, { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Pressable,
   RefreshControl,
   StyleSheet,
+  useWindowDimensions,
   View
 } from "react-native";
+import { Image } from "expo-image";
 import { useFocusEffect } from "@react-navigation/native";
 import { useTranslation } from "react-i18next";
 import { Globe, Plus } from "lucide-react-native";
 
 import { AppText } from "../components/AppText";
 import { BottomNavigation } from "../components/BottomNavigation";
-import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { StarRating } from "../components/StarRating";
 import { SearchField } from "../components/SearchField";
+import { LanguagePicker } from "../components/LanguagePicker";
 import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import {
   fetchCommunityRecipes,
   type CommunityRecipe,
+  type CommunityRecipeCursor,
   type RecipeLanguage
 } from "../features/community/communityClient";
 import { SelectRecipeToShareModal } from "./SelectRecipeToShareModal";
 import type { RootStackParamList } from "../navigation/types";
-import type { QueryDocumentSnapshot, DocumentData } from "firebase/firestore";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
-import { translateCommunityRecipePreviews } from "../features/community/communityTranslation";
-import { resolveAppLanguage } from "../i18n/languages";
+import { getCachedCommunityRecipePreviews, hydrateTranslationCache, translateCommunityRecipePreviews } from "../features/community/communityTranslation";
+import { COMMUNITY_LANGUAGES, resolveCommunityLanguage } from "../features/community/communityLanguages";
+import { cacheCommunityFeed, COMMUNITY_CACHE_TTL_MS, getCachedCommunityFeed, hydrateCommunityCache, type CommunityFeed } from "../features/community/communityCache";
+import { usePreferences } from "../features/preferences/PreferencesProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Community">;
-const RELOAD_THROTTLE_MS = 5 * 60 * 1000;
-
-const RAW_LANGUAGES: { id: RecipeLanguage; label: string; code: string }[] = [
-  { id: "da", label: "Dansk", code: "DA" },
-  { id: "de", label: "Deutsch", code: "DE" },
-  { id: "en", label: "English", code: "EN" },
-  { id: "es", label: "Español", code: "ES" },
-  { id: "fr", label: "Français", code: "FR" },
-  { id: "it", label: "Italiano", code: "IT" }
-];
+const RAW_LANGUAGES = COMMUNITY_LANGUAGES.map((option) => ({ id: option.value, label: option.nativeName, code: option.shortLabel }));
 
 export function CommunityScreen({ navigation }: Props) {
   const { i18n, t } = useTranslation();
   const { colors } = useAppTheme();
-  const targetLanguage = resolveAppLanguage(i18n.resolvedLanguage ?? i18n.language);
+  const { fontScale } = useWindowDimensions();
+  const { communityTranslationLanguage, setCommunityTranslationLanguage } = usePreferences();
+  const targetLanguage = communityTranslationLanguage ?? resolveCommunityLanguage(i18n.resolvedLanguage ?? i18n.language);
 
   const sortedLanguages = React.useMemo(() => {
     const allItem = { id: "all" as const, label: t("common.all", { defaultValue: "Tous" }), code: "ALL" };
@@ -67,58 +63,85 @@ export function CommunityScreen({ navigation }: Props) {
   const [showSelectModal, setShowSelectModal] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const [lastDoc, setLastDoc] = useState<QueryDocumentSnapshot<DocumentData> | null>(null);
+  const [lastDoc, setLastDoc] = useState<CommunityRecipeCursor | null>(null);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   const sourceRecipes = useRef(new Map<string, CommunityRecipe>());
   const loadRequest = useRef(0);
   const loadingMoreRef = useRef(false);
   const loadScope = JSON.stringify([selectedLanguage, targetLanguage, minRating]);
-
-  const lastLoadedAt = useRef<number>(0);
+  const feedScope = JSON.stringify([selectedLanguage, minRating, "alphabetical"]);
   const lastLoadedLang = useRef<string | null>(null);
+  const refreshingRef = useRef(false);
 
   const loadData = useCallback(
     async (isRefresh = false) => {
-      const langChanged = lastLoadedLang.current !== loadScope;
-      if (!isRefresh && !langChanged && Date.now() - lastLoadedAt.current < RELOAD_THROTTLE_MS && sourceRecipes.current.size > 0) {
-        return;
-      }
       const request = ++loadRequest.current;
-      setLoading(true);
-      setRefreshing(isRefresh && !langChanged);
+      const langChanged = lastLoadedLang.current !== loadScope;
+      setLoading(langChanged && !getCachedCommunityFeed(feedScope));
+      setRefreshing(isRefresh);
+      refreshingRef.current = true;
+      setLoadFailed(false);
       loadingMoreRef.current = false;
       setLoadingMore(false);
+      const displayFeed = (feed: CommunityFeed) => {
+        if (request !== loadRequest.current) return;
+        sourceRecipes.current = new Map(feed.recipes.map((recipe) => [recipe.id, recipe]));
+        setRecipes(getCachedCommunityRecipePreviews(feed.recipes, targetLanguage));
+        setLastDoc(feed.lastDoc);
+        setHasMore(feed.hasMore);
+        lastLoadedLang.current = loadScope;
+        setLoading(false);
+      };
+      const translatePreviews = (originals: CommunityRecipe[]) => {
+        void translateCommunityRecipePreviews(originals, targetLanguage).then((translated) => {
+          if (request === loadRequest.current) setRecipes((current) => {
+            const previews = new Map(translated.map((recipe) => [recipe.id, recipe]));
+            return current.map((recipe) => previews.get(recipe.id) ?? recipe);
+          });
+        }).catch((err: unknown) => console.warn("community", "Preview translation failed", err));
+      };
       try {
+        await Promise.all([hydrateCommunityCache(), hydrateTranslationCache()]);
+        if (request !== loadRequest.current) return;
+        const cached = getCachedCommunityFeed(feedScope);
+        if (cached) displayFeed(cached);
+        if (!isRefresh && cached && Date.now() - cached.fetchedAt < COMMUNITY_CACHE_TTL_MS) {
+          translatePreviews(cached.recipes);
+          return;
+        }
         const res = await fetchCommunityRecipes({
           language: selectedLanguage,
           minRating,
           sortBy: "alphabetical",
-          pageSize: 100
+          pageSize: 24
         });
         if (request !== loadRequest.current) return;
-        const translated = await translateCommunityRecipePreviews(res.recipes, targetLanguage);
-        if (request !== loadRequest.current) return;
-        sourceRecipes.current = new Map(res.recipes.map((recipe) => [recipe.id, recipe]));
-        setRecipes(translated);
-        setLastDoc(res.lastDoc);
-        setHasMore(res.hasMore);
-        lastLoadedAt.current = Date.now();
+        const feed = { ...res, fetchedAt: Date.now() };
+        cacheCommunityFeed(feedScope, feed);
+        displayFeed(feed);
+        translatePreviews(feed.recipes);
       } catch (err) {
         console.warn("community", "Failed to fetch community recipes", err);
         if (request === loadRequest.current) {
-          sourceRecipes.current.clear();
-          setRecipes([]);
-          setHasMore(false);
+          setLoadFailed(true);
+          translatePreviews([...sourceRecipes.current.values()]);
+          if (lastLoadedLang.current !== loadScope) {
+            sourceRecipes.current.clear();
+            setRecipes([]);
+            setHasMore(false);
+          }
         }
       } finally {
         if (request === loadRequest.current) {
           lastLoadedLang.current = loadScope;
           setLoading(false);
           setRefreshing(false);
+          refreshingRef.current = false;
         }
       }
     },
-    [selectedLanguage, minRating, targetLanguage, loadScope]
+    [selectedLanguage, minRating, targetLanguage, loadScope, feedScope]
   );
 
   React.useEffect(() => {
@@ -127,34 +150,48 @@ export function CommunityScreen({ navigation }: Props) {
   }, [loadScope]);
 
   const loadMore = useCallback(async () => {
-    if (loading || loadingMoreRef.current || !hasMore || refreshing || lastLoadedLang.current !== loadScope) return;
+    if (loading || loadingMoreRef.current || refreshingRef.current || !hasMore || refreshing || loadFailed || lastLoadedLang.current !== loadScope) return;
     const request = loadRequest.current;
     loadingMoreRef.current = true;
     setLoadingMore(true);
+    setLoadFailed(false);
     try {
       const res = await fetchCommunityRecipes({
         language: selectedLanguage,
         minRating,
         sortBy: "alphabetical",
-        pageSize: 30,
+        pageSize: 24,
         after: lastDoc || undefined
       });
       if (request !== loadRequest.current) return;
-      const translated = await translateCommunityRecipePreviews(res.recipes, targetLanguage);
-      if (request !== loadRequest.current) return;
       res.recipes.forEach((recipe) => sourceRecipes.current.set(recipe.id, recipe));
-      setRecipes((prev) => [...prev, ...translated]);
+      const originals = [...sourceRecipes.current.values()];
+      cacheCommunityFeed(feedScope, { ...res, recipes: originals, fetchedAt: getCachedCommunityFeed(feedScope)?.fetchedAt ?? Date.now() });
+      const previews = getCachedCommunityRecipePreviews(res.recipes, targetLanguage);
+      setRecipes((prev) => [...new Map([...prev, ...previews].map((recipe) => [recipe.id, recipe])).values()]);
       setLastDoc(res.lastDoc);
       setHasMore(res.hasMore);
+      void translateCommunityRecipePreviews(res.recipes, targetLanguage).then((translated) => {
+        if (request === loadRequest.current) setRecipes((current) => {
+          const previews = new Map(translated.map((recipe) => [recipe.id, recipe]));
+          return current.map((recipe) => previews.get(recipe.id) ?? recipe);
+        });
+      }).catch((err: unknown) => console.warn("community", "Preview translation failed", err));
     } catch (err) {
       console.warn("community", "Failed to fetch more community recipes", err);
+      if (request === loadRequest.current) setLoadFailed(true);
     } finally {
       if (request === loadRequest.current) {
         loadingMoreRef.current = false;
         setLoadingMore(false);
       }
     }
-  }, [loading, hasMore, refreshing, selectedLanguage, minRating, lastDoc, targetLanguage, loadScope]);
+  }, [loading, hasMore, refreshing, loadFailed, selectedLanguage, minRating, lastDoc, targetLanguage, loadScope, feedScope]);
+
+  React.useEffect(() => {
+    // Search also scans recipes beyond the first page.
+    if (searchQuery.trim()) void loadMore();
+  }, [searchQuery, loadMore]);
 
   useFocusEffect(
     useCallback(() => {
@@ -173,15 +210,16 @@ export function CommunityScreen({ navigation }: Props) {
       const ingredientMatch = Array.isArray(r.ingredients) && r.ingredients.some((ing) => String(ing).toLowerCase().includes(q));
       return titleMatch || descMatch || originalMatch || authorMatch || ingredientMatch;
     });
-    return [...matches].sort((a, b) => a.title.localeCompare(b.title, targetLanguage));
-  }, [recipes, searchQuery, targetLanguage]);
+    // Keep page order while translations arrive and new pages are appended.
+    return matches;
+  }, [recipes, searchQuery]);
 
   const renderRecipeItem = useCallback(({ item }: { item: CommunityRecipe }) => (
     <Pressable
       onPress={() => navigation.navigate("CommunityDetail", { id: item.id })}
       style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
     >
-      <GlassPanel style={styles.card}>
+      <View style={[styles.card, { backgroundColor: colors.surfaceGlassStrong, borderColor: colors.border }]}>
         <View style={styles.cardInner}>
           <View style={styles.cardContent}>
             <View style={styles.cardHeader}>
@@ -203,7 +241,7 @@ export function CommunityScreen({ navigation }: Props) {
             </View>
 
             {item.description ? (
-              <AppText muted variant="caption" numberOfLines={2} style={styles.desc}>
+              <AppText muted variant="caption" numberOfLines={2} style={[styles.desc, { minHeight: 36 * fontScale }]}>
                 {item.description}
               </AppText>
             ) : null}
@@ -225,13 +263,15 @@ export function CommunityScreen({ navigation }: Props) {
             <Image
               source={{ uri: item.imageUrl }}
               style={styles.cardImage}
-              resizeMode="cover"
+              contentFit="cover"
+              cachePolicy="memory-disk"
+              recyclingKey={item.id}
             />
           ) : null}
         </View>
-      </GlassPanel>
+      </View>
     </Pressable>
-  ), [navigation, colors, t, sortedLanguages]);
+  ), [navigation, colors, t, sortedLanguages, fontScale]);
 
   return (
     <PageSwipeGesture
@@ -249,6 +289,13 @@ export function CommunityScreen({ navigation }: Props) {
             </View>
           </View>
           <View style={styles.headerActions}>
+            <LanguagePicker
+              variant="minimal"
+              value={targetLanguage}
+              options={COMMUNITY_LANGUAGES}
+              label={t("community.translationLanguage")}
+              onChange={(value) => void setCommunityTranslationLanguage(value)}
+            />
             <IconButton
               icon={Plus}
               label={t("community.submitRecipe")}
@@ -302,6 +349,12 @@ export function CommunityScreen({ navigation }: Props) {
         }}
       />
 
+      {loadFailed ? (
+        <Pressable onPress={() => void loadData(true)} accessibilityRole="button" style={{ paddingHorizontal: spacing.md }}>
+          <AppText muted>{t("community.loadFailed")}</AppText>
+        </Pressable>
+      ) : null}
+
       {loading || lastLoadedLang.current !== loadScope ? (
         <View style={styles.loading}>
           <ActivityIndicator color={colors.primary} size="large" />
@@ -315,16 +368,16 @@ export function CommunityScreen({ navigation }: Props) {
           contentContainerStyle={styles.listContent}
           initialNumToRender={10}
           maxToRenderPerBatch={10}
-          windowSize={5}
-          removeClippedSubviews={true}
+          windowSize={7}
+          removeClippedSubviews={false}
           onEndReached={() => void loadMore()}
-          onEndReachedThreshold={0.5}
+          onEndReachedThreshold={2}
           ListFooterComponent={
-            loadingMore ? (
-              <View style={{ padding: spacing.md, alignItems: "center" }}>
+            <View style={styles.listFooter}>
+              {loadingMore ? (
                 <ActivityIndicator color={colors.primary} />
-              </View>
-            ) : null
+              ) : null}
+            </View>
           }
           refreshControl={
             <RefreshControl
@@ -435,7 +488,15 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.md,
     paddingTop: 0
   },
+  listFooter: {
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center"
+  },
   card: {
+    borderRadius: radius.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: "hidden",
     padding: spacing.md,
     minHeight: 104
   },

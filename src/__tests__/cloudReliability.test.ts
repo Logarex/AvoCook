@@ -8,13 +8,15 @@ import {
 import { cancelPush, createSharedList, fetchSharedList, leaveSharedList, schedulePush } from "../features/shopping/sharedListClient";
 
 const transaction = vi.hoisted(() => ({ get: vi.fn(), set: vi.fn(), update: vi.fn(), delete: vi.fn() }));
-vi.mock("firebase/firestore", () => ({
+vi.mock("firebase/firestore", async () => ({
+  Timestamp: (await vi.importActual<typeof import("firebase/firestore")>("firebase/firestore")).Timestamp,
   collection: vi.fn((_db, ...path: string[]) => ({ path: path.join("/") })),
   doc: vi.fn((_db, ...path: string[]) => ({ path: path.join("/"), id: path.at(-1) })),
   addDoc: vi.fn(), getDoc: vi.fn(), getDocs: vi.fn(), setDoc: vi.fn(),
   updateDoc: vi.fn(), deleteDoc: vi.fn(), onSnapshot: vi.fn(),
   query: vi.fn((ref, ...constraints) => ({ ref, constraints })),
   where: vi.fn(), orderBy: vi.fn(), limit: vi.fn(), startAfter: vi.fn(),
+  documentId: () => "__name__",
   increment: (value: number) => ({ increment: value }), serverTimestamp: () => "timestamp",
   runTransaction: vi.fn(async (_db, callback) => callback(transaction))
 }));
@@ -80,20 +82,66 @@ describe("Community database boundaries", () => {
     vi.mocked(getAnonymousUid).mockReturnValue(null);
     const docs = Array.from({ length: 30 }, (_, i) => snapshot(String(i), { ...input, approved: true }));
     vi.mocked(firestore.getDocs).mockResolvedValue({ docs } as never);
-    const result = await fetchCommunityRecipes({ pageSize: 20 });
+    const result = await fetchCommunityRecipes({ pageSize: 20, sortBy: "alphabetical" });
     expect(result.recipes.map((recipe) => recipe.id)).toEqual(docs.slice(0, 20).map((doc) => doc.id));
-    expect(result.lastDoc).toBe(docs[19]);
+    expect(result.lastDoc).toEqual({ id: docs[19].id, field: "title", value: "Cake" });
     expect(result.hasMore).toBe(true);
   });
 
   it("continues scanning when a full batch contains no matching language", async () => {
     vi.mocked(getAnonymousUid).mockReturnValue(null);
-    const docs = Array.from({ length: 300 }, (_, i) => snapshot(String(i), { ...input, language: "de" }));
+    const docs = Array.from({ length: 100 }, (_, i) => snapshot(String(i), { ...input, language: "de" }));
     vi.mocked(firestore.getDocs).mockResolvedValue({ docs } as never);
-    const result = await fetchCommunityRecipes({ language: "fr" });
+    const result = await fetchCommunityRecipes({ language: "fr", sortBy: "alphabetical" });
     expect(result.recipes).toEqual([]);
-    expect(result.lastDoc).toBe(docs[299]);
+    expect(result.lastDoc).toEqual({ id: docs[99].id, field: "title", value: "Cake" });
     expect(result.hasMore).toBe(true);
+  });
+
+  it("loads a small first page without fetching individual votes and restores a serialized cursor", async () => {
+    const docs = Array.from({ length: 25 }, (_, i) => snapshot(String(i), { ...input, title: `Cake ${i}`, approved: true }));
+    vi.mocked(firestore.getDocs).mockResolvedValue({ docs } as never);
+    const result = await fetchCommunityRecipes({ pageSize: 24, sortBy: "alphabetical" });
+    expect(result.recipes).toHaveLength(24);
+    expect(firestore.limit).toHaveBeenCalledWith(25);
+    expect(firestore.getDoc).not.toHaveBeenCalled();
+    const after = JSON.parse(JSON.stringify(result.lastDoc));
+    await fetchCommunityRecipes({ pageSize: 24, sortBy: "alphabetical", after });
+    expect(firestore.startAfter).toHaveBeenCalledWith("Cake 23", "23");
+  });
+
+  it("preserves timestamp nanoseconds across persisted pagination", async () => {
+    const timestamp = new firestore.Timestamp(1791547200, 123456789);
+    vi.mocked(firestore.getDocs).mockResolvedValue({ docs: [snapshot("42", { ...input, createdAt: timestamp })] } as never);
+    const result = await fetchCommunityRecipes({ pageSize: 1 });
+    expect(result.lastDoc?.value).toEqual({ seconds: 1791547200, nanoseconds: 123456789 });
+    await fetchCommunityRecipes({ pageSize: 1, after: JSON.parse(JSON.stringify(result.lastDoc)) });
+    expect(firestore.startAfter).toHaveBeenCalledWith(timestamp, "42");
+  });
+
+  it("retains Chinese source languages and hides moderated recipes", async () => {
+    vi.mocked(firestore.getDocs).mockResolvedValue({ docs: [
+      snapshot("zh", { ...input, language: "zh" }),
+      snapshot("hidden", { ...input, approved: false })
+    ] } as never);
+    const result = await fetchCommunityRecipes({ sortBy: "alphabetical" });
+    expect(result.recipes).toHaveLength(1);
+    expect(result.recipes[0].language).toBe("zh");
+  });
+
+  it("surfaces download failures so the screen can retain its cached recipes", async () => {
+    vi.mocked(firestore.getDocs).mockRejectedValue(new Error("offline"));
+    await expect(fetchCommunityRecipes()).rejects.toThrow("offline");
+    vi.mocked(firestore.getDocs).mockReset();
+  });
+
+  it("continues fallback pagination with the same document ID ordering", async () => {
+    vi.mocked(firestore.getDocs).mockRejectedValueOnce(new Error("missing index"))
+      .mockResolvedValue({ docs: [snapshot("42", input)] } as never);
+    const result = await fetchCommunityRecipes({ sortBy: "alphabetical" });
+    expect(result.lastDoc).toEqual({ id: "42", field: "id", value: "42" });
+    await fetchCommunityRecipes({ sortBy: "alphabetical", after: result.lastDoc! });
+    expect(firestore.startAfter).toHaveBeenCalledWith("42");
   });
 
   it.each([NaN, Infinity, 0, 6, 2.5])("rejects invalid votes: %s", async (stars) => {

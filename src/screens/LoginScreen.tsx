@@ -12,7 +12,7 @@ import {
   LockKeyhole,
   Mail
 } from "lucide-react-native";
-import { Image } from "expo-image";
+import { AppLogo } from "../components/AppLogo";
 import React, { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -37,7 +37,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Login">;
 
 export function LoginScreen({ route, navigation }: Props) {
   const { t } = useTranslation();
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const { login, startLocalMode } = useAuth();
   const { language, setLanguage } = usePreferences();
   const { openGithubIssue, contactByEmail } = useSupportActions();
@@ -52,10 +52,6 @@ export function LoginScreen({ route, navigation }: Props) {
   const [showDebugModal, setShowDebugModal] = useState(false);
   const { tourDone } = useOnboarding();
   const usesHttp = /^http:\/\//i.test(serverUrl.trim());
-
-  const logo = isDark
-    ? require("../../assets/logo-dark-transparent.png")
-    : require("../../assets/logo.png");
 
   async function handleLocalMode() {
     await startLocalMode();
@@ -116,12 +112,7 @@ export function LoginScreen({ route, navigation }: Props) {
 
       {!showNextcloud ? (
         <View style={styles.hero}>
-          <Image
-            accessible={false}
-            source={logo}
-            style={styles.logo}
-            contentFit="contain"
-          />
+          <AppLogo style={styles.logo} />
           <AppText variant="title" style={styles.center}>
             {t("auth.title")}
           </AppText>

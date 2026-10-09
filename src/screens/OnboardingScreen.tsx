@@ -16,7 +16,7 @@ import {
   Timer,
   Users,
 } from "lucide-react-native";
-import { Image } from "expo-image";
+import { AppLogo } from "../components/AppLogo";
 import React, { useRef, useState } from "react";
 import {
   Animated,
@@ -69,7 +69,7 @@ const FEATURES: FeatureRow[] = [
 
 export function OnboardingScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
   const { language, setLanguage } = usePreferences();
   const { markIntroDone } = useOnboarding();
@@ -79,10 +79,6 @@ export function OnboardingScreen({ navigation }: Props) {
   const scrollX = useRef(new Animated.Value(0)).current;
 
   const isAuthenticated = Boolean(credentials || isLocalMode);
-
-  const logo = isDark
-    ? require("../../assets/logo-dark-transparent.png")
-    : require("../../assets/logo.png");
 
   function goToPage(index: number) {
     scrollViewRef.current?.scrollTo({ x: SCREEN_WIDTH * index, animated: true });
@@ -113,7 +109,6 @@ export function OnboardingScreen({ navigation }: Props) {
   const pages = [
     <Page1
       key="page1"
-      logo={logo}
       colors={colors}
       t={t}
       onNext={() => goToPage(1)}
@@ -197,12 +192,10 @@ export function OnboardingScreen({ navigation }: Props) {
 }
 
 function Page1({
-  logo,
   colors,
   t,
   onNext,
 }: {
-  logo: ReturnType<typeof require>;
   colors: ReturnType<typeof useAppTheme>["colors"];
   t: ReturnType<typeof useTranslation>["t"];
   onNext: () => void;
@@ -211,12 +204,7 @@ function Page1({
     <View style={styles.page}>
       <View style={{ flex: 1, justifyContent: "center" }}>
         <View style={styles.hero}>
-          <Image
-            accessible={false}
-            source={logo}
-            style={styles.logo}
-            contentFit="contain"
-          />
+          <AppLogo style={styles.logo} />
           <AppText variant="title" style={styles.center}>
             AvoCook
           </AppText>
@@ -232,7 +220,6 @@ function Page1({
             </View>
           </GlassPanel>
         </View>
-
 
         <View style={styles.modesColumn}>
           <GlassPanel style={styles.modeCardHorizontal}>

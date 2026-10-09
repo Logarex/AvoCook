@@ -1,11 +1,13 @@
 import type { CommunityRecipe } from "./communityClient";
-import { resolveAppLanguage } from "../../i18n/languages";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { resolveCommunityLanguage } from "./communityLanguages";
 
 type TranslationResult = { text: string; success: boolean };
 
 const TEXT_CACHE = new Map<string, string>();
 const PENDING_TRANSLATIONS = new Map<string, Promise<TranslationResult>>();
 const MAX_CACHE_ENTRIES = 500;
+const STORAGE_KEY = "community.translations.v1";
 const GOOGLE_MAX_BYTES = 1500;
 // MyMemory accepts at most 500 UTF-8 bytes per query.
 const MYMEMORY_MAX_BYTES = 450;
@@ -13,19 +15,65 @@ const REQUEST_TIMEOUT_MS = 10000;
 const MAX_CONCURRENT_REQUESTS = 4;
 const DELIMITER = "\n---\n";
 const PROVIDER_ERROR = /MYMEMORY WARNING|QUERY LENGTH LIMIT|QUOTA EXCEEDED|INVALID KEY|RESPONSE STATUS 4|TOO MANY REQUESTS/i;
+// Some providers insert spaces inside or between the bytes of a UTF-8 escape.
+// Require a sequence of bytes to distinguish it from "40% de crème".
+const SPACED_URI_SEQUENCE = /%(?:[ \t\u00a0]*[0-9a-f]){2}(?:[ \t\u00a0]*%(?:[ \t\u00a0]*[0-9a-f]){2})+/i;
+const INCOMPLETE_URI_ESCAPE = /%\s*[a-f]\s*(?:%|$)/i;
 let cacheGeneration = 0;
+let hydration: Promise<void> | undefined;
+let persistTimer: ReturnType<typeof setTimeout> | undefined;
+let writes = Promise.resolve();
 let activeRequests = 0;
 const requestQueue: (() => void)[] = [];
+
+export function hydrateTranslationCache(): Promise<void> {
+  hydration ??= (async () => {
+    const generation = cacheGeneration;
+    try {
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      const entries: unknown = raw ? JSON.parse(raw) : [];
+      if (generation !== cacheGeneration || !Array.isArray(entries)) return;
+      for (const entry of entries.slice(-MAX_CACHE_ENTRIES)) {
+        if (!Array.isArray(entry) || typeof entry[0] !== "string" || typeof entry[1] !== "string"
+          || !entry[1] || hasCorruptedText(entry[1])) continue;
+        const key: unknown = JSON.parse(entry[0]);
+        if (!Array.isArray(key) || key.length !== 3 || !key.every((item) => typeof item === "string")) continue;
+        if (!TEXT_CACHE.has(entry[0])) TEXT_CACHE.set(entry[0], cleanTranslatedText(entry[1]));
+      }
+    } catch {
+      // Translations remain available without persistent storage.
+    }
+  })();
+  return hydration;
+}
+
+function schedulePersist(): void {
+  if (persistTimer) clearTimeout(persistTimer);
+  persistTimer = setTimeout(() => {
+    persistTimer = undefined;
+    const raw = JSON.stringify([...TEXT_CACHE]);
+    writes = writes.then(async () => {
+      try { await AsyncStorage.setItem(STORAGE_KEY, raw); } catch { /* Keep the memory cache. */ }
+    });
+  }, 500);
+}
 
 export function clearTranslationCache(): void {
   cacheGeneration++;
   TEXT_CACHE.clear();
   PENDING_TRANSLATIONS.clear();
+  if (persistTimer) clearTimeout(persistTimer);
+  persistTimer = undefined;
+  hydration = Promise.resolve();
+  writes = writes.then(async () => {
+    try { await AsyncStorage.removeItem(STORAGE_KEY); } catch { /* Cache cleanup is best effort. */ }
+  });
 }
 
 export function hasCorruptedText(item: string | CommunityRecipe): boolean {
   const isCorrupt = (text: string) =>
-    /%[0-9A-Fa-f]{2}|%\s+20|(?:bl){3,}/i.test(text) || PROVIDER_ERROR.test(text);
+    /%[0-9A-Fa-f]{2}|%\s+2\s*0|%2\s+0|(?:bl){3,}/i.test(text)
+      || SPACED_URI_SEQUENCE.test(text) || INCOMPLETE_URI_ESCAPE.test(text) || PROVIDER_ERROR.test(text);
   if (typeof item === "string") return isCorrupt(item);
   return [item.title, item.description, ...item.ingredients, ...item.steps].some(isCorrupt);
 }
@@ -34,9 +82,10 @@ export function cleanTranslatedText(raw: string): string {
   if (!raw || PROVIDER_ERROR.test(raw)) return "";
   let text = raw;
   // A percentage such as "40% de crème" is not a URI escape.
-  text = text.replace(/%\s+20/g, "%20");
+  text = text.replace(/%\s+2\s*0|%2\s+0/g, "%20");
   for (let i = 0; i < 3; i++) {
-    const decoded = text.replace(/(?:%[0-9A-Fa-f]{2})+/g, (match) => {
+    const normalized = text.replace(new RegExp(SPACED_URI_SEQUENCE.source, "gi"), (match) => match.replace(/\s/g, ""));
+    const decoded = normalized.replace(/(?:%[0-9A-Fa-f]{2})+/g, (match) => {
       try {
         return decodeURIComponent(match);
       } catch {
@@ -170,6 +219,7 @@ function remember(text: string, from: string, to: string, result: TranslationRes
   TEXT_CACHE.delete(key);
   TEXT_CACHE.set(key, result.text);
   if (TEXT_CACHE.size > MAX_CACHE_ENTRIES) TEXT_CACHE.delete(TEXT_CACHE.keys().next().value!);
+  schedulePersist();
 }
 
 async function translateChunks(
@@ -215,7 +265,7 @@ async function translateTextResult(text: string, from: string, to: string): Prom
 }
 
 export async function translateText(text: string, fromLang: string, toLang: string): Promise<string> {
-  return (await translateTextResult(cleanTranslatedText(text), resolveAppLanguage(fromLang), resolveAppLanguage(toLang))).text;
+  return (await translateTextResult(cleanTranslatedText(text), resolveCommunityLanguage(fromLang), resolveCommunityLanguage(toLang))).text;
 }
 
 async function translateBatchResults(items: string[], from: string, to: string): Promise<TranslationResult[]> {
@@ -267,18 +317,32 @@ async function translateBatchResults(items: string[], from: string, to: string):
 }
 
 export async function translateBatch(items: string[], fromLang: string, toLang: string): Promise<string[]> {
-  return (await translateBatchResults(items, resolveAppLanguage(fromLang), resolveAppLanguage(toLang)))
+  return (await translateBatchResults(items, resolveCommunityLanguage(fromLang), resolveCommunityLanguage(toLang)))
     .map((result) => result.text);
 }
 
 // Previews retain the source language for filtering.
+export function getCachedCommunityRecipePreviews(recipes: CommunityRecipe[], targetLang: string): CommunityRecipe[] {
+  const target = resolveCommunityLanguage(targetLang);
+  return recipes.map((recipe) => {
+    const source = resolveCommunityLanguage(recipe.language);
+    if (source === target) return recipe;
+    return {
+      ...recipe,
+      title: TEXT_CACHE.get(cacheKey(cleanTranslatedText(recipe.title), source, target)) ?? recipe.title,
+      description: TEXT_CACHE.get(cacheKey(cleanTranslatedText(recipe.description), source, target)) ?? recipe.description
+    };
+  });
+}
+
 export async function translateCommunityRecipePreviews(recipes: CommunityRecipe[], targetLang: string): Promise<CommunityRecipe[]> {
-  const target = resolveAppLanguage(targetLang);
+  await hydrateTranslationCache();
+  const target = resolveCommunityLanguage(targetLang);
   const translated = [...recipes];
-  const sourceLanguages = [...new Set(recipes.map((recipe) => resolveAppLanguage(recipe.language)))];
+  const sourceLanguages = [...new Set(recipes.map((recipe) => resolveCommunityLanguage(recipe.language)))];
   await Promise.all(sourceLanguages.map(async (source) => {
     if (source === target) return;
-    const indices = recipes.flatMap((recipe, index) => resolveAppLanguage(recipe.language) === source ? [index] : []);
+    const indices = recipes.flatMap((recipe, index) => resolveCommunityLanguage(recipe.language) === source ? [index] : []);
     const fields = indices.flatMap((index) => [recipes[index].title, recipes[index].description]);
     const results = await translateBatchResults(fields, source, target);
     indices.forEach((index, position) => {
@@ -293,8 +357,9 @@ export async function translateCommunityRecipePreviews(recipes: CommunityRecipe[
 }
 
 export async function translateCommunityRecipe(recipe: CommunityRecipe, targetLang: string): Promise<CommunityRecipe> {
-  const target = resolveAppLanguage(targetLang);
-  const source = resolveAppLanguage(recipe.language);
+  await hydrateTranslationCache();
+  const target = resolveCommunityLanguage(targetLang);
+  const source = resolveCommunityLanguage(recipe.language);
   if (source === target) return recipe;
   const results = await translateBatchResults(
     [recipe.title, recipe.description, ...recipe.ingredients, ...recipe.steps], source, target

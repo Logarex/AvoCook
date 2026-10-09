@@ -336,6 +336,8 @@ export default {
       syncActiveInfo: "Synchronization active",
     },
     community: {
+      translationLanguage: "Translation language",
+      loadFailed: "Could not load recipes. Tap to retry.",
       title: "Community",
       submitRecipe: "Share a recipe",
       byAuthor: "By {{author}}",
