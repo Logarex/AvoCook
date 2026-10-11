@@ -7,7 +7,7 @@ const authMock = vi.hoisted(() => ({
 vi.mock("firebase/app", () => ({ initializeApp: () => ({}), getApps: () => [] }));
 vi.mock("firebase/firestore", () => ({ getFirestore: () => ({}) }));
 vi.mock("firebase/storage", () => ({ getStorage: () => ({}) }));
-vi.mock("@react-native-async-storage/async-storage", () => ({ default: {} }));
+vi.mock("../features/storage/reinstallStorage", () => ({ reinstallStorage: {} }));
 vi.mock("firebase/auth", () => ({
   initializeAuth: () => ({}), getAuth: () => ({}), getReactNativePersistence: () => ({}),
   signInAnonymously: authMock.signIn,
@@ -38,5 +38,33 @@ describe("Firebase authentication reliability", () => {
     expect(auth.getAnonymousUid()).toBeNull();
     expect(await auth.waitForAuth()).toBeNull();
     expect(auth.getCurrentUser()).toBeNull();
+  });
+});
+
+describe("Firebase sign-in recovery", () => {
+  it("retries a failed sign-in on the next community action", async () => {
+    const auth = await import("../features/firebase/firebaseClient");
+    authMock.signIn.mockRejectedValueOnce(new Error("Offline"));
+    auth.initFirebaseAuth();
+    authMock.listener!(null);
+    expect(await auth.waitForAuth()).toBeNull();
+    await Promise.resolve();
+    authMock.signIn.mockResolvedValueOnce({ user: { uid: "restored-user" } });
+    expect((await auth.waitForAuth())?.uid).toBe("restored-user");
+    expect(authMock.signIn).toHaveBeenCalledTimes(2);
+  });
+
+  it("shares an in-flight sign-in across multiple community actions", async () => {
+    const auth = await import("../features/firebase/firebaseClient");
+    let finish!: (value: unknown) => void;
+    authMock.signIn.mockImplementation(() => new Promise((resolve) => { finish = resolve; }));
+    auth.initFirebaseAuth();
+    authMock.listener!(null);
+    const first = auth.waitForAuth();
+    const second = auth.waitForAuth();
+    finish({ user: { uid: "one-author" } });
+    expect((await first)?.uid).toBe("one-author");
+    expect((await second)?.uid).toBe("one-author");
+    expect(authMock.signIn).toHaveBeenCalledTimes(1);
   });
 });

@@ -17,7 +17,7 @@ export function normalizeNextcloudUrl(rawUrl: string): string {
   ) {
     throw new Error("INVALID_URL");
   }
-  url.pathname = url.pathname.replace(/\/+$/, "");
+  url.pathname = url.pathname.replace(/\/+$/, "").replace(/\/index\.php$/, "");
   url.search = "";
   url.hash = "";
   return url.toString().replace(/\/$/, "");

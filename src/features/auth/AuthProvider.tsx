@@ -8,6 +8,7 @@ import React, {
   useMemo,
   useState
 } from "react";
+import { reinstallStorage } from "../storage/reinstallStorage";
 import { normalizeNextcloudUrl } from "../../utils/url";
 
 import {
@@ -52,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const [stored, localMode] = await Promise.all([
           tryLoadCredentials(0),
-          AsyncStorage.getItem(LOCAL_MODE_KEY)
+          reinstallStorage.getItem(LOCAL_MODE_KEY)
         ]);
         if (stored) {
           const parsed = JSON.parse(stored) as NextcloudCredentials | null;
@@ -117,7 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK_THIS_DEVICE_ONLY
       }
     );
-    await AsyncStorage.setItem(LOCAL_MODE_KEY, "false");
+    await reinstallStorage.setItem(LOCAL_MODE_KEY, "false");
     await AsyncStorage.removeItem("recipes.firstSyncCompleted");
     setIsLocalMode(false);
     setCredentials(normalizedCredentials);
@@ -131,7 +132,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const startLocalMode = useCallback(async () => {
     console.info("auth", "Local mode started");
     await SecureStore.deleteItemAsync(CREDENTIALS_KEY);
-    await AsyncStorage.setItem(LOCAL_MODE_KEY, "true");
+    await reinstallStorage.setItem(LOCAL_MODE_KEY, "true");
     CookbookClient.setCurrent(null);
     setCredentials(null);
     setIsLocalMode(true);
@@ -140,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(async () => {
     console.info("auth", "Logout started");
     await SecureStore.deleteItemAsync(CREDENTIALS_KEY);
-    await AsyncStorage.setItem(LOCAL_MODE_KEY, "false");
+    await reinstallStorage.setItem(LOCAL_MODE_KEY, "false");
     await AsyncStorage.removeItem("recipes.firstSyncCompleted");
     setCredentials(null);
     CookbookClient.setCurrent(null);

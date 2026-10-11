@@ -501,6 +501,7 @@ export default {
       localMode: "Lokal tilstand",
       localOnly: "Brug uden en Nextcloud-konto",
       privacy: "Privatliv",
+      reinstallNotice: "På iOS kan indstillinger, loginoplysninger og din fællesskabssession gendannes efter geninstallation på samme enhed. Sikkerhedskopiér dine lokale opskrifter, før du afinstallerer appen.",
       secureStore: "Oplysninger forbliver i telefonens sikre lagring.",
       localNotice: "Dine opskrifter gemmes udelukkende på denne enhed og sendes ikke til nogen server.",
       reindex: "Genindekser Cookbook",

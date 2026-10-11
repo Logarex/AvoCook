@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { reinstallStorage } from "../features/storage/reinstallStorage";
 import {
   DarkTheme,
   DefaultTheme,
@@ -39,16 +39,16 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
   const colors = isDark ? darkColors : lightColors;
 
   useEffect(() => {
-    void AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
+    void reinstallStorage.getItem(STORAGE_KEY).then((stored) => {
       if (stored === "system" || stored === "light" || stored === "dark") {
         setModeState(stored);
       }
-    });
+    }).catch((error: unknown) => console.warn("preferences", "Could not restore theme", error));
   }, []);
 
   const setMode = useCallback(async (nextMode: ThemeMode) => {
     setModeState(nextMode);
-    await AsyncStorage.setItem(STORAGE_KEY, nextMode);
+    await reinstallStorage.setItem(STORAGE_KEY, nextMode);
   }, []);
 
   const navTheme = useMemo<NavigationTheme>(() => {

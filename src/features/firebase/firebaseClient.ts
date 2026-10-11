@@ -13,7 +13,7 @@ import {
   type Auth,
   type User
 } from "firebase/auth";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { reinstallStorage } from "../storage/reinstallStorage";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 
 // Firebase client keys are public; Firestore rules control access.
@@ -61,9 +61,10 @@ export function getFirebaseAuth(): Auth {
     const app = getApp();
     try {
       _auth = initializeAuth(app, {
-        persistence: getReactNativePersistence(AsyncStorage),
+        persistence: getReactNativePersistence(reinstallStorage),
       });
-    } catch {
+    } catch (error) {
+      if (!error || typeof error !== "object" || !("code" in error) || error.code !== "auth/already-initialized") throw error;
       _auth = getAuth(app);
     }
   }
@@ -71,35 +72,38 @@ export function getFirebaseAuth(): Auth {
 }
 
 let _initCalled = false;
+let signInPromise: Promise<void> | null = null;
+
+function settleAuth(user: User | null) {
+  _user = user;
+  _authReady = true;
+  const callbacks = _authReadyCallbacks;
+  _authReadyCallbacks = [];
+  callbacks.forEach((callback) => callback(user));
+}
+
+function ensureAnonymousSignIn(auth: Auth) {
+  if (signInPromise) return;
+  _authReady = false;
+  signInPromise = signInAnonymously(auth)
+    .then((result) => settleAuth(result.user))
+    .catch((error: unknown) => {
+      console.warn("firebase", "Anonymous sign-in failed", error);
+      settleAuth(null);
+    })
+    .finally(() => { signInPromise = null; });
+}
 
 export function initFirebaseAuth(): void {
   if (_initCalled) return;
-  _initCalled = true;
   const auth = getFirebaseAuth();
+  _initCalled = true;
   onAuthStateChanged(auth, (user) => {
-    void (async () => {
-      if (user) {
-        _user = user;
-        _authReady = true;
-        _authReadyCallbacks.forEach((cb) => cb(user));
-        _authReadyCallbacks = [];
-      } else {
-        _user = null;
-        _authReady = false;
-        try {
-          const result = await signInAnonymously(auth);
-          _user = result.user;
-          _authReady = true;
-          _authReadyCallbacks.forEach((cb) => cb(result.user));
-          _authReadyCallbacks = [];
-        } catch (error) {
-          console.warn("firebase", "Anonymous sign-in failed", error);
-          _authReady = true;
-          _authReadyCallbacks.forEach((cb) => cb(null));
-          _authReadyCallbacks = [];
-        }
-      }
-    })();
+    if (user) settleAuth(user);
+    else {
+      _user = null;
+      ensureAnonymousSignIn(auth);
+    }
   });
 }
 
@@ -109,7 +113,8 @@ export function getCurrentUser(): User | null {
 
 export function waitForAuth(timeoutMs = 15000): Promise<User | null> {
   initFirebaseAuth();
-  if (_authReady) return Promise.resolve(_user);
+  if (_authReady && _user) return Promise.resolve(_user);
+  if (_authReady && !signInPromise) ensureAnonymousSignIn(getFirebaseAuth());
   return new Promise((resolve) => {
     const callback = (user: User | null) => {
       clearTimeout(timeout);

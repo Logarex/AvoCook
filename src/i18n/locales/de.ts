@@ -546,6 +546,7 @@ export default {
       localMode: "Lokaler Modus",
       localOnly: "Ohne Nextcloud-Konto",
       privacy: "Datenschutz",
+      reinstallNotice: "Unter iOS können Einstellungen, Zugangsdaten und deine Community-Sitzung nach einer Neuinstallation auf demselben Gerät wiederhergestellt werden. Sichere deine lokalen Rezepte, bevor du die App deinstallierst.",
       secureStore: "Anmeldedaten bleiben im sicheren Speicher des Telefons.",
       localNotice:
         "Deine Rezepte werden ausschließlich auf diesem Gerät gespeichert und an keinen Server gesendet.",

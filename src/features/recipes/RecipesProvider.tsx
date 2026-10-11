@@ -8,7 +8,7 @@ import React, {
   useState
 } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Alert } from "react-native";
+import { Alert, AppState } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useLongActionToast } from "../../components/LongActionToast";
 import { useAuth } from "../auth/AuthProvider";
@@ -21,21 +21,8 @@ import {
   toggleFavoriteCategory as toggleFavoriteCategoryInStore
 } from "./categoryStore";
 import {
-  clearSyncedLocalRecipes,
-  createRecipe as createRecipeInRepository,
-  deleteRecipe as deleteRecipeInRepository,
-  exportRecipeBackup,
-  findDuplicateRecipes,
-  importRecipeBackup,
-  importRecipeBackupFile,
-  importRecipe as importRecipeInRepository,
-  initialiseRecipeStore,
-  mergeDuplicateRecipes,
-  renameRecipeCategory as renameRecipeCategoryInRepository,
-  syncRecipes,
-  updateRecipeFromSource as updateRecipeFromSourceInRepository,
-  updateRecipeLocalPreferences,
-  updateRecipe as updateRecipeInRepository,
+  createRecipeRepository,
+  RecipeSyncError,
   type RecipeBackupImportResult,
   type RecipeDuplicateMergeResult,
   type RecipeNameConflict,
@@ -84,9 +71,23 @@ const RecipesContext = createContext<RecipesContextValue | undefined>(
 );
 
 export function RecipesProvider({ children }: { children: React.ReactNode }) {
+  const { getClient, isLocalMode, hydrated } = useAuth();
+  const accountKey = hydrated ? getClient()?.getAccountKey() ?? (isLocalMode ? "local" : null) : null;
+  return <AccountRecipesProvider key={accountKey ?? "signed-out"} accountKey={accountKey}>{children}</AccountRecipesProvider>;
+}
+
+function AccountRecipesProvider({ children, accountKey }: { children: React.ReactNode; accountKey: string | null }) {
+  const {
+    initialiseRecipeStore, clearSyncedLocalRecipes, updateRecipeLocalPreferences,
+    findDuplicateRecipes, mergeDuplicateRecipes, createRecipe: createRecipeInRepository,
+    updateRecipe: updateRecipeInRepository, deleteRecipe: deleteRecipeInRepository,
+    renameRecipeCategory: renameRecipeCategoryInRepository, importRecipe: importRecipeInRepository,
+    updateRecipeFromSource: updateRecipeFromSourceInRepository, syncRecipes,
+    exportRecipeBackup, importRecipeBackup, importRecipeBackupFile
+  } = useMemo(() => createRecipeRepository(accountKey), [accountKey]);
   const { t } = useTranslation();
   const { credentials, getClient, isLocalMode } = useAuth();
-  const { keepRecipesLocal, showDefaultCategories, nextcloudImageFolder } = usePreferences();
+  const { keepRecipesLocal, showDefaultCategories, nextcloudImageFolder, hydrated: preferencesHydrated } = usePreferences();
   const { watchLongAction } = useLongActionToast();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [customCategories, setCustomCategories] = useState<string[]>([]);
@@ -96,6 +97,11 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   const [syncing, setSyncing] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
   const syncInFlightRef = useRef(false);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
 
   const resolveNameConflict = useCallback(
     (conflict: RecipeNameConflict) =>
@@ -131,6 +137,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   );
 
   const reloadLocal = useCallback(async () => {
+    if (!accountKey) { setLoading(false); return; }
     setLoading(true);
     try {
       setRecipes(await initialiseRecipeStore());
@@ -140,7 +147,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [accountKey, initialiseRecipeStore]);
 
   useEffect(() => {
     void reloadLocal();
@@ -157,7 +164,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
 
   const sync = useCallback(async () => {
     const client = getClient();
-    if (!client) {
+    if (!client || !accountKey || !mounted.current) {
       return;
     }
     if (syncInFlightRef.current) {
@@ -174,7 +181,9 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       if (isFirstSync) {
         stopLongActionNotice = watchLongAction("longActions.sync");
       }
-      setRecipes(await syncRecipes(client, keepRecipesLocal, repositoryOptions));
+      const synced = await syncRecipes(client, keepRecipesLocal);
+      if (!mounted.current) return;
+      setRecipes(synced);
 
       if (isFirstSync) {
         await AsyncStorage.setItem("recipes.firstSyncCompleted", "true")
@@ -185,7 +194,8 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       setLastError(error instanceof Error ? error.message : String(error));
       try {
-        setRecipes(await initialiseRecipeStore());
+        if (error instanceof RecipeSyncError) setRecipes(error.recipes);
+        else if (keepRecipesLocal) setRecipes(await initialiseRecipeStore());
       } catch (localError) {
         console.warn("local", "Could not reload recipes after sync failure", localError);
       }
@@ -194,7 +204,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       setSyncing(false);
       stopLongActionNotice();
     }
-  }, [getClient, keepRecipesLocal, repositoryOptions, watchLongAction]);
+  }, [accountKey, getClient, keepRecipesLocal, watchLongAction, syncRecipes, initialiseRecipeStore]);
 
   useEffect(() => {
     const client = getClient();
@@ -204,18 +214,27 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
   }, [getClient, nextcloudImageFolder]);
 
   useEffect(() => {
-    if (credentials) {
-      void sync();
-    }
-  }, [credentials, sync]);
+    if (!credentials || !preferencesHydrated) return;
+    void sync();
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") void sync();
+    });
+    const interval = setInterval(() => {
+      if (AppState.currentState === "active") void sync();
+    }, 60_000);
+    return () => {
+      subscription.remove();
+      clearInterval(interval);
+    };
+  }, [credentials, preferencesHydrated, sync]);
 
   useEffect(() => {
-    if (credentials && !keepRecipesLocal && !isLocalMode) {
+    if (accountKey && credentials && !keepRecipesLocal && !isLocalMode) {
       void clearSyncedLocalRecipes().catch((error: unknown) => {
         setLastError(error instanceof Error ? error.message : String(error));
       });
     }
-  }, [credentials, isLocalMode, keepRecipesLocal]);
+  }, [accountKey, credentials, isLocalMode, keepRecipesLocal, clearSyncedLocalRecipes]);
 
   const createRecipe = useCallback(
     async (recipe: Recipe) => {
@@ -226,13 +245,14 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
           getClient(),
           repositoryOptions
         );
-        setRecipes(await initialiseRecipeStore());
+        setRecipes((current) => [...current.filter((item) => item.id !== recipe.id && item.id !== saved.id), saved]);
+        void sync();
         return saved;
       } finally {
         stopLongActionNotice();
       }
     },
-    [getClient, repositoryOptions, watchLongAction]
+    [getClient, repositoryOptions, sync, watchLongAction, createRecipeInRepository]
   );
 
   const updateRecipe = useCallback(
@@ -244,13 +264,14 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
           getClient(),
           repositoryOptions
         );
-        setRecipes(await initialiseRecipeStore());
+        setRecipes((current) => [...current.filter((item) => item.id !== recipe.id && item.id !== saved.id), saved]);
+        void sync();
         return saved;
       } finally {
         stopLongActionNotice();
       }
     },
-    [getClient, repositoryOptions, watchLongAction]
+    [getClient, repositoryOptions, sync, watchLongAction, updateRecipeInRepository]
   );
 
   const updateRecipeFromSource = useCallback(
@@ -262,13 +283,14 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
           getClient(),
           repositoryOptions
         );
-        setRecipes(await initialiseRecipeStore());
+        setRecipes((current) => [...current.filter((item) => item.id !== recipe.id && item.id !== saved.id), saved]);
+        void sync();
         return saved;
       } finally {
         stopLongActionNotice();
       }
     },
-    [getClient, repositoryOptions, watchLongAction]
+    [getClient, repositoryOptions, sync, watchLongAction, updateRecipeFromSourceInRepository]
   );
 
   const updateRecipePreferences = useCallback(async (recipe: Recipe) => {
@@ -284,19 +306,20 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
       )
     );
     return saved;
-  }, []);
+  }, [updateRecipeLocalPreferences]);
 
   const deleteRecipe = useCallback(
     async (id: string) => {
       const stopLongActionNotice = watchLongAction("longActions.deleteRecipe");
       try {
         await deleteRecipeInRepository(id, getClient());
-        setRecipes(await initialiseRecipeStore());
+        setRecipes((current) => current.filter((recipe) => recipe.id !== id));
+        void sync();
       } finally {
         stopLongActionNotice();
       }
     },
-    [getClient, watchLongAction]
+    [getClient, sync, watchLongAction, deleteRecipeInRepository]
   );
 
   const importRecipe = useCallback(
@@ -309,13 +332,14 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
           recipes,
           repositoryOptions
         );
-        setRecipes(await initialiseRecipeStore());
+        setRecipes((current) => [...current.filter((item) => item.id !== saved.id), saved]);
+        void sync();
         return saved;
       } finally {
         stopLongActionNotice();
       }
     },
-    [getClient, recipes, repositoryOptions, watchLongAction]
+    [getClient, recipes, repositoryOptions, sync, watchLongAction, importRecipeInRepository]
   );
 
   const exportBackup = useCallback(async () => {
@@ -331,12 +355,12 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
         repositoryOptions
       );
       const fileUri = await writeRecipeBackupToPickedDirectory(result.backup);
-      setRecipes(await initialiseRecipeStore());
       return { ...result, fileUri };
     } finally {
       stopLongActionNotice();
     }
   }, [
+    exportRecipeBackup,
     customCategories,
     favoriteCategories,
     getClient,
@@ -357,7 +381,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
     } finally {
       stopLongActionNotice();
     }
-  }, [effectiveShowDefaultCategories, getClient, repositoryOptions, watchLongAction]);
+  }, [effectiveShowDefaultCategories, getClient, repositoryOptions, watchLongAction, importRecipeBackup]);
 
   const importBackupFile = useCallback(
     async (uri: string) => {
@@ -376,10 +400,10 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
         stopLongActionNotice();
       }
     },
-    [effectiveShowDefaultCategories, getClient, repositoryOptions, watchLongAction]
+    [effectiveShowDefaultCategories, getClient, repositoryOptions, watchLongAction, importRecipeBackupFile]
   );
 
-  const findDuplicateGroups = useCallback(() => findDuplicateRecipes(), []);
+  const findDuplicateGroups = useCallback(() => findDuplicateRecipes(), [findDuplicateRecipes]);
 
   const mergeDuplicateGroup = useCallback(
     async (group: RecipeDuplicateGroup) => {
@@ -392,7 +416,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
         stopLongActionNotice();
       }
     },
-    [getClient, watchLongAction]
+    [getClient, watchLongAction, mergeDuplicateRecipes]
   );
 
   const createCategory = useCallback(async (category: string) => {
@@ -428,7 +452,7 @@ export function RecipesProvider({ children }: { children: React.ReactNode }) {
         stopLongActionNotice();
       }
     },
-    [getClient, recipes, repositoryOptions, watchLongAction, effectiveShowDefaultCategories]
+    [getClient, recipes, repositoryOptions, watchLongAction, effectiveShowDefaultCategories, renameRecipeCategoryInRepository]
   );
 
   const toggleFavoriteCategory = useCallback(async (category: string) => {

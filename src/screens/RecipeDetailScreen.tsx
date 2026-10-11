@@ -1,5 +1,6 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { Image, type ImageSource } from "expo-image";
+import { type ImageSource } from "expo-image";
+import { RecipeImage } from "../components/RecipeImage";
 import { useKeepAwake } from "expo-keep-awake";
 import type { LucideIcon } from "lucide-react-native";
 import {
@@ -209,6 +210,9 @@ function RecipeDetailContent({
     () => new Set(),
   );
   const source = getImageSource();
+  const imageClient = getClient();
+  const fallbackImageUri = imageClient && recipe?.id && !recipe.id.startsWith("local-") && !recipe.localMeta?.imageRemoved
+    ? imageClient.getRecipeImageUrl(recipe.id, "full") : undefined;
   const canUpdateFromSource = isExternalRecipeSourceUrl(recipe?.url);
   const nutrition = useMemo(
     () => normalizeNutrition(recipe?.nutrition, t),
@@ -703,15 +707,15 @@ function RecipeDetailContent({
       />
 
       <View style={[styles.heroImage, { backgroundColor: colors.chip }]}>
-        {source ? (
-          <Image
-            accessibilityLabel={recipe.name}
-            accessibilityRole="image"
-            source={source}
-            style={styles.image}
-            contentFit="cover"
-          />
-        ) : (
+        <RecipeImage
+          key={`${source?.uri}-${fallbackImageUri}`}
+          fallbackSource={fallbackImageUri ? { uri: fallbackImageUri, headers: imageClient?.getImageHeaders(fallbackImageUri) } : null}
+          accessibilityLabel={recipe.name}
+          accessibilityRole="image"
+          source={source}
+          style={styles.image}
+          contentFit="cover"
+        >
           <AppText
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
@@ -720,7 +724,7 @@ function RecipeDetailContent({
           >
             {recipe.name.slice(0, 1).toUpperCase()}
           </AppText>
-        )}
+        </RecipeImage>
       </View>
 
       <View style={styles.titleBlock}>

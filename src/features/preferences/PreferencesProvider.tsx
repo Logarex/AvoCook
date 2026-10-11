@@ -1,4 +1,4 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { reinstallStorage } from "../storage/reinstallStorage";
 import * as SecureStore from "expo-secure-store";
 import React, {
   createContext,
@@ -30,6 +30,7 @@ export type LlmSettings = {
 };
 
 type PreferencesContextValue = {
+  hydrated: boolean;
   keepScreenAwake: boolean;
   keepRecipesLocal: boolean;
   enableBackupReminders: boolean;
@@ -84,6 +85,7 @@ export function PreferencesProvider({
 }: {
   children: React.ReactNode;
 }) {
+  const [hydrated, setHydrated] = useState(false);
   const [keepScreenAwake, setKeepScreenAwakeState] = useState(true);
   const [keepRecipesLocal, setKeepRecipesLocalState] = useState(true);
   const [enableBackupReminders, setEnableBackupRemindersState] = useState(true);
@@ -101,20 +103,20 @@ export function PreferencesProvider({
 
   useEffect(() => {
     void Promise.all([
-      AsyncStorage.getItem(KEEP_AWAKE_KEY),
-      AsyncStorage.getItem(KEEP_RECIPES_LOCAL_KEY),
-      AsyncStorage.getItem(ENABLE_BACKUP_REMINDERS_KEY),
-      AsyncStorage.getItem(ENABLE_SHOPPING_NOTIFICATIONS_KEY),
-      AsyncStorage.getItem(SHOW_DEFAULT_CATEGORIES_KEY),
-      AsyncStorage.getItem(LANGUAGE_KEY),
-      AsyncStorage.getItem(LANGUAGE_USER_SET_KEY),
-      AsyncStorage.getItem(LLM_PROVIDER_KEY),
-      AsyncStorage.getItem(LLM_BASE_URL_KEY),
-      AsyncStorage.getItem(LLM_MODEL_KEY),
+      reinstallStorage.getItem(KEEP_AWAKE_KEY),
+      reinstallStorage.getItem(KEEP_RECIPES_LOCAL_KEY),
+      reinstallStorage.getItem(ENABLE_BACKUP_REMINDERS_KEY),
+      reinstallStorage.getItem(ENABLE_SHOPPING_NOTIFICATIONS_KEY),
+      reinstallStorage.getItem(SHOW_DEFAULT_CATEGORIES_KEY),
+      reinstallStorage.getItem(LANGUAGE_KEY),
+      reinstallStorage.getItem(LANGUAGE_USER_SET_KEY),
+      reinstallStorage.getItem(LLM_PROVIDER_KEY),
+      reinstallStorage.getItem(LLM_BASE_URL_KEY),
+      reinstallStorage.getItem(LLM_MODEL_KEY),
       SecureStore.getItemAsync(LLM_API_KEY_SECURE),
-      AsyncStorage.getItem(COMMUNITY_PSEUDONYM_KEY),
-      AsyncStorage.getItem(NEXTCLOUD_IMAGE_FOLDER_KEY),
-      AsyncStorage.getItem(COMMUNITY_TRANSLATION_LANGUAGE_KEY)
+      reinstallStorage.getItem(COMMUNITY_PSEUDONYM_KEY),
+      reinstallStorage.getItem(NEXTCLOUD_IMAGE_FOLDER_KEY),
+      reinstallStorage.getItem(COMMUNITY_TRANSLATION_LANGUAGE_KEY)
     ]).then(
       ([
         storedKeepAwake,
@@ -184,50 +186,52 @@ export function PreferencesProvider({
           setNextcloudImageFolderState(storedNextcloudImageFolder);
         }
       }
-    );
+    ).catch((error: unknown) => {
+      console.warn("preferences", "Could not restore settings", error);
+    }).finally(() => setHydrated(true));
   }, []);
 
   const setKeepScreenAwake = useCallback(async (enabled: boolean) => {
     setKeepScreenAwakeState(enabled);
-    await AsyncStorage.setItem(KEEP_AWAKE_KEY, String(enabled));
+    await reinstallStorage.setItem(KEEP_AWAKE_KEY, String(enabled));
   }, []);
 
   const setKeepRecipesLocal = useCallback(async (enabled: boolean) => {
     setKeepRecipesLocalState(enabled);
-    await AsyncStorage.setItem(KEEP_RECIPES_LOCAL_KEY, String(enabled));
+    await reinstallStorage.setItem(KEEP_RECIPES_LOCAL_KEY, String(enabled));
   }, []);
 
   const setEnableBackupReminders = useCallback(async (enabled: boolean) => {
     setEnableBackupRemindersState(enabled);
-    await AsyncStorage.setItem(ENABLE_BACKUP_REMINDERS_KEY, String(enabled));
+    await reinstallStorage.setItem(ENABLE_BACKUP_REMINDERS_KEY, String(enabled));
   }, []);
 
   const setEnableShoppingNotifications = useCallback(async (enabled: boolean) => {
     setEnableShoppingNotificationsState(enabled);
-    await AsyncStorage.setItem(ENABLE_SHOPPING_NOTIFICATIONS_KEY, String(enabled));
+    await reinstallStorage.setItem(ENABLE_SHOPPING_NOTIFICATIONS_KEY, String(enabled));
   }, []);
 
   const setShowDefaultCategories = useCallback(async (enabled: boolean | null) => {
     setShowDefaultCategoriesState(enabled);
     if (enabled === null) {
-      await AsyncStorage.removeItem(SHOW_DEFAULT_CATEGORIES_KEY);
+      await reinstallStorage.removeItem(SHOW_DEFAULT_CATEGORIES_KEY);
     } else {
-      await AsyncStorage.setItem(SHOW_DEFAULT_CATEGORIES_KEY, String(enabled));
+      await reinstallStorage.setItem(SHOW_DEFAULT_CATEGORIES_KEY, String(enabled));
     }
   }, []);
 
   const setLanguage = useCallback(async (nextLanguage: AppLanguage) => {
     setLanguageState(nextLanguage);
-    await AsyncStorage.setItem(LANGUAGE_KEY, nextLanguage);
-    await AsyncStorage.setItem(LANGUAGE_USER_SET_KEY, "true");
+    await reinstallStorage.setItem(LANGUAGE_KEY, nextLanguage);
+    await reinstallStorage.setItem(LANGUAGE_USER_SET_KEY, "true");
     await i18n.changeLanguage(nextLanguage);
   }, []);
 
   const setLlmSettings = useCallback(async (next: LlmSettings) => {
     setLlmSettingsState(next);
-    await AsyncStorage.setItem(LLM_PROVIDER_KEY, next.providerId);
-    await AsyncStorage.setItem(LLM_BASE_URL_KEY, next.baseUrl);
-    await AsyncStorage.setItem(LLM_MODEL_KEY, next.model);
+    await reinstallStorage.setItem(LLM_PROVIDER_KEY, next.providerId);
+    await reinstallStorage.setItem(LLM_BASE_URL_KEY, next.baseUrl);
+    await reinstallStorage.setItem(LLM_MODEL_KEY, next.model);
     if (next.apiKey) {
       await SecureStore.setItemAsync(LLM_API_KEY_SECURE, next.apiKey);
     } else {
@@ -238,26 +242,27 @@ export function PreferencesProvider({
   const setCommunityPseudonym = useCallback(async (pseudo: string | null) => {
     setCommunityPseudonymState(pseudo);
     if (pseudo === null) {
-      await AsyncStorage.removeItem(COMMUNITY_PSEUDONYM_KEY);
+      await reinstallStorage.removeItem(COMMUNITY_PSEUDONYM_KEY);
     } else {
-      await AsyncStorage.setItem(COMMUNITY_PSEUDONYM_KEY, pseudo);
+      await reinstallStorage.setItem(COMMUNITY_PSEUDONYM_KEY, pseudo);
     }
   }, []);
 
   const setNextcloudImageFolder = useCallback(async (folder: string) => {
     setNextcloudImageFolderState(folder);
-    await AsyncStorage.setItem(NEXTCLOUD_IMAGE_FOLDER_KEY, folder);
+    await reinstallStorage.setItem(NEXTCLOUD_IMAGE_FOLDER_KEY, folder);
   }, []);
 
   const setCommunityTranslationLanguage = useCallback(async (language: RecipeLanguage) => {
     setCommunityTranslationLanguageState(language);
-    try { await AsyncStorage.setItem(COMMUNITY_TRANSLATION_LANGUAGE_KEY, language); } catch {
+    try { await reinstallStorage.setItem(COMMUNITY_TRANSLATION_LANGUAGE_KEY, language); } catch {
       console.warn("community", "Could not save translation language");
     }
   }, []);
 
   const value = useMemo(
     () => ({
+      hydrated,
       keepScreenAwake,
       keepRecipesLocal,
       enableBackupReminders,
@@ -280,6 +285,7 @@ export function PreferencesProvider({
       setNextcloudImageFolder
     }),
     [
+      hydrated,
       keepScreenAwake,
       keepRecipesLocal,
       enableBackupReminders,

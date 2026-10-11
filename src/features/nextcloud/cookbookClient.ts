@@ -4,6 +4,7 @@ import { logService } from "../logging/logService";
 import { normalizeCookbookImageEndpointReference } from "../recipes/recipeImageReferences";
 import {
   toCookbookCreateRecipe,
+  normalizeRecipe,
   type Category,
   type Keyword,
   type Recipe,
@@ -65,12 +66,14 @@ export class CookbookClient {
   private readonly username: string;
   private readonly appPassword: string;
   private readonly authorization: string;
+  private readonly accountKey: string;
   private webDavAuthorization: string | null;
   private webDavUserId: string | null;
   private webDavUserIdPromise: Promise<string> | null;
   private webDavPathStyle: WebDavPathStyle | null;
   private readonly _imageHeaders: Record<string, string>;
   private _imageFolder: string;
+  private apiPrefix = "";
 
   private static currentInstance: CookbookClient | null = null;
 
@@ -87,6 +90,7 @@ export class CookbookClient {
     this.username = credentials.username.trim();
     this.appPassword = credentials.appPassword.replace(/\s+/g, "");
     this.authorization = this.getAuthorizationForUsername(this.username);
+    this.accountKey = JSON.stringify([this.serverUrl, credentials.userId?.trim() || this.username]);
     this.webDavAuthorization = null;
     this.webDavUserId = credentials.userId?.trim() || null;
     this.webDavUserIdPromise = null;
@@ -99,12 +103,16 @@ export class CookbookClient {
     return this._imageFolder || DEFAULT_IMAGE_FOLDER;
   }
 
+  getAccountKey(): string {
+    return this.accountKey;
+  }
+
   setImageFolder(folder: string) {
     this._imageFolder = folder.trim() || DEFAULT_IMAGE_FOLDER;
   }
 
   getRecipeImageUrl(id: string, size: "full" | "thumb" | "thumb16" = "thumb") {
-    return `${this.serverUrl}/apps/cookbook/api/v1/recipes/${encodeURIComponent(
+    return `${this.serverUrl}${this.apiPrefix}/apps/cookbook/api/v1/recipes/${encodeURIComponent(
       id
     )}/image?size=${size}`;
   }
@@ -182,14 +190,23 @@ export class CookbookClient {
     const recipes = await this.request<RecipeStub[]>(
       "/apps/cookbook/api/v1/recipes"
     );
-    return recipes.map((recipe) => this.normalizeRecipeImageUrls(recipe));
+    if (!Array.isArray(recipes)) throw new Error("Invalid Cookbook recipe list");
+    return recipes.map((recipe) => this.normalizeRecipeImageUrls({
+      ...recipe,
+      id: String(recipe.id ?? recipe.recipe_id ?? "")
+    }));
   }
 
   async getRecipe(id: string) {
     const recipe = await this.request<Recipe>(
       `/apps/cookbook/api/v1/recipes/${encodeURIComponent(id)}`
     );
-    return this.normalizeRecipeImageUrls(recipe);
+    if (!recipe || typeof recipe !== "object" || Array.isArray(recipe) || typeof recipe.name !== "string" || !recipe.name.trim()) {
+      throw new Error("Invalid Cookbook recipe");
+    }
+    const responseId = String(recipe.id ?? recipe.recipe_id ?? id);
+    if (responseId !== id) throw new Error("Cookbook returned a different recipe ID");
+    return normalizeRecipe(this.normalizeRecipeImageUrls({ ...recipe, id: responseId }));
   }
 
   async createRecipe(recipe: Recipe) {
@@ -230,11 +247,18 @@ export class CookbookClient {
   }
 
   normalizeRecipeImageUrls<T extends Partial<Recipe>>(recipe: T): T {
+    const resolveImage = (value: unknown) => {
+      const resolved = this.resolveServerUrl(value);
+      if (typeof resolved !== "string" || !this.getImageHeaders(resolved) || !recipe.dateModified) return resolved;
+      const url = new URL(resolved);
+      url.searchParams.set("v", recipe.dateModified);
+      return url.toString();
+    };
     return {
       ...recipe,
-      image: this.resolveServerUrl(recipe.image),
-      imageUrl: this.resolveServerUrl(recipe.imageUrl),
-      imagePlaceholderUrl: this.resolveServerUrl(recipe.imagePlaceholderUrl)
+      image: resolveImage(recipe.image),
+      imageUrl: resolveImage(recipe.imageUrl),
+      imagePlaceholderUrl: resolveImage(recipe.imagePlaceholderUrl)
     };
   }
 
@@ -266,7 +290,7 @@ export class CookbookClient {
   async getJsonWebDav<T>(path: string): Promise<T | null> {
     try {
       const response = await this.requestWebDav(path, { method: "GET" });
-      const text = await response.text();
+      const text = response;
       if (!text) return null;
       return JSON.parse(text) as T;
     } catch (error) {
@@ -332,6 +356,7 @@ export class CookbookClient {
     const headers = new Headers(options.headers);
     headers.set("Accept", "application/json");
     headers.set("Authorization", this.authorization);
+    headers.set("Cache-Control", "no-cache, no-store");
 
     if (options.ocs) {
       headers.set("OCS-APIRequest", "true");
@@ -343,31 +368,34 @@ export class CookbookClient {
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
-    const signal = options.signal ?? controller.signal;
+    const abort = () => controller.abort();
+    options.signal?.addEventListener("abort", abort, { once: true });
+    if (options.signal?.aborted) controller.abort();
+    const signal = controller.signal;
 
     try {
       logService.network(`HTTP ${options.method || "GET"} ${path}`, { serverUrl: this.serverUrl });
-      let response = await fetch(`${this.serverUrl}${path}`, {
+      const prefix = options.ocs ? "" : this.apiPrefix;
+      let response = await fetch(`${this.serverUrl}${prefix}${path}`, {
         ...options,
+        cache: "no-store",
         credentials: "omit",
         headers,
         signal
       });
 
-      if (response.status === 404 && !this.serverUrl.endsWith("index.php")) {
+      if (response.status === 404 && !prefix && !this.serverUrl.endsWith("index.php")) {
         logService.network(`Fallback check HTTP GET /index.php${path}`);
         const fallbackResponse = await fetch(`${this.serverUrl}/index.php${path}`, {
           ...options,
+          cache: "no-store",
           credentials: "omit",
           headers,
           signal
         });
-        if (
-          fallbackResponse.ok ||
-          fallbackResponse.status === 401 ||
-          fallbackResponse.status === 403
-        ) {
+        if (fallbackResponse.status !== 404) {
           response = fallbackResponse;
+          if (!options.ocs && fallbackResponse.ok) this.apiPrefix = "/index.php";
         }
       }
 
@@ -385,6 +413,11 @@ export class CookbookClient {
         );
       }
 
+      if (contentType.includes("text/html") ||
+          (typeof payload === "string" && /^\s*</.test(payload))) {
+        throw new CookbookApiError("Nextcloud returned a web page instead of an API response", response.status);
+      }
+
       logService.network(`HTTP ${response.status} OK for ${path}`);
       return payload as T;
     } catch (err) {
@@ -392,6 +425,7 @@ export class CookbookClient {
       throw err;
     } finally {
       clearTimeout(timeout);
+      options.signal?.removeEventListener("abort", abort);
     }
   }
 
@@ -402,30 +436,40 @@ export class CookbookClient {
   ) {
     const headers = new Headers(options.headers);
     headers.set("Authorization", authorization);
+    headers.set("Cache-Control", "no-cache, no-store");
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 15000);
-    const signal = options.signal ?? controller.signal;
+    const abort = () => controller.abort();
+    options.signal?.addEventListener("abort", abort, { once: true });
+    if (options.signal?.aborted) controller.abort();
+    const signal = controller.signal;
 
     try {
       const response = await fetch(`${this.serverUrl}${path}`, {
         ...options,
+        cache: "no-store",
         credentials: "omit",
         headers,
         signal
       });
 
+      const body = await response.text();
       if (!response.ok) {
         throw new CookbookApiError(
           `Nextcloud returned ${response.status}`,
           response.status,
-          await response.text().catch(() => "")
+          body
         );
       }
 
-      return response;
+      if (response.headers.get("content-type")?.includes("text/html") || /^\s*<(?:!doctype html|html)\b/i.test(body)) {
+        throw new CookbookApiError("Nextcloud returned a web page instead of a WebDAV response", response.status);
+      }
+      return body;
     } finally {
       clearTimeout(timeout);
+      options.signal?.removeEventListener("abort", abort);
     }
   }
 
@@ -604,7 +648,9 @@ export class CookbookClient {
       return this.webDavUserId;
     }
 
-    this.webDavUserIdPromise ??= this.resolveWebDavUserId();
+    this.webDavUserIdPromise ??= this.resolveWebDavUserId().finally(() => {
+      this.webDavUserIdPromise = null;
+    });
     return this.webDavUserIdPromise;
   }
 
@@ -629,7 +675,7 @@ export class CookbookClient {
       const user = await this.getCurrentUser();
       this.webDavUserId = user.id?.trim() || this.username;
     } catch {
-      this.webDavUserId = this.username;
+      return this.username;
     }
 
     return this.webDavUserId;
@@ -640,12 +686,17 @@ export class CookbookClient {
       return value;
     }
 
-    if (/^(?:https?:|file:|data:)/i.test(value)) {
-      return normalizeCookbookImageEndpointReference(value);
-    }
-
-    if (value.startsWith("/apps/cookbook/")) {
-      return normalizeCookbookImageEndpointReference(`${this.serverUrl}${value}`);
+    if (/(?:^|\/)apps\/cookbook\/(?:webapp|api\/v1)\/recipes\/[^/]+\/image(?:[?#]|$)/i.test(value)) {
+      let resolved = value;
+      if (value.startsWith("/apps/cookbook/")) {
+        resolved = `${this.serverUrl}${this.apiPrefix}${value}`;
+      } else if (value.startsWith("/") && !value.startsWith("//")) {
+        resolved = new URL(value, this.serverUrl).toString();
+      }
+      if (this.getImageHeaders(resolved)) {
+        resolved = resolved.replace("/apps/cookbook/webapp/", "/apps/cookbook/api/v1/");
+      }
+      return normalizeCookbookImageEndpointReference(resolved);
     }
 
     return value;

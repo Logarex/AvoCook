@@ -93,6 +93,8 @@ npm run lint               # ESLint
 npm run import:check -- <recipe-url>  # Test a recipe import from a URL
 ```
 
+The [synchronization and reinstall fixes](docs/CORRECTIFS_SYNCHRONISATION.md) document the recipe sync, Cookbook photo and community identity regression tests.
+
 The [reliability and security audit](docs/AUDIT_FIABILITE_SECURITE.md) (in French) records the checks, fixes and remaining risks, including Firebase access rules and isolation between Nextcloud accounts.
 
 ---

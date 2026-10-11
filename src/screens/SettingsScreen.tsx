@@ -702,6 +702,10 @@ export function SettingsScreen({ navigation }: Props) {
 
         <View style={styles.divider} />
 
+        {Platform.OS === "ios" ? (
+          <AppText muted variant="caption">{t("settings.reinstallNotice")}</AppText>
+        ) : null}
+
         <View style={styles.rowSectionInner}>
           <View style={styles.rowText}>
             <AppText variant="label">{t("settings.keepRecipesLocal")}</AppText>

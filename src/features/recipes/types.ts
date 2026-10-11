@@ -166,7 +166,8 @@ export function hasLocalMetadata(recipe: Recipe) {
   }
 
   return Boolean(
-    meta.nutriScoreOverride ||
+    meta.communityId ||
+      meta.nutriScoreOverride ||
       meta.hideServings ||
       meta.imageRemoved ||
       meta.servingOverride ||
@@ -270,6 +271,10 @@ function normalizeLocalMeta(
 
   const normalized: RecipeLocalMeta = {};
 
+  if (typeof localMeta.communityId === "string" && localMeta.communityId.trim()) {
+    normalized.communityId = localMeta.communityId.trim();
+  }
+
   if (typeof localMeta.cachedImage === "string" && localMeta.cachedImage) {
     normalized.cachedImage = localMeta.cachedImage;
   }
@@ -309,7 +314,8 @@ function normalizeLocalMeta(
 
 function hasMeaningfulLocalMeta(localMeta: RecipeLocalMeta) {
   return Boolean(
-    localMeta.nutriScoreOverride ||
+    localMeta.communityId ||
+      localMeta.nutriScoreOverride ||
       localMeta.hideServings ||
       localMeta.imageRemoved ||
       localMeta.servingOverride ||

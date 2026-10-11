@@ -545,6 +545,7 @@ export default {
       localMode: "Modalità locale",
       localOnly: "Uso senza account Nextcloud",
       privacy: "Privacy",
+      reinstallNotice: "Su iOS, le impostazioni, le credenziali e la sessione della community possono essere ripristinate dopo una reinstallazione sullo stesso dispositivo. Esegui un backup delle ricette locali prima di disinstallare l’app.",
       secureStore: "Le credenziali rimangono nel deposito sicuro del telefono.",
       localNotice:
         "Le tue ricette sono archiviate esclusivamente su questo dispositivo e non vengono inviate a nessun server.",

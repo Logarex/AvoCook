@@ -17,7 +17,7 @@ export function isLocalImageReference(value: string | null | undefined) {
 export function isNextcloudFileImageReference(
   value: string | null | undefined
 ) {
-  return Boolean(value && NEXTCLOUD_FILE_IMAGE_PATTERN.test(value));
+  return Boolean(value && NEXTCLOUD_FILE_IMAGE_PATTERN.test(value) && !isCookbookImageEndpoint(value) && !value.startsWith("//"));
 }
 
 export function getRemoteRecipeImage(
@@ -210,9 +210,9 @@ export function getPreferredDisplayRecipeImage(
   const image =
     [
       getCachedRecipeImage(recipe),
+      recipe.imageUrl,
       recipe.image,
-      recipe.imagePlaceholderUrl,
-      recipe.imageUrl
+      recipe.imagePlaceholderUrl
     ].find(isDisplayableRecipeImage) ?? "";
 
   return image ? normalizeCookbookImageEndpointReference(image) : "";

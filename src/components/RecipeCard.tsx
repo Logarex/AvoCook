@@ -1,4 +1,6 @@
-import { Image } from "expo-image";
+import { RecipeImage } from "./RecipeImage";
+import { useTranslation } from "react-i18next";
+import { getRecipeCategoryLabel } from "../features/recipes/categories";
 import { Clock, Tag } from "lucide-react-native";
 import React from "react";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -26,6 +28,8 @@ export const RecipeCard = React.memo(function RecipeCard({
   onPress: () => void;
 }) {
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
+  const categoryLabel = getRecipeCategoryLabel(recipe.recipeCategory, t);
   const imageUri = getPreferredDisplayRecipeImage(recipe) || fallbackImageUri;
   const imageSource = imageUri
     ? {
@@ -38,7 +42,7 @@ export const RecipeCard = React.memo(function RecipeCard({
     recipe.name,
     recipe.description,
     totalTime,
-    recipe.recipeCategory
+    categoryLabel
   ].filter(Boolean);
 
   return (
@@ -57,14 +61,14 @@ export const RecipeCard = React.memo(function RecipeCard({
       ]}
     >
       <View style={[styles.imageWrap, { backgroundColor: colors.chip }]}>
-        {imageSource ? (
-          <Image
-            accessible={false}
-            source={imageSource}
-            style={styles.image}
-            contentFit="cover"
-          />
-        ) : (
+        <RecipeImage
+          key={`${imageUri}-${fallbackImageUri}`}
+          fallbackSource={fallbackImageUri ? { uri: fallbackImageUri, headers: imageClient?.getImageHeaders(fallbackImageUri) } : null}
+          accessible={false}
+          source={imageSource}
+          style={styles.image}
+          contentFit="cover"
+        >
           <AppText
             accessibilityElementsHidden
             importantForAccessibility="no-hide-descendants"
@@ -73,7 +77,7 @@ export const RecipeCard = React.memo(function RecipeCard({
           >
             {recipe.name.slice(0, 1).toUpperCase()}
           </AppText>
-        )}
+        </RecipeImage>
       </View>
       <View style={styles.body}>
         <AppText variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>
@@ -97,7 +101,7 @@ export const RecipeCard = React.memo(function RecipeCard({
             <View style={styles.metaItem}>
               <Tag color={colors.textMuted} size={14} />
               <AppText muted variant="caption" numberOfLines={1} adjustsFontSizeToFit={false} style={{ flexShrink: 1 }}>
-                {recipe.recipeCategory}
+                {categoryLabel}
               </AppText>
             </View>
           ) : null}

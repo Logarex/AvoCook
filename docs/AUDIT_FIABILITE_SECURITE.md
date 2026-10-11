@@ -2,6 +2,8 @@
 
 Date : 6 octobre 2026. Périmètre : application AvoCook, SQLite, synchronisation Nextcloud, communautés et listes partagées Firebase, stockage des identifiants, journaux et dépendances.
 
+Mise à jour du 11 octobre : les corrections et limites actuelles de la synchronisation, notamment l’isolation des comptes, sont décrites dans [Synchronisation et réinstallation](CORRECTIFS_SYNCHRONISATION.md). Les constats ci-dessous décrivent l’état de l’audit du 6 octobre.
+
 Plusieurs défauts concrets ont été corrigés et couverts par des tests. La sécurité de la base cloud reste **non vérifiée** : les règles Firestore et Storage déployées ne sont pas présentes dans le dépôt et aucun accès d'administration n'a été fourni. La console du projet a été ouverte en lecture seule dans le navigateur disponible ; elle demande une connexion Google. Les correctifs de l'application ne permettent pas de certifier les droits côté serveur.
 
 ## Corrections effectuées

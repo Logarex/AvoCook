@@ -1,5 +1,5 @@
 import { importRecipeFromWeb } from "../import/schemaRecipeParser";
-import { CookbookApiError, type CookbookClient } from "../nextcloud/cookbookClient";
+import { CookbookApiError, CookbookClient } from "../nextcloud/cookbookClient";
 import {
   normalizeCategoryName,
   renameCustomCategory,
@@ -17,14 +17,21 @@ import {
 import { withInferredCategory } from "./categories";
 import {
   acknowledgeQueuedRecipeUpdate,
+  completeRecipeSync,
+  saveRecipeForSync,
+  recoverUnqueuedChanges,
+  resolveRecipeId,
   deleteQueuedOperation,
+  discardLocalRecipe,
   deleteQueuedOperationsForRecipe,
   clearLocalRecipeCache,
   enqueueSyncOperation,
   listQueuedOperations,
   loadDirtyLocalRecipes,
+  loadDeletedLocalRecipeIds,
   loadLocalRecipes,
-  hasUnreadableLocalRecipes,
+  loadAllAccountImageReferences,
+  selectRecipeDatabase,
   markLocalRecipeDeleted,
   migrateDatabase,
   removeLocalRecipe,
@@ -87,30 +94,35 @@ export type RecipeRepositoryOptions = {
 };
 
 async function pruneLocalRecipeImageCache(recipes?: Recipe[]) {
-  if (await hasUnreadableLocalRecipes()) {
-    console.warn("local", "Image cleanup skipped to preserve unreadable recipes");
-    return;
+  try {
+    const allRecipes = await loadAllAccountImageReferences();
+    if (!allRecipes) {
+      console.warn("local", "Image cleanup skipped to preserve unreadable recipes");
+      return;
+    }
+    await pruneRecipeImageCache([...allRecipes, ...(recipes ?? [])]);
+  } catch (error) {
+    console.warn("local", "Image cleanup could not finish", error);
   }
-  await pruneRecipeImageCache(recipes ?? await loadLocalRecipes());
 }
 
-export async function initialiseRecipeStore() {
+async function initialiseRecipeStore() {
   await migrateDatabase();
   return replaceLocalRecipeImageReferences(await loadLocalRecipes());
 }
 
-export async function clearSyncedLocalRecipes() {
+async function clearSyncedLocalRecipes() {
   await migrateDatabase();
   await clearLocalRecipeCache();
   await pruneLocalRecipeImageCache(await loadLocalRecipes());
 }
 
-export async function updateRecipeLocalPreferences(recipe: Recipe) {
+async function updateRecipeLocalPreferences(recipe: Recipe) {
   await migrateDatabase();
-  return saveLocalRecipePreferences(recipe);
+  return saveLocalRecipePreferences({ ...recipe, id: recipe.id ? await resolveRecipeId(recipe.id) : null });
 }
 
-export async function findDuplicateRecipes() {
+async function findDuplicateRecipes() {
   await migrateDatabase();
   return findDuplicateRecipeGroups(await loadLocalRecipes());
 }
@@ -121,7 +133,7 @@ export type RecipeDuplicateMergeResult = {
   removed: number;
 };
 
-export async function mergeDuplicateRecipes(
+async function mergeDuplicateRecipes(
   group: RecipeDuplicateGroup,
   client: CookbookClient | null
 ): Promise<RecipeDuplicateMergeResult> {
@@ -164,7 +176,7 @@ export async function mergeDuplicateRecipes(
   };
 }
 
-export async function createRecipe(
+async function createRecipe(
   recipe: Recipe,
   client: CookbookClient | null,
   options: RecipeRepositoryOptions = {}
@@ -182,21 +194,14 @@ export async function createRecipe(
   );
 
   if (decision.action === "skip") {
-    return saveLocalRecipe(
-      decision.existingRecipe ?? decision.recipe,
-      false,
-      false
-    );
+    return decision.existingRecipe ?? decision.recipe;
   }
 
   if (decision.action === "update") {
     return updateRecipe(getResolvedImportRecipe(decision), client, options);
   }
 
-  const localRecipe = await saveLocalRecipe(
-    withInferredCategory(decision.recipe),
-    true
-  );
+  const localRecipe = await saveRecipeForSync(withInferredCategory(decision.recipe));
   console.info("local", "Recipe saved locally before create sync", {
     id: localRecipe.id,
     name: localRecipe.name,
@@ -204,7 +209,6 @@ export async function createRecipe(
   });
 
   if (!client) {
-    await enqueueSyncOperation("create", localRecipe.id ?? "", localRecipe);
     console.info("sync", "Recipe create queued without client", {
       id: localRecipe.id,
       name: localRecipe.name
@@ -218,25 +222,7 @@ export async function createRecipe(
       name: localRecipe.name,
       image: getRecipeImageDebugState(localRecipe)
     });
-    const serverId = await client.createRecipe(
-      toCookbookCreateRecipe(await prepareRecipeForNextcloud(localRecipe, client))
-    );
-    const saved = await client.getRecipe(String(serverId));
-    console.info("sync", "Remote recipe create finished", {
-      localId: localRecipe.id,
-      serverId,
-      name: saved.name,
-      image: getRecipeImageDebugState(saved)
-    });
-    const persisted = await saveLocalRecipe(
-      withInferredCategory(mergeServerRecipeWithLocalImages(saved, localRecipe)),
-      false,
-      false
-    );
-    if (localRecipe.id && localRecipe.id !== persisted.id) {
-      await removeLocalRecipe(localRecipe.id);
-    }
-    return persisted;
+    return await createRemoteRecipe(client, localRecipe.id!, localRecipe);
   } catch (error) {
     console.error("sync", "Remote recipe create failed; queued locally", {
       localId: localRecipe.id,
@@ -244,12 +230,11 @@ export async function createRecipe(
       image: getRecipeImageDebugState(localRecipe),
       error: error
     });
-    await enqueueSyncOperation("create", localRecipe.id ?? "", localRecipe);
     return localRecipe;
   }
 }
 
-export async function updateRecipe(
+async function updateRecipe(
   recipe: Recipe,
   client: CookbookClient | null,
   options: RecipeRepositoryOptions = {}
@@ -261,6 +246,7 @@ export async function updateRecipe(
     hasClient: Boolean(client),
     image: getRecipeImageDebugState(recipe)
   });
+  if (recipe.id) recipe = { ...recipe, id: await resolveRecipeId(recipe.id) };
   const saveTarget = await resolveRecipeForSave(recipe, options);
 
   if (saveTarget.removeRecipeId) {
@@ -269,13 +255,10 @@ export async function updateRecipe(
   }
 
   if (saveTarget.action === "skip") {
-    return saveLocalRecipe(saveTarget.recipe, false, false);
+    return saveTarget.recipe;
   }
 
-  const localRecipe = await saveLocalRecipe(
-    withInferredCategory(saveTarget.recipe),
-    true
-  );
+  const localRecipe = await saveRecipeForSync(withInferredCategory(saveTarget.recipe));
   console.info("local", "Recipe saved locally before update sync", {
     id: localRecipe.id,
     name: localRecipe.name,
@@ -283,11 +266,6 @@ export async function updateRecipe(
   });
 
   if (!client || !localRecipe.id || localRecipe.id.startsWith("local-")) {
-    await enqueueSyncOperation(
-      localRecipe.id?.startsWith("local-") ? "create" : "update",
-      localRecipe.id ?? "",
-      localRecipe
-    );
     console.info("sync", "Recipe update queued", {
       id: localRecipe.id,
       name: localRecipe.name,
@@ -312,7 +290,7 @@ export async function updateRecipe(
     const recipeToSave = serverRecipe
       ? mergeServerRecipeWithLocalImages(serverRecipe, localRecipe)
       : localRecipe;
-    const saved = await saveLocalRecipe(recipeToSave, false);
+    const saved = await completeRecipeSync(localRecipe.id, recipeToSave);
     console.info("sync", "Remote recipe update finished", {
       id: saved.id,
       name: saved.name,
@@ -327,41 +305,52 @@ export async function updateRecipe(
       image: getRecipeImageDebugState(localRecipe),
       error: error
     });
-    await enqueueSyncOperation("update", localRecipe.id ?? "", localRecipe);
     await pruneLocalRecipeImageCache(await loadLocalRecipes());
     return localRecipe;
   }
 }
 
-export async function deleteRecipe(id: string, client: CookbookClient | null) {
-  if (!client) {
-    await deleteQueuedOperationsForRecipe(id);
-    await removeLocalRecipe(id);
-    await pruneLocalRecipeImageCache(await loadLocalRecipes());
+async function deleteRecipe(id: string, client: CookbookClient | null) {
+  await migrateDatabase();
+  id = await resolveRecipeId(id);
+  if (id.startsWith("local-")) {
+    await discardLocalRecipe(id);
+    await pruneLocalRecipeImageCache();
     return;
   }
 
   await markLocalRecipeDeleted(id);
-
-  if (id.startsWith("local-")) {
-    await deleteQueuedOperationsForRecipe(id);
-    await removeLocalRecipe(id);
-    await pruneLocalRecipeImageCache(await loadLocalRecipes());
-    return;
-  }
-
-  await deleteStaleRecipeImages(id, null, client);
+  if (!client) return;
 
   try {
+    await deleteRemoteRecipe(client, id);
+  } catch (error) {
+    if (!(error instanceof CookbookApiError) || error.status !== 404) {
+      console.warn("sync", "Recipe deletion remains queued", { id, error });
+      return;
+    }
+  }
+  await deleteStaleRecipeImages(id, null, client);
+  await removeLocalRecipe(id);
+  await deleteQueuedOperationsForRecipe(id);
+  await pruneLocalRecipeImageCache();
+}
+
+async function deleteRemoteRecipe(client: CookbookClient, id: string) {
+  try {
     await client.deleteRecipe(id);
-    await removeLocalRecipe(id);
-    await pruneLocalRecipeImageCache(await loadLocalRecipes());
-  } catch {
-    await enqueueSyncOperation("delete", id, null);
+  } catch (error) {
+    if (error instanceof CookbookApiError && error.status === 404) return;
+    try {
+      await client.getRecipe(id);
+    } catch (lookupError) {
+      if (lookupError instanceof CookbookApiError && lookupError.status === 404) return;
+    }
+    throw error;
   }
 }
 
-export async function renameRecipeCategory(
+async function renameRecipeCategory(
   category: string,
   nextCategory: string,
   client: CookbookClient | null,
@@ -470,8 +459,8 @@ async function deleteRemoteDuplicateRecipes(
     }
 
     try {
+      await deleteRemoteRecipe(client, recipe.id);
       await deleteStaleRecipeImages(recipe.id, null, client);
-      await client.deleteRecipe(recipe.id);
     } catch (error) {
       if (!(error instanceof CookbookApiError) || error.status !== 404) {
         throw error;
@@ -491,7 +480,7 @@ async function removeLocalDuplicateRecipes(recipes: Recipe[]) {
   }
 }
 
-export async function importRecipe(
+async function importRecipe(
   url: string,
   client: CookbookClient | null,
   knownRecipes: Recipe[] = [],
@@ -524,7 +513,7 @@ export async function importRecipe(
   }
 }
 
-export async function updateRecipeFromSource(
+async function updateRecipeFromSource(
   recipe: Recipe,
   client: CookbookClient | null,
   options: RecipeRepositoryOptions = {}
@@ -589,11 +578,7 @@ async function saveWebImportedRecipe(
   );
 
   if (decision.action === "skip") {
-    return saveLocalRecipe(
-      decision.existingRecipe ?? decision.recipe,
-      false,
-      false
-    );
+    return decision.existingRecipe ?? decision.recipe;
   }
 
   const recipe = getResolvedImportRecipe(decision);
@@ -657,8 +642,8 @@ async function deleteNextcloudImportedDuplicate(
   }
 
   try {
+    await deleteRemoteRecipe(client, importedId);
     await deleteStaleRecipeImages(importedId, null, client);
-    await client.deleteRecipe(importedId);
   } catch (error) {
     if (!(error instanceof CookbookApiError) || error.status !== 404) {
       throw error;
@@ -798,22 +783,31 @@ export function areRecipeDatesEqual(date1?: string, date2?: string): boolean {
   const t1 = Date.parse(date1);
   const t2 = Date.parse(date2);
   if (Number.isNaN(t1) || Number.isNaN(t2)) return false;
-  return Math.abs(t1 - t2) < 5000;
+  return t1 === t2;
 }
 
 function replaceLocalRecipeImageReferences(recipes: Recipe[]) {
   return recipes.map(replaceLocalRecipeImageReferencesWithRemote);
 }
 
+export class RecipeSyncError extends Error {
+  constructor(readonly recipes: Recipe[], readonly failures: unknown[]) {
+    super(failures.map((error) => error instanceof Error ? error.message : String(error)).join("; "));
+    this.name = "RecipeSyncError";
+  }
+}
+
 const SYNC_DETAIL_CONCURRENCY = 6;
 
-export async function syncRecipes(
+async function syncRecipes(
   client: CookbookClient,
   persistLocal = true,
   options: RecipeRepositoryOptions = {}
 ) {
   await migrateDatabase();
   console.info("sync", "Sync started", { persistLocal });
+  await recoverUnqueuedChanges();
+  const failures: unknown[] = [];
   let rawExistingRecipes = await loadLocalRecipes();
   console.debug("local", "Local recipes loaded for sync", {
     count: rawExistingRecipes.length,
@@ -825,7 +819,7 @@ export async function syncRecipes(
   );
 
   let recipes = [...existingRecipes];
-  const flushResult = await flushSyncQueue(client, recipes, options);
+  const flushResult = await flushSyncQueue(client, recipes, options, failures);
 
   for (const deletedRecipeId of flushResult.deletedRecipeIds) {
     recipes = recipes.filter((recipe) => recipe.id !== deletedRecipeId);
@@ -858,12 +852,19 @@ export async function syncRecipes(
       .filter((id): id is string => Boolean(id))
   );
 
+  const remainingOperations = await listQueuedOperations(() => undefined);
+  const deletedIds = new Set([
+    ...await loadDeletedLocalRecipeIds(),
+    ...flushResult.deletedRecipeIds,
+    ...remainingOperations.filter((operation) => operation.operation === "delete").map((operation) => operation.recipeId)
+  ]);
   recipes = await syncServerRecipesFromStubs(
     client,
-    stubs,
+    stubs.filter((stub) => !deletedIds.has(getRecipeStubId(stub))),
     existingRecipes,
     persistLocal,
-    dirtyRecipeIds
+    dirtyRecipeIds,
+    failures
   );
 
   rawExistingRecipes = await loadLocalRecipes();
@@ -879,25 +880,20 @@ export async function syncRecipes(
     client,
     rawExistingRecipes,
     recipes,
-    dirtyLocalRecipes
+    dirtyLocalRecipes,
+    failures
   );
   recipes = staleCleanup.recipes;
 
-  existingRecipes = dirtyLocalRecipes;
-  const missingLocalSync = await syncMissingLocalRecipes(
-    client,
-    existingRecipes,
-    recipes,
-    options
-  );
-  recipes = missingLocalSync.recipes;
-  if (missingLocalSync.pushed) {
-    await reindexRecipes(client);
+  for (const localRecipe of dirtyLocalRecipes) {
+    recipes = upsertRecipeInList(recipes, localRecipe);
   }
 
   await pruneLocalRecipeImageCache(await loadLocalRecipes());
 
+  if (!persistLocal) await clearLocalRecipeCache();
   console.info("sync", "Sync finished", { count: recipes.length });
+  if (failures.length) throw new RecipeSyncError(recipes, failures);
   return recipes;
 }
 
@@ -905,7 +901,8 @@ async function removeServerDeletedLocalRecipes(
   client: CookbookClient | null,
   localRecipes: Recipe[],
   syncedRecipes: Recipe[],
-  pendingLocalRecipes: Recipe[]
+  pendingLocalRecipes: Recipe[],
+  failures: unknown[]
 ) {
   const syncedRecipeIds = new Set(
     syncedRecipes.map((recipe) => recipe.id).filter((id): id is string => Boolean(id))
@@ -935,6 +932,7 @@ async function removeServerDeletedLocalRecipes(
       } catch (error) {
         confirmedDeleted = error instanceof CookbookApiError && error.status === 404;
         if (!confirmedDeleted) {
+          failures.push(error);
           console.warn("sync", "Could not confirm remote deletion; keeping local recipe", {
             id: localRecipe.id
           });
@@ -946,9 +944,10 @@ async function removeServerDeletedLocalRecipes(
         });
         const keptRecipe = withInferredCategory(
           replaceLocalRecipeImageReferencesWithRemote(
-            mergeServerRecipeWithLocalImages(serverRecipe, localRecipe)
+            mergeDownloadedRecipe(serverRecipe, localRecipe)
           )
         );
+        await saveLocalRecipe(keptRecipe, false, false);
         syncedRecipes.push(keptRecipe);
         syncedRecipeIds.add(localRecipe.id);
         continue;
@@ -974,22 +973,31 @@ async function removeServerDeletedLocalRecipes(
   };
 }
 
+function mergeDownloadedRecipe(recipe: Recipe, existingRecipe?: Recipe) {
+  const sameImage = existingRecipe && areRecipeDatesEqual(recipe.dateModified, existingRecipe.dateModified) &&
+    (recipe.image === existingRecipe.image || (!recipe.image && isCookbookImageEndpoint(existingRecipe.image)));
+  return normalizeRecipe({
+    ...recipe,
+    localMeta: existingRecipe?.localMeta ? {
+      ...existingRecipe.localMeta,
+      cachedImage: sameImage ? existingRecipe.localMeta.cachedImage : undefined,
+      imageRemoved: undefined
+    } : undefined
+  });
+}
+
 async function syncServerRecipesFromStubs(
   client: CookbookClient,
   stubs: Pick<Recipe, "id" | "recipe_id" | "dateModified">[],
   existingRecipes: Recipe[],
   persistLocal: boolean,
-  dirtyRecipeIds: Set<string> = new Set()
+  dirtyRecipeIds: Set<string> = new Set(),
+  failures: unknown[] = []
 ) {
   const existingRecipesById = new Map(
     existingRecipes
       .filter((recipe) => recipe.id)
       .map((recipe) => [recipe.id ?? "", recipe])
-  );
-  const localMetaById = new Map(
-    existingRecipes
-      .filter((recipe) => recipe.id && hasLocalMetadata(recipe))
-      .map((recipe) => [recipe.id ?? "", recipe.localMeta])
   );
   const remoteRecipes = await mapWithConcurrency(
     stubs,
@@ -1003,33 +1011,25 @@ async function syncServerRecipesFromStubs(
       const existingRecipe = existingRecipesById.get(id);
       const isDirty = dirtyRecipeIds.has(id);
 
-      if (
-        existingRecipe &&
-        (isDirty ||
-          areRecipeDatesEqual(existingRecipe.dateModified, stub.dateModified))
-      ) {
+      if (existingRecipe && isDirty) {
         return {
           recipe: replaceLocalRecipeImageReferencesWithRemote(existingRecipe),
           isDirty
         };
       }
 
-      const recipe = await client.getRecipe(id);
+      let recipe: Recipe;
+      try {
+        recipe = await client.getRecipe(id);
+      } catch (error) {
+        if (error instanceof CookbookApiError && error.status === 404) return null;
+        failures.push(error);
+        return existingRecipe ? { recipe: existingRecipe, isDirty: true } : null;
+      }
       return {
         recipe: withInferredCategory(
           replaceLocalRecipeImageReferencesWithRemote(
-            existingRecipe
-              ? mergeServerRecipeWithLocalImages(
-                  recipe,
-                  normalizeRecipe({
-                    ...existingRecipe,
-                    localMeta: localMetaById.get(id)
-                  })
-                )
-              : normalizeRecipe({
-                  ...recipe,
-                  localMeta: localMetaById.get(id)
-                })
+            mergeDownloadedRecipe(recipe, existingRecipe)
           )
         ),
         isDirty: false
@@ -1076,74 +1076,6 @@ async function mapWithConcurrency<T, R>(
   return results;
 }
 
-async function syncMissingLocalRecipes(
-  client: CookbookClient,
-  localRecipes: Recipe[],
-  syncedRecipes: Recipe[],
-  options: RecipeRepositoryOptions
-) {
-  let recipes = syncedRecipes;
-  let pushed = false;
-
-  for (const localRecipe of localRecipes) {
-    if (!localRecipe.id || recipes.some((recipe) => recipe.id === localRecipe.id)) {
-      continue;
-    }
-
-    const decision = await resolveRecipeImportWithNameConflict(
-      localRecipe,
-      recipes,
-      options
-    );
-    const recipe = getResolvedImportRecipe(decision);
-
-    if (decision.action === "skip") {
-      const existingRecipe = decision.existingRecipe ?? recipe;
-      if (existingRecipe.id && localRecipe.id !== existingRecipe.id) {
-        await removeLocalRecipe(localRecipe.id);
-      }
-      const saved = await saveLocalRecipe(
-        mergeServerRecipeWithLocalImages(existingRecipe, localRecipe),
-        false,
-        false
-      );
-      recipes = upsertRecipeInList(recipes, saved);
-      continue;
-    }
-
-    if (decision.action === "update" && recipe.id && !recipe.id.startsWith("local-")) {
-      await updateRecipeOnNextcloud(recipe, client);
-      const serverRecipe = await client.getRecipe(recipe.id);
-      if (localRecipe.id !== recipe.id) {
-        await removeLocalRecipe(localRecipe.id);
-      }
-      const saved = await saveLocalRecipe(
-        withInferredCategory(mergeServerRecipeWithLocalImages(serverRecipe, recipe)),
-        false,
-        false
-      );
-      recipes = upsertRecipeInList(recipes, saved);
-      pushed = true;
-      continue;
-    }
-
-    const serverId = await client.createRecipe(
-      toCookbookCreateRecipe(await prepareRecipeForNextcloud(recipe, client))
-    );
-    const serverRecipe = await client.getRecipe(String(serverId));
-    await removeLocalRecipe(localRecipe.id);
-    const saved = await saveLocalRecipe(
-      withInferredCategory(mergeServerRecipeWithLocalImages(serverRecipe, recipe)),
-      false,
-      false
-    );
-    recipes = upsertRecipeInList(recipes, saved);
-    pushed = true;
-  }
-
-  return { pushed, recipes };
-}
-
 function hasLegacyRelativeCookbookImage(recipes: Recipe[]) {
   return recipes.some((recipe) =>
     [recipe.image, recipe.imageUrl, recipe.imagePlaceholderUrl].some(
@@ -1156,7 +1088,7 @@ function hasLegacyRelativeCookbookImage(recipes: Recipe[]) {
 }
 
 function getRecipeStubId(stub: Pick<Recipe, "id" | "recipe_id">) {
-  return stub.id || (stub.recipe_id ? String(stub.recipe_id) : "");
+  return String(stub.id ?? stub.recipe_id ?? "");
 }
 
 async function reindexRecipes(client: CookbookClient) {
@@ -1167,7 +1099,7 @@ async function reindexRecipes(client: CookbookClient) {
   }
 }
 
-export async function exportRecipeBackup(
+async function exportRecipeBackup(
   {
     client,
     customCategories,
@@ -1203,7 +1135,7 @@ export type RecipeBackupImportResult = {
   recipes: Recipe[];
 };
 
-export async function importRecipeBackup(
+async function importRecipeBackup(
   backup: RecipeBackup,
   client: CookbookClient | null,
   options: RecipeRepositoryOptions = {}
@@ -1275,7 +1207,7 @@ export async function importRecipeBackup(
   };
 }
 
-export async function importRecipeBackupFile(
+async function importRecipeBackupFile(
   uri: string,
   client: CookbookClient | null,
   options: RecipeRepositoryOptions = {}
@@ -1286,9 +1218,10 @@ export async function importRecipeBackupFile(
 async function flushSyncQueue(
   client: CookbookClient,
   syncedRecipes: Recipe[],
-  options: RecipeRepositoryOptions
+  options: RecipeRepositoryOptions,
+  failures: unknown[]
 ) {
-  const operations = await listQueuedOperations();
+  const operations = await listQueuedOperations((error) => failures.push(error));
   console.info("sync", "Sync queue loaded", {
     count: operations.length,
     operations: operations.map((operation) => ({
@@ -1304,49 +1237,49 @@ async function flushSyncQueue(
   let pushed = false;
 
   for (const operation of operations) {
-    if (operation.operation === "delete") {
-      if (!operation.recipeId.startsWith("local-")) {
-        try {
-          await deleteStaleRecipeImages(operation.recipeId, null, client);
-          await client.deleteRecipe(operation.recipeId);
-          pushed = true;
-        } catch (error) {
-          if (!(error instanceof CookbookApiError) || error.status !== 404) {
-            throw error;
+    try {
+      if (operation.operation === "delete") {
+        if (!operation.recipeId.startsWith("local-")) {
+          try {
+            await deleteRemoteRecipe(client, operation.recipeId);
+            await deleteStaleRecipeImages(operation.recipeId, null, client);
+            pushed = true;
+          } catch (error) {
+            if (!(error instanceof CookbookApiError) || error.status !== 404) {
+              throw error;
+            }
           }
         }
+        await removeLocalRecipe(operation.recipeId);
+        await deleteQueuedOperation(operation.id);
+        deletedRecipeIds.push(operation.recipeId);
+        recipes = recipes.filter((recipe) => recipe.id !== operation.recipeId);
+        continue;
       }
-      await removeLocalRecipe(operation.recipeId);
-      await deleteQueuedOperation(operation.id);
-      deletedRecipeIds.push(operation.recipeId);
-      recipes = recipes.filter((recipe) => recipe.id !== operation.recipeId);
-      continue;
-    }
 
-    if (!operation.payload) {
-      await deleteQueuedOperation(operation.id);
-      continue;
-    }
+      if (!operation.payload) {
+        await deleteQueuedOperation(operation.id);
+        continue;
+      }
 
-    if (
-      operation.operation === "create" ||
-      operation.recipeId.startsWith("local-")
-    ) {
-      const result = await pushQueuedRecipeAsCreateOrMerge(
-        client,
-        operation.recipeId,
-        operation.payload,
-        recipes,
-        options
-      );
-      recipes = result.recipes;
-      flushedRecipes.push(result.recipe);
-      pushed = pushed || result.pushed;
-      await deleteQueuedOperation(operation.id);
-      continue;
-    }
+      if (
+        operation.operation === "create" ||
+        operation.recipeId.startsWith("local-")
+      ) {
+        const result = await pushQueuedRecipeAsCreateOrMerge(
+          client,
+          operation.recipeId,
+          operation.payload,
+          recipes,
+          options
+        );
+        recipes = result.recipes;
+        flushedRecipes.push(result.recipe);
+        pushed = pushed || result.pushed;
+        await deleteQueuedOperation(operation.id);
+        continue;
+      }
 
-    try {
       await updateRecipeOnNextcloud(operation.payload, client);
       const saved = await acknowledgeQueuedRecipeUpdate(operation);
       if (saved) {
@@ -1355,15 +1288,8 @@ async function flushSyncQueue(
       }
       pushed = true;
     } catch (error) {
-      if (!(error instanceof CookbookApiError) || error.status !== 404) {
-        throw error;
-      }
-
-      await removeLocalRecipe(operation.recipeId);
-      await deleteQueuedOperation(operation.id);
-      deletedRecipeIds.push(operation.recipeId);
-      recipes = recipes.filter((recipe) => recipe.id !== operation.recipeId);
-      continue;
+      failures.push(error);
+      console.warn("sync", "Operation remains queued", { recipeId: operation.recipeId, error });
     }
   }
 
@@ -1379,21 +1305,16 @@ async function pushQueuedRecipeAsCreateOrMerge(
 ) {
   const decision = await resolveRecipeImportWithNameConflict(
     payload,
-    syncedRecipes,
+    syncedRecipes.filter((item) => item.id !== queuedRecipeId && !item.id?.startsWith("local-")),
     options
   );
   const recipe = getResolvedImportRecipe(decision);
 
   if (decision.action === "skip") {
     const existingRecipe = decision.existingRecipe ?? recipe;
-    const saved = await saveLocalRecipe(
-      mergeServerRecipeWithLocalImages(existingRecipe, payload),
-      false,
-      false
+    const saved = await completeRecipeSync(queuedRecipeId,
+      mergeServerRecipeWithLocalImages(existingRecipe, payload)
     );
-    if (existingRecipe.id && queuedRecipeId !== existingRecipe.id) {
-      await removeLocalRecipe(queuedRecipeId);
-    }
     return {
       pushed: false,
       recipe: saved,
@@ -1404,14 +1325,9 @@ async function pushQueuedRecipeAsCreateOrMerge(
   if (decision.action === "update" && recipe.id && !recipe.id.startsWith("local-")) {
     await updateRecipeOnNextcloud(recipe, client);
     const serverRecipe = await client.getRecipe(recipe.id);
-    const saved = await saveLocalRecipe(
-      withInferredCategory(mergeServerRecipeWithLocalImages(serverRecipe, recipe)),
-      false,
-      false
+    const saved = await completeRecipeSync(queuedRecipeId,
+      withInferredCategory(mergeServerRecipeWithLocalImages(serverRecipe, recipe))
     );
-    if (queuedRecipeId !== recipe.id) {
-      await removeLocalRecipe(queuedRecipeId);
-    }
     return {
       pushed: true,
       recipe: saved,
@@ -1419,22 +1335,42 @@ async function pushQueuedRecipeAsCreateOrMerge(
     };
   }
 
-  const remoteRecipe = await prepareRecipeForNextcloud(recipe, client);
-  const serverId = await client.createRecipe(toCookbookCreateRecipe(remoteRecipe));
-  const serverRecipe = await client.getRecipe(String(serverId));
-  const saved = await saveLocalRecipe(
-    withInferredCategory(mergeServerRecipeWithLocalImages(serverRecipe, recipe)),
-    false,
-    false
-  );
-  if (queuedRecipeId !== saved.id) {
-    await removeLocalRecipe(queuedRecipeId);
-  }
+  const saved = await createRemoteRecipe(client, queuedRecipeId, recipe);
   return {
     pushed: true,
     recipe: saved,
     recipes: upsertRecipeInList(syncedRecipes, saved)
   };
+}
+
+
+async function createRemoteRecipe(client: CookbookClient, localId: string, recipe: Recipe) {
+  const prepared = await prepareRecipeForNextcloud(recipe, client);
+  let serverId: string;
+  try {
+    serverId = String(await client.createRecipe(toCookbookCreateRecipe(prepared)));
+    if (!/^[1-9]\d*$/.test(serverId)) throw new Error("Cookbook did not return a valid recipe ID");
+  } catch (error) {
+    const recovered = await findAcceptedCreation(client, prepared).catch(() => null);
+    if (!recovered?.id) throw error;
+    serverId = recovered.id;
+  }
+  const saved = await completeRecipeSync(localId, normalizeRecipe({ ...prepared, id: serverId }));
+  const remote = await client.getRecipe(serverId).catch(() => null);
+  return remote
+    ? saveLocalRecipe(withInferredCategory(mergeServerRecipeWithLocalImages(remote, saved)), false, false).catch(() => saved)
+    : saved;
+}
+
+async function findAcceptedCreation(client: CookbookClient, recipe: Recipe) {
+  const candidates = (await client.listRecipes()).filter((stub) => stub.name === recipe.name);
+  const fields = ["name", "description", "sourceName", "url", "image", "keywords", "prepTime", "cookTime",
+    "totalTime", "recipeYield", "recipeCategory", "tool", "recipeIngredient", "recipeInstructions", "nutrition"] as const;
+  for (const candidate of candidates) {
+    const remote = await client.getRecipe(candidate.id);
+    if (fields.every((field) => JSON.stringify(remote[field]) === JSON.stringify(recipe[field]))) return remote;
+  }
+  return null;
 }
 
 async function saveImportedRecipe(
@@ -1444,44 +1380,10 @@ async function saveImportedRecipe(
   action: "create" | "update",
   options: RecipeRepositoryOptions
 ) {
-  if (!client) {
-    return action === "update"
-      ? updateRecipe(localRecipe, null, options)
-      : createRecipe(localRecipe, null, options);
-  }
-
-  if (
-    action === "update" &&
-    localRecipe.id &&
-    !localRecipe.id.startsWith("local-")
-  ) {
-    try {
-      await updateRecipeOnNextcloud(
-        getNextcloudImportRecipe(localRecipe, originalRecipe),
-        client
-      );
-      return saveLocalRecipe(localRecipe, false);
-    } catch (error) {
-      if (!(error instanceof CookbookApiError) || error.status !== 404) {
-        throw error;
-      }
-    }
-  }
-
-  const serverId = await client.createRecipe(
-    toCookbookCreateRecipe(
-      await prepareRecipeForNextcloud(
-        getNextcloudImportRecipe(localRecipe, originalRecipe),
-        client
-      )
-    )
-  );
-  const serverRecipe = await client.getRecipe(String(serverId));
-  return saveLocalRecipe(
-    mergeServerRecipeWithLocalImages(serverRecipe, localRecipe),
-    false,
-    false
-  );
+  const recipe = getNextcloudImportRecipe(localRecipe, originalRecipe);
+  return action === "update"
+    ? updateRecipe(recipe, client, options)
+    : createRecipe({ ...recipe, id: null }, client, options);
 }
 
 function getNextcloudImportRecipe(localRecipe: Recipe, originalRecipe: Recipe) {
@@ -1499,18 +1401,17 @@ function getNextcloudImportRecipe(localRecipe: Recipe, originalRecipe: Recipe) {
 }
 
 async function updateRecipeOnNextcloud(recipe: Recipe, client: CookbookClient) {
-  if (recipe.id) {
-    await deleteStaleRecipeImages(recipe.id, recipe, client);
-  }
-
   const shouldRemoveImage = hasRecipeImageRemovalIntent(recipe);
 
   await client.updateRecipe(
     toCookbookRecipe(await prepareRecipeForNextcloud(recipe, client))
   );
 
+  if (recipe.id) {
+    await deleteStaleRecipeImages(recipe.id, recipe, client);
+  }
   if (shouldRemoveImage) {
-    void deleteRemovedRecipeImagesFromNextcloud(recipe, client);
+    await deleteRemovedRecipeImagesFromNextcloud(recipe, client);
   }
 }
 
@@ -1738,4 +1639,47 @@ export async function cacheRecipePhoto(
   } catch {
     return recipe;
   }
+}
+
+let pendingRepositoryOperation: Promise<unknown> = Promise.resolve();
+
+function serializeRepositoryOperation<Args extends unknown[], Result>(
+  operation: (...args: Args) => Promise<Result>,
+  accountKey: string | null
+) {
+  return (...args: Args): Promise<Result> => {
+    const result = pendingRepositoryOperation.then(async () => {
+      if (accountKey === null) throw new Error("No active recipe account");
+      for (const arg of args) {
+        const candidate = arg && typeof arg === "object" && "client" in arg ? arg.client : arg;
+        if (candidate instanceof CookbookClient && candidate.getAccountKey() !== accountKey) {
+          throw new Error("Recipe account does not match the Nextcloud client");
+        }
+      }
+      await selectRecipeDatabase(accountKey);
+      return operation(...args);
+    });
+    pendingRepositoryOperation = result.catch(() => undefined);
+    return result;
+  };
+}
+
+export function createRecipeRepository(accountKey: string | null) {
+  return {
+    initialiseRecipeStore: serializeRepositoryOperation(initialiseRecipeStore, accountKey),
+    clearSyncedLocalRecipes: serializeRepositoryOperation(clearSyncedLocalRecipes, accountKey),
+    updateRecipeLocalPreferences: serializeRepositoryOperation(updateRecipeLocalPreferences, accountKey),
+    findDuplicateRecipes: serializeRepositoryOperation(findDuplicateRecipes, accountKey),
+    mergeDuplicateRecipes: serializeRepositoryOperation(mergeDuplicateRecipes, accountKey),
+    createRecipe: serializeRepositoryOperation(createRecipe, accountKey),
+    updateRecipe: serializeRepositoryOperation(updateRecipe, accountKey),
+    deleteRecipe: serializeRepositoryOperation(deleteRecipe, accountKey),
+    renameRecipeCategory: serializeRepositoryOperation(renameRecipeCategory, accountKey),
+    importRecipe: serializeRepositoryOperation(importRecipe, accountKey),
+    updateRecipeFromSource: serializeRepositoryOperation(updateRecipeFromSource, accountKey),
+    syncRecipes: serializeRepositoryOperation(syncRecipes, accountKey),
+    exportRecipeBackup: serializeRepositoryOperation(exportRecipeBackup, accountKey),
+    importRecipeBackup: serializeRepositoryOperation(importRecipeBackup, accountKey),
+    importRecipeBackupFile: serializeRepositoryOperation(importRecipeBackupFile, accountKey)
+  };
 }

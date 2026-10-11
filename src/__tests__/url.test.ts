@@ -6,6 +6,8 @@ describe("normalizeNextcloudUrl", () => {
     ["cloud.example.com/nextcloud/", "https://cloud.example.com/nextcloud"],
     ["192.168.1.50:8080/nextcloud", "https://192.168.1.50:8080/nextcloud"],
     ["https://cloud.example.com/", "https://cloud.example.com"],
+    ["https://cloud.example.com/index.php/", "https://cloud.example.com"],
+    ["https://cloud.example.com/nextcloud/index.php?login=1", "https://cloud.example.com/nextcloud"],
     [
       " http://192.168.1.50:8080/nextcloud///?login=1#top ",
       "http://192.168.1.50:8080/nextcloud"

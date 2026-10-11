@@ -335,3 +335,20 @@ describe("recipe image references", () => {
     expect(canUseRemoteRecipeImageFallback(recipe)).toBe(true);
   });
 });
+
+describe("standard Cookbook photos", () => {
+  it("prefers the downloaded Cookbook photo over an expired external source", () => {
+    const recipe = normalizeRecipe({
+      image: "https://old-site.example/expired.jpg",
+      imageUrl: "https://cloud.example.com/apps/cookbook/api/v1/recipes/42/image?size=full",
+      imagePlaceholderUrl: "https://cloud.example.com/apps/cookbook/api/v1/recipes/42/image?size=thumb16"
+    });
+    expect(getPreferredDisplayRecipeImage(recipe)).toBe(recipe.imageUrl);
+  });
+  it("never uploads installation-relative Cookbook endpoints as Nextcloud file paths", () => {
+    const recipe = normalizeRecipe({
+      image: "/nextcloud/index.php/apps/cookbook/webapp/recipes/42/image?size=full"
+    });
+    expect(sanitizeRecipeImagesForNextcloud(recipe).image).toBe("");
+  });
+});

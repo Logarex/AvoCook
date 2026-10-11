@@ -185,13 +185,13 @@ describe("CookbookClient", () => {
       const recipe = await client.getRecipe("3254");
 
       expect(recipe.image).toBe(
-        `${serverUrl}/apps/cookbook/webapp/recipes/3254/image?size=full`
+        `${serverUrl}/apps/cookbook/api/v1/recipes/3254/image?size=full`
       );
       expect(recipe.imageUrl).toBe(
-        `${serverUrl}/apps/cookbook/webapp/recipes/3254/image?size=thumb`
+        `${serverUrl}/apps/cookbook/api/v1/recipes/3254/image?size=thumb`
       );
       expect(recipe.imagePlaceholderUrl).toBe(
-        `${serverUrl}/apps/cookbook/webapp/recipes/3254/image?size=thumb16`
+        `${serverUrl}/apps/cookbook/api/v1/recipes/3254/image?size=thumb16`
       );
     }
   );
@@ -225,7 +225,7 @@ describe("CookbookClient", () => {
     const recipe = await client.getRecipe("1380499");
 
     expect(recipe.image).toBe(
-      "https://cloud.example.com/apps/cookbook/webapp/recipes/1380499/image?size=full"
+      "https://cloud.example.com/apps/cookbook/api/v1/recipes/1380499/image?size=full"
     );
     expect(recipe.imageUrl).toBe(
       "https://cloud.example.com/apps/cookbook/api/v1/recipes/1380499/image?size=thumb"
@@ -488,5 +488,128 @@ describe("CookbookClient", () => {
     expect(String(fetchMock.mock.calls[3][0])).toBe(
       "https://cloud.example.com/remote.php/dav/files/reedstrm/Mes%20recettes/Pain%20_%20beurre_%20miel_%20_test_/thumb16.jpg"
     );
+  });
+});
+
+describe("Cookbook image and cache compatibility", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it.each([
+    ["https://cloud.example.com", "/index.php/apps/cookbook/webapp/recipes/42/image?size=fulld", "https://cloud.example.com/index.php/apps/cookbook/api/v1/recipes/42/image"],
+    ["https://cloud.example.com/nextcloud", "/nextcloud/index.php/apps/cookbook/webapp/recipes/42/image?size=full", "https://cloud.example.com/nextcloud/index.php/apps/cookbook/api/v1/recipes/42/image"],
+    ["https://cloud.example.com/nextcloud", "/nextcloud/apps/cookbook/webapp/recipes/42/image?size=full", "https://cloud.example.com/nextcloud/apps/cookbook/api/v1/recipes/42/image"]
+  ])("resolves Cookbook's installation-relative image %s %s", (serverUrl, imageUrl, expectedPath) => {
+    const client = new CookbookClient({ serverUrl, username: "user", appPassword: "secret" });
+    const recipe = client.normalizeRecipeImageUrls({ imageUrl, dateModified: "2026-10-11T12:00:00Z" });
+    const image = new URL(recipe.imageUrl!);
+    expect(`${image.origin}${image.pathname}`).toBe(expectedPath);
+    expect(image.searchParams.get("size")).toBe("full");
+    expect(image.searchParams.get("v")).toBe("2026-10-11T12:00:00Z");
+    expect(client.getImageHeaders(recipe.imageUrl!)).toHaveProperty("Authorization");
+  });
+
+  it("keeps ordinary recipe-folder image paths and external image URLs intact", () => {
+    const client = new CookbookClient({ serverUrl: "https://cloud.example.com", username: "user", appPassword: "secret" });
+    const recipe = client.normalizeRecipeImageUrls({ image: "/Recipes/Soup/full.jpg", imageUrl: "https://images.example/photo.jpg", dateModified: "2026" });
+    expect(recipe.image).toBe("/Recipes/Soup/full.jpg");
+    expect(recipe.imageUrl).toBe("https://images.example/photo.jpg");
+    expect(client.getImageHeaders(recipe.imageUrl!)).toBeUndefined();
+  });
+
+  it("requests fresh JSON and uses the working index.php route for image fallbacks", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response("Not found", { status: 404 }))
+      .mockResolvedValueOnce(new Response("[]", { headers: { "Content-Type": "application/json" } }));
+    const client = new CookbookClient({ serverUrl: "https://cloud.example.com/nextcloud", username: "user", appPassword: "secret" });
+    await client.listRecipes();
+    for (const [, options] of fetchMock.mock.calls) {
+      expect(options?.cache).toBe("no-store");
+      expect(new Headers(options?.headers).get("Cache-Control")).toBe("no-cache, no-store");
+    }
+    expect(client.getRecipeImageUrl("42")).toBe("https://cloud.example.com/nextcloud/index.php/apps/cookbook/api/v1/recipes/42/image?size=thumb");
+  });
+});
+
+describe("Cookbook mutation response validation", () => {
+  afterEach(() => vi.restoreAllMocks());
+  it("does not acknowledge a deletion redirected to a login page", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("<html>Sign in</html>", { headers: { "Content-Type": "text/html" } }));
+    const client = new CookbookClient({ serverUrl: "https://cloud.example.com", username: "user", appPassword: "secret" });
+    await expect(client.deleteRecipe("42")).rejects.toThrow("web page instead of an API response");
+  });
+});
+
+describe("HTTP failure recovery", () => {
+  afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers(); });
+  const makeClient = () => new CookbookClient({ serverUrl: "https://cloud.example.com", username: "login", userId: "user", appPassword: "secret" });
+
+  it("uses the installation root for WebDAV and account identity when login URL includes index.php", async () => {
+    const credentials = { serverUrl: "https://cloud.example.com/nextcloud", username: "login", userId: "user", appPassword: "secret" };
+    const client = new CookbookClient({ ...credentials, serverUrl: `${credentials.serverUrl}/index.php` });
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("{}"));
+    await client.getJsonWebDav("recipe.json");
+    expect(fetchMock.mock.calls[0][0]).toBe("https://cloud.example.com/nextcloud/remote.php/dav/files/user/recipe.json");
+    expect(client.getAccountKey()).toBe(new CookbookClient(credentials).getAccountKey());
+  });
+
+  it("uses the requested ID if an older server omits it from the recipe body", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response('{"name":"Soup"}', { headers: { "Content-Type": "application/json" } }));
+    expect((await makeClient().getRecipe("42")).id).toBe("42");
+  });
+
+  it("rejects a recipe response with a different ID", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response('{"id":"99","name":"Wrong recipe"}', { headers: { "Content-Type": "application/json" } }));
+    await expect(makeClient().getRecipe("42")).rejects.toThrow("different recipe ID");
+  });
+
+  it("keeps the timeout active while a WebDAV response body stalls", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, options) => new Response(new ReadableStream({
+      start(controller) { options?.signal?.addEventListener("abort", () => controller.error(new Error("Aborted stalled body"))); }
+    }), { headers: { "Content-Type": "application/json" } }));
+    const client = makeClient();
+    const rejected = expect(client.getJsonWebDav("recipe.json")).rejects.toThrow("Aborted stalled body");
+    await vi.advanceTimersByTimeAsync(15_001);
+    await rejected;
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response('{"name":"Recovered"}'));
+    expect(await client.getJsonWebDav("recipe.json")).toEqual({ name: "Recovered" });
+  });
+
+  it.each([401, 403, 429, 500, 502, 503])("does not hide fallback HTTP %s behind the initial 404", async (status) => {
+    vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response("missing route", { status: 404 }))
+      .mockResolvedValueOnce(new Response("server error", { status }));
+    await expect(makeClient().getRecipe("42")).rejects.toMatchObject({ status });
+  });
+
+  it("rejects a login page returned as a successful WebDAV write", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("<html>Log in</html>", { headers: { "Content-Type": "text/html" } }));
+    await expect(makeClient().putJsonWebDav("recipe.json", { name: "Cake" })).rejects.toThrow("web page");
+  });
+
+  it("reuses the working Cookbook route after an index.php fallback", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response("", { status: 404 }))
+      .mockResolvedValueOnce(new Response("[]", { headers: { "Content-Type": "application/json" } }))
+      .mockResolvedValueOnce(new Response("[]", { headers: { "Content-Type": "application/json" } }));
+    const client = makeClient();
+    await client.listRecipes(); await client.listRecipes();
+    expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+      "https://cloud.example.com/apps/cookbook/api/v1/recipes",
+      "https://cloud.example.com/index.php/apps/cookbook/api/v1/recipes",
+      "https://cloud.example.com/index.php/apps/cookbook/api/v1/recipes"
+    ]);
+  });
+
+  it("retries resolving the WebDAV user ID after a transient OCS failure", async () => {
+    const client = new CookbookClient({ serverUrl: "https://cloud.example.com", username: "email@example.com", appPassword: "secret" });
+    const lookup = vi.spyOn(client, "getCurrentUser")
+      .mockRejectedValueOnce(new Error("Offline"))
+      .mockResolvedValueOnce({ id: "real-user-id" });
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async () => new Response("{}"));
+    await client.getJsonWebDav("first.json");
+    await client.getJsonWebDav("second.json");
+    expect(lookup).toHaveBeenCalledTimes(2);
+    expect(String(fetchMock.mock.lastCall?.[0])).toContain("/dav/files/real-user-id/");
   });
 });

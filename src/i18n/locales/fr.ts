@@ -546,6 +546,7 @@ export default {
       localMode: "Mode local",
       localOnly: "Utilisation sans compte Nextcloud",
       privacy: "Confidentialité",
+      reinstallNotice: "Sur iOS, les réglages, les identifiants et la session communautaire peuvent être restaurés après une réinstallation sur le même appareil. Sauvegardez vos recettes locales avant de désinstaller l’application.",
       secureStore:
         "Les identifiants restent dans le stockage sécurisé du téléphone.",
       localNotice:

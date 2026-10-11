@@ -1,4 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
+import { areRecipeDatesEqual } from "../features/recipes/recipeRepository";
+import { toCookbookCreateRecipe, toCookbookRecipe, normalizeRecipe } from "../features/recipes/types";
 
 vi.mock("react-native", () => ({
   Platform: { OS: "ios" }
@@ -50,8 +52,6 @@ vi.mock("expo-sqlite", () => {
   };
 });
 
-import { areRecipeDatesEqual } from "../features/recipes/recipeRepository";
-import { toCookbookCreateRecipe, toCookbookRecipe, normalizeRecipe } from "../features/recipes/types";
 
 describe("Recipe Sync & Serialization", () => {
   describe("toCookbookCreateRecipe", () => {
@@ -97,9 +97,9 @@ describe("Recipe Sync & Serialization", () => {
       expect(areRecipeDatesEqual("2026-09-21T20:30:00Z", "2026-09-21T20:30:00Z")).toBe(true);
     });
 
-    it("returns true for dates differing only by milliseconds or timezone formatting", () => {
-      expect(areRecipeDatesEqual("2026-09-21T20:30:00.123Z", "2026-09-21T20:30:00+00:00")).toBe(true);
-      expect(areRecipeDatesEqual("2026-09-21T20:30:00.000Z", "2026-09-21T20:30:02Z")).toBe(true);
+    it("compares instants exactly so rapid server edits are not hidden", () => {
+      expect(areRecipeDatesEqual("2026-09-21T20:30:00.000Z", "2026-09-21T20:30:00+00:00")).toBe(true);
+      expect(areRecipeDatesEqual("2026-09-21T20:30:00.000Z", "2026-09-21T20:30:02Z")).toBe(false);
     });
 
     it("returns false for dates differing by more than 5 seconds", () => {

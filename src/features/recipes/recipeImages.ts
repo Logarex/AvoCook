@@ -20,7 +20,7 @@ export async function persistRecipeImage(
   const extension = getImageExtension(uri);
   const filename = await Crypto.digestStringAsync(
     Crypto.CryptoDigestAlgorithm.SHA256,
-    await getImageCacheKey(uri)
+    await getImageCacheKey(uri, options?.headers)
   );
   const destination = new File(IMAGE_DIR, `${filename}.${extension}`);
 
@@ -103,9 +103,10 @@ function normalizeImageExtension(extension: string) {
   return "jpg";
 }
 
-async function getImageCacheKey(uri: string) {
+async function getImageCacheKey(uri: string, headers?: Record<string, string>) {
   if (/^https?:\/\//i.test(uri)) {
-    return uri;
+    const authorization = Object.entries(headers ?? {}).find(([key]) => key.toLowerCase() === "authorization")?.[1];
+    return authorization ? `${uri}\n${authorization}` : uri;
   }
 
   try {

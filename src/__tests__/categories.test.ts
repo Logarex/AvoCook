@@ -36,3 +36,14 @@ describe("inferRecipeCategory", () => {
     ).toBe("Sauce");
   });
 });
+
+describe("default category translations", () => {
+  it.each(["Soupe", "Suppe", "Soup", "Zuppa", "Sopa", " suppe "])("translates %s without changing stored categories", async (category) => {
+    const { getRecipeCategoryLabel } = await import("../features/recipes/categories");
+    expect(getRecipeCategoryLabel(category, (key) => key === "recipes.defaultCategories.soup" ? "Soupe" : key)).toBe("Soupe");
+  });
+  it("leaves a custom category intact", async () => {
+    const { getRecipeCategoryLabel } = await import("../features/recipes/categories");
+    expect(getRecipeCategoryLabel("Omas Suppen", () => "Soupe")).toBe("Omas Suppen");
+  });
+});

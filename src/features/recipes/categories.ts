@@ -158,7 +158,12 @@ export function isDefaultRecipeCategory(category: string) {
 }
 
 export function getDefaultRecipeCategoryTranslationKey(category: string) {
-  return defaultRecipeCategoryTranslationKeys[category] ?? "";
+  const normalized = normalizeSearchText(category.trim());
+  if (["soupe", "soup", "suppe", "zuppa", "sopa"].includes(normalized)) {
+    return "recipes.defaultCategories.soup";
+  }
+  const canonical = DEFAULT_RECIPE_CATEGORIES.find((name) => normalizeSearchText(name) === normalized);
+  return canonical ? defaultRecipeCategoryTranslationKeys[canonical] : "";
 }
 
 export function getRecipeCategoryLabel(

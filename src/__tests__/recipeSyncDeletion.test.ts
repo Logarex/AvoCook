@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import * as SQLite from "expo-sqlite";
 import { loadAnyLocalRecipeById } from "../features/recipes/offlineDatabase";
-import { deleteRecipe } from "../features/recipes/recipeRepository";
+import { createRecipeRepository } from "../features/recipes/recipeRepository";
 import { CookbookClient } from "../features/nextcloud/cookbookClient";
 import { normalizeRecipe } from "../features/recipes/types";
+
+const { deleteRecipe } = createRecipeRepository(JSON.stringify(["https://cloud.example.com", "reedstrm"]));
 
 vi.mock("expo-crypto", () => ({
   CryptoDigestAlgorithm: { SHA256: "SHA-256" },
