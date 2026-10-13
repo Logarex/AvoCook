@@ -5,7 +5,7 @@ import {
   deleteCommunityRecipe, fetchCommunityRecipes, getCommunityRecipe,
   reservePseudonym, submitCommunityRecipe, updateCommunityRecipe, voteOnRecipe
 } from "../features/community/communityClient";
-import { cancelPush, createSharedList, fetchSharedList, leaveSharedList, schedulePush } from "../features/shopping/sharedListClient";
+import { cancelPush, createSharedList, fetchSharedList, leaveSharedList, schedulePush, joinSharedListWithItems, flushSharedListPush } from "../features/shopping/sharedListClient";
 
 const transaction = vi.hoisted(() => ({ get: vi.fn(), set: vi.fn(), update: vi.fn(), delete: vi.fn() }));
 vi.mock("firebase/firestore", async () => ({
@@ -166,6 +166,31 @@ describe("Community database boundaries", () => {
 });
 
 describe("Shared shopping lists", () => {
+  it("joins with source data and participant count in a single transaction", async () => {
+    const item = { id: "remote-1", label: "Milk", checked: false, createdAt: "2026-10-13", updatedAt: "2026-10-13" };
+    transaction.get.mockResolvedValue(snapshot("AAAAAA", { items: [item], participantCount: 1 }));
+    const result = await joinSharedListWithItems("AAAAAA", [{ ...item, id: "local-1" }, { ...item, id: "local-2", label: "Bread", checked: true }]);
+    expect(result.map((item) => [item.label, item.checked])).toEqual([["Milk", false], ["Bread", true]]);
+    expect(transaction.update).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({ items: result, participantCount: { increment: 1 } }));
+    expect(firestore.updateDoc).not.toHaveBeenCalled();
+  });
+  it("does not join a missing list or increment membership on failure", async () => {
+    transaction.get.mockResolvedValue({ exists: () => false });
+    await expect(joinSharedListWithItems("AAAAAA", [])).rejects.toThrow("List not found");
+    expect(transaction.update).not.toHaveBeenCalled();
+  });
+  it("flushes queued edits before switching and cancels the old debounce", async () => {
+    vi.useFakeTimers();
+    const items = [{ id: "local-1", label: "Milk", checked: false, createdAt: "2026-10-13", updatedAt: "2026-10-13", recipeName: undefined }];
+    schedulePush("AAAAAA", items, vi.fn());
+    await flushSharedListPush("AAAAAA", items);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(firestore.updateDoc).toHaveBeenCalledOnce();
+    const sent = vi.mocked(firestore.updateDoc).mock.calls[0][1] as unknown as { items: unknown[] };
+    expect(JSON.stringify(sent.items)).not.toContain("undefined");
+    expect(Object.values(sent.items[0] as object).every((value) => value !== undefined)).toBe(true);
+  });
+
   it("rejects malformed invitation codes before querying Firestore", async () => {
     await expect(fetchSharedList("bad/code")).rejects.toThrow("Invalid shared list code");
     expect(firestore.getDoc).not.toHaveBeenCalled();

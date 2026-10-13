@@ -46,6 +46,7 @@ I built it for personal use while learning to ship a complete React Native proje
 
 - Collaborate on grocery lists in real-time using a 6-digit code, push notifications, and active participant tracking;
 - Copy ingredients to the clipboard with a tap;
+- Choose one shopping mode at a time: local, AvoCook live sharing, or an optional [Nextcloud Pantry household list](docs/NEXTCLOUD_PANTRY.md). Your items are carried over when switching modes;
 - Export a shopping list to iOS Reminders to take advantage of Apple's sharing and Siri integration.
 
 ### Timers

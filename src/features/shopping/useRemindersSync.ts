@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, Linking, } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useTranslation } from "react-i18next";
@@ -35,8 +35,16 @@ export type UseRemindersSyncReturn = RemindersSyncState & {
   dismissSyncBanner: () => Promise<void>;
 };
 
-export function useRemindersSync(): UseRemindersSyncReturn {
+export function useRemindersSync(enabled = true, pantryMode = false): UseRemindersSyncReturn {
   const { t } = useTranslation();
+  const enabledRef = useRef(enabled);
+  const epochRef = useRef(0);
+  const wasPantryRef = useRef(pantryMode);
+  const resumeRequiredRef = useRef(false);
+  if (enabledRef.current !== enabled) epochRef.current++;
+  if (wasPantryRef.current && !pantryMode) resumeRequiredRef.current = true;
+  wasPantryRef.current = pantryMode;
+  enabledRef.current = enabled;
 
   const [available] = useState<boolean>(() => isRemindersAvailable());
   const [linked, setLinked] = useState(false);
@@ -54,7 +62,8 @@ export function useRemindersSync(): UseRemindersSyncReturn {
   }, []);
 
   const enableSync = useCallback(async (currentItems: ShoppingListItem[]) => {
-    if (!available) return;
+    if (!available || !enabledRef.current) return;
+    const epoch = epochRef.current;
 
     const status = await getRemindersPermissionStatus();
     if (status === "denied") {
@@ -69,7 +78,9 @@ export function useRemindersSync(): UseRemindersSyncReturn {
       return;
     }
 
+    if (!enabledRef.current || epoch !== epochRef.current) return;
     const result = await requestRemindersPermission();
+    if (!enabledRef.current || epoch !== epochRef.current) return;
     if (result === "denied") {
       Alert.alert(
         t("shoppingList.syncPermissionDeniedTitle"),
@@ -85,11 +96,12 @@ export function useRemindersSync(): UseRemindersSyncReturn {
     try {
       setSyncing(true);
       const listId = await findOrCreateAvoCookList();
+      if (!enabledRef.current || epoch !== epochRef.current) return;
       await AsyncStorage.setItem(SYNC_ENABLED_KEY, "true");
       if (currentItems.length > 0) {
         await pushItemsToReminders(currentItems, listId);
       }
-      setLinked(true);
+      if (epoch === epochRef.current) { resumeRequiredRef.current = false; setLinked(true); }
     } catch {
       Alert.alert(t("shoppingList.syncErrorTitle"), t("shoppingList.syncErrorBody"));
     } finally {
@@ -133,11 +145,13 @@ export function useRemindersSync(): UseRemindersSyncReturn {
 
   const pushToSystem = useCallback(
     async (items: ShoppingListItem[]) => {
-      if (!linked) return;
+      if (!linked || !enabledRef.current) return;
+      const epoch = epochRef.current;
       try {
         const listId = await getLinkedListId();
-        if (!listId) return;
+        if (!listId || !enabledRef.current || epoch !== epochRef.current) return;
         await pushItemsToReminders(items, listId);
+        if (epoch === epochRef.current) resumeRequiredRef.current = false;
       } catch {
       }
     },
@@ -146,11 +160,19 @@ export function useRemindersSync(): UseRemindersSyncReturn {
 
   const pullFromSystem = useCallback(
     async (currentItems: ShoppingListItem[]): Promise<PullResult | null> => {
-      if (!linked) return null;
+      if (!linked || !enabledRef.current) return null;
+      const epoch = epochRef.current;
       try {
         const listId = await getLinkedListId();
-        if (!listId) return null;
+        if (!listId || !enabledRef.current || epoch !== epochRef.current) return null;
+        if (resumeRequiredRef.current) {
+          // After leaving Pantry, align Reminders before importing its old mappings.
+          await pushItemsToReminders(currentItems, listId);
+          if (epoch === epochRef.current) resumeRequiredRef.current = false;
+          return null;
+        }
         const result = await pullItemsFromReminders(currentItems, listId);
+        if (!enabledRef.current || epoch !== epochRef.current) return null;
         return result.hasChanges ? result : null;
       } catch {
         return null;
@@ -164,5 +186,5 @@ export function useRemindersSync(): UseRemindersSyncReturn {
     await AsyncStorage.setItem("shopping.reminders.dismissed.v1", "true");
   }, []);
 
-  return { available, linked, syncing, listName, dismissed, enableSync, disableSync, pushToSystem, pullFromSystem, dismissSyncBanner };
+  return { available: available && enabled, linked: linked && enabled, syncing, listName, dismissed, enableSync, disableSync, pushToSystem, pullFromSystem, dismissSyncBanner };
 }

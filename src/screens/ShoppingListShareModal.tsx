@@ -61,8 +61,8 @@ export function ShoppingListShareModal({
 
   const handleLeave = async () => {
     setLoading(true);
-    await sharedList.leaveList();
-    setLoading(false);
+    try { await sharedList.leaveList(); } catch { setErrorMsg(t("shoppingModes.error")); }
+    finally { setLoading(false); }
   };
 
   const handleShareCode = async () => {
@@ -140,6 +140,7 @@ export function ShoppingListShareModal({
                   icon={LogOut}
                   label={t("shoppingList.sharedLeave")}
                   onPress={() => void handleLeave()}
+                  disabled={loading || sharedList.syncing}
                   variant="danger"
                   style={styles.btnFlex}
                 />
@@ -193,6 +194,7 @@ export function ShoppingListShareModal({
             </View>
           )}
 
+          {errorMsg && sharedList.active ? <AppText accessibilityRole="alert" style={{ color: colors.danger }}>{errorMsg}</AppText> : null}
           {sync.available ? (
             <>
               <View style={[styles.divider, { marginVertical: spacing.md }]}>

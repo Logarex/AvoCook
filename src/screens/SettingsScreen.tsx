@@ -44,6 +44,9 @@ import { useLongActionToast } from "../components/LongActionToast";
 import { useAuth } from "../features/auth/AuthProvider";
 import { usePreferences, type LlmSettings } from "../features/preferences/PreferencesProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import { ShoppingModeButton } from "../components/ShoppingModeButton";
+import { ShoppingModeModal } from "./ShoppingModeModal";
+import { ShoppingListShareModal } from "./ShoppingListShareModal";
 import { useShoppingList } from "../features/shopping/ShoppingListProvider";
 import { LLM_PROVIDERS, type LlmProviderId, fetchAvailableModels } from "../features/import/photoRecipeImport";
 import { checkPseudonymAvailable, reservePseudonym, releasePseudonym } from "../features/community/communityClient";
@@ -76,6 +79,8 @@ export function SettingsScreen({ navigation }: Props) {
     sync: recipeSync
   } = useRecipes();
   const { sync: shoppingSync, items: shoppingItems } = useShoppingList();
+  const [showShoppingModes, setShowShoppingModes] = useState(false);
+  const [showShoppingSharing, setShowShoppingSharing] = useState(false);
   const {
     keepRecipesLocal,
     keepScreenAwake,
@@ -856,6 +861,9 @@ export function SettingsScreen({ navigation }: Props) {
           variant={notificationState === "ready" ? "primary" : "ghost"}
         />
 
+        <View style={styles.divider} />
+        <ShoppingModeButton onPress={() => setShowShoppingModes(true)} />
+
         {shoppingSync.available ? (
           <>
             <View style={styles.divider} />
@@ -1158,6 +1166,8 @@ export function SettingsScreen({ navigation }: Props) {
           />
         ) : null}
       </View>
+      <ShoppingModeModal visible={showShoppingModes} onClose={() => setShowShoppingModes(false)} onPantry={() => navigation.navigate("Pantry")} onFirebase={() => setShowShoppingSharing(true)} />
+      <ShoppingListShareModal visible={showShoppingSharing} onClose={() => setShowShoppingSharing(false)} />
     </Screen>
   );
 }

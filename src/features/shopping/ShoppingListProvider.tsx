@@ -1,395 +1,125 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useRef,
-  useState
-} from "react";
-import {
-  addIngredientsToShoppingList,
-  clearCheckedShoppingListItems,
-  moveShoppingListItem,
-  removeShoppingListItem,
-  setShoppingListItemChecked,
-  updateShoppingListItemLabel,
-  type ShoppingListAddResult,
-  type ShoppingListItem,
-  type ShoppingListSource
-} from "./shoppingList";
-import {
-  createShoppingListItemId,
-  loadShoppingListItems,
-  saveShoppingListItems
-} from "./shoppingStore";
-import { useRemindersSync } from "./useRemindersSync";
-import type { UseRemindersSyncReturn } from "./useRemindersSync";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+import { useAuth } from "../auth/AuthProvider";
 import { usePreferences } from "../preferences/PreferencesProvider";
-import i18n from "../../i18n";
+import { PantryClient, type PantryItem, type PantryItemPatch } from "../pantry/pantryClient";
+import { createPantryStorage, pantryAccountKey, type PantrySelection } from "../pantry/pantryStore";
+import { loadShoppingListItems, saveShoppingListItems, createShoppingListItemId } from "./shoppingStore";
+import { useRemindersSync, type UseRemindersSyncReturn } from "./useRemindersSync";
+import { ShoppingModeController, type ShoppingModeState } from "./shoppingModeController";
+import { SHOPPING_MODE_KEY, LEGACY_SHARED_CODE_KEY, type ShoppingMode } from "./shoppingModes";
+import { createSharedList, joinSharedListWithItems, schedulePush, subscribeToSharedList, cancelPush, leaveSharedList, flushSharedListPush, getDeviceId } from "./sharedListClient";
+import type { ShoppingListAddResult, ShoppingListItem, ShoppingListSource } from "./shoppingList";
 import { scheduleTimerNotification } from "../timers/timerNotifications";
-import {
-  createSharedList,
-  fetchSharedList,
-  mergeShoppingLists,
-  schedulePush,
-  subscribeToSharedList,
-  cancelPush,
-  leaveSharedList,
-  getDeviceId
-} from "./sharedListClient";
-
-const SHARED_CODE_STORAGE_KEY = "shopping.sharedListCode";
+import i18n from "../../i18n";
 
 export type SharedListState = {
-  active: boolean;
-  code: string | null;
-  syncing: boolean;
-  error: string | null;
-  participantCount: number | null;
-  createList: () => Promise<string>;
-  joinList: (code: string) => Promise<boolean>;
-  leaveList: () => Promise<void>;
+  active: boolean; code: string | null; syncing: boolean; error: string | null; participantCount: number | null;
+  createList: () => Promise<string>; joinList: (code: string) => Promise<boolean>; leaveList: () => Promise<void>;
 };
-
 type ShoppingListContextValue = {
-  items: ShoppingListItem[];
-  loading: boolean;
+  items: ShoppingListItem[]; loading: boolean; mode: ShoppingMode; switching: boolean;
   addItem: (label: string, options?: { skipSync?: boolean }) => Promise<ShoppingListAddResult>;
-  addIngredients: (
-    ingredients: string[],
-    source?: ShoppingListSource,
-    options?: { allowDuplicates?: boolean; skipSync?: boolean }
-  ) => Promise<ShoppingListAddResult>;
+  addIngredients: (ingredients: string[], source?: ShoppingListSource, options?: { allowDuplicates?: boolean; skipSync?: boolean }) => Promise<ShoppingListAddResult>;
   clearAll: (options?: { skipSync?: boolean }) => Promise<void>;
   clearChecked: (options?: { skipSync?: boolean }) => Promise<number>;
-  moveItem: (itemId: string, direction: -1 | 1, options?: { skipSync?: boolean }) => Promise<void>;
-  removeItem: (itemId: string, options?: { skipSync?: boolean }) => Promise<void>;
-  toggleItem: (itemId: string, options?: { skipSync?: boolean }) => Promise<void>;
-  updateItem: (itemId: string, label: string, options?: { skipSync?: boolean }) => Promise<void>;
-  refreshItems: () => Promise<void>;
-  sync: UseRemindersSyncReturn;
-  sharedList: SharedListState;
+  moveItem: (id: string, direction: -1 | 1, options?: { skipSync?: boolean }) => Promise<void>;
+  removeItem: (id: string, options?: { skipSync?: boolean }) => Promise<void>;
+  toggleItem: (id: string, options?: { skipSync?: boolean }) => Promise<void>;
+  updateItem: (id: string, label: string, options?: { skipSync?: boolean }) => Promise<void>;
+  refreshItems: () => Promise<void>; sync: UseRemindersSyncReturn; sharedList: SharedListState;
+  pantry: ShoppingModeState["pantry"];
+  switchToLocal: () => Promise<void>;
+  switchToPantry: (selection: PantrySelection) => Promise<void>;
+  updatePantryItem: (item: PantryItem, patch: PantryItemPatch) => Promise<void>;
 };
+const ShoppingListContext = createContext<ShoppingListContextValue | undefined>(undefined);
+const EMPTY: ShoppingModeState = { mode: { kind: "local" }, items: [], loading: true, switching: false, sharedSyncing: false, sharedError: null, participantCount: null, pantry: null };
+const emptySnapshot = () => EMPTY;
+const emptySubscribe = () => () => {};
 
-const ShoppingListContext = createContext<ShoppingListContextValue | undefined>(
-  undefined
-);
-
-export function ShoppingListProvider({
-  children
-}: {
-  children: React.ReactNode;
-}) {
-  const [items, setItems] = useState<ShoppingListItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const itemsRef = useRef(items);
-  const sync = useRemindersSync();
+export function ShoppingListProvider({ children }: { children: React.ReactNode }) {
+  const { credentials, hydrated } = useAuth();
+  const accountKey = credentials ? pantryAccountKey(credentials) : null;
+  const [controller, setController] = useState<ShoppingModeController | null>(null);
+  // Do not render a previous account's Pantry contents while effects are being replaced.
+  const active = controller?.accountKey === accountKey ? controller : null;
+  const state = useSyncExternalStore(active?.subscribe ?? emptySubscribe, active?.getSnapshot ?? emptySnapshot, emptySnapshot);
+  const sync = useRemindersSync(!state.loading && state.mode.kind !== "pantry" && !state.switching, state.mode.kind === "pantry");
   const syncRef = useRef(sync);
+  syncRef.current = sync;
   const { enableShoppingNotifications } = usePreferences();
-  const enableShoppingNotificationsRef = useRef(enableShoppingNotifications);
-  
-  const [sharedCode, setSharedCode] = useState<string | null>(null);
-  const [sharedSyncing, setSharedSyncing] = useState(false);
-  const [sharedError, setSharedError] = useState<string | null>(null);
-  const [participantCount, setParticipantCount] = useState<number | null>(null);
+  const notificationsRef = useRef(enableShoppingNotifications);
+  notificationsRef.current = enableShoppingNotifications;
 
   useEffect(() => {
-    enableShoppingNotificationsRef.current = enableShoppingNotifications;
-  }, [enableShoppingNotifications]);
-
-  useEffect(() => {
-    syncRef.current = sync;
-  }, [sync]);
-
-  const persistItems = useCallback(async (nextItems: ShoppingListItem[], skipSync?: boolean) => {
-    itemsRef.current = nextItems;
-    setItems(nextItems);
-    await saveShoppingListItems(nextItems);
-    if (!skipSync && syncRef.current.linked) {
-      void syncRef.current.pushToSystem(nextItems);
-    }
-    if (!skipSync && sharedCode) {
-      schedulePush(sharedCode, nextItems, (err) => {
-        setSharedError(String(err));
-      });
-    }
-  }, [sharedCode]);
-
-  useEffect(() => {
-    let active = true;
-    void (async () => {
-      const storedItems = await loadShoppingListItems();
-      const code = await AsyncStorage.getItem(SHARED_CODE_STORAGE_KEY);
-      if (!active) return;
-      itemsRef.current = storedItems;
-      setItems(storedItems);
-      if (code) {
-        setSharedCode(code);
-      }
-      setLoading(false);
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!sharedCode) return;
-    setSharedSyncing(true);
-    setSharedError(null);
-
-    const unsub = subscribeToSharedList(
-      sharedCode,
-      (payload) => {
-        setSharedSyncing(false);
-        if (typeof payload.participantCount === "number") {
-          setParticipantCount(payload.participantCount);
-        }
-        void (async () => {
-          const currentDeviceId = await getDeviceId();
-          const prevItems = itemsRef.current;
-          const { merged, hasChanges } = mergeShoppingLists(prevItems, payload.items);
-
-          if (hasChanges && payload.lastUpdatedBy && payload.lastUpdatedBy !== currentDeviceId && prevItems.length > 0) {
-            const prevIds = new Set(prevItems.map((i) => i.id));
-            const newIds = new Set(payload.items.map((i) => i.id));
-            const addedCount = payload.items.filter((i) => !prevIds.has(i.id)).length;
-            const removedCount = prevItems.filter((i) => !newIds.has(i.id)).length;
-
-            if ((addedCount > 0 || removedCount > 0) && enableShoppingNotificationsRef.current) {
-              let bodyKey = "shoppingList.notificationAdded";
-              if (addedCount > 0 && removedCount > 0) {
-                bodyKey = "shoppingList.notificationAddedAndRemoved";
-              } else if (removedCount > 0) {
-                bodyKey = "shoppingList.notificationRemoved";
-              }
-              const title = i18n.t("shoppingList.notificationTitle", { defaultValue: "Liste de courses partagée" });
-              const body = i18n.t(bodyKey, { added: addedCount, removed: removedCount, count: addedCount || removedCount, defaultValue: "Des modifications ont été apportées à la liste." });
-
-              void scheduleTimerNotification({
-                title,
-                body,
-                recipeId: "shopping",
-                timerId: "shopping_" + Date.now(),
-                seconds: 1
-              });
-            }
-          }
-
-          if (hasChanges || itemsRef.current.length === 0) {
-            itemsRef.current = merged;
-            setItems(merged);
-            void saveShoppingListItems(merged);
-          }
-        })();
+    if (!hydrated) return;
+    const pantryStorage = createPantryStorage(accountKey ?? "pantry.unconnected");
+    const next = new ShoppingModeController({
+      accountKey,
+      loadMode: () => AsyncStorage.getItem(SHOPPING_MODE_KEY),
+      saveMode: (mode) => AsyncStorage.setItem(SHOPPING_MODE_KEY, JSON.stringify(mode)),
+      legacyCode: () => AsyncStorage.getItem(LEGACY_SHARED_CODE_KEY),
+      clearLegacyCode: () => AsyncStorage.removeItem(LEGACY_SHARED_CODE_KEY),
+      loadItems: loadShoppingListItems, saveItems: saveShoppingListItems, createId: createShoppingListItemId,
+      pantryClient: () => { if (!credentials) throw new Error("Nextcloud required"); return new PantryClient(credentials); },
+      pantryStorage,
+      migrationStorage: (selection) => {
+        const key = `shopping.migration.${accountKey}.${selection.house.id}.${selection.list.id}`;
+        return { load: () => AsyncStorage.getItem(key), save: (raw) => AsyncStorage.setItem(key, raw), clear: () => AsyncStorage.removeItem(key) };
       },
-      (err) => {
-        setSharedSyncing(false);
-        setSharedError("Sync failed");
-        console.warn("shopping", "Shared list error", err);
+      firebase: { create: createSharedList, join: joinSharedListWithItems, leave: leaveSharedList, flush: flushSharedListPush, cancel: cancelPush, push: schedulePush, subscribe: subscribeToSharedList },
+      onLocalItems: (items) => { if (syncRef.current.linked) void syncRef.current.pushToSystem(items); },
+      onSharedUpdate: (previous, payload) => {
+        void (async () => {
+          const id = await getDeviceId();
+          if (!next.isCurrent() || next.getSnapshot().mode.kind !== "firebase" || next.getSnapshot().switching) return;
+          if (!notificationsRef.current || !previous.length || !payload.lastUpdatedBy || payload.lastUpdatedBy === id) return;
+          const prevIds = new Set(previous.map((item) => item.id));
+          const newIds = new Set(payload.items.map((item) => item.id));
+          const added = payload.items.filter((item) => !prevIds.has(item.id)).length;
+          const removed = previous.filter((item) => !newIds.has(item.id)).length;
+          if (!added && !removed) return;
+          const key = added && removed ? "notificationAddedAndRemoved" : removed ? "notificationRemoved" : "notificationAdded";
+          await scheduleTimerNotification({ title: i18n.t("shoppingList.notificationTitle"), body: i18n.t(`shoppingList.${key}`, { added, removed, count: added || removed }), recipeId: "shopping", timerId: `shopping_${Date.now()}`, seconds: 1 });
+        })().catch(() => undefined);
       }
-    );
+    });
+    setController(next);
+    void next.load().catch(() => undefined);
+    return () => next.dispose();
+  }, [accountKey, credentials, hydrated]);
 
-    return () => {
-      unsub();
-      cancelPush();
-    };
-  }, [sharedCode]);
-
-  const createList = useCallback(async (): Promise<string> => {
-    setSharedSyncing(true);
-    setSharedError(null);
-    try {
-      const code = await createSharedList(itemsRef.current);
-      await AsyncStorage.setItem(SHARED_CODE_STORAGE_KEY, code);
-      setSharedCode(code);
-      setSharedSyncing(false);
-      return code;
-    } catch (err) {
-      setSharedSyncing(false);
-      setSharedError("Could not create shared list");
-      throw err;
+  const requireController = useCallback(() => { if (!active) throw new Error("Shopping list loading"); return active; }, [active]);
+  const operations = useMemo<Pick<ShoppingListContextValue, "addIngredients" | "addItem" | "clearAll" | "clearChecked" | "moveItem" | "removeItem" | "toggleItem" | "updateItem" | "refreshItems" | "switchToLocal" | "switchToPantry" | "updatePantryItem">>(() => ({
+    addIngredients: (...args) => requireController().addIngredients(...args),
+    addItem: (label, options) => requireController().addIngredients([label], {}, options),
+    clearAll: (...args) => requireController().clearAll(...args),
+    clearChecked: (...args) => requireController().clearChecked(...args),
+    moveItem: (...args) => requireController().moveItem(...args),
+    removeItem: (...args) => requireController().removeItem(...args),
+    toggleItem: (...args) => requireController().toggleItem(...args),
+    updateItem: (...args) => requireController().updateItem(...args),
+    refreshItems: () => requireController().refreshItems(),
+    switchToLocal: () => requireController().switchToLocal(),
+    switchToPantry: (selection) => requireController().switchToPantry(selection),
+    updatePantryItem: (item, patch) => requireController().updatePantryItem(item, patch),
+  }), [requireController]);
+  const value = useMemo<ShoppingListContextValue>(() => ({
+    items: state.items, loading: state.loading, mode: state.mode, switching: state.switching, pantry: state.pantry, sync,
+    ...operations,
+    sharedList: {
+      active: state.mode.kind === "firebase", code: state.mode.kind === "firebase" ? state.mode.code : null,
+      syncing: state.switching || state.sharedSyncing, error: state.sharedError, participantCount: state.participantCount,
+      createList: () => requireController().switchToFirebase(),
+      joinList: async (code) => { try { await requireController().switchToFirebase(code); return true; } catch { return false; } },
+      leaveList: () => requireController().switchToLocal()
     }
-  }, []);
-
-  const joinList = useCallback(async (code: string): Promise<boolean> => {
-    const cleanCode = code.toUpperCase().trim();
-    if (!cleanCode) return false;
-    setSharedSyncing(true);
-    setSharedError(null);
-    try {
-      const remoteItems = await fetchSharedList(cleanCode);
-      if (!remoteItems) {
-        setSharedSyncing(false);
-        setSharedError("List not found");
-        return false;
-      }
-      const { merged } = mergeShoppingLists(itemsRef.current, remoteItems);
-      itemsRef.current = merged;
-      setItems(merged);
-      await saveShoppingListItems(merged);
-      await AsyncStorage.setItem(SHARED_CODE_STORAGE_KEY, cleanCode);
-      setSharedCode(cleanCode);
-      setSharedSyncing(false);
-      return true;
-    } catch {
-      setSharedSyncing(false);
-      setSharedError("Failed to join list");
-      return false;
-    }
-  }, []);
-
-  const leaveList = useCallback(async (): Promise<void> => {
-    cancelPush();
-    if (sharedCode) {
-      await leaveSharedList(sharedCode).catch(console.warn);
-    }
-    await AsyncStorage.removeItem(SHARED_CODE_STORAGE_KEY);
-    setSharedCode(null);
-    setSharedError(null);
-    setParticipantCount(null);
-  }, [sharedCode]);
-
-  const refreshItems = useCallback(async (): Promise<void> => {
-    const fresh = await loadShoppingListItems();
-    itemsRef.current = fresh;
-    setItems(fresh);
-  }, []);
-
-  const addIngredients = useCallback(
-    async (
-      ingredients: string[], 
-      source: ShoppingListSource = {},
-      options: { allowDuplicates?: boolean; skipSync?: boolean } = {}
-    ) => {
-      const result = addIngredientsToShoppingList(
-        itemsRef.current,
-        ingredients,
-        source,
-        { createId: createShoppingListItemId, allowDuplicates: options.allowDuplicates }
-      );
-      if (result.added.length) {
-        await persistItems(result.items, options.skipSync);
-      }
-      return result;
-    },
-    [persistItems]
-  );
-
-  const addItem = useCallback(
-    (label: string, options?: { skipSync?: boolean }) => addIngredients([label], {}, options),
-    [addIngredients]
-  );
-
-  const toggleItem = useCallback(
-    async (itemId: string, options?: { skipSync?: boolean }) => {
-      const item = itemsRef.current.find((currentItem) => currentItem.id === itemId);
-      if (!item) {
-        return;
-      }
-      await persistItems(
-        setShoppingListItemChecked(itemsRef.current, itemId, !item.checked),
-        options?.skipSync
-      );
-    },
-    [persistItems]
-  );
-
-  const removeItem = useCallback(
-    async (itemId: string, options?: { skipSync?: boolean }) => {
-      await persistItems(removeShoppingListItem(itemsRef.current, itemId), options?.skipSync);
-    },
-    [persistItems]
-  );
-
-  const updateItem = useCallback(
-    async (itemId: string, label: string, options?: { skipSync?: boolean }) => {
-      await persistItems(
-        updateShoppingListItemLabel(itemsRef.current, itemId, label),
-        options?.skipSync
-      );
-    },
-    [persistItems]
-  );
-
-  const moveItem = useCallback(
-    async (itemId: string, direction: -1 | 1, options?: { skipSync?: boolean }) => {
-      await persistItems(moveShoppingListItem(itemsRef.current, itemId, direction), options?.skipSync);
-    },
-    [persistItems]
-  );
-
-  const clearChecked = useCallback(async (options?: { skipSync?: boolean }) => {
-    const checkedCount = itemsRef.current.filter((item) => item.checked).length;
-    await persistItems(clearCheckedShoppingListItems(itemsRef.current), options?.skipSync);
-    return checkedCount;
-  }, [persistItems]);
-
-  const clearAll = useCallback(async (options?: { skipSync?: boolean }) => {
-    await persistItems([], options?.skipSync);
-  }, [persistItems]);
-
-  const sharedList: SharedListState = useMemo(
-    () => ({
-      active: Boolean(sharedCode),
-      code: sharedCode,
-      syncing: sharedSyncing,
-      error: sharedError,
-      participantCount,
-      createList,
-      joinList,
-      leaveList
-    }),
-    [sharedCode, sharedSyncing, sharedError, participantCount, createList, joinList, leaveList]
-  );
-
-  const value = useMemo(
-    () => ({
-      items,
-      loading,
-      addItem,
-      addIngredients,
-      clearAll,
-      clearChecked,
-      moveItem,
-      removeItem,
-      toggleItem,
-      updateItem,
-      refreshItems,
-      sync,
-      sharedList
-    }),
-    [
-      items,
-      loading,
-      addItem,
-      addIngredients,
-      clearAll,
-      clearChecked,
-      moveItem,
-      removeItem,
-      toggleItem,
-      updateItem,
-      refreshItems,
-      sync,
-      sharedList
-    ]
-  );
-
-  return (
-    <ShoppingListContext.Provider value={value}>
-      {children}
-    </ShoppingListContext.Provider>
-  );
+  }), [state, sync, requireController, operations]);
+  return <ShoppingListContext.Provider value={value}>{children}</ShoppingListContext.Provider>;
 }
-
 export function useShoppingList() {
   const value = useContext(ShoppingListContext);
-  if (!value) {
-    throw new Error("useShoppingList must be used inside ShoppingListProvider");
-  }
+  if (!value) throw new Error("useShoppingList must be used inside ShoppingListProvider");
   return value;
 }

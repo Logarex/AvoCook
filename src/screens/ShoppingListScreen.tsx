@@ -34,6 +34,9 @@ import { EmptyState } from "../components/EmptyState";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
 import { PageSwipeGesture } from "../components/PageSwipeGesture";
+import { ShoppingModeButton } from "../components/ShoppingModeButton";
+import { ShoppingModeModal } from "./ShoppingModeModal";
+import { PantryShoppingList } from "./PantryShoppingList";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
 import { ShoppingListActionsModal } from "./ShoppingListActionsModal";
@@ -62,10 +65,13 @@ export function ShoppingListScreen({ navigation }: Props) {
     toggleItem,
     updateItem,
     sync,
-    sharedList
+    sharedList,
+    mode,
+    switching
   } = useShoppingList();
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const [showModes, setShowModes] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [newItem, setNewItem] = useState("");
   const [refreshing, setRefreshing] = useState(false);
@@ -77,6 +83,11 @@ export function ShoppingListScreen({ navigation }: Props) {
   const checkedCount = items.length - remainingCount;
 
   const wasInBackground = useRef(false);
+  const backendKey = mode.kind === "firebase" ? `firebase-${mode.code}` : mode.kind;
+  const backendRef = useRef(backendKey);
+  const switchingRef = useRef(switching);
+  backendRef.current = backendKey;
+  switchingRef.current = switching;
 
   const itemsRef = useRef(items);
   useEffect(() => {
@@ -90,16 +101,21 @@ export function ShoppingListScreen({ navigation }: Props) {
   }, [sync.pullFromSystem]);
 
   const doPull = useCallback(async () => {
+    const source = backendRef.current;
+    const current = () => backendRef.current === source && !switchingRef.current;
+    if (source === "pantry" || !current()) return;
     const result = await pullFromSystemRef.current(itemsRef.current);
-    if (!result) return;
+    if (!result || !current()) return;
 
     for (const item of result.updatedItems) {
+      if (!current()) return;
       const original = itemsRef.current.find((i) => i.id === item.id);
       if (!original) continue;
       if (original.checked !== item.checked) await toggleItem(item.id, { skipSync: true });
       if (original.label !== item.label) await updateItem(item.id, item.label, { skipSync: true });
     }
 
+    if (!current()) return;
     if (result.newReminderItems.length > 0) {
       const addResult = await addIngredients(
         result.newReminderItems.map((r) => r.label),
@@ -116,6 +132,7 @@ export function ShoppingListScreen({ navigation }: Props) {
       if (mappings.length > 0) await registerReminderMappings(mappings);
 
       for (let i = 0; i < result.newReminderItems.length; i++) {
+        if (!current()) return;
         const added = addResult.added[i];
         const r = result.newReminderItems[i];
         if (added && r.checked) {
@@ -126,6 +143,7 @@ export function ShoppingListScreen({ navigation }: Props) {
 
     if (result.deletedItemIds.length > 0) {
       for (const id of result.deletedItemIds) {
+        if (!current()) return;
         await removeItem(id, { skipSync: true });
       }
     }
@@ -133,8 +151,7 @@ export function ShoppingListScreen({ navigation }: Props) {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await doPull();
-    setRefreshing(false);
+    try { await doPull(); } finally { setRefreshing(false); }
   }, [doPull]);
 
   useEffect(() => {
@@ -143,7 +160,7 @@ export function ShoppingListScreen({ navigation }: Props) {
         wasInBackground.current = true;
       } else if (next === "active" && wasInBackground.current) {
         wasInBackground.current = false;
-        void doPull();
+        void doPull().catch(() => undefined);
       }
     });
     return () => sub.remove();
@@ -151,7 +168,7 @@ export function ShoppingListScreen({ navigation }: Props) {
 
   useFocusEffect(
     useCallback(() => {
-      void doPull();
+      void doPull().catch(() => undefined);
     }, [doPull])
   );
 
@@ -240,6 +257,8 @@ export function ShoppingListScreen({ navigation }: Props) {
       onUpdate={handleUpdateItem}
     />
   ), [editingItemId, items.length, handleMoveDown, handleMoveUp, handleRemoveItem, handleStartEditing, handleStopEditing, handleToggleItem, handleUpdateItem]);
+
+  if (mode.kind === "pantry") return <PantryShoppingList navigation={navigation} />;
 
   return (
     <PageSwipeGesture onSwipeRight={() => navigation.navigate("Community", { tabTransition: "slide_from_left" })}>
@@ -332,6 +351,8 @@ export function ShoppingListScreen({ navigation }: Props) {
         </GlassPanel>
       ) : null}
 
+      <ShoppingModeButton onPress={() => setShowModes(true)} />
+
       <View style={styles.addRow}>
         <TextField
           containerStyle={styles.addField}
@@ -423,6 +444,7 @@ export function ShoppingListScreen({ navigation }: Props) {
         onClearChecked={() => void clearChecked()}
         onClearAll={() => void clearAll()}
       />
+      <ShoppingModeModal visible={showModes} onClose={() => setShowModes(false)} onPantry={() => navigation.navigate("Pantry")} onFirebase={() => setShowShareModal(true)} />
       <ShoppingListShareModal
         visible={showShareModal}
         onClose={() => setShowShareModal(false)}

@@ -10,6 +10,8 @@ In local mode — the default — recipes, images, and settings are stored only 
 
 If you choose to connect a Nextcloud server, recipes are synchronised directly between the app and that server. No third-party service is involved.
 
+If you choose Nextcloud Pantry as your shopping mode, household lists and shopping items are exchanged directly with that same server using your existing Nextcloud connection. The latest contents and any unfinished migration are cached on your device, separately for each account. Only one shopping mode is active at a time. Pantry data is transferred into local storage or Firebase sharing only when you explicitly switch to that mode. Switching away leaves Pantry server data and the account cache available for later use; signing out does not automatically copy Pantry contents into the local shopping list.
+
 Your credentials (server URL, username, and app password) are stored on the device using Expo SecureStore, which relies on the system's secure enclave (Keychain on iOS, Keystore on Android).
 
 HTTPS is the default. You can explicitly use HTTP for a server on a trusted local network. With HTTP, your app password, recipes, and images are transmitted without encryption and can be read or modified by anyone able to intercept the connection. The app displays a warning when you enter an HTTP address; credential storage on the device remains encrypted.

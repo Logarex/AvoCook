@@ -559,11 +559,12 @@ function RecipeDetailContent({
 
     if (toAdd.length === 0) return;
 
-    const result = await addIngredientsToShoppingList(toAdd, {
-      recipeId,
-      recipeName: recipe.name,
-    });
-    showShoppingListAddResult(result.added.length);
+    try {
+      const result = await addIngredientsToShoppingList(toAdd, { recipeId, recipeName: recipe.name });
+      showShoppingListAddResult(result.added.length);
+    } catch {
+      Alert.alert(t("common.error"), t("shoppingModes.editError"));
+    }
   }
 
   async function handleAddIngredientToShoppingList(ingredient: string) {
@@ -571,11 +572,12 @@ function RecipeDetailContent({
       return;
     }
 
-    const result = await addIngredientsToShoppingList([ingredient], {
-      recipeId,
-      recipeName: recipe.name,
-    });
-    showShoppingListAddResult(result.added.length);
+    try {
+      const result = await addIngredientsToShoppingList([ingredient], { recipeId, recipeName: recipe.name });
+      showShoppingListAddResult(result.added.length);
+    } catch {
+      Alert.alert(t("common.error"), t("shoppingModes.editError"));
+    }
   }
 
   function handleToggleIngredientCheck(index: number) {

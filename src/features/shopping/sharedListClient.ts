@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { getDb, waitForAuth } from "../firebase/firebaseClient";
 import type { ShoppingListItem } from "./shoppingList";
+import { mergeShoppingItemsForSwitch } from "./shoppingModes";
 import { normalizeShoppingListItems } from "./shoppingList";
 
 const DEVICE_ID_STORAGE_KEY = "shopping.deviceId";
@@ -81,13 +82,15 @@ export function mergeShoppingLists(
 }
 
 let _pushTimer: ReturnType<typeof setTimeout> | null = null;
+let _pendingPush: { code: string; items: ShoppingListItem[]; onError: (error: unknown) => void } | null = null;
+let _activePush: Promise<void> = Promise.resolve();
 
 async function doPush(code: string, items: ShoppingListItem[]): Promise<void> {
   await waitForAuth();
   const deviceId = await getDeviceId();
   await updateDoc(
     listRef(code),
-    { items, updatedAt: serverTimestamp(), lastUpdatedBy: deviceId }
+    { items: normalizeShoppingListItems(items), updatedAt: serverTimestamp(), lastUpdatedBy: deviceId }
   );
 }
 
@@ -98,14 +101,41 @@ export function schedulePush(
   debounceMs = 300
 ): void {
   if (_pushTimer) clearTimeout(_pushTimer);
+  _pendingPush = { code, items, onError };
   _pushTimer = setTimeout(() => {
-    void doPush(code, items).catch(onError);
+    const pending = _pendingPush;
+    _pendingPush = null; _pushTimer = null;
+    if (!pending) return;
+    _activePush = _activePush.catch(() => undefined).then(() => doPush(pending.code, pending.items));
+    void _activePush.catch(pending.onError);
   }, debounceMs);
 }
 
 export function cancelPush(): void {
   if (_pushTimer) clearTimeout(_pushTimer);
   _pushTimer = null;
+  _pendingPush = null;
+}
+
+export async function flushSharedListPush(code?: string, items?: ShoppingListItem[]): Promise<void> {
+  const pending = _pendingPush;
+  cancelPush();
+  await _activePush.catch(() => undefined);
+  if (code && items) await doPush(code, items);
+  else if (pending) await doPush(pending.code, pending.items);
+}
+
+export async function joinSharedListWithItems(code: string, source: ShoppingListItem[]): Promise<ShoppingListItem[]> {
+  await waitForAuth();
+  const deviceId = await getDeviceId();
+  return runTransaction(getDb(), async (transaction) => {
+    const ref = listRef(code);
+    const snap = await transaction.get(ref);
+    if (!snap.exists()) throw new Error("List not found");
+    const items = mergeShoppingItemsForSwitch(source, normalizeShoppingListItems(snap.data().items));
+    transaction.update(ref, { items, participantCount: increment(1), updatedAt: serverTimestamp(), lastUpdatedBy: deviceId });
+    return items;
+  });
 }
 
 export async function createSharedList(
@@ -119,7 +149,7 @@ export async function createSharedList(
     const created = await runTransaction(getDb(), async (transaction) => {
       const snap = await transaction.get(ref);
       if (snap.exists()) return false;
-      transaction.set(ref, { items, updatedAt: serverTimestamp(), participantCount: 1, lastUpdatedBy: deviceId });
+      transaction.set(ref, { items: normalizeShoppingListItems(items), updatedAt: serverTimestamp(), participantCount: 1, lastUpdatedBy: deviceId });
       return true;
     });
     if (created) return code;

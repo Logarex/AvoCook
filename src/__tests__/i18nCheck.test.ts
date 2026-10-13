@@ -4,6 +4,7 @@ import fr from '../i18n/locales/fr';
 import de from '../i18n/locales/de';
 import es from '../i18n/locales/es';
 import it from '../i18n/locales/it';
+import da from '../i18n/locales/da';
 
 const getKeys = (obj: any, prefix = ''): string[] => {
   return Object.keys(obj).reduce((acc: string[], k) => {
@@ -33,5 +34,23 @@ test('all locales have same keys', () => {
     }
     expect(missingInLang).toEqual([]);
     expect(extraInLang).toEqual([]);
+  }
+});
+
+
+test('Pantry translations cover every language and preserve interpolation variables', () => {
+  const reference = en.translation.pantry;
+  const variables = (value: string) => [...value.matchAll(/\{\{(\w+)\}\}/g)].map((match) => match[1]).sort();
+  for (const locale of [fr, de, es, it, da]) {
+    const pantry = locale.translation.pantry;
+    expect(getKeys(pantry).sort()).toEqual(getKeys(reference).sort());
+    for (const key of Object.keys(reference) as (keyof typeof reference)[]) {
+      const expected = reference[key];
+      const actual = pantry[key];
+      if (typeof expected === 'string' && typeof actual === 'string') {
+        expect(actual.trim()).not.toBe('');
+        expect(variables(actual)).toEqual(variables(expected));
+      }
+    }
   }
 });
