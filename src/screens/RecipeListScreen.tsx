@@ -1,3 +1,4 @@
+import { markdownToPlainText } from "../features/markdown/markdown";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   AlertTriangle,
@@ -32,6 +33,7 @@ import {
   safeTranslation,
   getRecipeSearchText,
   getRecipeSearchScore,
+  getRecipeAlphabetLetter,
   normalizeSearchText,
 } from "./recipeList/recipeListHelpers";
 
@@ -199,7 +201,7 @@ export function RecipeListScreen({ navigation }: Props) {
 
     if (!normalizedQuery) {
       return matchingRecipes.sort((left, right) =>
-        left.name.localeCompare(right.name, undefined, { sensitivity: "base" })
+        markdownToPlainText(left.name).localeCompare(markdownToPlainText(right.name), undefined, { sensitivity: "base" })
       );
     }
 
@@ -208,7 +210,7 @@ export function RecipeListScreen({ navigation }: Props) {
       const rightScore = getRecipeSearchScore(right, normalizedQuery);
       return (
         leftScore - rightScore ||
-        left.name.localeCompare(right.name, undefined, { sensitivity: "base" })
+        markdownToPlainText(left.name).localeCompare(markdownToPlainText(right.name), undefined, { sensitivity: "base" })
       );
     });
   }, [category, query, recipes]);
@@ -217,15 +219,7 @@ export function RecipeListScreen({ navigation }: Props) {
     const letters = new Set<string>();
     for (const r of filteredRecipes) {
       if (r.name) {
-        let first = r.name.charAt(0).toUpperCase();
-        if (first === 'Œ') first = 'O';
-        if (first === 'Æ') first = 'A';
-        const letter = first.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-        if (letter >= 'A' && letter <= 'Z') {
-          letters.add(letter);
-        } else {
-          letters.add('#');
-        }
+        letters.add(getRecipeAlphabetLetter(r.name));
       }
     }
     return Array.from(letters).sort();
@@ -234,14 +228,7 @@ export function RecipeListScreen({ navigation }: Props) {
   const scrollToLetter = useCallback((letter: string) => {
     const index = filteredRecipes.findIndex(r => {
       if (!r.name) return false;
-      let first = r.name.charAt(0).toUpperCase();
-      if (first === 'Œ') first = 'O';
-      if (first === 'Æ') first = 'A';
-      const l = first.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-      if (letter === '#') {
-        return !(l >= 'A' && l <= 'Z');
-      }
-      return l === letter;
+      return getRecipeAlphabetLetter(r.name) === letter;
     });
     if (index !== -1) {
       recipeListRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0 });

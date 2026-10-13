@@ -1,10 +1,13 @@
 import React from "react";
 import { StyleProp, StyleSheet, Text, TextProps, TextStyle } from "react-native";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { parseMarkdown } from "../features/markdown/markdown";
+import { compactMarkdownNodes, MarkdownInline } from "./MarkdownInline";
 
 type AppTextProps = TextProps & {
   variant?: "title" | "subtitle" | "body" | "caption" | "label";
   muted?: boolean;
+  markdown?: boolean;
   style?: StyleProp<TextStyle>;
 };
 
@@ -12,9 +15,13 @@ export function AppText({
   variant = "body",
   muted = false,
   style,
+  markdown = false,
+  children,
   ...props
 }: AppTextProps) {
   const { colors } = useAppTheme();
+  const nodes = React.useMemo(() => markdown && typeof children === "string"
+    ? compactMarkdownNodes(parseMarkdown(children)) : null, [markdown, children]);
   const adjustsFontSizeToFit = props.adjustsFontSizeToFit ?? (props.numberOfLines === 1);
 
   return (
@@ -27,7 +34,9 @@ export function AppText({
         { color: muted ? colors.textMuted : colors.text },
         style
       ]}
-    />
+    >
+      {nodes ? <MarkdownInline nodes={nodes} linkColor={colors.primary} /> : children}
+    </Text>
   );
 }
 

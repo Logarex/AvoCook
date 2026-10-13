@@ -1,3 +1,5 @@
+import { splitRecipeText, trimMarkdownText } from "../markdown/markdown";
+
 export type NutritionValue = string | number;
 
 export type Nutrition = {
@@ -327,17 +329,17 @@ function hasPersistableLocalMeta(localMeta: RecipeLocalMeta) {
   return Boolean(localMeta.cachedImage || hasMeaningfulLocalMeta(localMeta));
 }
 
-function normalizeRecipeInstructions(value: unknown): string[] {
+function normalizeRecipeInstructions(value: unknown, preserveItem = false): string[] {
   if (!value) {
     return [];
   }
 
   if (typeof value === "string") {
-    return splitRecipeText(value);
+    return preserveItem ? [trimMarkdownText(value)].filter((item) => item.trim()) : splitRecipeText(value);
   }
 
   if (Array.isArray(value)) {
-    return value.flatMap(normalizeRecipeInstructions);
+    return value.flatMap((item) => normalizeRecipeInstructions(item, true));
   }
 
   if (typeof value === "object") {
@@ -346,30 +348,28 @@ function normalizeRecipeInstructions(value: unknown): string[] {
       return normalizeRecipeInstructions(node.itemListElement);
     }
 
-    return splitRecipeText(
-      toRecipeString(node.text || node.name || node.description)
-    );
+    return normalizeRecipeInstructions(toRecipeString(node.text || node.name || node.description), preserveItem);
   }
 
   return splitRecipeText(String(value));
 }
 
-function normalizeRecipeStringArray(value: unknown): string[] {
+function normalizeRecipeStringArray(value: unknown, preserveItem = false): string[] {
   if (!value) {
     return [];
   }
 
   if (typeof value === "string") {
-    return splitRecipeText(value);
+    return preserveItem ? [trimMarkdownText(value)].filter((item) => item.trim()) : splitRecipeText(value);
   }
 
   if (Array.isArray(value)) {
-    return value.flatMap(normalizeRecipeStringArray);
+    return value.flatMap((item) => normalizeRecipeStringArray(item, true));
   }
 
   if (typeof value === "object") {
     const node = value as Record<string, unknown>;
-    return splitRecipeText(toRecipeString(node.name || node.text || node.value));
+    return normalizeRecipeStringArray(toRecipeString(node.name || node.text || node.value), preserveItem);
   }
 
   return splitRecipeText(String(value));
@@ -421,7 +421,7 @@ function toRecipeString(value: unknown): string {
     return "";
   }
   if (typeof value === "string") {
-    return value.trim();
+    return trimMarkdownText(value);
   }
   if (typeof value === "number" || typeof value === "boolean") {
     return String(value);
@@ -434,11 +434,4 @@ function toRecipeString(value: unknown): string {
     return toRecipeString(node.name || node.text || node.value || node.url);
   }
   return String(value);
-}
-
-function splitRecipeText(value: string): string[] {
-  return value
-    .split(/\r?\n|(?:<br\s*\/?>)/i)
-    .map((item) => item.replace(/\s+/g, " ").trim())
-    .filter(Boolean);
 }

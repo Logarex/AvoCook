@@ -48,6 +48,7 @@
     "firebase": "^12.18.0",
     "i18next": "^25.7.2",
     "lucide-react-native": "^0.555.0",
+    "markdown-it": "^15.0.2",
     "react": "19.2.3",
     "react-i18next": "^16.4.0",
     "react-native": "0.86.3",

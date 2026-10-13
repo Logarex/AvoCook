@@ -1,3 +1,4 @@
+import { markdownToPlainText, renderMarkdownHtml } from "../markdown/markdown";
 import { Directory, File, Paths } from "expo-file-system";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
@@ -294,7 +295,7 @@ async function createRecipePrintDocument(
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>${escapeHtml(normalizedRecipe.name)}</title>
+    <title>${escapeHtml(markdownToPlainText(normalizedRecipe.name))}</title>
     <style>
       * { box-sizing: border-box; }
       body {
@@ -329,6 +330,12 @@ async function createRecipePrintDocument(
         grid-template-columns: ${imageUri ? "1.4fr 0.75fr" : "1fr"};
         margin-bottom: 12px;
       }
+      .markdown p { margin: 0 0 4px; }
+      .markdown h1, .markdown h2, .markdown h3 { font-size: 15px; margin: 8px 0 4px; }
+      .markdown pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+      .markdown blockquote { border-left: 3px solid #8bbf9e; margin: 4px 0; padding-left: 8px; }
+      .markdown table { border-collapse: collapse; width: 100%; }
+      .markdown th, .markdown td { border: 1px solid #dce8dd; padding: 4px; }
       .description { color: #4d5c53; font-size: 12px; margin-top: 7px; }
       .photo {
         border-radius: 10px;
@@ -410,8 +417,8 @@ async function createRecipePrintDocument(
     <section class="hero">
       <div>
         <p class="eyebrow">${escapeHtml(labels.appName)}</p>
-        <h1>${escapeHtml(normalizedRecipe.name)}</h1>
-        ${normalizedRecipe.description ? `<p class="description">${escapeHtml(normalizedRecipe.description)}</p>` : ""}
+        <h1>${renderMarkdownHtml(normalizedRecipe.name, true)}</h1>
+        ${normalizedRecipe.description ? `<div class="description markdown">${renderMarkdownHtml(normalizedRecipe.description)}</div>` : ""}
         ${renderTags(keywords)}
       </div>
       ${imageSrc ? `<img class="photo" alt="${escapeHtml(normalizedRecipe.name)}" src="${imageSrc.startsWith("data:") ? imageSrc : escapeHtml(imageSrc)}" />` : ""}
@@ -459,7 +466,7 @@ function renderMeta(label: string, value: string) {
   if (!value) {
     return "";
   }
-  return `<div class="meta-item"><span class="meta-label">${escapeHtml(label)}</span><span class="meta-value">${escapeHtml(value)}</span></div>`;
+  return `<div class="meta-item"><span class="meta-label">${escapeHtml(label)}</span><span class="meta-value">${renderMarkdownHtml(value, true)}</span></div>`;
 }
 
 function renderNutriScoreMeta(
@@ -477,7 +484,7 @@ function renderTags(tags: string[]) {
   if (!tags.length) {
     return "";
   }
-  return `<div class="tags">${tags.map((tag) => `<span class="tag">${escapeHtml(tag)}</span>`).join("")}</div>`;
+  return `<div class="tags">${tags.map((tag) => `<span class="tag">${renderMarkdownHtml(tag, true)}</span>`).join("")}</div>`;
 }
 
 function renderListSection(title: string, items: string[], ordered: boolean) {
@@ -485,7 +492,7 @@ function renderListSection(title: string, items: string[], ordered: boolean) {
     return "";
   }
   const tag = ordered ? "ol" : "ul";
-  return `<h2>${escapeHtml(title)}</h2><${tag}>${items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</${tag}>`;
+  return `<h2>${escapeHtml(title)}</h2><${tag}>${items.map((item) => `<li class="markdown">${renderMarkdownHtml(item)}</li>`).join("")}</${tag}>`;
 }
 
 function renderNutritionSection(
@@ -509,7 +516,7 @@ function renderSourceSection(title: string, recipe: Recipe) {
 
   const body = [sourceName, sourceUrl]
     .filter(Boolean)
-    .map((item) => `<p class="source">${escapeHtml(item)}</p>`)
+    .map((item) => `<div class="source markdown">${renderMarkdownHtml(item)}</div>`)
     .join("");
 
   return `<h2>${escapeHtml(title)}</h2>${body}`;

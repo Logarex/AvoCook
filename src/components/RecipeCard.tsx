@@ -1,3 +1,4 @@
+import { markdownToPlainText } from "../features/markdown/markdown";
 import { RecipeImage } from "./RecipeImage";
 import { useTranslation } from "react-i18next";
 import { getRecipeCategoryLabel } from "../features/recipes/categories";
@@ -43,11 +44,11 @@ export const RecipeCard = React.memo(function RecipeCard({
     recipe.description,
     totalTime,
     categoryLabel
-  ].filter(Boolean);
+  ].filter((value): value is string => Boolean(value));
 
   return (
     <Pressable
-      accessibilityLabel={accessibilityParts.join(", ")}
+      accessibilityLabel={accessibilityParts.map(markdownToPlainText).join(", ")}
       accessibilityRole="button"
       onLongPress={onLongPress}
       onPress={onPress}
@@ -75,16 +76,16 @@ export const RecipeCard = React.memo(function RecipeCard({
             variant="subtitle"
             style={{ color: colors.primary }}
           >
-            {recipe.name.slice(0, 1).toUpperCase()}
+            {markdownToPlainText(recipe.name).slice(0, 1).toUpperCase()}
           </AppText>
         </RecipeImage>
       </View>
       <View style={styles.body}>
-        <AppText variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>
+        <AppText markdown variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>
           {recipe.name}
         </AppText>
         {recipe.description ? (
-          <AppText muted variant="caption" numberOfLines={2}>
+          <AppText markdown muted variant="caption" numberOfLines={2}>
             {recipe.description}
           </AppText>
         ) : null}
@@ -100,7 +101,7 @@ export const RecipeCard = React.memo(function RecipeCard({
           {recipe.recipeCategory ? (
             <View style={styles.metaItem}>
               <Tag color={colors.textMuted} size={14} />
-              <AppText muted variant="caption" numberOfLines={1} adjustsFontSizeToFit={false} style={{ flexShrink: 1 }}>
+              <AppText markdown muted variant="caption" numberOfLines={1} adjustsFontSizeToFit={false} style={{ flexShrink: 1 }}>
                 {categoryLabel}
               </AppText>
             </View>

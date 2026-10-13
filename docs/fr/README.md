@@ -32,6 +32,14 @@ Je l'ai développé pour mon usage personnel en apprenant à mener un projet Rea
 - Exporter une recette en PDF ou l'imprimer directement ;
 - Partager une recette vers une autre application.
 
+### Markdown facultatif
+
+Tous les champs de texte des recettes acceptent le Markdown, dans toutes les langues : nom, description, catégorie, mots-clés, nom de la source, ingrédients, instructions, ustensiles et valeurs nutritionnelles. Le texte simple reste le fonctionnement par défaut ; aucune connaissance Markdown n’est nécessaire.
+
+Utilisez `**gras**`, `*italique*`, des titres, listes, citations, blocs de code, tableaux ou `[un lien](https://example.com)`. La mise en forme apparaît à la lecture, dans les PDF et à l’impression. Les images Markdown apparaissent sous forme de liens. Les nombres (portions et durées) et les champs URL conservent leur format habituel.
+
+Chaque ingrédient et instruction conserve son Markdown, y compris les paragraphes et listes imbriquées. Coller des lignes de texte simple crée toujours des éléments séparés ; coller un bloc Markdown conserve ce bloc.
+
 ### Import
 
 - Importer une recette depuis une URL — fonctionne sur tous les sites qui exposent des données `schema.org/Recipe` (Marmiton, 750g, BBC Good Food et beaucoup d'autres) ;

@@ -489,6 +489,14 @@ export default {
       deleteFailedBody: "Das Rezept konnte nicht gelöscht werden. Versuche es erneut."
     },
     editor: {
+      markdownPreview: "Formatierung anzeigen",
+      markdownHidePreview: "Vorschau ausblenden",
+
+      addTool: "Utensil hinzufügen",
+      toolItem: "Utensil {{count}}",
+      removeTool: "Utensil entfernen",
+
+      markdownHelp: "Markdown ist in allen Textfeldern der Rezepte optional: **fett**, *kursiv*, Listen und Links. Einfacher Text funktioniert wie gewohnt.",
       newRecipe: "Neues Rezept",
       editRecipe: "Rezept bearbeiten",
       name: "Name",
@@ -505,7 +513,7 @@ export default {
       removeInstruction: "Diesen Schritt entfernen",
       moveInstructionUp: "Diesen Schritt nach oben",
       moveInstructionDown: "Diesen Schritt nach unten",
-      tools: "Werkzeuge, eines pro Zeile",
+      tools: "Werkzeuge",
       addSource: "Quelle hinzufügen",
       sourceName: "Quellenname",
       sourceNamePlaceholder: "z. B. Chefkoch, Kochbuch...",

@@ -2,6 +2,7 @@ import React from "react";
 import {
   StyleProp,
   StyleSheet,
+  Pressable,
   TextInput,
   TextInputProps,
   TextStyle,
@@ -11,12 +12,16 @@ import {
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { AppText } from "./AppText";
+import { MarkdownText } from "./MarkdownText";
+import { hasBlockMarkdown, markdownToPlainText } from "../features/markdown/markdown";
+import { useTranslation } from "react-i18next";
 
 type TextFieldProps = TextInputProps & {
   label: string;
   labelStyle?: StyleProp<TextStyle>;
   containerStyle?: StyleProp<ViewStyle>;
   rightElement?: React.ReactNode;
+  markdown?: boolean;
 };
 
 export function TextField({
@@ -26,11 +31,16 @@ export function TextField({
   multiline,
   rightElement,
   style,
+  markdown = false,
   ...props
 }: TextFieldProps) {
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
+  const [preview, setPreview] = React.useState(false);
   
   const [internalValue, setInternalValue] = React.useState(props.value);
+  const hasMarkdown = React.useMemo(() => markdown && !!internalValue &&
+    (hasBlockMarkdown(internalValue) || markdownToPlainText(internalValue) !== internalValue), [markdown, internalValue]);
   
   React.useEffect(() => {
     setInternalValue(props.value);
@@ -73,6 +83,18 @@ export function TextField({
           <View style={styles.rightElement}>{rightElement}</View>
         ) : null}
       </View>
+      {hasMarkdown ? (
+        <>
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: preview }}
+            accessibilityLabel={`${t(preview ? "editor.markdownHidePreview" : "editor.markdownPreview")}: ${label}`}
+            onPress={() => setPreview((current) => !current)} style={styles.previewButton}>
+            <AppText variant="caption" style={{ color: colors.primary }}>
+              {t(preview ? "editor.markdownHidePreview" : "editor.markdownPreview")}
+            </AppText>
+          </Pressable>
+          {preview ? <MarkdownText>{internalValue || ""}</MarkdownText> : null}
+        </>
+      ) : null}
     </View>
   );
 }
@@ -81,6 +103,7 @@ const styles = StyleSheet.create({
   container: {
     gap: spacing.xs
   },
+  previewButton: { minHeight: 32, justifyContent: "center", alignSelf: "flex-start" },
   inputWrap: {
     justifyContent: "center"
   },

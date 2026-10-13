@@ -486,6 +486,14 @@ export default {
       deleteFailedBody: "Could not delete the recipe. Please try again."
     },
     editor: {
+      markdownPreview: "Preview formatting",
+      markdownHidePreview: "Hide preview",
+
+      addTool: "Add tool",
+      toolItem: "Tool {{count}}",
+      removeTool: "Remove tool",
+
+      markdownHelp: "Markdown is optional in all recipe text fields: **bold**, *italic*, lists and links. Plain text works as usual.",
       newRecipe: "New recipe",
       editRecipe: "Edit recipe",
       name: "Name",
@@ -502,7 +510,7 @@ export default {
       removeInstruction: "Remove this step",
       moveInstructionUp: "Move this step up",
       moveInstructionDown: "Move this step down",
-      tools: "Tools, one per line",
+      tools: "Tools",
       addSource: "Add source",
       sourceName: "Source name",
       sourceNamePlaceholder: "E.g. Allrecipes, cookbook...",

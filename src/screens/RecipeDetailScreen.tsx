@@ -1,3 +1,4 @@
+import { markdownToPlainText } from "../features/markdown/markdown";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { type ImageSource } from "expo-image";
 import { RecipeImage } from "../components/RecipeImage";
@@ -41,6 +42,7 @@ import {
 } from "./recipeDetail/recipeDetailHelpers";
 
 import { useTranslation } from "react-i18next";
+import { MarkdownText } from "../components/MarkdownText";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
@@ -724,15 +726,15 @@ function RecipeDetailContent({
             variant="title"
             style={{ color: colors.primary }}
           >
-            {recipe.name.slice(0, 1).toUpperCase()}
+            {markdownToPlainText(recipe.name).slice(0, 1).toUpperCase()}
           </AppText>
         </RecipeImage>
       </View>
 
       <View style={styles.titleBlock}>
-        <AppText variant="title">{recipe.name}</AppText>
+        <MarkdownText variant="title">{recipe.name}</MarkdownText>
         {recipe.description ? (
-          <AppText muted>{recipe.description}</AppText>
+          <MarkdownText muted>{recipe.description}</MarkdownText>
         ) : null}
       </View>
 
@@ -811,7 +813,7 @@ function RecipeDetailContent({
                 <AppText muted variant="caption">
                   {label}
                 </AppText>
-                <AppText variant="label">{value}</AppText>
+                <MarkdownText variant="label">{value}</MarkdownText>
               </View>
             ))}
           </View>
@@ -823,7 +825,7 @@ function RecipeDetailContent({
           <AppText muted variant="caption">
             {t("recipes.source")}
           </AppText>
-          <AppText variant="label">{recipe.sourceName}</AppText>
+          <MarkdownText variant="label">{recipe.sourceName}</MarkdownText>
           {recipe.url ? (
             <PrimaryButton
               icon={ExternalLink}
@@ -865,7 +867,7 @@ function Metric({
       <AppText muted variant="caption">
         {label}
       </AppText>
-      <AppText variant="label">{value}</AppText>
+      <MarkdownText variant="label">{value}</MarkdownText>
     </GlassPanel>
   );
 }

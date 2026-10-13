@@ -32,6 +32,14 @@ Ich habe es für den persönlichen Gebrauch entwickelt und dabei gelernt, ein vo
 - Ein Rezept als PDF exportieren oder direkt drucken;
 - Ein Rezept über die Teilen-Funktion weitergeben.
 
+### Optionales Markdown
+
+Alle Textfelder der Rezepte unterstützen Markdown in jeder Sprache: Name, Beschreibung, Kategorie, Schlagwörter, Quellenname, Zutaten, Anweisungen, Küchenutensilien und Nährwerte. Einfacher Text bleibt der Standard; Markdown-Kenntnisse sind nicht erforderlich.
+
+Verwenden Sie `**fett**`, `*kursiv*`, Überschriften, Listen, Zitate, Code, Tabellen oder `[einen Link](https://example.com)`. Die Formatierung erscheint beim Lesen, im PDF und beim Drucken. Markdown-Bilder erscheinen als Links. Zahlen (Portionen und Zeitangaben) und URL-Felder behalten ihr übliches Format.
+
+Jede Zutat und Anweisung behält ihr Markdown, einschließlich Absätzen und verschachtelten Listen. Eingefügte einfache Textzeilen erzeugen weiterhin einzelne Einträge; eingefügte Markdown-Blöcke bleiben zusammen.
+
 ### Import
 
 - Ein Rezept von einer URL importieren — funktioniert auf allen Seiten, die `schema.org/Recipe`-Daten bereitstellen (Marmiton, 750g, BBC Good Food und viele andere);

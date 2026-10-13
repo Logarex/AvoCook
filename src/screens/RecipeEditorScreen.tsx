@@ -17,6 +17,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Platform, Pressable, StyleSheet, Switch, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { markdownToPlainText, trimMarkdownText } from "../features/markdown/markdown";
 import { AppText } from "../components/AppText";
 import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
@@ -44,6 +45,7 @@ import {
   applyKeywordSuggestion,
   expandEditableListItem,
   getKeywordSuggestions,
+  mergeNutritionForSave,
   normalizeSuggestionSearch
 } from "./recipeEditorHelpers";
 
@@ -101,7 +103,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const [instructions, setInstructions] = useState(
     createEditableList(initialRecipe.recipeInstructions)
   );
-  const [tools, setTools] = useState(initialRecipe.tool.join("\n"));
+  const [tools, setTools] = useState(createEditableList(initialRecipe.tool));
   const initialNutrition = useMemo(
     () => normalizeNutritionForEditor(initialRecipe.nutrition),
     [initialRecipe.nutrition]
@@ -176,7 +178,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
     setTotalMinutes(minutesToString(initialRecipe.totalTime));
     setIngredients(createEditableList(initialRecipe.recipeIngredient));
     setInstructions(createEditableList(initialRecipe.recipeInstructions));
-    setTools(initialRecipe.tool.join("\n"));
+    setTools(createEditableList(initialRecipe.tool));
     setCalories(initialNutrition.calories);
     setCarbohydrates(initialNutrition.carbohydrates);
     setSugar(initialNutrition.sugar);
@@ -233,8 +235,8 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         totalTime: minutesToIsoDuration(Number.parseInt(totalMinutes, 10)),
         recipeIngredient: cleanEditableList(ingredients),
         recipeInstructions: cleanEditableList(instructions),
-        tool: splitLines(tools),
-        nutrition: {
+        tool: cleanEditableList(tools),
+        nutrition: mergeNutritionForSave(initialRecipe.nutrition, {
           "@type": "NutritionInformation",
           calories: formatNutritionValue(calories, "kcal"),
           carbohydrateContent: formatNutritionValue(carbohydrates, "g"),
@@ -244,7 +246,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           sodiumContent: formatNutritionValue(sodium, "mg"),
           fiberContent: formatNutritionValue(fiber, "g"),
           proteinContent: formatNutritionValue(protein, "g")
-        }
+        })
       });
       const saved = existingRecipe
         ? await updateRecipe(recipe)
@@ -324,8 +326,9 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         />
       </View>
 
-      <TextField label={t("editor.name")} onChangeText={setName} value={name} />
-      <TextField
+      <AppText muted variant="caption">{t("editor.markdownHelp")}</AppText>
+      <TextField markdown label={t("editor.name")} onChangeText={setName} value={name} />
+      <TextField markdown
         label={t("editor.description")}
         multiline
         onChangeText={setDescription}
@@ -333,7 +336,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
       />
       {showSourceFields ? (
         <View style={styles.lineList}>
-          <TextField
+          <TextField markdown
             label={t("editor.sourceName")}
             onChangeText={setSourceName}
             placeholder={t("editor.sourceNamePlaceholder")}
@@ -394,7 +397,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         />
       </View>
       <View style={styles.row}>
-        <TextField
+        <TextField markdown
           containerStyle={styles.rowItem}
           label={t("editor.category")}
           onChangeText={setCategory}
@@ -427,7 +430,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
                 }
               ]}
             >
-              <AppText variant="caption">{suggestion.label}</AppText>
+              <AppText markdown variant="caption">{suggestion.label}</AppText>
             </Pressable>
           ))}
         </View>
@@ -459,7 +462,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           value={showServings}
         />
       </Pressable>
-      <TextField
+      <TextField markdown
         label={t("editor.keywords")}
         onChangeText={setKeywords}
         value={keywords}
@@ -485,7 +488,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
                 }
               ]}
             >
-              <AppText variant="caption">{suggestion}</AppText>
+              <AppText markdown variant="caption">{suggestion}</AppText>
             </Pressable>
           ))}
         </View>
@@ -536,11 +539,16 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         splitPastedLines
         values={instructions}
       />
-      <TextField
+      <EditableLineList
+        addLabel={t("editor.addTool")}
+        itemLabel={(index) => t("editor.toolItem", { count: index + 1 })}
         label={t("editor.tools")}
         multiline
-        onChangeText={setTools}
-        value={tools}
+        onChange={setTools}
+        placeholder={t("editor.tools")}
+        removeLabel={t("editor.removeTool")}
+        splitPastedLines
+        values={tools}
       />
 
       <View style={styles.sectionTitle}>
@@ -550,66 +558,66 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         </AppText>
       </View>
       <View style={styles.row}>
-        <TextField
+        <TextField markdown
           containerStyle={styles.rowItem}
-          keyboardType="decimal-pad"
+          keyboardType="default"
           label={t("editor.caloriesKcal")}
-          onChangeText={(value) => setCalories(sanitizeDecimalInput(value))}
+          onChangeText={setCalories}
           value={calories}
         />
-        <TextField
+        <TextField markdown
           containerStyle={styles.rowItem}
-          keyboardType="decimal-pad"
+          keyboardType="default"
           label={t("editor.carbsGrams")}
-          onChangeText={(value) => setCarbohydrates(sanitizeDecimalInput(value))}
+          onChangeText={setCarbohydrates}
           value={carbohydrates}
         />
       </View>
       <View style={styles.row}>
-        <TextField
+        <TextField markdown
           containerStyle={styles.rowItem}
-          keyboardType="decimal-pad"
+          keyboardType="default"
           label={t("editor.sugarGrams")}
-          onChangeText={(value) => setSugar(sanitizeDecimalInput(value))}
+          onChangeText={setSugar}
           value={sugar}
         />
-        <TextField
+        <TextField markdown
           containerStyle={styles.rowItem}
-          keyboardType="decimal-pad"
+          keyboardType="default"
           label={t("editor.fatGrams")}
-          onChangeText={(value) => setFat(sanitizeDecimalInput(value))}
+          onChangeText={setFat}
           value={fat}
         />
       </View>
       <View style={styles.row}>
-        <TextField
+        <TextField markdown
           containerStyle={styles.rowItem}
-          keyboardType="decimal-pad"
+          keyboardType="default"
           label={t("editor.saturatedFatGrams")}
-          onChangeText={(value) => setSaturatedFat(sanitizeDecimalInput(value))}
+          onChangeText={setSaturatedFat}
           value={saturatedFat}
         />
-        <TextField
+        <TextField markdown
           containerStyle={styles.rowItem}
-          keyboardType="decimal-pad"
+          keyboardType="default"
           label={t("editor.sodiumMg")}
-          onChangeText={(value) => setSodium(sanitizeDecimalInput(value))}
+          onChangeText={setSodium}
           value={sodium}
         />
       </View>
       <View style={styles.row}>
-        <TextField
+        <TextField markdown
           containerStyle={styles.rowItem}
-          keyboardType="decimal-pad"
+          keyboardType="default"
           label={t("editor.fiberGrams")}
-          onChangeText={(value) => setFiber(sanitizeDecimalInput(value))}
+          onChangeText={setFiber}
           value={fiber}
         />
-        <TextField
+        <TextField markdown
           containerStyle={styles.rowItem}
-          keyboardType="decimal-pad"
+          keyboardType="default"
           label={t("editor.proteinGrams")}
-          onChangeText={(value) => setProtein(sanitizeDecimalInput(value))}
+          onChangeText={setProtein}
           value={protein}
         />
       </View>
@@ -688,7 +696,7 @@ function EditableLineList({
       <AppText variant="subtitle">{label}</AppText>
       {values.map((value, index) => (
         <View key={index} style={styles.lineItem}>
-          <TextField
+          <TextField markdown
             containerStyle={styles.lineInput}
             label={itemLabel(index)}
             multiline={multiline || splitPastedLines}
@@ -742,14 +750,7 @@ function createEditableList(items: string[]) {
 }
 
 function cleanEditableList(items: string[]) {
-  return items.map((item) => item.trim()).filter(Boolean);
-}
-
-function splitLines(value: string) {
-  return value
-    .split(/\r?\n/)
-    .map((item) => item.trim())
-    .filter(Boolean);
+  return items.map(trimMarkdownText).filter((item) => item.trim());
 }
 
 function minutesToString(value: string | null) {
@@ -759,10 +760,6 @@ function minutesToString(value: string | null) {
 
 function sanitizeIntegerInput(value: string) {
   return value.replace(/\D/g, "");
-}
-
-function sanitizeDecimalInput(value: string) {
-  return value.replace(/[^\d,.+-]/g, "");
 }
 
 function normalizeNutritionForEditor(
@@ -787,7 +784,9 @@ function stripNutritionUnit(value?: NutritionValue | null) {
     return "";
   }
 
-  return normalized.replace(/[^\d,.+-]/g, "").trim();
+  if (markdownToPlainText(normalized) !== normalized) return normalized;
+  const withoutUnit = normalized.replace(/\s*(?:kcal|mg|g)\s*$/i, "").trim();
+  return /^[\d,.+\-\s]+$/.test(withoutUnit) ? withoutUnit : normalized;
 }
 
 function formatNutritionValue(value: string, unit: "g" | "kcal" | "mg") {

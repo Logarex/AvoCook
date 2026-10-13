@@ -1,5 +1,6 @@
 import React from "react";
 import { View } from "react-native";
+import { MarkdownText } from "../../components/MarkdownText";
 import { AppText } from "../../components/AppText";
 import { GlassPanel } from "../../components/GlassPanel";
 import { styles } from "./recipeDetailStyles";
@@ -26,7 +27,7 @@ export function RecipeSection({
             <AppText muted variant="label" style={styles.rowIndex}>
               {ordered ? `${index + 1}` : "•"}
             </AppText>
-            <AppText style={styles.rowText}>{item}</AppText>
+            <MarkdownText containerStyle={styles.rowText}>{item}</MarkdownText>
           </View>
         ))}
       </View>

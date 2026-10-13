@@ -489,6 +489,14 @@ export default {
       deleteFailedBody: "Impossible de supprimer la recette. Réessayez."
     },
     editor: {
+      markdownPreview: "Aperçu de la mise en forme",
+      markdownHidePreview: "Masquer l’aperçu",
+
+      addTool: "Ajouter un ustensile",
+      toolItem: "Ustensile {{count}}",
+      removeTool: "Supprimer cet ustensile",
+
+      markdownHelp: "Le Markdown est facultatif dans tous les champs de texte des recettes : **gras**, *italique*, listes et liens. Le texte simple fonctionne comme avant.",
       newRecipe: "Nouvelle recette",
       editRecipe: "Modifier la recette",
       name: "Nom",
@@ -505,7 +513,7 @@ export default {
       removeInstruction: "Supprimer cette étape",
       moveInstructionUp: "Monter cette étape",
       moveInstructionDown: "Descendre cette étape",
-      tools: "Ustensiles, une ligne par élément",
+      tools: "Ustensiles",
       addSource: "Ajouter une source",
       sourceName: "Nom de la source",
       sourceNamePlaceholder: "Ex. Marmiton, livre de cuisine...",

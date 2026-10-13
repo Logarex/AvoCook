@@ -2,6 +2,7 @@ import { Check } from "lucide-react-native";
 import React from "react";
 import { Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { MarkdownText } from "../../components/MarkdownText";
 import { AppText } from "../../components/AppText";
 import { GlassPanel } from "../../components/GlassPanel";
 import { useAppTheme } from "../../theme/ThemeProvider";
@@ -64,16 +65,16 @@ export function InstructionSection({
               <AppText muted variant="label" style={styles.rowIndex}>
                 {index + 1}
               </AppText>
-              <AppText
+              <MarkdownText
+                containerStyle={styles.rowText}
                 style={[
-                  styles.rowText,
                   checked
                     ? [styles.checkedItemText, { color: colors.textMuted }]
                     : undefined,
                 ]}
               >
                 {item}
-              </AppText>
+              </MarkdownText>
               <View
                 style={[
                   styles.checkCircle,

@@ -1,3 +1,4 @@
+import { markdownToPlainText } from "../markdown/markdown";
 import type {
   NutriScoreGrade,
   Nutrition,
@@ -168,7 +169,7 @@ function normalizeNutritionNode(
 }
 
 function parseNutrient(value?: NutritionValue | null, targetUnit?: "mg") {
-  const normalized = normalizeNutrientText(value);
+  const normalized = markdownToPlainText(normalizeNutrientText(value));
   if (!normalized) {
     return null;
   }

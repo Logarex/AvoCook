@@ -30,6 +30,14 @@ Lo desarrollé para uso personal mientras aprendía a llevar un proyecto React N
 - Exportar una receta en PDF o imprimirla directamente;
 - Compartir una receta con otra aplicación.
 
+### Markdown opcional
+
+Todos los campos de texto de las recetas admiten Markdown, en cualquier idioma: nombre, descripción, categoría, palabras clave, nombre de la fuente, ingredientes, instrucciones, utensilios y valores nutricionales. El texto sin formato sigue siendo la opción predeterminada; no hace falta conocer Markdown.
+
+Utiliza `**negrita**`, `*cursiva*`, títulos, listas, citas, código, tablas o `[un enlace](https://example.com)`. El formato aparece al leer recetas, en los PDF y al imprimir. Las imágenes Markdown aparecen como enlaces. Los números (raciones y duraciones) y los campos URL conservan su formato habitual.
+
+Cada ingrediente e instrucción conserva su Markdown, incluidos párrafos y listas anidadas. Pegar líneas de texto simple sigue creando elementos separados; pegar un bloque Markdown lo mantiene unido.
+
 ### Importación
 
 - Importar una receta desde una URL — funciona en cualquier sitio que exponga datos `schema.org/Recipe` (Marmiton, 750g, BBC Good Food y muchos más);

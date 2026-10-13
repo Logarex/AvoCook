@@ -64,7 +64,7 @@ export function RecipeActionsModal({
         >
           <View style={styles.modalHeader}>
             <View style={styles.recipeActionTitle}>
-              <AppText variant="subtitle" numberOfLines={1}>
+              <AppText markdown variant="subtitle" numberOfLines={1}>
                 {recipe?.name}
               </AppText>
               <AppText muted variant="caption">

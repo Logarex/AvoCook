@@ -32,6 +32,14 @@ L'ho sviluppato per uso personale mentre imparavo a portare avanti un progetto R
 - Esportare una ricetta in PDF o stamparla direttamente;
 - Condividere una ricetta con un'altra app.
 
+### Markdown facoltativo
+
+Tutti i campi di testo delle ricette accettano Markdown, in ogni lingua: nome, descrizione, categoria, parole chiave, nome della fonte, ingredienti, istruzioni, utensili e valori nutrizionali. Il testo semplice resta la scelta predefinita; non serve conoscere Markdown.
+
+Usa `**grassetto**`, `*corsivo*`, titoli, elenchi, citazioni, codice, tabelle o `[un link](https://example.com)`. La formattazione appare durante la lettura, nei PDF e nella stampa. Le immagini Markdown appaiono come link. I numeri (porzioni e durate) e i campi URL mantengono il formato abituale.
+
+Ogni ingrediente e istruzione conserva il proprio Markdown, inclusi paragrafi ed elenchi annidati. Incollare righe di testo semplice crea ancora elementi separati; incollare un blocco Markdown lo mantiene unito.
+
 ### Importazione
 
 - Importare una ricetta da un URL — funziona su qualsiasi sito che esponga dati `schema.org/Recipe` (Marmiton, 750g, BBC Good Food e molti altri);

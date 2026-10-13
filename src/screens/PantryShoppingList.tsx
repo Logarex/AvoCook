@@ -103,8 +103,8 @@ export function PantryShoppingList({ navigation }: { navigation: NativeStackNavi
         <Pressable accessibilityRole="checkbox" accessibilityLabel={pantryItemLabel(item)} accessibilityState={{ checked: item.done, disabled: !writable || !permissions.check }}
           disabled={!writable || !permissions.check} onPress={() => { void act(() => toggleItem(id(item))); }} style={[styles.row, styles.flex, styles.toggle]}>
           <View style={[styles.checkbox, { backgroundColor: item.done ? colors.primary : "transparent", borderColor: item.done ? colors.primary : colors.border }]}>{item.done ? <Check color={colors.textInverted} size={16} /> : null}</View>
-          <View style={styles.flex}><AppText variant="label" style={item.done ? styles.checked : undefined}>{pantryItemLabel(item)}</AppText>
-            {item.description ? <AppText muted variant="caption" numberOfLines={2}>{item.description}</AppText> : null}
+          <View style={styles.flex}><AppText markdown variant="label" style={item.done ? styles.checked : undefined}>{pantryItemLabel(item)}</AppText>
+            {item.description ? <AppText markdown muted variant="caption" numberOfLines={2}>{item.description}</AppText> : null}
             {item.rrule ? <View style={styles.row}><Repeat size={12} color={colors.textMuted} /><AppText muted variant="caption">{t("pantry.recurring")}</AppText></View> : null}
           </View>
         </Pressable>

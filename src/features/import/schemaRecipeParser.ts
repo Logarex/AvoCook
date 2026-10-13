@@ -1,3 +1,4 @@
+import { hasBlockMarkdown, splitRecipeText, trimMarkdownText } from "../markdown/markdown";
 import { normalizeRecipe, type Recipe } from "../recipes/types";
 
 type JsonLdValue = Record<string, unknown> | JsonLdValue[] | string;
@@ -319,14 +320,14 @@ function normalizeInstructions(value: unknown): string[] {
   if (Array.isArray(value)) {
     return value.flatMap((item) => {
       if (typeof item === "string") {
-        return splitLines(item);
+        return splitLines(item, true);
       }
       if (typeof item === "object" && item !== null) {
         const node = item as Record<string, unknown>;
         if (Array.isArray(node.itemListElement)) {
           return normalizeInstructions(node.itemListElement);
         }
-        return splitLines(toStringValue(node.text || node.name));
+        return splitLines(toStringValue(node.text || node.name), true);
       }
       return [];
     });
@@ -385,8 +386,8 @@ function normalizeStringArray(value: unknown): string[] {
 
   if (Array.isArray(value)) {
     return value
-      .flatMap((item) => normalizeStringArray(item))
-      .map((item) => item.trim())
+      .flatMap((item) => typeof item === "string" ? splitLines(item, true) : normalizeStringArray(item))
+      .map(trimMarkdownText)
       .filter(Boolean);
   }
 
@@ -412,7 +413,7 @@ function toStringValue(value: unknown): string {
     return "";
   }
   if (typeof value === "string") {
-    return stripHtmlTags(decodeHtmlEntities(value)).trim();
+    return stripHtmlTags(decodeHtmlEntities(value));
   }
   if (typeof value === "number") {
     return String(value);
@@ -427,15 +428,14 @@ function toStringValue(value: unknown): string {
   return String(value);
 }
 
-function splitLines(value: string): string[] {
-  return decodeHtmlEntities(value)
-    .split(/\r?\n|(?:<br\s*\/?>)/i)
-    .map((item) => stripHtmlTags(item).replace(/\s+/g, " ").trim())
-    .filter(Boolean);
+function splitLines(value: string, preserveItem = false): string[] {
+  const text = trimMarkdownText(stripHtmlTags(decodeHtmlEntities(value).replace(/<br\s*\/?>/gi, "\n")));
+  return preserveItem ? [text].filter(Boolean) : splitRecipeText(text);
 }
 
 function stripHtmlTags(value: string): string {
-  return value.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const text = value.replace(/<(?!https?:\/\/)[^>]+>/g, " ");
+  return trimMarkdownText(hasBlockMarkdown(text) ? text : text.replace(/[^\S\r\n]+/g, " "));
 }
 
 function decodeHtmlEntities(value: string): string {

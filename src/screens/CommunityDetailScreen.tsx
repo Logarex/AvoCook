@@ -11,6 +11,7 @@ import { Image } from "expo-image";
 import { useTranslation } from "react-i18next";
 import { ArrowLeft, Download, Flag, Clock, Users, Mail, Link as LinkIcon, HeartPulse, Trash2, Languages } from "lucide-react-native";
 
+import { MarkdownText } from "../components/MarkdownText";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
@@ -309,14 +310,14 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
       </View>
 
       <GlassPanel style={styles.hero}>
-        <AppText variant="title">{activeRecipe.title}</AppText>
+        <MarkdownText variant="title">{activeRecipe.title}</MarkdownText>
         {activeRecipe.description ? (
-          <AppText muted style={styles.desc}>
+          <MarkdownText muted style={styles.desc}>
             {activeRecipe.description}
-          </AppText>
+          </MarkdownText>
         ) : null}
         {activeRecipe.authorName ? (
-          <AppText muted variant="caption">
+          <AppText markdown muted variant="caption">
             {t("community.byAuthor", { author: activeRecipe.authorName })}
           </AppText>
         ) : null}
@@ -410,7 +411,7 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
         {activeRecipe.ingredients.map((ing, idx) => (
           <View key={idx} style={styles.lineRow}>
             <AppText style={styles.bullet}>•</AppText>
-            <AppText style={styles.lineText}>{ing}</AppText>
+            <MarkdownText containerStyle={{ flex: 1, minWidth: 0 }} style={styles.lineText}>{ing}</MarkdownText>
           </View>
         ))}
       </GlassPanel>
@@ -424,7 +425,7 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
                 {idx + 1}
               </AppText>
             </View>
-            <AppText style={styles.lineText}>{step}</AppText>
+            <MarkdownText containerStyle={{ flex: 1, minWidth: 0 }} style={styles.lineText}>{step}</MarkdownText>
           </View>
         ))}
       </GlassPanel>
@@ -456,7 +457,7 @@ function Metric({ icon: Icon, label, value }: { icon: any; label: string; value:
     <GlassPanel style={styles.metric}>
       <Icon color={colors.primary} size={19} />
       <AppText muted variant="caption">{label}</AppText>
-      <AppText variant="label">{value}</AppText>
+      <AppText markdown variant="label">{value}</AppText>
     </GlassPanel>
   );
 }

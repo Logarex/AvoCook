@@ -87,6 +87,9 @@ const labels: RecipePrintLabels = {
 };
 
 describe("getRecipeShareFilename", () => {
+  it("uses a readable filename for a Markdown recipe name", () => {
+    expect(getRecipeShareFilename({ name: "**Crème** *fraîche*" }, "pdf")).toBe("Crème fraîche.pdf");
+  });
   it("uses the recipe name for shared PDF and AvoCook files", () => {
     expect(getRecipeShareFilename({ name: "Gâteau léger au chocolat" }, "pdf"))
       .toBe("Gâteau léger au chocolat.pdf");
@@ -146,6 +149,14 @@ describe("recipe print and share content", () => {
     expect(html).toMatch(/class="meta-value">[A-E]<\/span>/);
     expect(html).toContain("Salade complète");
     expect(html).toContain("quinoa");
+  });
+
+  it("renders Markdown in all printable recipe text fields and keeps HTML inert", async () => {
+    const recipe = normalizeRecipe({ name: "**Soup**", description: "## Sauce\n\n> *Cool*\n\n<script>alert(1)</script>", recipeCategory: "**Main**", keywords: "*Quick*", sourceName: "[Chef](https://example.com)", recipeIngredient: ["**200 g** flour"], recipeInstructions: ["### Mix\n\n- **Stir**\n  - salt"], tool: ["*Whisk*"], nutrition: { calories: "**420** kcal" } });
+    const html = await createRecipePrintHtml(recipe, labels, null);
+    for (const value of ["<strong>Soup</strong>", "<h2>Sauce</h2>", "<em>Cool</em>", "<strong>Main</strong>", "<em>Quick</em>", '<a href="https://example.com">Chef</a>', "<strong>200 g</strong>", "<h3>Mix</h3>", "<em>Whisk</em>", "<strong>420</strong>"]) expect(html).toContain(value);
+    expect(html).toContain("&lt;script&gt;");
+    expect(html).not.toContain("<script>");
   });
 
   it("keeps all recipe data needed by another AvoCook user", async () => {

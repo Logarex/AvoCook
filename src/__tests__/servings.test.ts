@@ -6,6 +6,12 @@ vi.mock("../i18n", () => ({
 }));
 
 describe("scaleIngredientLine", () => {
+  it("scales formatted quantities without changing links, code or list numbers", () => {
+    expect(scaleIngredientLine("**200 g** [flour](https://example.com/recipe/123) and `B12`", 2))
+      .toBe("**400 g** [flour](https://example.com/recipe/123) and `B12`");
+    expect(scaleIngredientLine("1. **200 g** flour\n2. *2* eggs", 2))
+      .toBe("1. **400 g** flour\n2. *4* eggs");
+  });
   it("scales simple quantities and decimals", () => {
     expect(scaleIngredientLine("200 g de farine", 1.5)).toBe(
       "300 g de farine"

@@ -106,7 +106,7 @@ export function CategoryPickerModal({
                     { opacity: pressed ? 0.8 : 1 },
                   ]}
                 >
-                  <AppText
+                  <AppText markdown
                     variant="label"
                     style={{
                       flex: 1,

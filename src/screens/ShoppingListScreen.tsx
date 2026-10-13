@@ -571,7 +571,7 @@ function ShoppingListRow({
               { opacity: pressed ? 0.72 : 1 }
             ]}
           >
-            <AppText
+            <AppText markdown
               style={item.checked ? styles.checkedText : undefined}
               variant="label"
               numberOfLines={1}
@@ -581,7 +581,7 @@ function ShoppingListRow({
           </Pressable>
         )}
         {item.recipeName ? (
-          <AppText muted variant="caption" numberOfLines={1}>
+          <AppText markdown muted variant="caption" numberOfLines={1}>
             {item.recipeName}
           </AppText>
         ) : null}

@@ -489,6 +489,14 @@ export default {
       deleteFailedBody: "No se pudo eliminar la receta. Inténtalo de nuevo."
     },
     editor: {
+      markdownPreview: "Vista previa del formato",
+      markdownHidePreview: "Ocultar vista previa",
+
+      addTool: "Añadir utensilio",
+      toolItem: "Utensilio {{count}}",
+      removeTool: "Eliminar utensilio",
+
+      markdownHelp: "Markdown es opcional en todos los campos de texto de las recetas: **negrita**, *cursiva*, listas y enlaces. El texto sin formato funciona como siempre.",
       newRecipe: "Nueva receta",
       editRecipe: "Editar receta",
       name: "Nombre",
@@ -505,7 +513,7 @@ export default {
       removeInstruction: "Eliminar este paso",
       moveInstructionUp: "Subir este paso",
       moveInstructionDown: "Bajar este paso",
-      tools: "Utensilios, uno por línea",
+      tools: "Utensilios",
       addSource: "Añadir fuente",
       sourceName: "Nombre de la fuente",
       sourceNamePlaceholder: "Ej. Cookpad, libro de cocina...",

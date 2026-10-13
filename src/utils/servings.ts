@@ -20,16 +20,24 @@ export function scaleIngredientLine(ingredient: string, factor: number) {
   }
 
   const placeholders: { token: string; value: string }[] = [];
-  const protect = (quantity: number) => {
+  const protectText = (value: string) => {
     const token = String.fromCharCode(0xe000 + placeholders.length);
     placeholders.push({
       token,
-      value: formatScaledQuantity(quantity * factor)
+      value
     });
     return token;
   };
+  const protect = (quantity: number) => protectText(formatScaledQuantity(quantity * factor));
+  const protectedMarkdown = ingredient
+    .replace(/(`+)[\s\S]*?\1/g, (code) => protectText(code))
+    .replace(/\]\(([^\n]*?)\)/g, (_, destination: string) => `](${protectText(destination)})`)
+    .replace(/<https?:\/\/[^>]+>/g, (url) => protectText(url))
+    .replace(/https?:\/\/[^\s<>]+/g, (url) => protectText(url))
+    .replace(/^\s{0,3}\[[^\]]+\]:[^\n]+/gm, (reference) => protectText(reference))
+    .replace(/^(\s*)(\d+)([.)]\s+)/gm, (_, space: string, number: string, marker: string) => `${space}${protectText(number)}${marker}`);
 
-  const withMixedFractions = ingredient.replace(
+  const withMixedFractions = protectedMarkdown.replace(
     /\b(\d+)\s+(\d+)\/(\d+)\b/g,
     (_, whole: string, numerator: string, denominator: string) => {
       const parsed =

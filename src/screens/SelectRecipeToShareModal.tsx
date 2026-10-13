@@ -205,7 +205,7 @@ export function SelectRecipeToShareModal({
         }
       ]}
     >
-      <AppText variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>{item.name}</AppText>
+      <AppText markdown variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>{item.name}</AppText>
     </Pressable>
   ), [handleSelectRecipe, submitting, colors]);
 

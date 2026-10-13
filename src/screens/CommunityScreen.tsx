@@ -224,11 +224,11 @@ export function CommunityScreen({ navigation }: Props) {
           <View style={styles.cardContent}>
             <View style={styles.cardHeader}>
               <View style={styles.cardTitleWrap}>
-                <AppText variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>
+                <AppText markdown variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>
                   {item.title}
                 </AppText>
                 {item.authorName ? (
-                  <AppText muted variant="caption" numberOfLines={1} adjustsFontSizeToFit={false}>
+                  <AppText markdown muted variant="caption" numberOfLines={1} adjustsFontSizeToFit={false}>
                     {t("community.byAuthor", { author: item.authorName })}
                   </AppText>
                 ) : null}
@@ -241,7 +241,7 @@ export function CommunityScreen({ navigation }: Props) {
             </View>
 
             {item.description ? (
-              <AppText muted variant="caption" numberOfLines={2} style={[styles.desc, { minHeight: 36 * fontScale }]}>
+              <AppText markdown muted variant="caption" numberOfLines={2} style={[styles.desc, { minHeight: 36 * fontScale }]}>
                 {item.description}
               </AppText>
             ) : null}

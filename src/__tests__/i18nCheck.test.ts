@@ -23,7 +23,7 @@ test('all locales have same keys', () => {
   const esKeys = getKeys(es).sort();
   const itKeys = getKeys(it).sort();
   
-  const allLocales = { fr: frKeys, de: deKeys, es: esKeys, it: itKeys };
+  const allLocales = { fr: frKeys, de: deKeys, es: esKeys, it: itKeys, da: getKeys(da).sort() };
   
   for (const [lang, keys] of Object.entries(allLocales)) {
     const missingInLang = enKeys.filter(k => !keys.includes(k));

@@ -37,7 +37,7 @@ export function CategoryChip({
       {selected ? (
         <Check color={colors.textInverted} size={16} strokeWidth={3} />
       ) : null}
-      <AppText
+      <AppText markdown
         variant="label"
         style={{ color: selected ? colors.textInverted : colors.text }}
       >

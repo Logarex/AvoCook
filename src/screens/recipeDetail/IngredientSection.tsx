@@ -1,8 +1,10 @@
+import { markdownToPlainText } from "../../features/markdown/markdown";
 import { Check, ShoppingCart, Copy } from "lucide-react-native";
 import React from "react";
 import * as Clipboard from "expo-clipboard";
 import { Pressable, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { MarkdownText } from "../../components/MarkdownText";
 import { AppText } from "../../components/AppText";
 import { GlassPanel } from "../../components/GlassPanel";
 import { IconButton } from "../../components/IconButton";
@@ -62,7 +64,7 @@ export function IngredientSection({
                 checkedCount > 0
                   ? items.filter((_, index) => !checkedIndexes.has(index))
                   : items;
-              void Clipboard.setStringAsync(toCopy.join("\n"));
+              void Clipboard.setStringAsync(toCopy.map(markdownToPlainText).join("\n"));
             }}
             style={styles.ingredientHeaderButton}
             variant="ghost"
@@ -117,16 +119,16 @@ export function IngredientSection({
                     />
                   ) : null}
                 </View>
-                <AppText
+                <MarkdownText
+                  containerStyle={styles.rowText}
                   style={[
-                    styles.rowText,
                     checked
                       ? [styles.checkedItemText, { color: colors.textMuted }]
                       : undefined,
                   ]}
                 >
                   {item}
-                </AppText>
+                </MarkdownText>
               </Pressable>
               <IconButton
                 icon={ShoppingCart}

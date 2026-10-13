@@ -1,3 +1,4 @@
+import { markdownToPlainText } from "../../features/markdown/markdown";
 import type { RecipePrintLabels } from "../../features/recipes/recipeSharing";
 import type { Recipe } from "../../features/recipes/types";
 
@@ -67,9 +68,17 @@ export function getRecipeSearchScore(recipe: Recipe, normalizedQuery: string) {
 }
 
 export function normalizeSearchText(value: string) {
-  return value
+  return markdownToPlainText(value)
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .trim();
+}
+
+export function getRecipeAlphabetLetter(name: string): string {
+  let first = markdownToPlainText(name).charAt(0).toUpperCase();
+  if (first === "Œ") first = "O";
+  if (first === "Æ") first = "A";
+  const letter = first.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return letter >= "A" && letter <= "Z" ? letter : "#";
 }

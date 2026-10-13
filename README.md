@@ -36,6 +36,14 @@ I built it for personal use while learning to ship a complete React Native proje
 - Export a recipe as PDF or print it directly;
 - Share a recipe with another app (share sheet).
 
+### Optional Markdown
+
+All recipe text fields accept Markdown, in every language: name, description, category, keywords, source name, ingredients, instructions, tools and nutrition values. Plain text remains the default; no Markdown knowledge is needed.
+
+Use `**bold**`, `*italic*`, headings, lists, quotes, code, tables or `[a link](https://example.com)`. Formatting appears when reading recipes and when exporting a PDF or printing. Images written in Markdown appear as links. Numbers (servings and durations) and URL fields retain their usual format.
+
+Each ingredient and instruction keeps its own Markdown, including paragraphs and nested lists. Pasting a simple list of plain text lines still creates separate items; pasting block Markdown keeps the block together.
+
 ### Import
 
 - Import a recipe from a URL — works on any site that exposes `schema.org/Recipe` data (Marmiton, 750g, BBC Good Food, and many others);

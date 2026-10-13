@@ -23,6 +23,14 @@ AvoCook er en mobil opskriftsbog — den fungerer helt offline på din enhed ude
 - Eksporter en opskrift som PDF eller udskriv den direkte;
 - Del en opskrift med en anden app.
 
+### Valgfri Markdown
+
+Alle opskrifters tekstfelter accepterer Markdown på alle sprog: navn, beskrivelse, kategori, nøgleord, kildenavn, ingredienser, instruktioner, redskaber og næringsværdier. Almindelig tekst er stadig standard; kendskab til Markdown er ikke nødvendigt.
+
+Brug `**fed**`, `*kursiv*`, overskrifter, lister, citater, kode, tabeller eller `[et link](https://example.com)`. Formateringen vises ved læsning, i PDF-filer og ved udskrivning. Markdown-billeder vises som links. Tal (portioner og varighed) og URL-felter beholder deres sædvanlige format.
+
+Hver ingrediens og instruktion beholder sin Markdown, inklusive afsnit og indlejrede lister. Indsatte linjer med almindelig tekst opretter stadig separate punkter; indsatte Markdown-blokke holdes samlet.
+
 ### Import
 
 - Importer en opskrift fra en URL — fungerer på alle websteder med `schema.org/Recipe` data;

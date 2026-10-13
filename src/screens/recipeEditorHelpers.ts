@@ -1,4 +1,11 @@
-import type { Recipe } from "../features/recipes/types";
+import { hasBlockMarkdown } from "../features/markdown/markdown";
+import type { Nutrition, Recipe } from "../features/recipes/types";
+
+export function mergeNutritionForSave(existing: Recipe["nutrition"], edited: Nutrition): Recipe["nutrition"] {
+  const first = Array.isArray(existing) ? existing[0] : existing;
+  const nutrition = { ...first, ...edited };
+  return Array.isArray(existing) ? [nutrition, ...existing.slice(1)] : nutrition;
+}
 
 export function getKeywordSuggestions(
   keywords: string,
@@ -50,7 +57,7 @@ export function expandEditableListItem(
   index: number,
   value: string
 ) {
-  const lines = splitNonEmptyLines(value);
+  const lines = hasBlockMarkdown(value) ? [value] : splitNonEmptyLines(value);
   if (lines.length <= 1) {
     return values.map((item, itemIndex) => (itemIndex === index ? value : item));
   }

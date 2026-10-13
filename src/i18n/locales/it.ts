@@ -488,6 +488,14 @@ export default {
       deleteFailedBody: "Impossibile eliminare la ricetta. Riprova."
     },
     editor: {
+      markdownPreview: "Anteprima della formattazione",
+      markdownHidePreview: "Nascondi anteprima",
+
+      addTool: "Aggiungi utensile",
+      toolItem: "Utensile {{count}}",
+      removeTool: "Rimuovi utensile",
+
+      markdownHelp: "Markdown è facoltativo in tutti i campi di testo delle ricette: **grassetto**, *corsivo*, elenchi e link. Il testo semplice funziona come sempre.",
       newRecipe: "Nuova ricetta",
       editRecipe: "Modifica ricetta",
       name: "Nome",
@@ -504,7 +512,7 @@ export default {
       removeInstruction: "Rimuovi questo passaggio",
       moveInstructionUp: "Sposta questo passaggio su",
       moveInstructionDown: "Sposta questo passaggio giu",
-      tools: "Strumenti, uno per riga",
+      tools: "Strumenti",
       addSource: "Aggiungi fonte",
       sourceName: "Nome della fonte",
       sourceNamePlaceholder: "Es. GialloZafferano, libro di cucina...",

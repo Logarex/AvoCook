@@ -452,6 +452,14 @@ export default {
       deleteFailedBody: "Kunne ikke slette opskriften. Prøv igen."
     },
     editor: {
+      markdownPreview: "Vis formatering",
+      markdownHidePreview: "Skjul forhåndsvisning",
+
+      addTool: "Tilføj redskab",
+      toolItem: "Redskab {{count}}",
+      removeTool: "Fjern redskab",
+
+      markdownHelp: "Markdown er valgfrit i alle opskrifters tekstfelter: **fed**, *kursiv*, lister og links. Almindelig tekst fungerer som før.",
       newRecipe: "Ny opskrift",
       editRecipe: "Rediger opskrift",
       name: "Navn",
@@ -468,7 +476,7 @@ export default {
       removeInstruction: "Fjern dette trin",
       moveInstructionUp: "Flyt dette trin op",
       moveInstructionDown: "Flyt dette trin ned",
-      tools: "Redskaber, én per linje",
+      tools: "Redskaber",
       addSource: "Tilføj kilde",
       sourceName: "Kildenavn",
       sourceNamePlaceholder: "F.eks. kogebog...",

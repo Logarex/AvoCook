@@ -84,7 +84,7 @@ export function HealthSection({ profile }: { profile: HealthProfile }) {
               <AppText muted variant="caption">
                 {t(fact.labelKey)}
               </AppText>
-              <AppText variant="label">{fact.value}</AppText>
+              <AppText markdown variant="label">{fact.value}</AppText>
             </View>
           ))}
         </View>

@@ -1,10 +1,11 @@
+import { markdownToPlainText } from "../markdown/markdown";
 import type { Recipe } from "./types";
 
 export function getRecipeShareFilename(
   recipe: Pick<Recipe, "name">,
   extension: "json" | "pdf"
 ) {
-  const basename = sanitizeFilename(recipe.name || "Recette");
+  const basename = sanitizeFilename(markdownToPlainText(recipe.name) || "Recette");
   return extension === "json"
     ? `${basename}.avocook.json`
     : `${basename}.pdf`;

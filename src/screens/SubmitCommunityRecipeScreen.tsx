@@ -1,3 +1,4 @@
+import { splitRecipeText } from "../features/markdown/markdown";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useState } from "react";
 import { Alert, Pressable, StyleSheet, View } from "react-native";
@@ -50,14 +51,8 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
       Alert.alert(t("common.error"), t("community.missingTitleError"));
       return;
     }
-    const ingredients = ingredientsText
-      .split("\n")
-      .map((s) => s.trim())
-      .filter(Boolean);
-    const steps = stepsText
-      .split("\n")
-      .map((s) => s.trim())
-      .filter(Boolean);
+    const ingredients = splitRecipeText(ingredientsText);
+    const steps = splitRecipeText(stepsText);
 
     if (ingredients.length === 0) {
       Alert.alert(t("common.error"), t("community.missingIngredientsError"));
@@ -137,14 +132,15 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
       </GlassPanel>
 
       <GlassPanel style={styles.form}>
-        <TextField
+        <AppText muted variant="caption">{t("editor.markdownHelp")}</AppText>
+        <TextField markdown
           label={t("editor.name")}
           placeholder={t("community.titlePlaceholder")}
           value={title}
           onChangeText={setTitle}
         />
 
-        <TextField
+        <TextField markdown
           label={t("editor.description")}
           placeholder={t("community.descPlaceholder")}
           value={description}
@@ -153,7 +149,7 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
           numberOfLines={2}
         />
 
-        <TextField
+        <TextField markdown
           label={t("community.authorLabel")}
           placeholder={t("community.authorPlaceholder")}
           value={authorName}
@@ -251,7 +247,7 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
           </View>
         </View>
 
-        <TextField
+        <TextField markdown
           label={t("community.ingredientsInputLabel")}
           placeholder={t("community.onePerLinePlaceholder")}
           value={ingredientsText}
@@ -260,7 +256,7 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
           numberOfLines={4}
         />
 
-        <TextField
+        <TextField markdown
           label={t("community.stepsInputLabel")}
           placeholder={t("community.onePerLinePlaceholder")}
           value={stepsText}
