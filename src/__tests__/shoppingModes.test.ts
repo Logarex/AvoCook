@@ -281,3 +281,62 @@ describe("mode parsing and transfers", () => {
     expect(new Set(merged.map((item) => item.id)).size).toBe(merged.length);
   });
 });
+
+
+describe("changes imported from Apple Reminders", () => {
+  it.each(["local", "firebase"] as const)("saves adds, edits, checks and deletions in %s and sends Firebase changes", async (kind) => {
+    const f = fixture(); await f.controller.load(); if (kind === "firebase") await f.controller.switchToFirebase();
+    const baseline = f.controller.getSnapshot().items;
+    const register = vi.fn(async () => {});
+    await f.controller.applyRemindersChanges({
+      updatedItems: [{ ...baseline[0], label: "Oat milk", checked: true }],
+      deletedItemIds: [baseline[1].id], newReminderItems: [{ reminderId: "apple-eggs", label: "Eggs", checked: true }], hasChanges: true
+    }, baseline, register);
+    expect(f.controller.getSnapshot().items.map((item) => [item.label, item.checked])).toEqual([["Oat milk", true], ["Eggs", true]]);
+    expect(register).toHaveBeenCalledWith([{ avocookId: expect.any(String), reminderId: "apple-eggs" }]);
+    expect(f.dependencies.onLocalItems).not.toHaveBeenCalled();
+    if (kind === "firebase") expect(f.dependencies.firebase.push).toHaveBeenLastCalledWith("AVQC42", f.controller.getSnapshot().items, expect.any(Function));
+    else expect(f.dependencies.firebase.push).not.toHaveBeenCalled();
+    f.controller.dispose();
+  });
+  it("imports Pantry changes with narrow patches and uses the native completion endpoint", async () => {
+    const f = fixture([]); await f.controller.load();
+    const remote: PantryItem = { id: 3, listId: 2, name: "Tomatoes", quantity: "500 g", description: "Pasta", done: false, categoryId: 8, rrule: "FREQ=WEEKLY" };
+    f.setRemote([remote, { ...remote, id: 4, name: "Bread", quantity: null }]);
+    await f.controller.switchToPantry(selection); const baseline = f.controller.getSnapshot().items;
+    const register = vi.fn(async () => {});
+    await f.controller.applyRemindersChanges({ updatedItems: [{ ...baseline[0], label: "500 g Cherry tomatoes", checked: true }],
+      newReminderItems: [{ reminderId: "apple-eggs", label: "Eggs", checked: true }], deletedItemIds: [baseline[1].id], hasChanges: true }, baseline, register);
+    expect(f.api.update).toHaveBeenCalledWith(1, 2, 3, { name: "Cherry tomatoes" });
+    expect(f.api.toggle).toHaveBeenCalledWith(1, 2, 3); expect(f.api.delete).toHaveBeenCalledWith(1, 2, 4);
+    expect(f.remote()[0]).toMatchObject({ quantity: "500 g", description: "Pasta", categoryId: 8, rrule: "FREQ=WEEKLY", done: true });
+    expect(f.controller.getSnapshot().items.map((item) => item.label)).toEqual(["500 g Cherry tomatoes", "Eggs"]);
+    expect(register).toHaveBeenCalledWith([{ avocookId: expect.stringContaining("pantry-1-2-"), reminderId: "apple-eggs" }]);
+    expect(f.dependencies.firebase.push).not.toHaveBeenCalled(); f.controller.dispose();
+  });
+  it("does not prepend an old quantity twice when the reminder title changes its quantity", async () => {
+    const f = fixture([]); await f.controller.load();
+    f.setRemote([{ id: 3, listId: 2, name: "Tomatoes", quantity: "500 g", description: null, done: false }]);
+    await f.controller.switchToPantry(selection); const baseline = f.controller.getSnapshot().items;
+    await f.controller.applyRemindersChanges({ updatedItems: [{ ...baseline[0], label: "1 kg Tomatoes" }], newReminderItems: [], deletedItemIds: [], hasChanges: true }, baseline, async () => {});
+    expect(f.controller.getSnapshot().items[0].label).toBe("1 kg Tomatoes"); f.controller.dispose();
+  });
+  it("respects check-only Pantry permissions when importing native edits", async () => {
+    const f = fixture([]); await f.controller.load(); await f.controller.switchToPantry(selection); await f.controller.addIngredients(["Milk"]);
+    f.api.house.mockResolvedValueOnce({ ...house, isAdmin: false, permissions: { canCheckItems: true } } as typeof house);
+    await f.controller.refreshItems(); const baseline = f.controller.getSnapshot().items;
+    await f.controller.applyRemindersChanges({ updatedItems: [{ ...baseline[0], label: "Rename denied", checked: true }], newReminderItems: [{ reminderId: "new", label: "Eggs", checked: false }], deletedItemIds: [], hasChanges: true }, baseline, async () => {});
+    expect(f.controller.getSnapshot().items[0]).toMatchObject({ label: "Milk", checked: true }); expect(f.api.update).not.toHaveBeenCalled(); f.controller.dispose();
+  });
+  it("preserves concurrent app edits made while the native pull was in progress", async () => {
+    const f = fixture(); await f.controller.load(); const baseline = f.controller.getSnapshot().items;
+    await f.controller.updateItem(baseline[0].id, "Edited in app");
+    await f.controller.applyRemindersChanges({ updatedItems: [{ ...baseline[0], label: "Older native edit" }], newReminderItems: [], deletedItemIds: [baseline[0].id], hasChanges: true }, baseline, async () => {});
+    expect(f.controller.getSnapshot().items[0].label).toBe("Edited in app"); f.controller.dispose();
+  });
+  it("retains intentional duplicate reminders as two articles", async () => {
+    const f = fixture([]); await f.controller.load();
+    await f.controller.applyRemindersChanges({ updatedItems: [], deletedItemIds: [], newReminderItems: [{ reminderId: "a", label: "Milk", checked: false }, { reminderId: "b", label: "Milk", checked: false }], hasChanges: true }, [], async () => {});
+    expect(f.controller.getSnapshot().items).toHaveLength(2); f.controller.dispose();
+  });
+});

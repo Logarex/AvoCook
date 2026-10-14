@@ -1,10 +1,11 @@
 import * as Calendar from "expo-calendar/legacy";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
-import type { ShoppingListItem } from "./shoppingList";
+import { normalizeShoppingListItems, type ShoppingListItem } from "./shoppingList";
 
 const REMINDERS_LIST_ID_KEY = "shopping.reminders.listId.v1";
 const REMINDERS_ITEM_MAP_KEY = "shopping.reminders.itemMap.v1";
+const REMINDERS_LAST_ITEMS_KEY = "shopping.reminders.lastItems.v1";
 
 // AvoCook item ID -> reminder ID.
 type ItemMap = Record<string, string>;
@@ -135,18 +136,46 @@ async function saveItemMap(map: ItemMap): Promise<void> {
 
 export async function clearItemMap(): Promise<void> {
   await AsyncStorage.removeItem(REMINDERS_ITEM_MAP_KEY);
+  await AsyncStorage.removeItem(REMINDERS_LAST_ITEMS_KEY);
 }
 
 // Link reminder IDs before the next push to avoid recreating them.
 export async function registerReminderMappings(
-  mappings: { avocookId: string; reminderId: string }[]
+  mappings: { avocookId: string; reminderId: string }[],
+  isCurrent: () => boolean = () => true
 ): Promise<void> {
   if (mappings.length === 0) return;
   const itemMap = await loadItemMap();
+  if (!isCurrent()) return;
   for (const { avocookId, reminderId } of mappings) {
     itemMap[avocookId] = reminderId;
   }
   await saveItemMap(itemMap);
+}
+
+// A mode switch carries articles but Pantry assigns different IDs. Reuse their
+// reminders, including edits made in Apple Reminders while switching modes.
+export async function rebindReminderMappings(previous: ShoppingListItem[], next: ShoppingListItem[], isCurrent: () => boolean = () => true): Promise<void> {
+  await _pushCompletion.catch(() => undefined);
+  if (!isCurrent()) return;
+  const map = await loadItemMap();
+  if (!isCurrent()) return;
+  let sourceItems = previous;
+  if (!sourceItems.length) {
+    try { sourceItems = normalizeShoppingListItems(JSON.parse(await AsyncStorage.getItem(REMINDERS_LAST_ITEMS_KEY) ?? "[]")); }
+    catch { sourceItems = []; }
+  }
+  if (!isCurrent()) return;
+  const used = new Set(next.flatMap((item) => map[item.id] ? [map[item.id]] : []));
+  const label = (item: ShoppingListItem) => item.label.normalize("NFC").trim().replace(/\s+/g, " ").toLowerCase();
+  for (const item of next) {
+    if (map[item.id]) continue;
+    const candidates = sourceItems.filter((source) => map[source.id] && !used.has(map[source.id]) && label(source) === label(item));
+    const source = candidates.find((source) => source.checked === item.checked) ?? candidates[0];
+    if (source) { map[item.id] = map[source.id]; used.add(map[source.id]); }
+  }
+  // Keep old mappings until the next push removes only genuine orphaned reminders.
+  if (isCurrent()) await saveItemMap(map);
 }
 
 async function fetchAllReminders(listId: string): Promise<Calendar.Reminder[]> {
@@ -165,32 +194,42 @@ async function fetchAllReminders(listId: string): Promise<Calendar.Reminder[]> {
 // Queue only the latest push to prevent duplicate reminder creation.
 
 let _pushRunning = false;
-let _queuedPush: { items: ShoppingListItem[]; listId: string } | null = null;
+let _queuedPush: { items: ShoppingListItem[]; listId: string; isCurrent: () => boolean } | null = null;
+let _pushCompletion: Promise<void> = Promise.resolve();
+export async function waitForRemindersPush(): Promise<void> { await _pushCompletion.catch(() => undefined); }
 
 export async function pushItemsToReminders(
   items: ShoppingListItem[],
-  listId: string
+  listId: string,
+  isCurrent: () => boolean = () => true
 ): Promise<void> {
+  if (!isCurrent()) return;
   if (_pushRunning) {
-    _queuedPush = { items, listId };
-    return;
+    _queuedPush = { items, listId, isCurrent };
+    return _pushCompletion;
   }
   _pushRunning = true;
-  try {
-    await _executePush(items, listId);
-    while (_queuedPush) {
-      const { items: qi, listId: ql } = _queuedPush;
+  _pushCompletion = (async () => {
+    try {
+      await _executePush(items, listId, isCurrent);
+      while (_queuedPush) {
+        const { items: qi, listId: ql, isCurrent: current } = _queuedPush;
+        _queuedPush = null;
+        await _executePush(qi, ql, current);
+      }
+    } finally {
+      _pushRunning = false;
       _queuedPush = null;
-      await _executePush(qi, ql);
     }
-  } finally {
-    _pushRunning = false;
-  }
+  })();
+  return _pushCompletion;
 }
 
-async function _executePush(items: ShoppingListItem[], listId: string): Promise<void> {
+async function _executePush(items: ShoppingListItem[], listId: string, isCurrent: () => boolean): Promise<void> {
+  if (!isCurrent()) return;
   const itemMap = await loadItemMap();
   const reminders = await fetchAllReminders(listId);
+  if (!isCurrent()) return;
   const nextMap: ItemMap = {};
   const knownReminderIds = new Set(Object.values(itemMap));
 
@@ -201,6 +240,7 @@ async function _executePush(items: ShoppingListItem[], listId: string): Promise<
   });
 
   for (const item of items) {
+    if (!isCurrent()) break;
     const reminderId = itemMap[item.id];
     let matchedReminder = reminderId ? reminders.find((r) => r.id === reminderId) : undefined;
 
@@ -247,7 +287,14 @@ async function _executePush(items: ShoppingListItem[], listId: string): Promise<
   }
 
   const nextMappedReminderIds = new Set(Object.values(nextMap));
+  if (!isCurrent()) {
+    // Record writes already accepted by EventKit, so a later mode can reuse them.
+    await saveItemMap({ ...itemMap, ...nextMap });
+    await AsyncStorage.setItem(REMINDERS_LAST_ITEMS_KEY, JSON.stringify(items));
+    return;
+  }
   for (const reminder of reminders) {
+    if (!isCurrent()) break;
     if (
       reminder.id &&
       knownReminderIds.has(reminder.id) &&
@@ -260,7 +307,8 @@ async function _executePush(items: ShoppingListItem[], listId: string): Promise<
     }
   }
 
-  await saveItemMap(nextMap);
+  await saveItemMap(isCurrent() ? nextMap : { ...itemMap, ...nextMap });
+  await AsyncStorage.setItem(REMINDERS_LAST_ITEMS_KEY, JSON.stringify(items));
   console.info("sync", "Push completed", { nextMapSize: Object.keys(nextMap).length });
 }
 
@@ -283,14 +331,17 @@ export type PullResult = {
 
 export async function pullItemsFromReminders(
   currentItems: ShoppingListItem[],
-  listId: string
+  listId: string,
+  isCurrent: () => boolean = () => true
 ): Promise<PullResult> {
+  await _pushCompletion.catch(() => undefined);
+  if (!isCurrent()) return { updatedItems: [], newReminderItems: [], deletedItemIds: [], hasChanges: false };
   if (_pullRunning) {
     return { updatedItems: currentItems, newReminderItems: [], deletedItemIds: [], hasChanges: false };
   }
   _pullRunning = true;
   try {
-    return await _executePull(currentItems, listId);
+    return await _executePull(currentItems, listId, isCurrent);
   } finally {
     _pullRunning = false;
   }
@@ -298,10 +349,12 @@ export async function pullItemsFromReminders(
 
 async function _executePull(
   currentItems: ShoppingListItem[],
-  listId: string
+  listId: string,
+  isCurrent: () => boolean
 ): Promise<PullResult> {
   const itemMap = await loadItemMap();
   const reminders = await fetchAllReminders(listId);
+  if (!isCurrent()) return { updatedItems: [], newReminderItems: [], deletedItemIds: [], hasChanges: false };
   
   const nextMap: ItemMap = { ...itemMap };
   const knownReminderIds = new Set(Object.values(itemMap));
@@ -317,7 +370,11 @@ async function _executePull(
   });
 
   for (const item of currentItems) {
-    const reminderId = itemMap[item.id];
+    let reminderId = nextMap[item.id];
+    if (!reminderId) {
+      const candidate = reminders.find((reminder) => reminder.id && !knownReminderIds.has(reminder.id) && reminder.title?.trim().toLowerCase() === item.label.trim().toLowerCase());
+      if (candidate?.id) { reminderId = candidate.id; nextMap[item.id] = reminderId; knownReminderIds.add(reminderId); }
+    }
     const matchedReminder = reminderId ? reminders.find((r) => r.id === reminderId) : undefined;
 
     if (matchedReminder && matchedReminder.id) {
@@ -370,7 +427,7 @@ async function _executePull(
     }
   }
 
-  await saveItemMap(nextMap);
+  if (isCurrent()) await saveItemMap(nextMap);
   console.info("sync", "Pull completed", { hasChanges, newCount: newReminderItems.length, delCount: deletedItemIds.length });
 
   return {

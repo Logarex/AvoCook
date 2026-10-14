@@ -36,7 +36,6 @@ import { RecipeDetailScreen } from "./screens/RecipeDetailScreen";
 import { RecipeEditorScreen } from "./screens/RecipeEditorScreen";
 import { RecipeListScreen } from "./screens/RecipeListScreen";
 import { SettingsScreen } from "./screens/SettingsScreen";
-import { PantryScreen } from "./screens/PantryScreen";
 import { ShoppingListScreen } from "./screens/ShoppingListScreen";
 import { PrivacyScreen } from "./screens/PrivacyScreen";
 import { useOnboarding } from "./features/onboarding/useOnboarding";
@@ -135,7 +134,6 @@ function RootNavigator() {
           <Stack.Screen name="RecipeEditor" component={RecipeEditorScreen} />
           <Stack.Screen name="ImportRecipe" component={ImportRecipeScreen} />
           <Stack.Screen name="ShoppingList" component={ShoppingListScreen} />
-          <Stack.Screen name="Pantry" component={PantryScreen} />
           <Stack.Screen name="Community" component={CommunityScreen} />
           <Stack.Screen name="CommunityDetail" component={CommunityDetailScreen} />
           <Stack.Screen name="SubmitCommunityRecipe" component={SubmitCommunityRecipeScreen} />

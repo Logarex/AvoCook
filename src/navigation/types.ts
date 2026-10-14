@@ -39,7 +39,6 @@ export type RootStackParamList = {
     id: string;
   };
   SubmitCommunityRecipe: undefined;
-  Pantry: undefined;
   Settings: undefined;
   Privacy: undefined;
 };

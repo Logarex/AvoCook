@@ -1,49 +1,41 @@
-import React, { useState } from "react";
-import { Modal, Pressable, StyleSheet, View, Share as RNShare } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { StyleSheet, View, Share as RNShare } from "react-native";
 import { useTranslation } from "react-i18next";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { X, Users, Share2, LogOut, Check, Sparkles, Bell, BellOff } from "lucide-react-native";
+import { Users, Share2, LogOut, Check, Sparkles } from "lucide-react-native";
 import { AppText } from "../components/AppText";
-import { GlassPanel } from "../components/GlassPanel";
-import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { TextField } from "../components/TextField";
 import { useShoppingList } from "../features/shopping/ShoppingListProvider";
-import { getScreenBottomPadding } from "../utils/safeArea";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
-export function ShoppingListShareModal({
-  visible,
-  onClose
-}: {
-  visible: boolean;
-  onClose: () => void;
-}) {
+export function ShoppingListShareContent({ onBusyChange }: { onBusyChange: (busy: boolean) => void }) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
-  const { sharedList, sync, items } = useShoppingList();
+  const { sharedList } = useShoppingList();
 
   const [inputCode, setInputCode] = useState("");
+  const pending = useRef(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  useEffect(() => { onBusyChange(loading); return () => onBusyChange(false); }, [loading, onBusyChange]);
 
   const handleCreate = async () => {
-    setLoading(true);
+    if (pending.current || sharedList.syncing) return;
+    pending.current = true; setLoading(true);
     setErrorMsg(null);
     try {
       await sharedList.createList();
     } catch {
       setErrorMsg(t("shoppingList.sharedCreateError"));
     } finally {
-      setLoading(false);
+      pending.current = false; setLoading(false);
     }
   };
 
   const handleJoin = async () => {
-    if (!inputCode.trim()) return;
-    setLoading(true);
+    if (pending.current || sharedList.syncing || !inputCode.trim()) return;
+    pending.current = true; setLoading(true);
     setErrorMsg(null);
     try {
       const success = await sharedList.joinList(inputCode);
@@ -55,14 +47,15 @@ export function ShoppingListShareModal({
     } catch {
       setErrorMsg(t("shoppingList.sharedJoinError"));
     } finally {
-      setLoading(false);
+      pending.current = false; setLoading(false);
     }
   };
 
   const handleLeave = async () => {
-    setLoading(true);
+    if (pending.current || sharedList.syncing) return;
+    pending.current = true; setLoading(true);
     try { await sharedList.leaveList(); } catch { setErrorMsg(t("shoppingModes.error")); }
-    finally { setLoading(false); }
+    finally { pending.current = false; setLoading(false); }
   };
 
   const handleShareCode = async () => {
@@ -76,35 +69,7 @@ export function ShoppingListShareModal({
   };
 
   return (
-    <Modal
-      animationType="slide"
-      onRequestClose={onClose}
-      transparent
-      visible={visible}
-    >
-      <View style={styles.modalRoot}>
-        <Pressable
-          accessibilityLabel={t("common.close")}
-          accessibilityRole="button"
-          onPress={onClose}
-          style={styles.modalScrim}
-        />
-        <GlassPanel
-          style={[
-            styles.panel,
-            { paddingBottom: getScreenBottomPadding(insets.bottom) }
-          ]}
-        >
-          <View style={styles.header}>
-            <View style={styles.titleRow}>
-              <Users color={colors.primary} size={22} strokeWidth={2.5} />
-              <AppText variant="subtitle" numberOfLines={1}>
-                {t("shoppingList.sharedTitle")}
-              </AppText>
-            </View>
-            <IconButton icon={X} label={t("common.close")} onPress={onClose} />
-          </View>
-
+    <View style={{ gap: spacing.md }}>
           {sharedList.active ? (
             <View style={styles.activeWrap}>
               <View style={styles.activeBadge}>
@@ -174,7 +139,7 @@ export function ShoppingListShareModal({
                 <PrimaryButton
                   label={t("shoppingList.sharedJoinBtn")}
                   onPress={() => void handleJoin()}
-                  disabled={loading || !inputCode.trim()}
+                  disabled={loading || sharedList.syncing || !inputCode.trim()}
                 />
               </View>
 
@@ -187,7 +152,7 @@ export function ShoppingListShareModal({
               <PrimaryButton
                 icon={Sparkles}
                 label={t("shoppingList.sharedCreateBtn")}
-                disabled={loading}
+                disabled={loading || sharedList.syncing}
                 onPress={() => void handleCreate()}
                 variant="secondary"
               />
@@ -195,68 +160,12 @@ export function ShoppingListShareModal({
           )}
 
           {errorMsg && sharedList.active ? <AppText accessibilityRole="alert" style={{ color: colors.danger }}>{errorMsg}</AppText> : null}
-          {sync.available ? (
-            <>
-              <View style={[styles.divider, { marginVertical: spacing.md }]}>
-                <View style={[styles.line, { backgroundColor: colors.border }]} />
-              </View>
-              
-              <View style={styles.header}>
-                <View style={styles.titleRow}>
-                  <Bell color={colors.primary} size={22} strokeWidth={2.5} />
-                  <AppText variant="subtitle" numberOfLines={1}>
-                    {t("shoppingList.syncBannerTitle")}
-                  </AppText>
-                </View>
-              </View>
-              
-              <View style={{ marginTop: spacing.md }}>
-                <AppText muted variant="caption" style={{ marginBottom: spacing.sm, lineHeight: 18 }}>
-                  {t("shoppingList.syncBannerBody")}
-                </AppText>
-                <PrimaryButton
-                  icon={sync.linked ? BellOff : Bell}
-                  label={sync.linked ? t("shoppingList.syncDisable") : t("shoppingList.syncEnable")}
-                  onPress={() => sync.linked ? void sync.disableSync() : void sync.enableSync(items)}
-                  variant={sync.linked ? "danger" : "secondary"}
-                  disabled={sync.syncing}
-                />
-              </View>
-            </>
-          ) : null}
-        </GlassPanel>
-      </View>
-    </Modal>
+
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  modalRoot: {
-    flex: 1,
-    justifyContent: "flex-end"
-  },
-  modalScrim: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: "rgba(0, 0, 0, 0.4)"
-  },
-  panel: {
-    borderBottomLeftRadius: 0,
-    borderBottomRightRadius: 0,
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    maxHeight: "90%"
-  },
-  header: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between"
-  },
-  titleRow: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: spacing.xs
-  },
   activeWrap: {
     gap: spacing.md
   },

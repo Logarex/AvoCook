@@ -8,6 +8,8 @@ import { PantryError, type PantryClient, type PantryItem, type PantryItemPatch }
 import { PantrySession, type PantryState } from "../pantry/pantrySession";
 import { migrateShoppingToPantry, pantryShoppingItems, shoppingLabelKey, type MigrationStorage } from "../pantry/pantryMigration";
 import type { PantryCache, PantrySelection } from "../pantry/pantryStore";
+import type { PullResult } from "./remindersSync";
+import { pantryPermissions } from "../pantry/pantrySession";
 
 export type ShoppingModeState = {
   mode: ShoppingMode;
@@ -42,6 +44,7 @@ export type ShoppingModeDependencies = {
     subscribe: (code: string, update: (payload: Payload) => void, error: (error: unknown) => void) => () => void;
   };
   onLocalItems?: (items: ShoppingListItem[]) => void;
+  onItems?: (items: ShoppingListItem[]) => void;
   onSharedUpdate?: (previous: ShoppingListItem[], payload: Payload) => void;
 };
 
@@ -63,6 +66,7 @@ export class ShoppingModeController {
   constructor(private dependencies: ShoppingModeDependencies) { this.accountKey = dependencies.accountKey; }
   getSnapshot = () => this.state;
   isCurrent = () => !this.disposed;
+  getRevision = () => this.generation;
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => { this.listeners.delete(listener); }; };
   private patch(patch: Partial<ShoppingModeState>) {
     if (this.disposed) return;
@@ -114,6 +118,7 @@ export class ShoppingModeController {
       }
       const previous = this.state.items;
       this.patch({ items: payload.items, sharedSyncing: false, participantCount: payload.participantCount ?? null });
+      this.dependencies.onItems?.(payload.items);
       this.sharedWrites = this.sharedWrites.catch(() => undefined).then(async () => {
         if (this.disposed || generation !== this.generation) return;
         await this.dependencies.saveItems(payload.items);
@@ -136,6 +141,7 @@ export class ShoppingModeController {
       const pantry = session.getSnapshot();
       const items = pantry.selection && pantry.refreshedAt ? pantryShoppingItems({ selection: pantry.selection, items: pantry.items, refreshedAt: pantry.refreshedAt }) : [];
       this.patch({ pantry, items });
+      if (pantry.fresh && !pantry.busy && !this.state.loading) this.dependencies.onItems?.(items);
     };
     this.pantryUnsubscribe = session.subscribe(update);
     if (cache) session.usePrepared(cache);
@@ -241,12 +247,69 @@ export class ShoppingModeController {
     this.assertActive(); this.patch({ items });
     if (!skipSync) {
       this.dependencies.onLocalItems?.(items);
-      if (this.state.mode.kind === "firebase") {
-        const generation = this.generation;
-        this.dependencies.firebase.push(this.state.mode.code, items, () => { if (generation === this.generation) this.patch({ sharedError: "sync" }); });
-      }
+      this.dependencies.onItems?.(items);
+    }
+    // skipSync suppresses the echo to Apple, never the active shared backend.
+    if (this.state.mode.kind === "firebase") {
+      const generation = this.generation;
+      this.dependencies.firebase.push(this.state.mode.code, items, () => { if (generation === this.generation) this.patch({ sharedError: "sync" }); });
     }
   }
+
+  applyRemindersChanges = (result: PullResult, baseline: ShoppingListItem[], register: (mappings: { avocookId: string; reminderId: string }[]) => Promise<void>) => this.enqueue(async () => {
+    const permissions = this.state.mode.kind === "pantry" ? pantryPermissions(this.session!.getSnapshot().selection) : { add: true, check: true, edit: true, delete: true };
+    for (const incoming of result.updatedItems) {
+      const before = baseline.find((item) => item.id === incoming.id);
+      const current = this.state.items.find((item) => item.id === incoming.id);
+      if (!before || !current) continue;
+      if (permissions.edit && incoming.label !== before.label && current.label === before.label) {
+        if (this.state.mode.kind === "pantry") {
+          const item = this.pantryItem(current.id);
+          const quantity = item.quantity?.trim();
+          // The reminder title includes quantity. Preserve the separate quantity
+          // when its prefix is unchanged; never prepend it twice after a rename.
+          const retainsQuantity = quantity && incoming.label.startsWith(`${quantity} `);
+          await this.requirePantry(this.session!.updateItem(item, {
+            name: retainsQuantity ? incoming.label.slice(quantity.length + 1).trim() : incoming.label.trim(),
+            ...(!retainsQuantity && quantity ? { quantity: "" } : {})
+          }));
+        } else await this.persist(updateShoppingListItemLabel(this.state.items, current.id, incoming.label), true);
+      }
+      if (permissions.check && incoming.checked !== before.checked && current.checked === before.checked) {
+        // Pantry's completion endpoint may repeat or delete the article.
+        if (this.state.mode.kind === "pantry") await this.requirePantry(this.session!.toggleItem(this.pantryItem(current.id)));
+        else await this.persist(setShoppingListItemChecked(this.state.items, current.id, incoming.checked), true);
+      }
+    }
+    const claimed = new Set<string>();
+    if (permissions.add) for (const reminder of result.newReminderItems) {
+      if (!reminder.label.trim()) continue;
+      let added = this.state.items.find((item) => !claimed.has(item.id) && !baseline.some((before) => before.id === item.id) && item.label === reminder.label && item.checked === reminder.checked);
+      if (!added && this.state.mode.kind === "pantry") {
+        const beforeIds = new Set(this.state.items.map((item) => item.id));
+        await this.requirePantry(this.session!.addItem(reminder.label));
+        added = this.state.items.find((item) => !beforeIds.has(item.id));
+      } else if (!added) {
+        const next = addIngredientsToShoppingList(this.state.items, [reminder.label], {}, { createId: this.dependencies.createId, allowDuplicates: true });
+        added = next.added[0];
+        await this.persist(next.items, true);
+      }
+      if (!added) continue;
+      claimed.add(added.id);
+      await register([{ avocookId: added.id, reminderId: reminder.reminderId }]);
+      if (reminder.checked && !added.checked && permissions.check) {
+        if (this.state.mode.kind === "pantry") await this.requirePantry(this.session!.toggleItem(this.pantryItem(added.id)));
+        else await this.persist(setShoppingListItemChecked(this.state.items, added.id, true), true);
+      }
+    }
+    if (permissions.delete) for (const id of result.deletedItemIds) {
+      const before = baseline.find((item) => item.id === id);
+      const current = this.state.items.find((item) => item.id === id);
+      if (!before || !current || current.label !== before.label || current.checked !== before.checked) continue;
+      if (this.state.mode.kind === "pantry") await this.requirePantry(this.session!.deleteItem(this.pantryItem(id)));
+      else await this.persist(removeShoppingListItem(this.state.items, id), true);
+    }
+  });
   private pantryItem(id: string) {
     const item = this.session?.getSnapshot().items.find((item) => id === `pantry-${this.state.mode.kind === "pantry" ? this.state.mode.selection.house.id : 0}-${item.listId}-${item.id}`);
     if (!item) throw new PantryError("invalid");

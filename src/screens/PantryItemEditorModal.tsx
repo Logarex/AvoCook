@@ -1,6 +1,6 @@
-import { Check, ChevronDown, ChevronUp, X } from "lucide-react-native";
+import { Check, ChevronDown, ChevronUp, Trash2, X } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "../components/AppText";
@@ -10,6 +10,7 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
 import { PantryClient, type PantryCategory, type PantryItem, type PantryItemPatch } from "../features/pantry/pantryClient";
+import { pantryPermissions } from "../features/pantry/pantrySession";
 import { useShoppingList } from "../features/shopping/ShoppingListProvider";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { radius, spacing } from "../theme/colors";
@@ -20,7 +21,7 @@ export function PantryItemEditorModal({ item, onClose }: { item: PantryItem | nu
 }
 function Editor({ item, onClose }: { item: PantryItem; onClose: () => void }) {
   const { t } = useTranslation(); const { colors } = useAppTheme(); const insets = useSafeAreaInsets();
-  const { credentials } = useAuth(); const { mode, pantry, moveItem, updatePantryItem } = useShoppingList();
+  const { credentials } = useAuth(); const { mode, pantry, moveItem, updatePantryItem, removeItem, switching } = useShoppingList();
   const [name, setName] = useState(item.name);
   const [quantity, setQuantity] = useState(item.quantity ?? "");
   const [description, setDescription] = useState(item.description ?? "");
@@ -28,6 +29,7 @@ function Editor({ item, onClose }: { item: PantryItem; onClose: () => void }) {
   const [recurrence, setRecurrence] = useState(item.rrule ?? "");
   const [deleteOnDone, setDeleteOnDone] = useState(item.deleteOnDone ?? false);
   const [categories, setCategories] = useState<PantryCategory[]>([]);
+  const [advanced, setAdvanced] = useState(false);
   const [saving, setSaving] = useState(false); const [error, setError] = useState(false);
   useEffect(() => {
     if (!credentials || mode.kind !== "pantry") return;
@@ -38,15 +40,18 @@ function Editor({ item, onClose }: { item: PantryItem; onClose: () => void }) {
     }).catch(() => undefined);
     return () => { active = false; client.dispose(); };
   }, [credentials, mode, item.listId]);
+  const writable = !switching && Boolean(pantry?.fresh && !pantry.busy);
+  const permissions = pantryPermissions(mode.kind === "pantry" ? pantry?.selection ?? mode.selection : null);
+  const disabled = saving || !writable || !permissions.edit;
   const index = pantry?.items.findIndex((current) => current.id === item.id) ?? -1;
   async function reorder(direction: -1 | 1) {
-    if (saving || mode.kind !== "pantry") return;
+    if (disabled || !permissions.edit || mode.kind !== "pantry") return;
     setSaving(true); setError(false);
     try { await moveItem(`pantry-${mode.selection.house.id}-${item.listId}-${item.id}`, direction); }
     catch { setError(true); } finally { setSaving(false); }
   }
   async function save() {
-    if (saving || !name.trim()) return;
+    if (disabled || !permissions.edit || !name.trim()) return;
     setSaving(true); setError(false);
     const patch: PantryItemPatch = {};
     // A narrow patch preserves images, prices, custom fields, stores and labels.
@@ -59,19 +64,32 @@ function Editor({ item, onClose }: { item: PantryItem; onClose: () => void }) {
     try { if (Object.keys(patch).length) await updatePantryItem(item, patch); onClose(); }
     catch { setError(true); } finally { setSaving(false); }
   }
+  function confirmDelete() {
+    if (disabled || !permissions.delete || mode.kind !== "pantry") return;
+    const id = `pantry-${mode.selection.house.id}-${item.listId}-${item.id}`;
+    Alert.alert(t("pantry.deleteTitle"), t("pantry.deleteBody", { name: item.name }), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("common.delete"), style: "destructive", onPress: () => {
+        setSaving(true); setError(false);
+        void removeItem(id).then(onClose).catch(() => setError(true)).finally(() => setSaving(false));
+      } }
+    ]);
+  }
   return <Modal visible transparent animationType="slide" onRequestClose={() => { if (!saving) onClose(); }}>
-    <View style={styles.root}>
+    <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <Pressable style={styles.scrim} onPress={onClose} disabled={saving} accessibilityLabel={t("common.close")} accessibilityRole="button" />
       <GlassPanel style={[styles.panel, { paddingBottom: getScreenBottomPadding(insets.bottom) }]}>
         <View style={styles.row}><AppText variant="subtitle" style={styles.flex}>{t("shoppingList.editItem")}</AppText><IconButton icon={X} label={t("common.close")} disabled={saving} onPress={onClose} /></View>
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.fields}>
-          <TextField label={t("shoppingList.manualItemLabel")} value={name} onChangeText={setName} editable={!saving} />
-          <TextField label={t("pantry.quantity")} value={quantity} onChangeText={setQuantity} editable={!saving} placeholder={t("pantry.quantityPlaceholder")} />
-          <TextField label={t("pantry.description")} value={description} onChangeText={setDescription} editable={!saving} multiline />
+          <TextField label={t("shoppingList.manualItemLabel")} value={name} onChangeText={setName} editable={!disabled} />
+          <TextField label={t("pantry.quantity")} value={quantity} onChangeText={setQuantity} editable={!disabled} placeholder={t("pantry.quantityPlaceholder")} />
+          <PrimaryButton label={t("settings.advanced")} icon={advanced ? ChevronUp : ChevronDown} variant="ghost" disabled={disabled} onPress={() => setAdvanced((previous) => !previous)} />
+          {advanced ? <>
+          <TextField label={t("pantry.description")} value={description} onChangeText={setDescription} editable={!disabled} multiline />
           {categories.length ? <>
             <AppText variant="label">{t("pantry.category")}</AppText>
             <View style={styles.chips}>
-              {[{ id: 0, name: t("pantry.noCategory") }, ...categories].map((category) => <Pressable key={category.id} accessibilityRole="radio" accessibilityState={{ checked: categoryId === category.id }} disabled={saving}
+              {[{ id: 0, name: t("pantry.noCategory") }, ...categories].map((category) => <Pressable key={category.id} accessibilityRole="radio" accessibilityState={{ checked: categoryId === category.id }} disabled={disabled}
                 onPress={() => setCategoryId(category.id)} style={[styles.chip, { backgroundColor: categoryId === category.id ? colors.chip : colors.input, borderColor: categoryId === category.id ? colors.primary : colors.border }]}>
                 <AppText variant="caption">{category.name}</AppText>
               </Pressable>)}
@@ -79,20 +97,22 @@ function Editor({ item, onClose }: { item: PantryItem; onClose: () => void }) {
           </> : null}
           <AppText variant="label">{t("pantry.recurrence")}</AppText>
           <View style={styles.chips}>
-            {[{ value: "", key: "never" }, { value: "FREQ=DAILY", key: "daily" }, { value: "FREQ=WEEKLY", key: "weekly" }, { value: "FREQ=MONTHLY", key: "monthly" }].map(({ value, key }) => <Pressable key={key} accessibilityRole="radio" accessibilityState={{ checked: recurrence === value }} disabled={saving} onPress={() => setRecurrence(value)}
+            {[{ value: "", key: "never" }, { value: "FREQ=DAILY", key: "daily" }, { value: "FREQ=WEEKLY", key: "weekly" }, { value: "FREQ=MONTHLY", key: "monthly" }].map(({ value, key }) => <Pressable key={key} accessibilityRole="radio" accessibilityState={{ checked: recurrence === value }} disabled={disabled} onPress={() => setRecurrence(value)}
               style={[styles.chip, { backgroundColor: recurrence === value ? colors.chip : colors.input, borderColor: recurrence === value ? colors.primary : colors.border }]}><AppText variant="caption">{t(`pantry.${key}`)}</AppText></Pressable>)}
           </View>
           {recurrence && !["FREQ=DAILY", "FREQ=WEEKLY", "FREQ=MONTHLY"].includes(recurrence) ? <AppText muted variant="caption">{t("pantry.customRecurrence")}</AppText> : null}
-          <View style={styles.row}><AppText style={styles.flex}>{t("pantry.deleteOnDone")}</AppText><Switch value={deleteOnDone} onValueChange={setDeleteOnDone} disabled={saving} accessibilityLabel={t("pantry.deleteOnDone")} /></View>
+          <View style={styles.row}><AppText style={styles.flex}>{t("pantry.deleteOnDone")}</AppText><Switch value={deleteOnDone} onValueChange={setDeleteOnDone} disabled={disabled} accessibilityLabel={t("pantry.deleteOnDone")} /></View>
           <View style={styles.row}>
-            <PrimaryButton style={styles.flex} numberOfLines={2} icon={ChevronUp} label={t("shoppingList.moveItemUp")} variant="ghost" disabled={saving || index <= 0} onPress={() => { void reorder(-1); }} />
-            <PrimaryButton style={styles.flex} numberOfLines={2} icon={ChevronDown} label={t("shoppingList.moveItemDown")} variant="ghost" disabled={saving || index < 0 || index >= (pantry?.items.length ?? 0) - 1} onPress={() => { void reorder(1); }} />
+            <PrimaryButton style={styles.flex} numberOfLines={2} icon={ChevronUp} label={t("shoppingList.moveItemUp")} variant="ghost" disabled={disabled || index <= 0} onPress={() => { void reorder(-1); }} />
+            <PrimaryButton style={styles.flex} numberOfLines={2} icon={ChevronDown} label={t("shoppingList.moveItemDown")} variant="ghost" disabled={disabled || index < 0 || index >= (pantry?.items.length ?? 0) - 1} onPress={() => { void reorder(1); }} />
           </View>
+          </> : null}
           {error ? <AppText accessibilityRole="alert" style={{ color: colors.danger }}>{t("shoppingModes.editError")}</AppText> : null}
-          <PrimaryButton icon={Check} label={t("common.save")} disabled={saving || !name.trim()} onPress={() => { void save(); }} />
+          {permissions.delete ? <PrimaryButton icon={Trash2} label={t("shoppingList.deleteItem")} variant="danger" disabled={disabled} onPress={confirmDelete} /> : null}
+          <PrimaryButton icon={Check} label={t("common.save")} disabled={disabled || !name.trim()} onPress={() => { void save(); }} />
         </ScrollView>
       </GlassPanel>
-    </View>
+    </KeyboardAvoidingView>
   </Modal>;
 }
 const styles = StyleSheet.create({

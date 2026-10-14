@@ -6,6 +6,7 @@ import {
   ChevronDown,
   ChevronUp,
   Plus,
+  RefreshCw,
   Share as ShareIcon,
   ShoppingCart,
   Trash2,
@@ -15,6 +16,7 @@ import {
 import React, { useMemo, useState, useRef, useCallback, useEffect } from "react";
 import {
   ActivityIndicator,
+  Alert,
   AppState,
   type AppStateStatus,
   FlatList,
@@ -36,13 +38,13 @@ import { IconButton } from "../components/IconButton";
 import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import { ShoppingModeButton } from "../components/ShoppingModeButton";
 import { ShoppingModeModal } from "./ShoppingModeModal";
-import { PantryShoppingList } from "./PantryShoppingList";
+import { PantryItemEditorModal } from "./PantryItemEditorModal";
+import { PantryError, type PantryItem } from "../features/pantry/pantryClient";
+import { pantryPermissions } from "../features/pantry/pantrySession";
 import { Screen } from "../components/Screen";
 import { TextField } from "../components/TextField";
 import { ShoppingListActionsModal } from "./ShoppingListActionsModal";
-import { ShoppingListShareModal } from "./ShoppingListShareModal";
 import { useShoppingList } from "../features/shopping/ShoppingListProvider";
-import { registerReminderMappings } from "../features/shopping/remindersSync";
 import type { ShoppingListItem } from "../features/shopping/shoppingList";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
@@ -54,7 +56,6 @@ export function ShoppingListScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const {
-    addIngredients,
     addItem,
     clearAll,
     clearChecked,
@@ -67,12 +68,16 @@ export function ShoppingListScreen({ navigation }: Props) {
     sync,
     sharedList,
     mode,
-    switching
+    switching,
+    pantry,
+    refreshItems
   } = useShoppingList();
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [showModes, setShowModes] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
+  const [pantryEditing, setPantryEditing] = useState<PantryItem | null>(null);
+  const [mutating, setMutating] = useState(false);
+  const mutationPending = useRef(false);
   const [newItem, setNewItem] = useState("");
   const [refreshing, setRefreshing] = useState(false);
   const listRef = useRef<FlatList<ShoppingListItem>>(null);
@@ -83,76 +88,34 @@ export function ShoppingListScreen({ navigation }: Props) {
   const checkedCount = items.length - remainingCount;
 
   const wasInBackground = useRef(false);
-  const backendKey = mode.kind === "firebase" ? `firebase-${mode.code}` : mode.kind;
+  const backendKey = mode.kind === "firebase" ? `firebase-${mode.code}` : mode.kind === "pantry" ? `pantry-${mode.accountKey}-${mode.selection.house.id}-${mode.selection.list.id}` : "local";
   const backendRef = useRef(backendKey);
   const switchingRef = useRef(switching);
   backendRef.current = backendKey;
   switchingRef.current = switching;
 
   const itemsRef = useRef(items);
-  useEffect(() => {
-    itemsRef.current = items;
-  }, [items]);
-
-  // Keep doPull stable so useFocusEffect does not loop after state updates.
-  const pullFromSystemRef = useRef(sync.pullFromSystem);
-  useEffect(() => {
-    pullFromSystemRef.current = sync.pullFromSystem;
-  }, [sync.pullFromSystem]);
-
-  const doPull = useCallback(async () => {
-    const source = backendRef.current;
-    const current = () => backendRef.current === source && !switchingRef.current;
-    if (source === "pantry" || !current()) return;
-    const result = await pullFromSystemRef.current(itemsRef.current);
-    if (!result || !current()) return;
-
-    for (const item of result.updatedItems) {
-      if (!current()) return;
-      const original = itemsRef.current.find((i) => i.id === item.id);
-      if (!original) continue;
-      if (original.checked !== item.checked) await toggleItem(item.id, { skipSync: true });
-      if (original.label !== item.label) await updateItem(item.id, item.label, { skipSync: true });
-    }
-
-    if (!current()) return;
-    if (result.newReminderItems.length > 0) {
-      const addResult = await addIngredients(
-        result.newReminderItems.map((r) => r.label),
-        {},
-        { allowDuplicates: true, skipSync: true }
-      );
-      // Link reminder IDs before the next push to avoid recreating them.
-      const mappings = result.newReminderItems
-        .map((r, idx) => {
-          const added = addResult.added[idx];
-          return added ? { avocookId: added.id, reminderId: r.reminderId } : null;
-        })
-        .filter((m): m is { avocookId: string; reminderId: string } => m !== null);
-      if (mappings.length > 0) await registerReminderMappings(mappings);
-
-      for (let i = 0; i < result.newReminderItems.length; i++) {
-        if (!current()) return;
-        const added = addResult.added[i];
-        const r = result.newReminderItems[i];
-        if (added && r.checked) {
-          await toggleItem(added.id, { skipSync: true });
-        }
-      }
-    }
-
-    if (result.deletedItemIds.length > 0) {
-      for (const id of result.deletedItemIds) {
-        if (!current()) return;
-        await removeItem(id, { skipSync: true });
-      }
-    }
-  }, [toggleItem, updateItem, addIngredients, removeItem]);
-
+  itemsRef.current = items;
+  const refreshCurrent = useCallback(async () => {
+    if (!switchingRef.current) await refreshItems();
+  }, [refreshItems]);
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    try { await doPull(); } finally { setRefreshing(false); }
-  }, [doPull]);
+    try { await refreshCurrent(); } catch { /* The Pantry session exposes refresh errors with the cached list. */ }
+    finally { setRefreshing(false); }
+  }, [refreshCurrent]);
+  const typingRef = useRef(false);
+  typingRef.current = Boolean(newItem || pantryEditing || mutating || showModes || showActionsMenu);
+  useEffect(() => {
+    setEditingItemId(null); setPantryEditing(null); setNewItem(""); setShowActionsMenu(false);
+  }, [backendKey]);
+  useFocusEffect(useCallback(() => {
+    if (!backendKey.startsWith("pantry-")) return;
+    const timer = setInterval(() => {
+      if (!typingRef.current && AppState.currentState === "active") void refreshCurrent().catch(() => undefined);
+    }, 30000);
+    return () => clearInterval(timer);
+  }, [backendKey, refreshCurrent]));
 
   useEffect(() => {
     const sub = AppState.addEventListener("change", (next: AppStateStatus) => {
@@ -160,52 +123,52 @@ export function ShoppingListScreen({ navigation }: Props) {
         wasInBackground.current = true;
       } else if (next === "active" && wasInBackground.current) {
         wasInBackground.current = false;
-        void doPull().catch(() => undefined);
+        if (backendRef.current.startsWith("pantry-") && typingRef.current) return;
+        void refreshCurrent().catch(() => undefined);
       }
     });
     return () => sub.remove();
-  }, [doPull]);
+  }, [refreshCurrent]);
 
   useFocusEffect(
     useCallback(() => {
-      void doPull().catch(() => undefined);
-    }, [doPull])
+      if (backendRef.current !== backendKey) return;
+      void refreshCurrent().catch(() => undefined);
+    }, [refreshCurrent, backendKey])
   );
 
-  // Push the computed next state before React applies the state update.
-  const handleToggleItem = useCallback(async (id: string) => {
-    await toggleItem(id);
-  }, [toggleItem]);
-  const handleRemoveItem = useCallback(async (id: string) => {
-    await removeItem(id);
-  }, [removeItem]);
-  const handleUpdateItem = useCallback(async (id: string, label: string) => {
-    await updateItem(id, label);
-  }, [updateItem]);
-
+  const permissions = pantryPermissions(mode.kind === "pantry" ? pantry?.selection ?? mode.selection : null);
+  const writable = !switching && !mutating && (mode.kind !== "pantry" || Boolean(pantry?.fresh && !pantry.busy));
+  const canAdd = writable && (mode.kind !== "pantry" || permissions.add);
+  const canCheck = writable && (mode.kind !== "pantry" || permissions.check);
+  const canEdit = writable && (mode.kind !== "pantry" || permissions.edit);
+  const canDelete = writable && (mode.kind !== "pantry" || permissions.delete);
+  const perform = useCallback(async (action: () => Promise<unknown>) => {
+    if (mutationPending.current) return false;
+    mutationPending.current = true; setMutating(true);
+    try { await action(); return true; }
+    catch (error) { Alert.alert(t("common.error"), error instanceof PantryError ? t(`pantry.errors.${error.code}`) : t("shoppingModes.editError")); return false; }
+    finally { mutationPending.current = false; setMutating(false); }
+  }, [t]);
+  const handleToggleItem = useCallback(async (id: string) => { await perform(() => toggleItem(id)); }, [perform, toggleItem]);
+  const handleRemoveItem = useCallback(async (id: string) => { await perform(() => removeItem(id)); }, [perform, removeItem]);
+  const handleUpdateItem = useCallback(async (id: string, label: string) => { await perform(() => updateItem(id, label)); }, [perform, updateItem]);
   const handleStartEditing = useCallback((id: string) => {
-    setEditingItemId(id);
-  }, []);
-
-  const handleStopEditing = useCallback(() => {
-    setEditingItemId(null);
-  }, []);
-
-  const handleMoveUp = useCallback((id: string) => {
-    void moveItem(id, -1);
-  }, [moveItem]);
-
-  const handleMoveDown = useCallback((id: string) => {
-    void moveItem(id, 1);
-  }, [moveItem]);
-
+    if (mode.kind === "pantry") {
+      const item = pantry?.items.find((item) => `pantry-${mode.selection.house.id}-${item.listId}-${item.id}` === id);
+      if (item) setPantryEditing(item);
+    } else setEditingItemId(id);
+  }, [mode, pantry?.items]);
+  const handleStopEditing = useCallback(() => setEditingItemId(null), []);
+  const handleMoveUp = useCallback((id: string) => { void perform(() => moveItem(id, -1)); }, [perform, moveItem]);
+  const handleMoveDown = useCallback((id: string) => { void perform(() => moveItem(id, 1)); }, [perform, moveItem]);
   async function handleAddItem() {
     const label = newItem.trim();
-    if (!label) return;
-    const result = await addItem(label);
-    if (result.added.length) {
-      setNewItem("");
-    }
+    if (!label || !canAdd) return;
+    await perform(async () => {
+      const result = await addItem(label);
+      if (result.added.length) setNewItem("");
+    });
   }
 
   function handleDeleteOptions() {
@@ -244,8 +207,12 @@ export function ShoppingListScreen({ navigation }: Props) {
 
   const renderItem = useCallback(({ item, index }: { item: ShoppingListItem; index: number }) => (
     <MemoizedShoppingListRow
-      canMoveDown={index < items.length - 1}
-      canMoveUp={index > 0}
+      canMoveDown={canEdit && index < items.length - 1}
+      canMoveUp={canEdit && index > 0}
+      canCheck={canCheck}
+      canEdit={canEdit}
+      canDelete={canDelete}
+      deleteOnly={mode.kind === "pantry" && !permissions.edit && permissions.delete}
       editing={editingItemId === item.id}
       item={item}
       onMoveDown={handleMoveDown}
@@ -256,9 +223,7 @@ export function ShoppingListScreen({ navigation }: Props) {
       onToggle={handleToggleItem}
       onUpdate={handleUpdateItem}
     />
-  ), [editingItemId, items.length, handleMoveDown, handleMoveUp, handleRemoveItem, handleStartEditing, handleStopEditing, handleToggleItem, handleUpdateItem]);
-
-  if (mode.kind === "pantry") return <PantryShoppingList navigation={navigation} />;
+  ), [mode.kind, permissions.edit, permissions.delete, canCheck, canEdit, canDelete, editingItemId, items.length, handleMoveDown, handleMoveUp, handleRemoveItem, handleStartEditing, handleStopEditing, handleToggleItem, handleUpdateItem]);
 
   return (
     <PageSwipeGesture onSwipeRight={() => navigation.navigate("Community", { tabTransition: "slide_from_left" })}>
@@ -271,35 +236,19 @@ export function ShoppingListScreen({ navigation }: Props) {
               {t("shoppingList.title")}
             </AppText>
           </View>
-          {sync.available || sharedList.active ? (
+          {mode.kind === "pantry" || sync.available || sharedList.active ? (
             <ConnectionStatus
-              connected={sharedList.active || (Platform.OS === 'ios' && sync.linked)}
+              connected={mode.kind === "pantry" ? Boolean(pantry?.fresh) : sharedList.active || (Platform.OS === 'ios' && sync.linked)}
               label={
-                sharedList.active || (Platform.OS === 'ios' && sync.linked)
+                mode.kind === "pantry" ? t(pantry?.fresh ? "pantry.upToDate" : "pantry.cachedStatus") : sharedList.active || (Platform.OS === 'ios' && sync.linked)
                   ? t("shoppingList.syncActiveInfo")
                   : t("shoppingList.syncEnable")
               }
-              loading={sync.syncing}
+              loading={sync.syncing || pantry?.busy}
             />
           ) : null}
         </View>
         <View style={styles.headerActions}>
-          <IconButton
-            icon={Users}
-            label={t("shoppingList.sharedTitle")}
-            onPress={() => setShowShareModal(true)}
-            tone={sharedList.active ? "primary" : "default"}
-            style={[
-              styles.headerIcon,
-              sharedList.active
-                ? {
-                    backgroundColor: colors.chip,
-                    borderColor: colors.primary
-                  }
-                : null
-            ]}
-          />
-
           <IconButton
             disabled={!items.length}
             icon={ShareIcon}
@@ -308,7 +257,7 @@ export function ShoppingListScreen({ navigation }: Props) {
             style={styles.headerIcon}
           />
           <IconButton
-            disabled={!items.length}
+            disabled={!items.length || !canDelete}
             icon={Trash2}
             label={t("common.delete")}
             onPress={handleDeleteOptions}
@@ -351,7 +300,17 @@ export function ShoppingListScreen({ navigation }: Props) {
         </GlassPanel>
       ) : null}
 
-      <ShoppingModeButton onPress={() => setShowModes(true)} />
+      <View style={styles.modeRow}>
+        <View style={styles.modeControl}><ShoppingModeButton compact disabled={mutating} onPress={() => setShowModes(true)} /></View>
+        {mode.kind === "pantry" ? <AppText muted variant="caption" numberOfLines={1} style={styles.activeListName}>{mode.selection.list.name}</AppText> : null}
+        {mode.kind === "pantry" ? <IconButton icon={RefreshCw} spinning={pantry?.busy} label={t("pantry.refresh")} disabled={switching || mutating || pantry?.busy} onPress={() => void handleRefresh()} /> : null}
+      </View>
+      {mode.kind === "pantry" && pantry?.error ? <View style={styles.feedback}>
+        <AppText accessibilityRole="alert" style={{ color: colors.danger }}>{t(`pantry.errors.${pantry.error}`)}</AppText>
+        <AppText muted variant="caption">{t("pantry.cachedBody")}</AppText>
+      </View> : null}
+      {mode.kind === "pantry" && !Object.values(permissions).some(Boolean) ? <AppText muted variant="caption">{t("pantry.readOnly")}</AppText> : null}
+      {pantry?.cacheWarning ? <AppText muted variant="caption">{t("pantry.cacheWarning")}</AppText> : null}
 
       <View style={styles.addRow}>
         <TextField
@@ -362,10 +321,11 @@ export function ShoppingListScreen({ navigation }: Props) {
           placeholder={t("shoppingList.itemPlaceholder")}
           returnKeyType="done"
           value={newItem}
+          editable={canAdd}
           autoCorrect={false}
         />
         <IconButton
-          disabled={!newItem.trim()}
+          disabled={!newItem.trim() || !canAdd}
           icon={Plus}
           label={t("shoppingList.addItem")}
           onPress={() => void handleAddItem()}
@@ -416,7 +376,7 @@ export function ShoppingListScreen({ navigation }: Props) {
               renderItem={renderItem}
               showsVerticalScrollIndicator={false}
               refreshControl={
-                sync.linked ? (
+                sync.linked || mode.kind === "pantry" ? (
                   <RefreshControl refreshing={refreshing} onRefresh={() => void handleRefresh()} tintColor={colors.primary} />
                 ) : undefined
               }
@@ -441,20 +401,21 @@ export function ShoppingListScreen({ navigation }: Props) {
         visible={showActionsMenu}
         onClose={() => setShowActionsMenu(false)}
         checkedCount={checkedCount}
-        onClearChecked={() => void clearChecked()}
-        onClearAll={() => void clearAll()}
+        onClearChecked={() => { void perform(clearChecked); }}
+        onClearAll={() => { void perform(clearAll); }}
       />
-      <ShoppingModeModal visible={showModes} onClose={() => setShowModes(false)} onPantry={() => navigation.navigate("Pantry")} onFirebase={() => setShowShareModal(true)} />
-      <ShoppingListShareModal
-        visible={showShareModal}
-        onClose={() => setShowShareModal(false)}
-      />
+      <ShoppingModeModal visible={showModes} onClose={() => setShowModes(false)} />
+      {pantryEditing && mode.kind === "pantry" ? <PantryItemEditorModal key={`${backendKey}-${pantryEditing.id}`} item={pantryEditing} onClose={() => setPantryEditing(null)} /> : null}
       </Screen>
     </PageSwipeGesture>
   );
 }
 
 function ShoppingListRow({
+  canCheck,
+  canEdit,
+  canDelete,
+  deleteOnly,
   canMoveDown,
   canMoveUp,
   editing,
@@ -467,6 +428,10 @@ function ShoppingListRow({
   onToggle,
   onUpdate
 }: {
+  canCheck: boolean;
+  canEdit: boolean;
+  canDelete: boolean;
+  deleteOnly: boolean;
   canMoveDown: boolean;
   canMoveUp: boolean;
   editing: boolean;
@@ -501,6 +466,12 @@ function ShoppingListRow({
     onStopEditing();
   }
 
+  function deleteItem() {
+    Alert.alert(t("pantry.deleteTitle"), t("pantry.deleteBody", { name: item.label }), [
+      { text: t("common.cancel"), style: "cancel" },
+      { text: t("common.delete"), style: "destructive", onPress: () => { void onRemove(item.id); } }
+    ]);
+  }
   function cancelEdit() {
     setDraftLabel(item.label);
     onStopEditing();
@@ -519,8 +490,8 @@ function ShoppingListRow({
         <Pressable
           accessibilityLabel={item.label}
           accessibilityRole="checkbox"
-          accessibilityState={{ checked: item.checked }}
-          disabled={editing}
+          accessibilityState={{ checked: item.checked, disabled: editing || !canCheck }}
+          disabled={editing || !canCheck}
           onPress={() => void onToggle(item.id)}
           style={({ pressed }) => [
             styles.itemToggle,
@@ -565,6 +536,9 @@ function ShoppingListRow({
           />
         ) : (
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t("shoppingList.editItem")}
+            disabled={!canEdit}
             onPress={() => void onStartEditing(item.id)}
             style={({ pressed }) => [
               styles.itemLabelButton,
@@ -602,6 +576,7 @@ function ShoppingListRow({
             style={styles.itemAction}
           />
           <IconButton
+            disabled={!canDelete}
             icon={Trash2}
             label={t("shoppingList.deleteItem")}
             onPress={() => void onRemove(item.id)}
@@ -609,7 +584,7 @@ function ShoppingListRow({
             style={styles.itemAction}
           />
         </View>
-      ) : (
+      ) : deleteOnly ? <IconButton icon={Trash2} label={t("shoppingList.deleteItem")} disabled={!canDelete} tone="danger" onPress={deleteItem} /> : (
         <View style={styles.itemActions}>
           <View
             style={[
@@ -654,6 +629,10 @@ function ShoppingListRow({
 const MemoizedShoppingListRow = React.memo(ShoppingListRow);
 
 const styles = StyleSheet.create({
+  modeRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.xs, paddingHorizontal: spacing.md },
+  modeControl: { flexShrink: 1 },
+  activeListName: { flex: 1, minWidth: 0 },
+  feedback: { gap: spacing.xs, paddingHorizontal: spacing.md },
   addButton: {
     marginTop: 25
   },

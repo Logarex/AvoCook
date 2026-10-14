@@ -13,6 +13,8 @@ import {
   pushItemsToReminders,
   pullItemsFromReminders,
   deleteAllReminders,
+  rebindReminderMappings,
+  waitForRemindersPush,
 } from "./remindersSync";
 import type { PullResult } from "./remindersSync";
 import type { ShoppingListItem } from "./shoppingList";
@@ -30,24 +32,41 @@ export type RemindersSyncState = {
 export type UseRemindersSyncReturn = RemindersSyncState & {
   enableSync: (currentItems: ShoppingListItem[]) => Promise<void>;
   disableSync: () => Promise<void>;
-  pushToSystem: (items: ShoppingListItem[]) => Promise<void>;
-  pullFromSystem: (currentItems: ShoppingListItem[]) => Promise<PullResult | null>;
+  pushToSystem: (items: ShoppingListItem[], isCurrent?: () => boolean) => Promise<void>;
+  pullFromSystem: (currentItems: ShoppingListItem[], isCurrent?: () => boolean) => Promise<PullResult | null>;
   dismissSyncBanner: () => Promise<void>;
 };
 
-export function useRemindersSync(enabled = true, pantryMode = false): UseRemindersSyncReturn {
+const EMPTY_ITEMS: ShoppingListItem[] = [];
+
+export function useRemindersSync(enabled = true, backendKey = "local", items: ShoppingListItem[] = EMPTY_ITEMS): UseRemindersSyncReturn {
   const { t } = useTranslation();
   const enabledRef = useRef(enabled);
   const epochRef = useRef(0);
-  const wasPantryRef = useRef(pantryMode);
-  const resumeRequiredRef = useRef(false);
-  if (enabledRef.current !== enabled) epochRef.current++;
-  if (wasPantryRef.current && !pantryMode) resumeRequiredRef.current = true;
-  wasPantryRef.current = pantryMode;
+  const mountedRef = useRef(true);
+  const backendRef = useRef(backendKey);
+  const previousItems = useRef(items);
+  const pendingRemap = useRef<{ previous: ShoppingListItem[]; next: ShoppingListItem[] } | null>(null);
+  if (enabledRef.current !== enabled || backendRef.current !== backendKey) epochRef.current++;
+  if (backendRef.current !== backendKey) {
+    pendingRemap.current = { previous: pendingRemap.current?.previous ?? previousItems.current, next: items };
+  } else if (pendingRemap.current) pendingRemap.current.next = items;
+  backendRef.current = backendKey;
+  previousItems.current = items;
   enabledRef.current = enabled;
+  useEffect(() => { const epoch = epochRef; mountedRef.current = true; return () => { mountedRef.current = false; epoch.current++; }; }, []);
+  const prepareMappings = useCallback(async (isCurrent: () => boolean) => {
+    const remap = pendingRemap.current;
+    if (!remap) return;
+    const next = remap.next;
+    await rebindReminderMappings(remap.previous, next, isCurrent);
+    if (isCurrent() && pendingRemap.current === remap && remap.next === next) pendingRemap.current = null;
+  }, []);
 
   const [available] = useState<boolean>(() => isRemindersAvailable());
   const [linked, setLinked] = useState(false);
+  const linkedRef = useRef(linked);
+  linkedRef.current = linked;
   const [syncing, setSyncing] = useState(false);
   const [listName] = useState<string | null>(available ? "AvoCook" : null);
   const [dismissed, setDismissed] = useState(false);
@@ -62,10 +81,11 @@ export function useRemindersSync(enabled = true, pantryMode = false): UseReminde
   }, []);
 
   const enableSync = useCallback(async (currentItems: ShoppingListItem[]) => {
-    if (!available || !enabledRef.current) return;
+    if (!available || !enabledRef.current || !mountedRef.current) return;
     const epoch = epochRef.current;
 
     const status = await getRemindersPermissionStatus();
+    if (!enabledRef.current || !mountedRef.current || epoch !== epochRef.current) return;
     if (status === "denied") {
       Alert.alert(
         t("shoppingList.syncPermissionDeniedTitle"),
@@ -78,9 +98,9 @@ export function useRemindersSync(enabled = true, pantryMode = false): UseReminde
       return;
     }
 
-    if (!enabledRef.current || epoch !== epochRef.current) return;
+    if (!enabledRef.current || !mountedRef.current || epoch !== epochRef.current) return;
     const result = await requestRemindersPermission();
-    if (!enabledRef.current || epoch !== epochRef.current) return;
+    if (!enabledRef.current || !mountedRef.current || epoch !== epochRef.current) return;
     if (result === "denied") {
       Alert.alert(
         t("shoppingList.syncPermissionDeniedTitle"),
@@ -96,25 +116,29 @@ export function useRemindersSync(enabled = true, pantryMode = false): UseReminde
     try {
       setSyncing(true);
       const listId = await findOrCreateAvoCookList();
-      if (!enabledRef.current || epoch !== epochRef.current) return;
+      if (!enabledRef.current || !mountedRef.current || epoch !== epochRef.current) return;
+      await prepareMappings(() => enabledRef.current && mountedRef.current && epoch === epochRef.current);
+      if (!enabledRef.current || !mountedRef.current || epoch !== epochRef.current) return;
       await AsyncStorage.setItem(SYNC_ENABLED_KEY, "true");
       if (currentItems.length > 0) {
-        await pushItemsToReminders(currentItems, listId);
+        await pushItemsToReminders(currentItems, listId, () => enabledRef.current && mountedRef.current && epoch === epochRef.current);
       }
-      if (epoch === epochRef.current) { resumeRequiredRef.current = false; setLinked(true); }
+      if (enabledRef.current && mountedRef.current && epoch === epochRef.current) setLinked(true);
     } catch {
       Alert.alert(t("shoppingList.syncErrorTitle"), t("shoppingList.syncErrorBody"));
     } finally {
       setSyncing(false);
     }
-  }, [available, t]);
+  }, [available, t, prepareMappings]);
   const disableSync = useCallback(async () => {
     Alert.alert(t("shoppingList.syncDisableConfirmTitle"), "", [
       {
         text: t("shoppingList.syncDisableConfirmKeep"),
         style: "cancel",
         onPress: () => {
+          epochRef.current++; linkedRef.current = false; setLinked(false);
           void (async () => {
+            await waitForRemindersPush();
             await AsyncStorage.setItem(SYNC_ENABLED_KEY, "false");
             await clearLinkedListId();
             await clearItemMap();
@@ -126,7 +150,9 @@ export function useRemindersSync(enabled = true, pantryMode = false): UseReminde
         text: t("shoppingList.syncDisableConfirmDelete"),
         style: "destructive",
         onPress: () => {
+          epochRef.current++; linkedRef.current = false; setLinked(false);
           void (async () => {
+            await waitForRemindersPush();
             try {
               const listId = await getLinkedListId();
               if (listId) await deleteAllReminders(listId);
@@ -144,41 +170,38 @@ export function useRemindersSync(enabled = true, pantryMode = false): UseReminde
   }, [t]);
 
   const pushToSystem = useCallback(
-    async (items: ShoppingListItem[]) => {
-      if (!linked || !enabledRef.current) return;
+    async (items: ShoppingListItem[], sourceIsCurrent: () => boolean = () => true) => {
+      if (!available || !linkedRef.current || !enabledRef.current || !mountedRef.current || !sourceIsCurrent()) return;
       const epoch = epochRef.current;
       try {
         const listId = await getLinkedListId();
-        if (!listId || !enabledRef.current || epoch !== epochRef.current) return;
-        await pushItemsToReminders(items, listId);
-        if (epoch === epochRef.current) resumeRequiredRef.current = false;
+        if (!listId || !enabledRef.current || !mountedRef.current || !sourceIsCurrent() || epoch !== epochRef.current) return;
+        await prepareMappings(() => enabledRef.current && mountedRef.current && linkedRef.current && sourceIsCurrent() && epoch === epochRef.current);
+        if (!enabledRef.current || !mountedRef.current || !sourceIsCurrent() || epoch !== epochRef.current) return;
+        await pushItemsToReminders(items, listId, () => enabledRef.current && mountedRef.current && linkedRef.current && sourceIsCurrent() && epoch === epochRef.current);
       } catch {
       }
     },
-    [linked]
+    [available, prepareMappings]
   );
 
   const pullFromSystem = useCallback(
-    async (currentItems: ShoppingListItem[]): Promise<PullResult | null> => {
-      if (!linked || !enabledRef.current) return null;
+    async (currentItems: ShoppingListItem[], sourceIsCurrent: () => boolean = () => true): Promise<PullResult | null> => {
+      if (!available || !linkedRef.current || !enabledRef.current || !mountedRef.current || !sourceIsCurrent()) return null;
       const epoch = epochRef.current;
       try {
         const listId = await getLinkedListId();
-        if (!listId || !enabledRef.current || epoch !== epochRef.current) return null;
-        if (resumeRequiredRef.current) {
-          // After leaving Pantry, align Reminders before importing its old mappings.
-          await pushItemsToReminders(currentItems, listId);
-          if (epoch === epochRef.current) resumeRequiredRef.current = false;
-          return null;
-        }
-        const result = await pullItemsFromReminders(currentItems, listId);
-        if (!enabledRef.current || epoch !== epochRef.current) return null;
+        if (!listId || !enabledRef.current || !mountedRef.current || !sourceIsCurrent() || epoch !== epochRef.current) return null;
+        await prepareMappings(() => enabledRef.current && mountedRef.current && linkedRef.current && sourceIsCurrent() && epoch === epochRef.current);
+        if (!enabledRef.current || !mountedRef.current || !sourceIsCurrent() || epoch !== epochRef.current) return null;
+        const result = await pullItemsFromReminders(currentItems, listId, () => enabledRef.current && mountedRef.current && linkedRef.current && sourceIsCurrent() && epoch === epochRef.current);
+        if (!enabledRef.current || !mountedRef.current || !sourceIsCurrent() || epoch !== epochRef.current) return null;
         return result.hasChanges ? result : null;
       } catch {
         return null;
       }
     },
-    [linked]
+    [available, prepareMappings]
   );
 
   const dismissSyncBanner = useCallback(async () => {
@@ -186,5 +209,5 @@ export function useRemindersSync(enabled = true, pantryMode = false): UseReminde
     await AsyncStorage.setItem("shopping.reminders.dismissed.v1", "true");
   }, []);
 
-  return { available: available && enabled, linked: linked && enabled, syncing, listName, dismissed, enableSync, disableSync, pushToSystem, pullFromSystem, dismissSyncBanner };
+  return { available, linked: available && linked, syncing, listName, dismissed, enableSync, disableSync, pushToSystem, pullFromSystem, dismissSyncBanner };
 }
