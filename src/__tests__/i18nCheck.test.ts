@@ -1,56 +1,107 @@
-import { test, expect } from 'vitest';
-import en from '../i18n/locales/en';
-import fr from '../i18n/locales/fr';
-import de from '../i18n/locales/de';
-import es from '../i18n/locales/es';
-import it from '../i18n/locales/it';
-import da from '../i18n/locales/da';
+import { readdirSync, readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { createInstance } from "i18next";
+import ts from "typescript";
+import { describe, expect, it } from "vitest";
+import en from "../i18n/locales/en";
+import fr from "../i18n/locales/fr";
+import de from "../i18n/locales/de";
+import es from "../i18n/locales/es";
+import itLocale from "../i18n/locales/it";
+import da from "../i18n/locales/da";
+import { SUPPORTED_LANGUAGES, resolveAppLanguage } from "../i18n/languages";
 
-const getKeys = (obj: any, prefix = ''): string[] => {
-  return Object.keys(obj).reduce((acc: string[], k) => {
-    const pre = prefix.length ? prefix + '.' : '';
-    if (typeof obj[k] === 'object' && obj[k] !== null && !Array.isArray(obj[k])) {
-      return [...acc, ...getKeys(obj[k], pre + k)];
+function flatten(object: Record<string, unknown>, prefix = ""): Record<string, string> {
+  return Object.fromEntries(Object.entries(object).flatMap(([key, value]) => {
+    const path = prefix ? `${prefix}.${key}` : key;
+    return typeof value === "object" && value !== null && !Array.isArray(value)
+      ? Object.entries(flatten(value as Record<string, unknown>, path))
+      : [[path, value as string]];
+  }));
+}
+
+const resources = { en, fr, de, es, it: itLocale, da };
+const reference = flatten(en.translation);
+const variables = (value: string) => [...value.matchAll(/\{\{\s*([^}]+?)\s*\}\}/g)].map((match) => match[1]).sort();
+const sourceRoot = fileURLToPath(new URL("../", import.meta.url));
+
+function sourceFiles(directory: string): string[] {
+  return readdirSync(directory, { withFileTypes: true }).flatMap((entry) => {
+    const path = `${directory}/${entry.name}`;
+    if (entry.name === "__tests__") return [];
+    return entry.isDirectory() ? sourceFiles(path) : /\.tsx?$/.test(path) ? [path] : [];
+  });
+}
+
+describe("translations before release", () => {
+  it("includes every supported app and native permission language", () => {
+    const config = JSON.parse(readFileSync(new URL("../../app.json", import.meta.url), "utf8")).expo;
+    const expected = SUPPORTED_LANGUAGES.map(({ value }) => value).sort();
+    expect(Object.keys(resources).sort()).toEqual(expected);
+    expect(Object.keys(config.locales).sort()).toEqual(expected);
+    const nativeKeys = Object.keys(JSON.parse(readFileSync(new URL("../../locales/en.json", import.meta.url), "utf8"))).sort();
+    for (const language of expected) {
+      const permissions = JSON.parse(readFileSync(new URL(`../../locales/${language}.json`, import.meta.url), "utf8"));
+      expect(Object.keys(permissions).sort(), language).toEqual(nativeKeys);
+      for (const value of Object.values(permissions)) expect(String(value).trim(), language).not.toBe("");
     }
-    return [...acc, pre + k];
-  }, []);
-};
+  });
 
-test('all locales have same keys', () => {
-  const enKeys = getKeys(en).sort();
-  const frKeys = getKeys(fr).sort();
-  const deKeys = getKeys(de).sort();
-  const esKeys = getKeys(es).sort();
-  const itKeys = getKeys(it).sort();
-  
-  const allLocales = { fr: frKeys, de: deKeys, es: esKeys, it: itKeys, da: getKeys(da).sort() };
-  
-  for (const [lang, keys] of Object.entries(allLocales)) {
-    const missingInLang = enKeys.filter(k => !keys.includes(k));
-    const extraInLang = keys.filter(k => !enKeys.includes(k));
-    if (missingInLang.length > 0 || extraInLang.length > 0) {
-      console.log(`Language ${lang} - Missing keys:`, missingInLang);
-      console.log(`Language ${lang} - Extra keys:`, extraInLang);
+  it.each(Object.entries(resources))("preserves all keys, text and interpolation variables in %s", (language, resource) => {
+    const locale = flatten(resource.translation);
+    expect(Object.keys(locale).sort()).toEqual(Object.keys(reference).sort());
+    for (const [key, value] of Object.entries(locale)) {
+      expect(typeof value, `${language}:${key}`).toBe("string");
+      // Empty placeholders intentionally leave room for the user's own text.
+      if (!["editor.ingredientPlaceholder", "editor.instructionPlaceholder"].includes(key)) {
+        expect(value.trim(), `${language}:${key}`).not.toBe("");
+      }
+      expect(variables(value), `${language}:${key}`).toEqual(variables(reference[key]));
+      expect(value, `${language}:${key}`).not.toMatch(/\uFFFD|\{\{[^}]*$/);
     }
-    expect(missingInLang).toEqual([]);
-    expect(extraInLang).toEqual([]);
-  }
-});
+  });
 
+  it("defines every literal translation key used by the app, even when a fallback is provided", () => {
+    const missing: string[] = [];
+    for (const file of sourceFiles(sourceRoot)) {
+      const text = readFileSync(file, "utf8");
+      if (!/\bt\s*\(/.test(text)) continue;
+      const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+      function visit(node: ts.Node) {
+        if (ts.isCallExpression(node) && (
+          (ts.isIdentifier(node.expression) && node.expression.text === "t") ||
+          (ts.isPropertyAccessExpression(node.expression) && node.expression.name.text === "t")
+        )) {
+          const key = node.arguments[0];
+          if (key && (ts.isStringLiteral(key) || ts.isNoSubstitutionTemplateLiteral(key)) && !(key.text in reference)) {
+            missing.push(`${file.slice(sourceRoot.length)}:${source.getLineAndCharacterOfPosition(key.getStart()).line + 1}: ${key.text}`);
+          }
+        }
+        ts.forEachChild(node, visit);
+      }
+      visit(source);
+    }
+    expect(missing).toEqual([]);
+  }, 20000);
 
-test('Pantry translations cover every language and preserve interpolation variables', () => {
-  const reference = en.translation.pantry;
-  const variables = (value: string) => [...value.matchAll(/\{\{(\w+)\}\}/g)].map((match) => match[1]).sort();
-  for (const locale of [fr, de, es, it, da]) {
-    const pantry = locale.translation.pantry;
-    expect(getKeys(pantry).sort()).toEqual(getKeys(reference).sort());
-    for (const key of Object.keys(reference) as (keyof typeof reference)[]) {
-      const expected = reference[key];
-      const actual = pantry[key];
-      if (typeof expected === 'string' && typeof actual === 'string') {
-        expect(actual.trim()).not.toBe('');
-        expect(variables(actual)).toEqual(variables(expected));
+  it.each(Object.entries(resources))("renders singular and plural counts in %s", async (language, resource) => {
+    const i18n = createInstance();
+    await i18n.init({ lng: language, fallbackLng: false, resources: { [language]: resource }, interpolation: { escapeValue: false } });
+    const locale = flatten(resource.translation);
+    for (const key of Object.keys(reference).filter((key) => key.endsWith("_one"))) {
+      const base = key.slice(0, -4);
+      expect(locale[`${base}_other`], `${language}:${base}`).toBeTypeOf("string");
+      for (const count of [0, 1, 2, 5, 21]) {
+        const translated = i18n.t(base, { count });
+        const suffix = new Intl.PluralRules(language).select(count);
+        const expected = (count === 0 ? locale[`${base}_zero`] : undefined) ?? locale[`${base}_${suffix}`] ?? locale[`${base}_other`];
+        expect(translated).toBe(expected.replace(/\{\{count\}\}/g, String(count)));
+        expect(translated).not.toContain("{{");
       }
     }
-  }
+  });
+
+  it.each([["fr-FR", "fr"], ["de_AT", "de"], [" DA-dk ", "da"], ["zh", "en"], [null, "en"]])("resolves device language %s to %s", (input, expected) => {
+    expect(resolveAppLanguage(input)).toBe(expected);
+  });
 });

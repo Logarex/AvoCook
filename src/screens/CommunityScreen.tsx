@@ -49,7 +49,7 @@ export function CommunityScreen({ navigation }: Props) {
   const targetLanguage = communityTranslationLanguage ?? resolveCommunityLanguage(i18n.resolvedLanguage ?? i18n.language);
 
   const sortedLanguages = React.useMemo(() => {
-    const allItem = { id: "all" as const, label: t("common.all", { defaultValue: "Tous" }), code: "ALL" };
+    const allItem = { id: "all" as const, label: t("common.all"), code: "ALL" };
     const sorted = [...RAW_LANGUAGES].sort((a, b) => a.label.localeCompare(b.label));
     return [allItem, ...sorted];
   }, [t]);

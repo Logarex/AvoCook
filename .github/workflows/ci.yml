@@ -1,0 +1,27 @@
+name: App checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint -- --max-warnings=0
+      - run: npm test
+      - name: Export iOS and Android production bundles
+        run: npx expo export --platform ios --platform android --output-dir dist

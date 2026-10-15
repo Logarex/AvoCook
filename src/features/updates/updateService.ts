@@ -31,6 +31,8 @@ function isNewerVersion(current: string, latest: string): boolean {
 }
 
 export async function checkForUpdates(): Promise<UpdateInfo | null> {
+  // Store installations receive updates through their own store.
+  if (Platform.OS !== "android") return null;
   if (Platform.OS === "android") {
     try {
       const installer = await DeviceInfo.getInstallerPackageName();

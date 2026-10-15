@@ -4,6 +4,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from "react";
 import { Vibration } from "react-native";
@@ -50,6 +51,10 @@ const TimerContext = createContext<TimerContextValue | null>(null);
 
 export function TimersProvider({ children }: { children: React.ReactNode }) {
   const [timersByRecipe, setTimersByRecipe] = useState<TimersByRecipe>({});
+  const currentTimers = useRef(timersByRecipe);
+  currentTimers.current = timersByRecipe;
+  const revisions = useRef(new Map<string, number>());
+  const pendingToggles = useRef(new Map<string, Promise<TimerNotificationState>>());
   const [notificationStatus, setNotificationStatus] =
     useState<TimerNotificationStatus>("unknown");
 
@@ -65,6 +70,15 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
 
   const ensureRecipeTimers = useCallback(
     (recipeId: string, presets: TimerPreset[]) => {
+      for (const [timerId, timer] of Object.entries(currentTimers.current[recipeId] ?? {})) {
+        const preset = presets.find((preset) => preset.id === timerId);
+        if (!preset || preset.minutes * 60 !== timer.durationSeconds) {
+          const key = JSON.stringify([recipeId, timerId]);
+          revisions.current.set(key, (revisions.current.get(key) ?? 0) + 1);
+          pendingToggles.current.delete(key);
+          void cancelTimerNotification(timer.notificationId);
+        }
+      }
       setTimersByRecipe((current) => {
         const currentRecipeTimers = current[recipeId] ?? {};
         const nextRecipeTimers: Record<string, TimerState> = {};
@@ -93,7 +107,10 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
 
   const resetRecipeTimer = useCallback(
     (recipeId: string, timerId: string) => {
-      const notificationId = timersByRecipe[recipeId]?.[timerId]?.notificationId;
+      const key = JSON.stringify([recipeId, timerId]);
+      revisions.current.set(key, (revisions.current.get(key) ?? 0) + 1);
+      pendingToggles.current.delete(key);
+      const notificationId = currentTimers.current[recipeId]?.[timerId]?.notificationId;
       void cancelTimerNotification(notificationId);
 
       setTimersByRecipe((current) => {
@@ -118,95 +135,72 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
         };
       });
     },
-    [timersByRecipe]
+    []
   );
 
   const toggleRecipeTimer = useCallback(
-    async (
-      recipeId: string,
-      timerId: string,
-      { body, title }: ToggleTimerOptions
-    ) => {
-      const timer = timersByRecipe[recipeId]?.[timerId];
-      if (!timer) {
-        return notificationStatus === "unknown" ? "unavailable" : notificationStatus;
-      }
+    (recipeId: string, timerId: string, { body, title }: ToggleTimerOptions): Promise<TimerNotificationState> => {
+      const key = JSON.stringify([recipeId, timerId]);
+      const pending = pendingToggles.current.get(key);
+      if (pending) return pending;
+      const revision = revisions.current.get(key) ?? 0;
+      const isCurrent = () => (revisions.current.get(key) ?? 0) === revision;
+      const operation = (async (): Promise<TimerNotificationState> => {
+        const timer = currentTimers.current[recipeId]?.[timerId];
+        if (!timer) return notificationStatus === "unknown" ? "unavailable" : notificationStatus;
 
-      if (timer.running) {
-        await cancelTimerNotification(timer.notificationId);
-        setTimersByRecipe((current) => {
-          const recipeTimers = current[recipeId];
-          const currentTimer = recipeTimers?.[timerId];
-          if (!recipeTimers || !currentTimer) {
-            return current;
-          }
-
-          return {
-            ...current,
-            [recipeId]: {
-              ...recipeTimers,
-              [timerId]: {
+        if (timer.running) {
+          await cancelTimerNotification(timer.notificationId);
+          if (!isCurrent()) return "ready";
+          setTimersByRecipe((current) => {
+            const recipeTimers = current[recipeId];
+            const currentTimer = recipeTimers?.[timerId];
+            if (!currentTimer || !isCurrent()) return current;
+            return {
+              ...current,
+              [recipeId]: { ...recipeTimers, [timerId]: {
                 ...currentTimer,
                 endsAt: undefined,
                 notificationId: null,
-                remainingSeconds: Math.max(
-                  0,
-                  Math.ceil(
-                    ((currentTimer.endsAt ?? Date.now()) - Date.now()) / 1000
-                  )
-                ),
+                remainingSeconds: Math.max(0, Math.ceil(((currentTimer.endsAt ?? Date.now()) - Date.now()) / 1000)),
                 running: false
-              }
-            }
+              } }
+            };
+          });
+          return "ready";
+        }
+
+        const remainingSeconds = timer.remainingSeconds > 0 ? timer.remainingSeconds : timer.durationSeconds;
+        const scheduled = await scheduleTimerNotification({ body, recipeId, seconds: remainingSeconds, timerId, title });
+        if (!isCurrent()) {
+          await cancelTimerNotification(scheduled.notificationId);
+          return scheduled.state;
+        }
+        setNotificationStatus(scheduled.state);
+        if (scheduled.state !== "ready") return scheduled.state;
+
+        const endsAt = Date.now() + remainingSeconds * 1000;
+        setTimersByRecipe((current) => {
+          const recipeTimers = current[recipeId];
+          const currentTimer = recipeTimers?.[timerId];
+          if (!currentTimer || !isCurrent()) return current;
+          return {
+            ...current,
+            [recipeId]: { ...recipeTimers, [timerId]: {
+              ...currentTimer, endsAt, notificationId: scheduled.notificationId,
+              remainingSeconds, running: true
+            } }
           };
         });
         return "ready";
-      }
-
-      const remainingSeconds =
-        timer.remainingSeconds > 0 ? timer.remainingSeconds : timer.durationSeconds;
-      const scheduledNotification = await scheduleTimerNotification({
-        body,
-        recipeId,
-        seconds: remainingSeconds,
-        timerId,
-        title
-      });
-      setNotificationStatus(scheduledNotification.state);
-
-      if (scheduledNotification.state !== "ready") {
-        return scheduledNotification.state;
-      }
-
-      const endsAt = Date.now() + remainingSeconds * 1000;
-      setTimersByRecipe((current) => {
-        const recipeTimers = current[recipeId];
-        const currentTimer = recipeTimers?.[timerId];
-        if (!recipeTimers || !currentTimer) {
-          return current;
-        }
-
-        return {
-          ...current,
-          [recipeId]: {
-            ...recipeTimers,
-            [timerId]: {
-              ...currentTimer,
-              endsAt,
-              notificationId: scheduledNotification.notificationId,
-              remainingSeconds:
-                currentTimer.remainingSeconds > 0
-                  ? currentTimer.remainingSeconds
-                  : currentTimer.durationSeconds,
-              running: true
-            }
-          }
-        };
-      });
-
-      return "ready";
+      })();
+      pendingToggles.current.set(key, operation);
+      void operation.finally(() => {
+        if (pendingToggles.current.get(key) === operation) pendingToggles.current.delete(key);
+      }).catch(() => undefined);
+      return operation;
     },
-    [notificationStatus, timersByRecipe]
+    [notificationStatus]
   );
 
   useEffect(() => {
@@ -231,7 +225,7 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
       setTimersByRecipe((current) => {
         const recipeTimers = current[event.recipeId];
         const timer = recipeTimers?.[event.timerId];
-        if (!recipeTimers || !timer) {
+        if (!recipeTimers || !timer || timer.notificationId !== event.notificationId) {
           return current;
         }
 

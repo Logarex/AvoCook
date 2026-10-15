@@ -48,7 +48,7 @@ Chaque ingrédient et instruction conserve son Markdown, y compris les paragraph
 
 ### Liste de courses
 
-- Collaborez sur vos listes de courses en temps réel à l'aide d'un code à 6 chiffres, avec notifications push et suivi des participants ;
+- Partagez vos listes de courses avec un code à 6 caractères, un compteur de participants et des alertes locales lorsque l’application fonctionne ;
 - Copier les ingrédients dans le presse-papiers en un geste ;
 - Exporter une liste de courses vers les Rappels iOS pour profiter du partage Apple et de l'intégration Siri.
 
@@ -62,7 +62,7 @@ Chaque ingrédient et instruction conserve son Markdown, y compris les paragraph
 - Sauvegarder toutes les recettes dans un fichier JSON et les restaurer ;
 - **Optionnel** : connecter un serveur Nextcloud Cookbook pour synchroniser les recettes entre appareils. Les données circulent directement entre l'app et votre serveur, sans passer par un service tiers.
 
-> En mode local, tout reste sur l'appareil. Pas de compte, pas de cloud, pas de tracking.
+> Les recettes locales restent sur cet appareil, sauf synchronisation, partage ou exportation. La communauté utilise Firebase, avec une session anonyme au démarrage. Voir [Confidentialité et données](PRIVACY.md).
 
 ---
 

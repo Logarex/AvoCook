@@ -325,7 +325,7 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
           <View style={[styles.translatedBadge, { backgroundColor: colors.chip }]}>
             <Languages color={colors.primary} size={14} />
             <AppText variant="caption" style={{ color: colors.primary, fontWeight: "600" }}>
-              {t("community.translatedNotice", { defaultValue: "Traduit automatiquement" })}
+              {t("community.translatedNotice")}
             </AppText>
           </View>
         ) : null}
@@ -381,7 +381,7 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
            <Metric icon={Users} label={t("recipes.servings.title")} value={`${activeRecipe.servings}`} />
         ) : null}
         {activeRecipe.nutriScore ? (
-           <Metric icon={HeartPulse} label={t("recipes.health.nutriScore", { defaultValue: "Nutri-Score" })} value={activeRecipe.nutriScore} />
+           <Metric icon={HeartPulse} label={t("recipes.health.nutriScore")} value={activeRecipe.nutriScore} />
         ) : null}
       </View>
 
@@ -433,7 +433,7 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
       {activeRecipe.sourceUrl ? (
         <PrimaryButton
           icon={LinkIcon}
-          label={t("recipes.sourceLink", { defaultValue: "Lien source" })}
+          label={t("recipes.openSource")}
           onPress={() => void Linking.openURL(activeRecipe.sourceUrl!)}
           variant="secondary"
           style={styles.actionBtn}

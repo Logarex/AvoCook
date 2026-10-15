@@ -48,7 +48,7 @@ Ogni ingrediente e istruzione conserva il proprio Markdown, inclusi paragrafi ed
 
 ### Lista della spesa
 
-- Collabora alle liste della spesa in tempo reale tramite un codice a 6 cifre, con notifiche push e tracciamento dei partecipanti;
+- Condividi liste della spesa con un codice di 6 caratteri, un conteggio dei partecipanti e avvisi locali mentre AvoCook è in esecuzione;
 - Copiare gli ingredienti negli appunti con un tocco;
 - Esportare una lista della spesa in Promemoria iOS per sfruttare la condivisione Apple e l'integrazione con Siri.
 
@@ -62,7 +62,7 @@ Ogni ingrediente e istruzione conserva il proprio Markdown, inclusi paragrafi ed
 - Eseguire il backup di tutte le ricette in un file JSON e ripristinarle;
 - **Facoltativo**: collegare un server Nextcloud Cookbook per sincronizzare le ricette tra i dispositivi. I dati passano direttamente tra l'app e il tuo server, senza intermediari.
 
-> In modalità locale, tutto rimane sul dispositivo. Nessun account, nessun cloud, nessun tracciamento.
+> Le ricette locali restano sul dispositivo, salvo sincronizzazione, condivisione o esportazione. La community usa Firebase con una sessione anonima all’avvio. Vedi [Privacy e dati](PRIVACY.md).
 
 ---
 

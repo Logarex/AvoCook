@@ -38,9 +38,14 @@ export function useOnboarding(): OnboardingState {
       if (isIntroDone && lastVersion && lastVersion !== currentVersion) {
         setShowUpdateScreen(true);
       } else if (!lastVersion) {
-        void AsyncStorage.setItem(LAST_SEEN_VERSION_KEY, currentVersion);
+        void AsyncStorage.setItem(LAST_SEEN_VERSION_KEY, currentVersion).catch((error) => {
+          console.warn("onboarding", "Could not save the version marker", error);
+        });
       }
 
+    }).catch((error) => {
+      console.warn("onboarding", "Could not load onboarding state", error);
+    }).finally(() => {
       setOnboardingHydrated(true);
     });
   }, []);

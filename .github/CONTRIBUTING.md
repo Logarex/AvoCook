@@ -2,7 +2,7 @@
 
 Thanks for taking the time to contribute to AvoCook.
 
-This is a solo project, but pull requests, bug reports, and suggestions are genuinely welcome.
+This is a solo project, but pull requests, bug reports, and suggestions are welcome.
 
 ---
 
@@ -36,7 +36,7 @@ All three must pass. The CI will fail otherwise.
 
 - TypeScript everywhere — no implicit `any`.
 - Components in `src/components`, screens in `src/screens`, business logic in `src/features`.
-- If you add a user-visible string, add translations for all 5 languages (`src/i18n/locales/`).
+- If you add a user-visible string, add translations for all 6 languages (`src/i18n/locales/`).
 - If you add a network or storage feature, update `PRIVACY.md` and all its translations (`docs/*/PRIVACY.md`).
 
 ## Opening a PR

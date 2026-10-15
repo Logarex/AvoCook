@@ -1,0 +1,85 @@
+{
+  "date": "2026-10-14",
+  "platforms": [
+    "ios",
+    "android"
+  ],
+  "node": "v26.0.0",
+  "checks": {
+    "tests": {
+      "passed": true,
+      "files": 46,
+      "tests": 534,
+      "finalVerifiedDate": "2026-10-15",
+      "finalLog": "tests-final-2026-10-15.txt"
+    },
+    "typecheck": {
+      "passed": true
+    },
+    "lint": {
+      "passed": true
+    },
+    "doctor": {
+      "passed": true
+    },
+    "export": {
+      "passed": true,
+      "platforms": [
+        "ios",
+        "android"
+      ]
+    },
+    "iosReleaseBuild": {
+      "passed": true,
+      "target": "iOS 27 simulator arm64",
+      "localAdHocSigningPassed": true,
+      "distributionSigningVerified": false
+    },
+    "androidReleaseBuild": {
+      "passed": true,
+      "finalVerifiedDate": "2026-10-15"
+    },
+    "androidFullLint": {
+      "passed": false,
+      "blocker": "react-native-worklets lint analysis: Cannot find a KaModule for the VirtualFile"
+    },
+    "androidTimerModuleAnalysis": {
+      "taskCompleted": true,
+      "workletsAnalysisExcluded": true,
+      "partialFindings": [
+        "NotificationPermission (conditional)",
+        "UseKtx (2 warnings)"
+      ]
+    },
+    "manualUI": {
+      "status": "partial",
+      "verified": [
+        "launch",
+        "French onboarding",
+        "local mode",
+        "empty library",
+        "editor opens",
+        "text input"
+      ],
+      "notVerified": [
+        "recipe save",
+        "visual review of every language",
+        "full device acceptance tests"
+      ],
+      "resumeBlocked": "UI tool timeout on 2026-10-15"
+    }
+  },
+  "npmAudit": {
+    "info": 0,
+    "low": 0,
+    "moderate": 0,
+    "high": 19,
+    "critical": 0,
+    "total": 19
+  },
+  "completedDate": "2026-10-15",
+  "verifiedNodeVersions": [
+    "22.22.3",
+    "26.0.0"
+  ]
+}

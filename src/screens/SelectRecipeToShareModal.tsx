@@ -133,7 +133,7 @@ export function SelectRecipeToShareModal({
                               ...recipe,
                               localMeta: { ...recipe.localMeta, communityId: newId }
                             });
-                            Alert.alert(t("community.submitSuccessTitle"), t("community.submitSuccessBody", { defaultValue: "Merci pour votre contribution ! La recette est en ligne." }));
+                            Alert.alert(t("community.submitSuccessTitle"), t("community.submitSuccessBody"));
                             if (onSuccess) onSuccess(); else onClose();
                           } catch (err) {
                             console.warn("community", "Submit recipe failed", err);
@@ -167,7 +167,7 @@ export function SelectRecipeToShareModal({
                 });
                 Alert.alert(
                   t("community.submitSuccessTitle"),
-                  t("community.submitSuccessBody", { defaultValue: "Merci pour votre contribution ! La recette est en ligne." })
+                  t("community.submitSuccessBody")
                 );
                 if (onSuccess) {
                   onSuccess();
@@ -232,7 +232,7 @@ export function SelectRecipeToShareModal({
         >
           <View style={styles.header}>
             <AppText variant="subtitle" numberOfLines={1}>
-              {t("community.selectRecipeToShare", { defaultValue: "Partager une recette" })}
+              {t("community.selectRecipeToShare")}
             </AppText>
             <IconButton icon={X} label={t("common.close")} onPress={onClose} disabled={submitting} />
           </View>

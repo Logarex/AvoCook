@@ -52,7 +52,7 @@ Each ingredient and instruction keeps its own Markdown, including paragraphs and
 
 ### Shopping list
 
-- Collaborate on grocery lists in real-time using a 6-digit code, push notifications, and active participant tracking;
+- Share grocery lists using a 6-character code, with a participant count and local change alerts while AvoCook is running;
 - Copy ingredients to the clipboard with a tap;
 - Choose one shopping mode at a time: local, AvoCook live sharing, or an optional [Nextcloud Pantry household list](docs/NEXTCLOUD_PANTRY.md). Your items are carried over when switching modes;
 - Export a shopping list to iOS Reminders to take advantage of Apple's sharing and Siri integration.
@@ -67,7 +67,7 @@ Each ingredient and instruction keeps its own Markdown, including paragraphs and
 - Back up all recipes to a JSON file and restore them;
 - **Optional**: connect a Nextcloud Cookbook server to sync recipes across devices. All data goes directly between the app and your server — nothing passes through a third-party service.
 
-> In local mode, everything stays on your device. No account, no cloud, no tracking.
+> Local recipes stay on your device unless you sync, share or export them. Community features use Firebase, including an anonymous session at startup. See [Privacy and data](PRIVACY.md).
 
 ---
 

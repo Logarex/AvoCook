@@ -498,7 +498,7 @@ function RecipeDetailContent({
               });
               Alert.alert(
                 t("community.submitSuccessTitle"),
-                t("community.submitSuccessBody", { defaultValue: "Merci pour votre contribution ! La recette est en ligne." })
+                t("community.submitSuccessBody")
               );
             } catch (err) {
               console.warn("community", "Submit recipe failed", err);

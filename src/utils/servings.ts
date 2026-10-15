@@ -12,7 +12,7 @@ const unicodeFractions: Record<string, number> = {
   "⅞": 0.875
 };
 
-const unicodeFractionPattern = /[¼½¾⅓⅔⅛⅜⅝⅞]/g;
+const unicodeFractionPattern = /(?:(\d+)[ \t]*)?([¼½¾⅓⅔⅛⅜⅝⅞])/g;
 
 export function scaleIngredientLine(ingredient: string, factor: number) {
   if (!Number.isFinite(factor) || factor <= 0 || Math.abs(factor - 1) < 0.001) {
@@ -35,7 +35,8 @@ export function scaleIngredientLine(ingredient: string, factor: number) {
     .replace(/<https?:\/\/[^>]+>/g, (url) => protectText(url))
     .replace(/https?:\/\/[^\s<>]+/g, (url) => protectText(url))
     .replace(/^\s{0,3}\[[^\]]+\]:[^\n]+/gm, (reference) => protectText(reference))
-    .replace(/^(\s*)(\d+)([.)]\s+)/gm, (_, space: string, number: string, marker: string) => `${space}${protectText(number)}${marker}`);
+    .replace(/^(\s*)(\d+)([.)]\s+)/gm, (_, space: string, number: string, marker: string) => `${space}${protectText(number)}${marker}`)
+    .replace(/\b\d+(?:[,.]\d+)?\s*%/g, (percentage) => protectText(percentage));
 
   const withMixedFractions = protectedMarkdown.replace(
     /\b(\d+)\s+(\d+)\/(\d+)\b/g,
@@ -54,7 +55,8 @@ export function scaleIngredientLine(ingredient: string, factor: number) {
 
   const withUnicodeFractions = withAsciiFractions.replace(
     unicodeFractionPattern,
-    (fraction) => protect(unicodeFractions[fraction] ?? 0)
+    (_, whole: string | undefined, fraction: string) =>
+      protect(Number(whole ?? 0) + (unicodeFractions[fraction] ?? 0))
   );
 
   const withNumbers = withUnicodeFractions.replace(

@@ -215,7 +215,7 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
             containerStyle={{ flex: 1 }}
           />
           <View style={{ flex: 1, gap: spacing.xs }}>
-            <AppText variant="label">{t("recipes.health.nutriScore", { defaultValue: "Nutri-Score" })}</AppText>
+            <AppText variant="label">{t("recipes.health.nutriScore")}</AppText>
             <View style={styles.nutriGrid}>
               {["A", "B", "C", "D", "E"].map((score) => {
                 const selected = nutriScore === score;

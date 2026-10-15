@@ -1,0 +1,4 @@
+
+> avocook-mobile@4.0.1 typecheck
+> tsc --noEmit
+

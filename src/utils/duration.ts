@@ -1,17 +1,21 @@
 const isoDurationPattern =
-  /^P(?:(?<days>\d+)D)?(?:T(?:(?<hours>\d+)H)?(?:(?<minutes>\d+)M)?(?:(?<seconds>\d+)S)?)?$/;
+  /^P(?:(?<days>\d+(?:[.,]\d+)?)D)?(?:T(?:(?<hours>\d+(?:[.,]\d+)?)H)?(?:(?<minutes>\d+(?:[.,]\d+)?)M)?(?:(?<seconds>\d+(?:[.,]\d+)?)S)?)?$/i;
 
 export function minutesToIsoDuration(minutes: number | null): string | null {
-  if (!minutes || minutes <= 0 || Number.isNaN(minutes)) {
+  if (minutes === null || minutes <= 0 || !Number.isFinite(minutes)) {
     return null;
   }
 
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
+  const totalSeconds = Math.round(minutes * 60);
+  if (!Number.isSafeInteger(totalSeconds) || totalSeconds <= 0) return null;
+  const hours = Math.floor(totalSeconds / 3600);
+  const remainingMinutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const suffix = seconds ? `${seconds}S` : "";
   if (hours > 0) {
-    return `PT${hours}H${remainingMinutes}M`;
+    return `PT${hours}H${remainingMinutes}M${suffix}`;
   }
-  return `PT${remainingMinutes}M`;
+  return `PT${remainingMinutes}M${suffix}`;
 }
 
 export function isoDurationToMinutes(duration?: string | null): number | null {
@@ -24,19 +28,16 @@ export function isoDurationToMinutes(duration?: string | null): number | null {
     return null;
   }
 
-  if (/^\d+$/.test(trimmed)) {
-    const val = Number(trimmed);
-    return val > 0 ? val : null;
+  if (/^\d+(?:[.,]\d+)?$/.test(trimmed)) {
+    const val = Math.ceil(Number(trimmed.replace(",", ".")));
+    return Number.isSafeInteger(val) && val > 0 ? val : null;
   }
 
   const match = trimmed.match(isoDurationPattern);
   if (match?.groups) {
-    const days = Number(match.groups.days ?? 0);
-    const hours = Number(match.groups.hours ?? 0);
-    const minutes = Number(match.groups.minutes ?? 0);
-    const seconds = Number(match.groups.seconds ?? 0);
-    const total = days * 24 * 60 + hours * 60 + minutes + Math.ceil(seconds / 60);
-    return total > 0 ? total : null;
+    const amount = (value?: string) => Number((value ?? "0").replace(",", "."));
+    const total = Math.ceil(amount(match.groups.days) * 24 * 60 + amount(match.groups.hours) * 60 + amount(match.groups.minutes) + amount(match.groups.seconds) / 60);
+    return Number.isSafeInteger(total) && total > 0 ? total : null;
   }
 
   const textMatch = trimmed.match(/^(?:(\d+)\s*h(?:ours?)?)?\s*(\d+)?(?:\s*m(?:in)?)?$/i);
@@ -44,7 +45,7 @@ export function isoDurationToMinutes(duration?: string | null): number | null {
     const hours = Number(textMatch[1] ?? 0);
     const mins = Number(textMatch[2] ?? 0);
     const total = hours * 60 + mins;
-    return total > 0 ? total : null;
+    return Number.isSafeInteger(total) && total > 0 ? total : null;
   }
 
   return null;

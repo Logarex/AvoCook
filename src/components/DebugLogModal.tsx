@@ -3,12 +3,14 @@ import {
   Check,
   Copy,
   FileText,
+  RefreshCw,
   Share2,
   Trash2,
   X
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Modal,
   Platform,
   Pressable,
@@ -37,6 +39,19 @@ export function DebugLogModal({ visible, onClose, serverUrl }: Props) {
   const [copied, setCopied] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>(() => logService.getLogs());
 
+  useEffect(() => {
+    if (visible) {
+      setLogs(logService.getLogs());
+      setCopied(false);
+    }
+  }, [visible]);
+
+  useEffect(() => {
+    if (!copied) return;
+    const timeout = setTimeout(() => setCopied(false), 2500);
+    return () => clearTimeout(timeout);
+  }, [copied]);
+
   if (!visible) return null;
 
   const isSelfSigned = logService.isLikelySelfSignedSslError();
@@ -46,13 +61,25 @@ export function DebugLogModal({ visible, onClose, serverUrl }: Props) {
   };
 
   const handleCopy = async () => {
-    await logService.copyLogsToClipboard(serverUrl);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2500);
+    try {
+      if (!(await logService.copyLogsToClipboard(serverUrl))) {
+        Alert.alert(t("logs.exportFailedTitle"), t("logs.exportFailed"));
+        return;
+      }
+      setCopied(true);
+    } catch {
+      Alert.alert(t("logs.exportFailedTitle"), t("logs.exportFailed"));
+    }
   };
 
   const handleShare = async () => {
-    await logService.shareLogReport(serverUrl);
+    try {
+      if (!(await logService.shareLogReport(serverUrl))) {
+        Alert.alert(t("logs.exportFailedTitle"), t("logs.exportFailed"));
+      }
+    } catch {
+      Alert.alert(t("logs.exportFailedTitle"), t("logs.exportFailed"));
+    }
   };
 
   const handleClear = () => {
@@ -76,6 +103,12 @@ export function DebugLogModal({ visible, onClose, serverUrl }: Props) {
                 {t("auth.debugLogsTitle", "Logs & Débogage")}
               </AppText>
             </View>
+            <IconButton
+              icon={RefreshCw}
+              label={t("logs.refresh")}
+              onPress={handleRefresh}
+              style={styles.closeBtn}
+            />
             <IconButton
               icon={X}
               label={t("common.close", "Fermer")}

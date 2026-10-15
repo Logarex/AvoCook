@@ -29,4 +29,21 @@ describe("duration utilities", () => {
     expect(humanDuration("0")).toBeNull();
     expect(humanDuration("PT0M")).toBeNull();
   });
+
+  it("reads fractional ISO durations from imported recipes", () => {
+    expect(isoDurationToMinutes("PT1.5H")).toBe(90);
+    expect(isoDurationToMinutes("PT1,5H")).toBe(90);
+    expect(isoDurationToMinutes("PT0.5M30S")).toBe(1);
+    expect(isoDurationToMinutes("PT1M30.5S")).toBe(2);
+    expect(minutesToIsoDuration(1.5)).toBe("PT1M30S");
+    expect(isoDurationToMinutes(minutesToIsoDuration(1.5))).toBe(2);
+  });
+
+  it("rejects non-finite and overflowing durations", () => {
+    for (const value of [NaN, Infinity, -Infinity, Number.MAX_VALUE, -1, 0]) {
+      expect(minutesToIsoDuration(value)).toBeNull();
+    }
+    expect(isoDurationToMinutes("9".repeat(400))).toBeNull();
+    expect(isoDurationToMinutes(`PT${"9".repeat(400)}H`)).toBeNull();
+  });
 });

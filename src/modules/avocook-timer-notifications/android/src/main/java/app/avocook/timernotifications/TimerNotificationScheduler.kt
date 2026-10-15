@@ -123,7 +123,8 @@ internal object TimerNotificationScheduler {
   }
 
   fun showNotification(context: Context, intent: Intent) {
-    if (!hasNotificationPermission(context)) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+      context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
       return
     }
 

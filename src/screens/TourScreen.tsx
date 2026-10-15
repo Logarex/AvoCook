@@ -374,7 +374,7 @@ function ContactLinks({
         <Pressable
           onPress={openEmail}
           accessibilityRole="link"
-          accessibilityLabel="Email"
+          accessibilityLabel={t("support.email")}
           style={({ pressed }) => [
             styles.contactCardHorizontal,
             {
@@ -385,7 +385,7 @@ function ContactLinks({
         >
           <Mail color={colors.primary} size={20} />
           <AppText variant="label" style={{ fontSize: 14 }}>
-            Email
+            {t("support.emailLabel")}
           </AppText>
           <ExternalLink color={colors.textMuted} size={14} />
         </Pressable>
@@ -395,7 +395,7 @@ function ContactLinks({
         <Pressable
           onPress={openWebsite}
           accessibilityRole="link"
-          accessibilityLabel="Website"
+          accessibilityLabel={t("support.website")}
           style={({ pressed }) => [
             styles.contactCardHorizontal,
             {
@@ -406,7 +406,7 @@ function ContactLinks({
         >
           <Globe color={colors.primary} size={20} />
           <AppText variant="label" style={{ fontSize: 14 }}>
-            Web
+            {t("support.website")}
           </AppText>
           <ExternalLink color={colors.textMuted} size={14} />
         </Pressable>

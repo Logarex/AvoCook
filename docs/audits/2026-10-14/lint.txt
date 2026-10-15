@@ -1,0 +1,4 @@
+
+> avocook-mobile@4.0.1 lint
+> eslint . --ext .ts,.tsx --max-warnings=0
+

@@ -1,0 +1,16 @@
+
+> avocook-mobile@4.0.1 test
+> vitest run
+
+(!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
+  - ESM syntax in a file loaded as CommonJS (vitest.config.ts:1:1). Use a `.mjs` extension or set `"type": "module"` in the closest package.json
+Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.
+
+ RUN  v4.1.11 /Users/louischabert/GitHub/AvoCook
+
+
+ Test Files  46 passed (46)
+      Tests  534 passed (534)
+   Start at  15:01:12
+   Duration  2.76s (transform 2.27s, setup 0ms, import 4.87s, tests 3.45s, environment 7ms)
+

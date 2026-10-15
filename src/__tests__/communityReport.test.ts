@@ -1,6 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { REPORT_THRESHOLD, reportCommunityRecipe, sanitizeIsoDuration } from "../features/community/communityClient";
-import * as firebaseClient from "../features/firebase/firebaseClient";
 import * as firestore from "firebase/firestore";
 
 vi.mock("firebase/firestore", async () => {

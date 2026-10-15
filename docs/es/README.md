@@ -46,7 +46,7 @@ Cada ingrediente e instrucción conserva su Markdown, incluidos párrafos y list
 
 ### Lista de la compra
 
-- Colabora en listas de compras en tiempo real mediante un código de 6 dígitos, con notificaciones push y seguimiento de participantes;
+- Comparte listas de compras con un código de 6 caracteres, un contador de participantes y avisos locales mientras AvoCook está en ejecución;
 - Copiar los ingredientes al portapapeles con un toque;
 - Exportar una lista de la compra a Recordatorios de iOS para aprovechar el sistema de compartir de Apple y la integración con Siri.
 
@@ -60,7 +60,7 @@ Cada ingrediente e instrucción conserva su Markdown, incluidos párrafos y list
 - Hacer una copia de seguridad de todas las recetas en un archivo JSON y restaurarlas;
 - **Opcional**: conectar un servidor Nextcloud Cookbook para sincronizar recetas entre dispositivos. Los datos van directamente entre la app y tu servidor, sin pasar por ningún servicio de terceros.
 
-> En modo local, todo se queda en tu dispositivo. Sin cuenta, sin nube, sin rastreo.
+> Las recetas locales se quedan en el dispositivo salvo que las sincronices, compartas o exportes. La comunidad usa Firebase con una sesión anónima al iniciar. Consulta [Privacidad y datos](PRIVACY.md).
 
 ---
 

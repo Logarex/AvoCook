@@ -34,4 +34,15 @@ describe("scaleIngredientLine", () => {
   it("does not change ingredient names that contain numbers", () => {
     expect(scaleIngredientLine("vitamine B12", 2)).toBe("vitamine B12");
   });
+
+  it("scales a whole number and a Unicode fraction as one quantity", () => {
+    expect(scaleIngredientLine("2½ tasses de farine", 2)).toBe("5 tasses de farine");
+    expect(scaleIngredientLine("1 ½ citron", 2)).toBe("3 citron");
+    expect(scaleIngredientLine("1⅓ tasse de riz", 3)).toBe("4 tasse de riz");
+  });
+
+  it("keeps ingredient percentages when the serving count changes", () => {
+    expect(scaleIngredientLine("200 g de chocolat à 70 %", 2)).toBe("400 g de chocolat à 70 %");
+    expect(scaleIngredientLine("100 ml de crème à 30%", 0.5)).toBe("50 ml de crème à 30%");
+  });
 });

@@ -32,7 +32,8 @@ type NativeTimerNotificationsModule = {
 };
 export type TimerNotificationState = "denied" | "ready" | "unavailable";
 
-let configured = false;
+let configuredLabels: string | null = null;
+let configuring: Promise<boolean> | null = null;
 
 function timerTranslation(key: string, fallback: string) {
   const value = i18n.t(key, { defaultValue: fallback });
@@ -62,22 +63,29 @@ export async function configureTimerNotifications() {
     return false;
   }
 
-  if (configured) {
-    return true;
-  }
+  const stopTitle = timerTranslation("recipes.timers.stopAction", "Stop");
+  const channelName = timerTranslation("recipes.timers.title", "Timers");
+  const labels = JSON.stringify([stopTitle, channelName]);
+  while (configuring) await configuring;
+  if (configuredLabels === labels) return true;
 
+  const operation = (async () => {
+    try {
+      const result = await notifications.configureTimerNotifications(stopTitle, channelName);
+      if (!result) return false;
+      configuredLabels = labels;
+      return true;
+    } catch (error) {
+      console.warn("[AvoCookTimers] Timer notification configuration failed.", error);
+      return false;
+    }
+  })();
+  configuring = operation;
   try {
-    await notifications.configureTimerNotifications(
-      timerTranslation("recipes.timers.stopAction", "Stop"),
-      timerTranslation("recipes.timers.title", "Timers")
-    );
-  } catch (error) {
-    console.warn("[AvoCookTimers] Timer notification configuration failed.", error);
-    return false;
+    return await operation;
+  } finally {
+    if (configuring === operation) configuring = null;
   }
-
-  configured = true;
-  return true;
 }
 
 export async function requestTimerNotificationPermission(): Promise<TimerNotificationState> {

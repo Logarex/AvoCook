@@ -1,35 +1,37 @@
-# Informativa sulla privacy
+# Privacy e dati
 
-AvoCook non raccoglie alcun dato e non include pubblicità né strumenti di analisi di alcun tipo.
+Aggiornamento: 14 ottobre 2026. AvoCook non contiene pubblicità né strumenti di analisi. Alcune funzioni usano i servizi di rete descritti qui sotto.
 
-## Modalità locale
+## Ricette, Nextcloud e backup
 
-In modalità locale — la modalità predefinita — ricette, immagini e impostazioni sono memorizzate esclusivamente sul tuo dispositivo tramite SQLite e il file system locale. Non viene inviato nulla da nessuna parte.
+Le ricette e le foto locali restano sul dispositivo. Vengono trasmesse quando scegli di sincronizzarle, condividerle, esportarle o pubblicarle. Nextcloud Cookbook e Pantry scambiano dati direttamente con il server scelto. Le copie Pantry e i trasferimenti in corso sono separati per account Nextcloud. La disconnessione non copia automaticamente gli articoli Pantry nella lista locale.
 
-## Sincronizzazione Nextcloud (facoltativa)
+Le credenziali Nextcloud e le chiavi API IA sono conservate nella memoria sicura del sistema tramite Expo SecureStore. Ricette, foto e preferenze ordinarie usano SQLite, file o la memoria dell’app. iOS può conservare i dati sicuri dopo una reinstallazione; anche i backup del dispositivo possono ripristinare dati. Esporta le ricette prima di disinstallare.
 
-Se scegli di collegare un server Nextcloud, le ricette vengono sincronizzate direttamente tra l'app e quel server. Nessun servizio di terze parti è coinvolto.
+HTTPS è l’impostazione predefinita. Un server configurato esplicitamente con HTTP trasmette credenziali, ricette e immagini senza cifratura del trasporto. L’app mostra un avviso alla connessione. I file esportati possono contenere foto e dati personali: scegli dove condividerli.
 
-Le tue credenziali (URL del server, nome utente e password dell'app) sono memorizzate sul dispositivo tramite Expo SecureStore, che si basa sull'enclave sicura del sistema (Keychain su iOS, Keystore su Android).
+## Firebase, community e liste condivise
 
-HTTPS viene usato per impostazione predefinita. Puoi scegliere esplicitamente HTTP per un server su una rete locale fidata. Con HTTP, la password dell'app, le ricette e le immagini vengono trasmesse senza cifratura e possono essere lette o modificate da chiunque sia in grado di intercettare la connessione. L'app mostra un avviso quando inserisci un indirizzo HTTP; le credenziali restano cifrate sul dispositivo.
+AvoCook avvia una sessione Firebase anonima all’apertura, anche in modalità locale. Firebase riceve l’identificatore e le informazioni di rete necessarie alla connessione. Non servono e-mail o password per questa sessione.
 
-## Importazione di ricette da un URL
+Ricette della community, nomi degli autori, profili, valutazioni, segnalazioni e liste condivise usano Firebase. Le ricette pubblicate sono visibili agli altri utenti. Chi possiede il codice di una lista può unirsi. Evita di pubblicare informazioni private. Le regole di accesso e conservazione Firebase sono gestite separatamente dall’app. Disconnettersi o cancellare dati locali non elimina i contenuti remoti.
 
-Quando importi una ricetta inserendo un URL, l'app scarica quella pagina per leggere i dati della ricetta disponibili pubblicamente. Non vengono inviati altri dati, e la richiesta viene effettuata direttamente dal tuo dispositivo.
+## Importazione, IA e traduzione
 
-## Fotocamera e libreria foto
+L’importazione da URL scarica la pagina scelta direttamente dal sito. Il sito riceve le normali informazioni di una richiesta di rete.
 
-L'accesso alla fotocamera e alla libreria foto viene usato esclusivamente per aggiungere immagini a una ricetta o per scansionare una ricetta da una foto. Le immagini vengono memorizzate localmente.
+L’importazione e la generazione con IA sono facoltative e inviano la foto selezionata o il testo inserito al fornitore configurato nelle Impostazioni, usando la tua chiave API. Fotocamera e libreria foto consentono anche di aggiungere immagini locali. Le immagini delle ricette sincronizzate, condivise o pubblicate possono lasciare il dispositivo.
 
-## Generazione di ricette con IA (facoltativa)
+La traduzione automatica delle ricette della community invia il testo a Google Translate e, in caso di errore, a MyMemory. Non usa la tua chiave API IA. Le ricette caricate e le traduzioni riuscite vengono salvate per la lettura offline. I fornitori elaborano le richieste secondo le proprie condizioni e informative sulla privacy.
 
-Se configuri una chiave API per l'IA nelle impostazioni, quella chiave viene memorizzata localmente in SecureStore. I dati della foto vengono inviati al fornitore API che hai configurato. Questa funzione è completamente opzionale e richiede che tu fornisca la tua chiave.
+## Promemoria Apple, aggiornamenti e diagnostica
 
-## Promemoria iOS (facoltativo)
+Se attivata, la sincronizzazione della spesa legge e scrive in Promemoria. Apple può sincronizzare gli articoli tramite il tuo account, comprese le liste iCloud condivise, secondo le impostazioni.
 
-Se scegli di esportare una lista della spesa in Promemoria iOS, l'app scrive dati nel tuo database locale di Promemoria. Questo richiede il permesso Promemoria. Nessun dato lascia il tuo dispositivo attraverso questa funzione.
+Le installazioni Android tramite APK cercano le versioni su GitHub. Quelle da uno store ricevono gli aggiornamenti dallo store. Aprire un link di ricetta, assistenza o fornitore contatta la relativa destinazione.
+
+I registri diagnostici restano locali. I dati di accesso vengono mascherati, ma possono rimanere informazioni personali. Controlla i rapporti prima di copiarli o condividerli. Non vengono inviati automaticamente.
 
 ## Contatti
 
-Per domande o problemi, apri un thread sul [repository GitHub](https://github.com/Logarex/AvoCook).
+Usa [il repository GitHub](https://github.com/Logarex/AvoCook) o il pulsante di contatto nell’app.
