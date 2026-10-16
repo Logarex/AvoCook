@@ -4,9 +4,8 @@ import { isGlassEffectAPIAvailable, isLiquidGlassAvailable } from "expo-glass-ef
 
 const ReducedTransparencyContext = createContext(true);
 
-/** Share one accessibility subscription across all glass controls. */
 export function GlassProvider({ children }: { children?: React.ReactNode }) {
-  // Start opaque until the system preference has been read.
+  // Keep surfaces opaque until accessibility settings load.
   const [reducedTransparency, setReducedTransparency] = useState(true);
 
   useEffect(() => {

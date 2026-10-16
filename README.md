@@ -91,13 +91,13 @@ npm run android  # Android emulator
 
 A development build with native modules is compiled on the first run. After that, the app opens directly.
 
-The `ios/` and `android/` projects are generated from `app.json`, `tools/plugins/` and the local modules in `src/modules/`. After a native dependency or SDK upgrade, regenerate them with `npx expo prebuild --clean` before building again. The `expo-build-properties` plugin enables the UIKit scene lifecycle required by Xcode 27. iOS builds React Native and Expo modules from source: the React Native 0.86.3 prebuilt framework does not export the `Sealable` constructor required by Gesture Handler in Debug builds. Source builds keep the native libraries consistent; the first build takes longer.
+The `ios/` and `android/` projects are generated from `app.json`, `tools/plugins/` and `src/modules/`. After a native dependency or SDK upgrade, run `npx expo prebuild --clean` before building again. iOS builds React Native from source because the prebuilt 0.86.3 framework is missing a symbol required by Gesture Handler in Debug builds. The first build takes longer.
 
 ### Liquid Glass
 
-Controls, the floating tab bar and action sheets use Apple's native Liquid Glass through [`expo-glass-effect`](https://docs.expo.dev/versions/v57.0.0/sdk/glass-effect/) on supported iOS 26+ builds. Rebuild the development app after installing this dependency; a Metro reload cannot add native modules.
+Buttons, the tab bar and action sheets use [`expo-glass-effect`](https://docs.expo.dev/versions/v57.0.0/sdk/glass-effect/) on iOS 26+. Older iOS versions use blur. Android and Reduce Transparency use opaque backgrounds.
 
-`GlassSurface` handles availability checks, the app's light/dark theme, a blur fallback on older iOS, and opaque surfaces on Android or when Reduce Transparency is enabled. `GlassProvider` shares one accessibility subscription. Recipe content and forms use opaque `GlassPanel` surfaces; opt overlays into `variant="glass"`. Nested controls reuse the enclosing material instead of stacking glass effects. Lists reserve space for the floating bar, including larger text and safe-area insets.
+Use `GlassSurface` for controls and sheets, and `GlassPanel` for recipe content and forms. Rebuild the app after adding a native module.
 
 Useful commands:
 
@@ -107,10 +107,6 @@ npm test                   # Unit tests (Vitest)
 npm run lint               # ESLint
 npm run import:check -- <recipe-url>  # Test a recipe import from a URL
 ```
-
-The [synchronization and reinstall fixes](docs/CORRECTIFS_SYNCHRONISATION.md) document the recipe sync, Cookbook photo and community identity regression tests.
-
-The [reliability and security audit](docs/AUDIT_FIABILITE_SECURITE.md) (in French) records the checks, fixes and remaining risks, including Firebase access rules and isolation between Nextcloud accounts.
 
 ---
 
@@ -133,7 +129,7 @@ src/
 ├── modules/
 │   └── avocook-timer-notifications/  # Native module for timer notifications
 └── theme/                         # Colors, typography, shared styles
-tools/                             # Build plugins, import checker, asset generator
+tools/                             # Build plugins and import checker
 docs/                              # Documentation in other languages (fr, de, es, it, da)
 ```
 

@@ -37,6 +37,16 @@ async function enter(label: string, value: string) { await act(async () => input
 async function save() { await act(async () => screen.root.findAll((node) => String(node.type) === "IconButton" && node.props.label === en.translation.common.save)[0].props.onPress()); }
 
 describe("Markdown recipe editing and saving", () => {
+  it("shows a translated save error instead of the technical server message", async () => {
+    await render();
+    await enter(en.translation.editor.name, "Soup");
+    mocks.save.mockRejectedValueOnce(new Error("Cookbook returned a different recipe ID"));
+    await save();
+    const text = JSON.stringify(screen.toJSON());
+    expect(text).toContain(en.translation.editor.saveFailed);
+    expect(text).not.toContain("Cookbook returned a different recipe ID");
+  });
+
   it("saves Markdown in every editable text field, preserving multiline blocks and numeric fields", async () => {
     await render();
     await enter(en.translation.editor.name, "**Crème**");

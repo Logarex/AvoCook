@@ -22,8 +22,7 @@ export function AppText({
   const { colors } = useAppTheme();
   const nodes = React.useMemo(() => markdown && typeof children === "string"
     ? compactMarkdownNodes(parseMarkdown(children)) : null, [markdown, children]);
-  // Android's Fabric text fitter uses minimumFontSize, not minimumFontScale.
-  // Preserve readable text there instead of allowing a fit down to 4 pixels.
+  // Android Fabric ignores minimumFontScale and can shrink text to 4px.
   const adjustsFontSizeToFit = Platform.OS !== "android" && (props.adjustsFontSizeToFit ?? false);
 
   return (

@@ -13,7 +13,6 @@ type GlassSurfaceProps = ViewProps & {
   intensity?: number;
 };
 
-/** Native material for controls and overlays; content stays on opaque panels. */
 export function GlassSurface({
   children,
   style,
@@ -31,7 +30,7 @@ export function GlassSurface({
     </GlassLayerContext.Provider>
   );
 
-  // Glass must not sample another glass layer beneath it.
+  // Avoid stacking native glass layers.
   if (insideGlass) {
     return (
       <View {...props} style={[style, { backgroundColor: tintColor ?? "transparent" }]}>
@@ -90,7 +89,7 @@ export function GlassSurface({
 }
 
 const styles = StyleSheet.create({
-  // Opaque backgrounds and handmade borders hide the native refraction.
+  // Backgrounds and borders would cover the native glass effect.
   native: { backgroundColor: "transparent", borderWidth: 0 },
   blur: { overflow: "hidden" },
   fallback: { borderWidth: StyleSheet.hairlineWidth }

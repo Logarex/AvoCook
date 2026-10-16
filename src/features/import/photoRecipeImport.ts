@@ -38,7 +38,7 @@ export const LLM_PROVIDERS: LlmProviderPreset[] = [
   },
   {
     id: "groq",
-    label: "Groq (Fast Inference)",
+    label: "Groq",
     baseUrl: "https://api.groq.com/openai/v1",
     defaultModel: "meta-llama/llama-4-scout-17b-16e-instruct",
     modelDocsUrl: "https://console.groq.com/docs/models",

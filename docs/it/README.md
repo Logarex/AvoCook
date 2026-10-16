@@ -95,8 +95,6 @@ npm run lint                           # ESLint
 npm run import:check -- <url-ricetta>  # Testare l'importazione da un URL
 ```
 
-Il [rapporto su affidabilità e sicurezza](../AUDIT_FIABILITE_SECURITE.md) (in francese) descrive i controlli, le correzioni e i rischi ancora presenti, comprese le regole di accesso Firebase e l'isolamento degli account Nextcloud.
-
 ---
 
 ## Struttura del progetto

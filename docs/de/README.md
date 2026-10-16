@@ -95,8 +95,6 @@ npm run lint                             # ESLint
 npm run import:check -- <rezept-url>     # Einen Rezept-Import von einer URL testen
 ```
 
-Der [Bericht zur Zuverlässigkeits- und Sicherheitsprüfung](../AUDIT_FIABILITE_SECURITE.md) (auf Französisch) beschreibt die Prüfungen, Korrekturen und verbleibenden Risiken, insbesondere die Firebase-Zugriffsregeln und die Trennung der Nextcloud-Konten.
-
 ---
 
 ## Projektstruktur

@@ -128,7 +128,8 @@ export function ShoppingListShareContent({ onBusyChange }: { onBusyChange: (busy
                   label=""
                   autoCapitalize="characters"
                   maxLength={6}
-                  placeholder="EX: AVOC42"
+                  accessibilityLabel={t("shoppingList.sharedCodeLabel")}
+                  placeholder={t("shoppingList.sharedCodePlaceholder")}
                   value={inputCode}
                   onChangeText={(text) => {
                     setInputCode(text.toUpperCase());
@@ -145,7 +146,7 @@ export function ShoppingListShareContent({ onBusyChange }: { onBusyChange: (busy
 
               <View style={styles.divider}>
                 <View style={[styles.line, { backgroundColor: colors.border }]} />
-                <AppText muted variant="caption">{t("common.or") || "OU"}</AppText>
+                <AppText muted variant="caption">{t("common.or")}</AppText>
                 <View style={[styles.line, { backgroundColor: colors.border }]} />
               </View>
 

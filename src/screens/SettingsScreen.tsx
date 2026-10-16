@@ -170,9 +170,8 @@ export function SettingsScreen({ navigation }: Props) {
       );
       setAvailableModels(models);
     } catch (err) {
-      setFetchModelsError(
-        err instanceof Error ? err.message : t("settings.llmFetchModelsFailed")
-      );
+      console.warn("settings", "Could not fetch provider models", err);
+      setFetchModelsError(t("settings.llmFetchModelsFailed"));
     } finally {
       setFetchingModels(false);
     }
@@ -948,9 +947,10 @@ export function SettingsScreen({ navigation }: Props) {
             <View style={styles.providerGrid}>
               {LLM_PROVIDERS.map((preset) => {
                 const selected = currentLlm.providerId === preset.id;
+                const providerLabel = preset.id === "custom" ? t("settings.llmCustomProvider") : preset.label;
                 return (
                   <Pressable
-                    accessibilityLabel={preset.label}
+                    accessibilityLabel={providerLabel}
                     accessibilityRole="button"
                     accessibilityState={{ selected }}
                     key={preset.id}
@@ -967,7 +967,7 @@ export function SettingsScreen({ navigation }: Props) {
                       variant="caption"
                       style={{ color: selected ? colors.textInverted : colors.text }}
                     >
-                      {preset.label}
+                      {providerLabel}
                     </AppText>
                   </Pressable>
                 );

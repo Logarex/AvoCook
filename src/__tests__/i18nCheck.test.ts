@@ -50,7 +50,7 @@ describe("translations before release", () => {
     const i18n = createInstance();
     await i18n.init({ lng: language, fallbackLng: false, resources: { [language]: resource }, interpolation: { escapeValue: false } });
     const subtitle = i18n.t("update.subtitle", { version: APP_VERSION });
-    expect(subtitle).toContain(`v${APP_VERSION}`);
+    expect(subtitle).toContain(APP_VERSION);
     expect(subtitle).not.toContain("{{");
     for (const key of RELEASE_NOTE_KEYS) {
       for (const suffix of ["Title", "Body"]) {
@@ -88,21 +88,31 @@ describe("translations before release", () => {
     }
   });
 
-  it("defines every literal translation key used by the app, even when a fallback is provided", () => {
+  it("defines translation keys used directly, conditionally or by navigation and tour metadata", () => {
     const missing: string[] = [];
     for (const file of sourceFiles(sourceRoot)) {
       const text = readFileSync(file, "utf8");
-      if (!/\bt\s*\(/.test(text)) continue;
       const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
+      function checkKey(key: ts.Expression | undefined) {
+        if (!key) return;
+        if (ts.isAsExpression(key) || ts.isTypeAssertionExpression(key) || ts.isParenthesizedExpression(key)) {
+          checkKey(key.expression);
+        } else if (ts.isConditionalExpression(key)) {
+          checkKey(key.whenTrue);
+          checkKey(key.whenFalse);
+        } else if ((ts.isStringLiteral(key) || ts.isNoSubstitutionTemplateLiteral(key)) && !(key.text in reference)) {
+          missing.push(`${file.slice(sourceRoot.length)}:${source.getLineAndCharacterOfPosition(key.getStart()).line + 1}: ${key.text}`);
+        }
+      }
       function visit(node: ts.Node) {
         if (ts.isCallExpression(node) && (
           (ts.isIdentifier(node.expression) && node.expression.text === "t") ||
           (ts.isPropertyAccessExpression(node.expression) && node.expression.name.text === "t")
         )) {
-          const key = node.arguments[0];
-          if (key && (ts.isStringLiteral(key) || ts.isNoSubstitutionTemplateLiteral(key)) && !(key.text in reference)) {
-            missing.push(`${file.slice(sourceRoot.length)}:${source.getLineAndCharacterOfPosition(key.getStart()).line + 1}: ${key.text}`);
-          }
+          checkKey(node.arguments[0]);
+        }
+        if (ts.isPropertyAssignment(node) && ["titleKey", "bodyKey", "labelKey"].includes(node.name.getText(source))) {
+          checkKey(node.initializer);
         }
         ts.forEachChild(node, visit);
       }

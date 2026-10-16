@@ -32,6 +32,14 @@ npm run lint
 
 All three must pass. The CI will fail otherwise.
 
+For changes to community features or shared lists, also check the Firebase rules
+for ownership, list membership, votes, reports and upload limits. These rules are
+managed outside this repository. Shared lists send the whole list on each update,
+so test simultaneous edits on two devices.
+
+Before publishing, follow the [release checklist](../docs/RELEASE.md). Unit tests
+do not cover system permissions or notification delivery on a locked phone.
+
 ## Code style
 
 - TypeScript everywhere — no implicit `any`.

@@ -88,8 +88,6 @@ npm run lint                           # ESLint
 npm run import:check -- <opskrift-url>  # Test import fra en URL
 ```
 
-[Rapporten om pålidelighed og sikkerhed](../AUDIT_FIABILITE_SECURITE.md) (på fransk) beskriver kontroller, rettelser og resterende risici, herunder Firebase-adgangsregler og adskillelse mellem Nextcloud-konti.
-
 ---
 
 ## Licens

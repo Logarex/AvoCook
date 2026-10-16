@@ -261,7 +261,8 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         navigation.goBack();
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : String(caught));
+      console.warn("recipes", "Could not save recipe", caught);
+      setError(t("editor.saveFailed"));
     } finally {
       setSaving(false);
     }
@@ -297,7 +298,8 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         setPhotoLocalUri("");
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : t("editor.photoUploadFailed"));
+      console.warn("recipes", "Could not upload recipe photo", caught);
+      setError(t("editor.photoUploadFailed"));
     } finally {
       setUploadingPhoto(false);
     }
