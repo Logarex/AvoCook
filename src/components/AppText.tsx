@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleProp, StyleSheet, Text, TextProps, TextStyle } from "react-native";
+import { StyleProp, StyleSheet, Platform, Text, TextProps, TextStyle } from "react-native";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { parseMarkdown } from "../features/markdown/markdown";
 import { compactMarkdownNodes, MarkdownInline } from "./MarkdownInline";
@@ -22,12 +22,15 @@ export function AppText({
   const { colors } = useAppTheme();
   const nodes = React.useMemo(() => markdown && typeof children === "string"
     ? compactMarkdownNodes(parseMarkdown(children)) : null, [markdown, children]);
-  const adjustsFontSizeToFit = props.adjustsFontSizeToFit ?? (props.numberOfLines === 1);
+  // Android's Fabric text fitter uses minimumFontSize, not minimumFontScale.
+  // Preserve readable text there instead of allowing a fit down to 4 pixels.
+  const adjustsFontSizeToFit = Platform.OS !== "android" && (props.adjustsFontSizeToFit ?? false);
 
   return (
     <Text
       {...props}
       adjustsFontSizeToFit={adjustsFontSizeToFit}
+      minimumFontScale={props.minimumFontScale ?? 0.85}
       style={[
         styles.base,
         styles[variant],
@@ -47,7 +50,8 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 34,
-    fontWeight: "800",
+    fontWeight: "700",
+    letterSpacing: -0.8,
     lineHeight: 40
   },
   subtitle: {
@@ -65,7 +69,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: "700",
+    fontWeight: "600",
     lineHeight: 18
   }
 });

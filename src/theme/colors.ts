@@ -20,12 +20,12 @@ export type AppColorScheme = {
 };
 
 export const lightColors: AppColorScheme = {
-  background: "#F7F3EA",
+  background: "#F2F2F7",
   backgroundElevated: "#FFFFFF",
-  text: "#1D1A16",
-  textMuted: "#6C6258",
-  textInverted: "#FFF9F0",
-  border: "rgba(56, 47, 37, 0.14)",
+  text: "#1C1C1E",
+  textMuted: "#636366",
+  textInverted: "#FFFFFF",
+  border: "rgba(60, 60, 67, 0.12)",
   primary: "#2F6F64",
   primaryStrong: "#164C45",
   secondary: "#C15C3B",
@@ -37,16 +37,16 @@ export const lightColors: AppColorScheme = {
   surfaceGlassStrong: "rgba(255, 255, 255, 0.9)",
   chip: "rgba(47, 111, 100, 0.1)",
   input: "rgba(255, 255, 255, 0.88)",
-  shadow: "rgba(43, 31, 18, 0.16)"
+  shadow: "rgba(0, 0, 0, 0.12)"
 };
 
 export const darkColors: AppColorScheme = {
-  background: "#14120F",
-  backgroundElevated: "#211E19",
-  text: "#F8EFE3",
-  textMuted: "#B9AB9A",
-  textInverted: "#16120D",
-  border: "rgba(255, 243, 224, 0.14)",
+  background: "#000000",
+  backgroundElevated: "#1C1C1E",
+  text: "#F2F2F7",
+  textMuted: "#AEAEB2",
+  textInverted: "#101412",
+  border: "rgba(235, 235, 245, 0.16)",
   primary: "#83CFC1",
   primaryStrong: "#B6EFE4",
   secondary: "#F09871",
@@ -54,10 +54,10 @@ export const darkColors: AppColorScheme = {
   danger: "#F07B7B",
   success: "#78D39A",
   warning: "#F4AE61",
-  surfaceGlass: "rgba(31, 28, 23, 0.72)",
-  surfaceGlassStrong: "rgba(41, 36, 29, 0.92)",
+  surfaceGlass: "rgba(28, 28, 30, 0.65)",
+  surfaceGlassStrong: "rgba(44, 44, 46, 0.88)",
   chip: "rgba(131, 207, 193, 0.14)",
-  input: "rgba(42, 37, 31, 0.92)",
+  input: "rgba(44, 44, 46, 0.96)",
   shadow: "rgba(0, 0, 0, 0.38)"
 };
 
@@ -72,8 +72,8 @@ export const spacing = {
 };
 
 export const radius = {
-  sm: 8,
-  md: 12,
-  lg: 20,
+  sm: 12,
+  md: 18,
+  lg: 26,
   pill: 999
 };

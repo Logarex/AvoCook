@@ -45,7 +45,7 @@ function ModeSheet({ onClose, initialStep }: Omit<Props, "visible">) {
   return <Modal visible transparent animationType="slide" onRequestClose={back}>
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <Pressable style={styles.scrim} accessibilityRole="button" accessibilityLabel={t("common.close")} disabled={disabled} onPress={close} />
-      <GlassPanel style={[styles.panel, { paddingBottom: getScreenBottomPadding(insets.bottom) }]}>
+      <GlassPanel variant="glass" style={[styles.panel, { paddingBottom: getScreenBottomPadding(insets.bottom) }]}>
         <View style={styles.header}>
           {step !== "modes" ? <IconButton icon={ArrowLeft} label={t("common.back")} disabled={disabled} onPress={back} /> : null}
           <AppText variant="subtitle" style={styles.flex}>{t(step === "pantry" ? "pantry.chooseList" : step === "firebase" ? "shoppingList.sharedTitle" : "shoppingModes.choose")}</AppText>

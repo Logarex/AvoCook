@@ -9,6 +9,9 @@ import {
   View,
   ViewStyle
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useReducedMotion } from "../features/accessibility/useReducedMotion";
+import { getScreenBottomPadding } from "../utils/safeArea";
 import { useTranslation } from "react-i18next";
 import type { AppLanguage } from "../features/preferences/PreferencesProvider";
 import { SUPPORTED_LANGUAGES } from "../i18n/languages";
@@ -16,6 +19,7 @@ import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { AppText } from "./AppText";
 import { GlassPanel } from "./GlassPanel";
+import { GlassSurface } from "./GlassSurface";
 import { IconButton } from "./IconButton";
 
 type LanguageOption<Language extends string> = {
@@ -44,6 +48,8 @@ export function LanguagePicker<Language extends string = AppLanguage>({
   const { t } = useTranslation();
   const { colors } = useAppTheme();
   const [open, setOpen] = useState(false);
+  const insets = useSafeAreaInsets();
+  const reducedMotion = useReducedMotion();
 
   const languageOptions = options ?? SUPPORTED_LANGUAGES as unknown as readonly LanguageOption<Language>[];
   const pickerLabel = label ?? t("settings.language");
@@ -68,6 +74,7 @@ export function LanguagePicker<Language extends string = AppLanguage>({
           ]}
           onPress={() => setOpen(true)}
         >
+          <GlassSurface pointerEvents="none" style={[StyleSheet.absoluteFill, { borderRadius: radius.pill }]} />
           <Globe color={colors.textMuted} size={16} />
           <AppText muted variant="label">
             {selected?.shortLabel ?? value.toUpperCase()}
@@ -89,10 +96,10 @@ export function LanguagePicker<Language extends string = AppLanguage>({
             <Globe color={colors.primary} size={18} />
           </View>
           <View style={styles.triggerText}>
-            <AppText muted variant="caption">
+            <AppText muted variant="caption" style={styles.triggerCaption}>
               {pickerLabel}
             </AppText>
-            <AppText variant="label" numberOfLines={1}>
+            <AppText variant="body" numberOfLines={2} style={styles.triggerValue}>
               {selected?.nativeName ?? value.toUpperCase()}
             </AppText>
           </View>
@@ -106,19 +113,19 @@ export function LanguagePicker<Language extends string = AppLanguage>({
       )}
 
       <Modal
-        animationType="slide"
+        animationType={reducedMotion ? "none" : "slide"}
         onRequestClose={() => setOpen(false)}
         transparent
         visible={open}
       >
         <View accessibilityViewIsModal style={styles.modalRoot}>
           <Pressable
-            accessibilityLabel="Close"
+            accessibilityLabel={t("common.close")}
             accessibilityRole="button"
             style={styles.modalScrim}
             onPress={() => setOpen(false)}
           />
-          <GlassPanel style={styles.modalSheet}>
+          <GlassPanel variant="glass" style={styles.modalSheet}>
             <View style={[styles.grabber, { backgroundColor: colors.border }]} />
             <View style={styles.modalHeader}>
               <View style={styles.modalTitleGroup}>
@@ -128,7 +135,7 @@ export function LanguagePicker<Language extends string = AppLanguage>({
               <IconButton icon={X} label={t("common.close")} onPress={() => setOpen(false)} />
             </View>
             <ScrollView
-              contentContainerStyle={styles.optionList}
+              contentContainerStyle={[styles.optionList, { paddingBottom: getScreenBottomPadding(insets.bottom) }]}
               showsVerticalScrollIndicator={false}
             >
               <View style={[styles.optionsCard, { backgroundColor: colors.backgroundElevated, borderColor: colors.border }]}>
@@ -151,8 +158,8 @@ export function LanguagePicker<Language extends string = AppLanguage>({
                         <View style={styles.optionText}>
                           <AppText
                             variant="label"
-                            numberOfLines={1}
-                            style={{ color: isSelected ? colors.primary : colors.text }}
+                            numberOfLines={2}
+                            style={{ color: isSelected ? colors.primaryStrong : colors.text }}
                           >
                             {option.nativeName}
                           </AppText>
@@ -180,12 +187,13 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: spacing.sm,
-    minHeight: 56,
+    minHeight: 72,
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
+    paddingVertical: spacing.sm,
     width: "100%"
   },
   minimalTrigger: {
+    minHeight: 44,
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.xs,
@@ -193,6 +201,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   triggerIcon: {
+    flexShrink: 0,
     alignItems: "center",
     borderRadius: radius.sm,
     height: 36,
@@ -200,9 +209,21 @@ const styles = StyleSheet.create({
     width: 36
   },
   triggerText: {
-    flex: 1
+    flex: 1,
+    minWidth: 0,
+    gap: spacing.xxs
+  },
+  triggerCaption: {
+    flexShrink: 0
+  },
+  triggerValue: {
+    flexShrink: 0,
+    fontSize: 17,
+    lineHeight: 23,
+    fontWeight: "600"
   },
   codeBadge: {
+    flexShrink: 0,
     alignItems: "center",
     borderRadius: radius.pill,
     minWidth: 38,
@@ -229,6 +250,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between"
   },
   modalTitleGroup: {
+    flex: 1,
+    minWidth: 0,
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.xs
@@ -243,7 +266,6 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: StyleSheet.hairlineWidth,
-    width: "100%",
     marginLeft: spacing.sm
   },
   optionRow: {

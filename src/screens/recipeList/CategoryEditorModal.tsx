@@ -55,7 +55,7 @@ export function CategoryEditorModal({
           style={styles.modalScrim}
           onPress={onClose}
         />
-        <GlassPanel style={styles.centeredModalContent}>
+        <GlassPanel variant="glass" style={styles.centeredModalContent}>
           <View style={styles.modalHeader}>
             <AppText variant="subtitle">
               {editingCategory

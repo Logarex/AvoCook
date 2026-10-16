@@ -169,9 +169,7 @@ export const styles = StyleSheet.create({
     paddingTop: spacing.sm,
   },
   alphabetSidebar: {
-    alignItems: "center",
     bottom: 0,
-    justifyContent: "center",
     position: "absolute",
     right: 0,
     top: 0,
@@ -179,12 +177,18 @@ export const styles = StyleSheet.create({
     zIndex: 10,
     borderLeftWidth: StyleSheet.hairlineWidth,
   },
+  alphabetSidebarContent: {
+    flexGrow: 1,
+    alignItems: "center",
+    justifyContent: "center"
+  },
   alphabetLetterButton: {
     paddingHorizontal: 4,
     paddingVertical: 2,
   },
   alphabetLetter: {
     fontSize: 13,
+    lineHeight: 18,
     fontWeight: "700",
   },
   searchField: {

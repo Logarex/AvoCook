@@ -1,6 +1,6 @@
 {
   "name": "avocook-mobile",
-  "version": "4.0.1",
+  "version": "4.3.0",
   "private": true,
   "description": "Mobile recipe client compatible with Nextcloud Cookbook.",
   "license": "GPL-3.0",
@@ -31,6 +31,7 @@
     "expo-crypto": "~57.0.4",
     "expo-file-system": "~57.0.7",
     "expo-font": "~57.0.4",
+    "expo-glass-effect": "~57.0.4",
     "expo-image": "~57.0.5",
     "expo-image-picker": "~57.0.20",
     "expo-keep-awake": "~57.0.2",

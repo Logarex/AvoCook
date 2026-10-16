@@ -1,9 +1,9 @@
-import { Check } from "lucide-react-native";
 import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet } from "react-native";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { AppText } from "./AppText";
+import { GlassSurface } from "./GlassSurface";
 
 type SegmentedOption<T extends string> = {
   label: string;
@@ -23,12 +23,7 @@ export function SegmentedControl<T extends string>({
 }: SegmentedControlProps<T>) {
   const { colors } = useAppTheme();
   return (
-    <View
-      style={[
-        styles.container,
-        { backgroundColor: colors.input, borderColor: colors.border }
-      ]}
-    >
+    <GlassSurface style={styles.container}>
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -38,36 +33,31 @@ export function SegmentedControl<T extends string>({
             accessibilityState={{ selected }}
             key={option.value}
             onPress={() => onChange(option.value)}
-            style={[
+            style={({ pressed }) => [
               styles.option,
-              selected ? { backgroundColor: colors.primary } : null
+              {
+                backgroundColor: selected ? colors.chip : "transparent",
+                opacity: pressed ? 0.7 : 1
+              }
             ]}
           >
-            {selected ? (
-              <Check color={colors.textInverted} size={15} strokeWidth={3} />
-            ) : null}
             <AppText
-              adjustsFontSizeToFit
-              numberOfLines={1}
+              numberOfLines={2}
               variant="label"
-              style={[
-                styles.optionLabel,
-                { color: selected ? colors.textInverted : colors.text }
-              ]}
+              style={[styles.optionLabel, { color: selected ? colors.primaryStrong : colors.text }]}
             >
               {option.label}
             </AppText>
           </Pressable>
         );
       })}
-    </View>
+    </GlassSurface>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: spacing.xxs,
     padding: spacing.xxs
@@ -76,11 +66,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: radius.pill,
     flex: 1,
-    flexDirection: "row",
-    gap: spacing.xxs,
     minHeight: 40,
     justifyContent: "center",
-    paddingHorizontal: spacing.sm
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs
   },
   optionLabel: {
     flexShrink: 1,

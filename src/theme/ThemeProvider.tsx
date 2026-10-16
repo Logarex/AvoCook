@@ -60,7 +60,7 @@ export function AppThemeProvider({ children }: { children: React.ReactNode }) {
         ...base.colors,
         primary: colors.primary,
         background: colors.background,
-        card: colors.surfaceGlassStrong,
+        card: colors.backgroundElevated,
         text: colors.text,
         border: colors.border,
         notification: colors.secondary

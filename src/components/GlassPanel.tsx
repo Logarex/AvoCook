@@ -1,61 +1,45 @@
-import { BlurView } from "expo-blur";
 import React from "react";
-import {
-  Platform,
-  StyleProp,
-  StyleSheet,
-  View,
-  ViewStyle
-} from "react-native";
+import { StyleSheet, View, type StyleProp, type ViewStyle } from "react-native";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { GlassSurface } from "./GlassSurface";
 
 type GlassPanelProps = {
   children: React.ReactNode;
   intensity?: number;
   style?: StyleProp<ViewStyle>;
+  variant?: "surface" | "glass";
 };
 
 export function GlassPanel({
   children,
-  intensity = 38,
-  style
+  intensity = 55,
+  style,
+  variant = "surface"
 }: GlassPanelProps) {
-  const { colors, isDark } = useAppTheme();
+  const { colors } = useAppTheme();
   const panelStyle = [
     styles.panel,
-    {
-      backgroundColor: colors.surfaceGlass,
-      borderColor: colors.border,
-      shadowColor: colors.shadow
-    },
+    { backgroundColor: colors.backgroundElevated, borderColor: colors.border },
     style
   ];
 
-  if (Platform.OS === "ios") {
+  if (variant === "glass") {
     return (
-      <BlurView
-        intensity={intensity}
-        tint={isDark ? "dark" : "light"}
-        style={panelStyle}
-      >
+      <GlassSurface intensity={intensity} style={panelStyle}>
         {children}
-      </BlurView>
+      </GlassSurface>
     );
   }
-
   return <View style={panelStyle}>{children}</View>;
 }
 
 const styles = StyleSheet.create({
   panel: {
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     borderWidth: StyleSheet.hairlineWidth,
+    borderCurve: "continuous",
     overflow: "hidden",
-    padding: spacing.md,
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.16,
-    shadowRadius: 28,
-    elevation: 4
+    padding: spacing.md
   }
 });

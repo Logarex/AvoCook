@@ -91,7 +91,13 @@ npm run android  # Android emulator
 
 A development build with native modules is compiled on the first run. After that, the app opens directly.
 
-The `ios/` and `android/` projects are generated from `app.json`, `tools/plugins/` and the local modules in `src/modules/`. After a native dependency or SDK upgrade, regenerate them with `npx expo prebuild --clean` before building again. The `expo-build-properties` plugin enables the UIKit scene lifecycle required by Xcode 27.
+The `ios/` and `android/` projects are generated from `app.json`, `tools/plugins/` and the local modules in `src/modules/`. After a native dependency or SDK upgrade, regenerate them with `npx expo prebuild --clean` before building again. The `expo-build-properties` plugin enables the UIKit scene lifecycle required by Xcode 27. iOS builds React Native and Expo modules from source: the React Native 0.86.3 prebuilt framework does not export the `Sealable` constructor required by Gesture Handler in Debug builds. Source builds keep the native libraries consistent; the first build takes longer.
+
+### Liquid Glass
+
+Controls, the floating tab bar and action sheets use Apple's native Liquid Glass through [`expo-glass-effect`](https://docs.expo.dev/versions/v57.0.0/sdk/glass-effect/) on supported iOS 26+ builds. Rebuild the development app after installing this dependency; a Metro reload cannot add native modules.
+
+`GlassSurface` handles availability checks, the app's light/dark theme, a blur fallback on older iOS, and opaque surfaces on Android or when Reduce Transparency is enabled. `GlassProvider` shares one accessibility subscription. Recipe content and forms use opaque `GlassPanel` surfaces; opt overlays into `variant="glass"`. Nested controls reuse the enclosing material instead of stacking glass effects. Lists reserve space for the floating bar, including larger text and safe-area insets.
 
 Useful commands:
 

@@ -5,7 +5,6 @@ import {
   NativeScrollEvent,
   NativeSyntheticEvent,
   Platform,
-  Pressable,
   ScrollView,
   StyleProp,
   StyleSheet,
@@ -16,6 +15,7 @@ import { ArrowUp } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useReducedMotion } from "../features/accessibility/useReducedMotion";
+import { IconButton } from "./IconButton";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { getFloatingBottomOffset, getScreenBottomPadding } from "../utils/safeArea";
@@ -93,26 +93,15 @@ export function Screen({
               {content}
             </ScrollView>
             {showBackToTop ? (
-              <Pressable
-                accessibilityLabel={t("common.backToTop")}
-                accessibilityRole="button"
-                hitSlop={6}
+              <IconButton
+                label={t("common.backToTop")}
+                icon={ArrowUp}
                 onPress={() =>
                   scrollRef.current?.scrollTo({ y: 0, animated: !reducedMotion })
                 }
-                style={({ pressed }) => [
-                  styles.scrollTopButton,
-                  {
-                    backgroundColor: colors.surfaceGlassStrong,
-                    borderColor: colors.border,
-                    bottom: getFloatingBottomOffset(insets.bottom),
-                    opacity: pressed ? 0.74 : 0.92,
-                    shadowColor: colors.shadow
-                  }
-                ]}
-              >
-                <ArrowUp color={colors.primary} size={19} strokeWidth={2.6} />
-              </Pressable>
+                tone="primary"
+                style={[styles.scrollTopButton, { bottom: getFloatingBottomOffset(insets.bottom) }]}
+              />
             ) : null}
           </View>
         ) : (
@@ -141,7 +130,6 @@ const styles = StyleSheet.create({
   scrollTopButton: {
     alignItems: "center",
     borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
     bottom: spacing.sm,
     height: 42,
     justifyContent: "center",

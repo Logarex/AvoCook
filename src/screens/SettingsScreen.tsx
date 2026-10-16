@@ -136,7 +136,7 @@ export function SettingsScreen({ navigation }: Props) {
   const [fetchingModels, setFetchingModels] = useState(false);
   const [fetchModelsError, setFetchModelsError] = useState<string | null>(null);
   const { openGithubIssue, contactByEmail } = useSupportActions();
-  const { resetOnboarding, markUpdateSeen } = useOnboarding();
+  const { resetOnboarding } = useOnboarding();
 
   React.useEffect(() => {
     if (currentLlm.apiKey.trim() && availableModels === null && !fetchingModels) {
@@ -1111,11 +1111,10 @@ export function SettingsScreen({ navigation }: Props) {
           />
           <PrimaryButton
             icon={BookOpen}
-            label={t("settings.replayIntro")}
+            label={t("settings.replayTour")}
             onPress={() => {
               void resetOnboarding().then(() => {
-                void markUpdateSeen();
-                navigation.navigate("Onboarding");
+                navigation.navigate("Tour");
               });
             }}
             variant="ghost"

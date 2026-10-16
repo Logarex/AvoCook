@@ -1,3 +1,6 @@
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getTabBarContentInset } from "../utils/safeArea";
+import { spacing } from "../theme/colors";
 import { markdownToPlainText } from "../features/markdown/markdown";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
@@ -15,6 +18,7 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
+  useWindowDimensions,
   Linking,
   Platform,
   Pressable,
@@ -47,6 +51,7 @@ import { IconButton } from "../components/IconButton";
 import { useLongActionToast } from "../components/LongActionToast";
 import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import { PrimaryButton } from "../components/PrimaryButton";
+import { getRecipeCardHeight } from "../components/recipeCardLayout";
 import { RecipeCard } from "../components/RecipeCard";
 import { Screen } from "../components/Screen";
 import { SearchField } from "../components/SearchField";
@@ -76,6 +81,8 @@ type CategoryOption = {
 
 export function RecipeListScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const { fontScale } = useWindowDimensions();
   const { colors } = useAppTheme();
   const { watchLongAction } = useLongActionToast();
   const { credentials, getClient, isLocalMode } = useAuth();
@@ -522,7 +529,7 @@ export function RecipeListScreen({ navigation }: Props) {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={styles.categoryScroller}
+          style={[styles.categoryScroller, { height: Math.max(40, 18 * fontScale + 8) }]}
           contentContainerStyle={styles.categoryList}
         >
           {visibleCategoryOptions.map((item) => (
@@ -678,6 +685,7 @@ export function RecipeListScreen({ navigation }: Props) {
               style={styles.recipeList}
               contentContainerStyle={[
                 styles.listContent,
+                { paddingBottom: getTabBarContentInset(insets.bottom, fontScale) },
                 filteredRecipes.length > 0 && { paddingRight: 40 }
               ]}
               data={filteredRecipes}
@@ -687,8 +695,8 @@ export function RecipeListScreen({ navigation }: Props) {
               windowSize={5}
               removeClippedSubviews={true}
               getItemLayout={(data, index) => ({
-                length: 124,
-                offset: 124 * index,
+                length: getRecipeCardHeight(fontScale) + spacing.xs,
+                offset: (getRecipeCardHeight(fontScale) + spacing.xs) * index,
                 index,
               })}
               ListEmptyComponent={
@@ -701,20 +709,27 @@ export function RecipeListScreen({ navigation }: Props) {
               showsVerticalScrollIndicator={false}
             />
             {!loading && filteredRecipes.length > 0 ? (
-              <View style={[styles.alphabetSidebar, { borderLeftColor: colors.border }]}>
+              <ScrollView
+                style={[styles.alphabetSidebar, { borderLeftColor: colors.border, bottom: getTabBarContentInset(insets.bottom, fontScale) }]}
+                contentContainerStyle={styles.alphabetSidebarContent}
+                showsVerticalScrollIndicator={false}
+                bounces={false}
+              >
                 {alphabet.map((letter) => (
                   <Pressable
                     key={letter}
+                    accessibilityRole="button"
+                    accessibilityLabel={letter}
                     onPress={() => scrollToLetter(letter)}
                     hitSlop={6}
                     style={styles.alphabetLetterButton}
                   >
-                    <AppText style={[styles.alphabetLetter, { color: colors.primary }]}>
+                    <AppText maxFontSizeMultiplier={1.3} style={[styles.alphabetLetter, { color: colors.primary }]}>
                       {letter}
                     </AppText>
                   </Pressable>
                 ))}
-              </View>
+              </ScrollView>
             ) : null}
           </View>
         )}

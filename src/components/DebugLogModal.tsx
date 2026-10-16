@@ -95,7 +95,7 @@ export function DebugLogModal({ visible, onClose, serverUrl }: Props) {
       onRequestClose={onClose}
     >
       <View style={styles.backdrop}>
-        <GlassPanel style={styles.modalCard}>
+        <GlassPanel variant="glass" style={styles.modalCard}>
           <View style={styles.header}>
             <View style={styles.titleRow}>
               <FileText color={colors.primary} size={22} />

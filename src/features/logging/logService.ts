@@ -1,3 +1,5 @@
+import { APP_VERSION } from "../../version";
+
 export type LogLevel = "INFO" | "WARN" | "ERROR" | "NETWORK";
 
 export type LogEntry = {
@@ -33,16 +35,6 @@ function safeGetFileSystem() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     return require("expo-file-system");
-  } catch {
-    return null;
-  }
-}
-
-function safeGetConstants() {
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const Constants = require("expo-constants");
-    return Constants?.default ?? Constants;
   } catch {
     return null;
   }
@@ -289,8 +281,7 @@ class LogService {
   }
 
   public generateReport(serverUrl?: string): string {
-    const constants = safeGetConstants();
-    const appVersion = constants?.expoConfig?.version ?? "Unknown";
+    const appVersion = APP_VERSION;
     const { osName, osVersion } = this.getPlatformInfo();
     const hasSslIssue = this.isLikelySelfSignedSslError();
 

@@ -1,3 +1,5 @@
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getTabBarContentInset } from "../utils/safeArea";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useCallback, useRef, useState } from "react";
 import {
@@ -43,6 +45,7 @@ const RAW_LANGUAGES = COMMUNITY_LANGUAGES.map((option) => ({ id: option.value, l
 
 export function CommunityScreen({ navigation }: Props) {
   const { i18n, t } = useTranslation();
+  const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const { fontScale } = useWindowDimensions();
   const { communityTranslationLanguage, setCommunityTranslationLanguage } = usePreferences();
@@ -219,7 +222,7 @@ export function CommunityScreen({ navigation }: Props) {
       onPress={() => navigation.navigate("CommunityDetail", { id: item.id })}
       style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}
     >
-      <View style={[styles.card, { backgroundColor: colors.surfaceGlassStrong, borderColor: colors.border }]}>
+      <View style={[styles.card, { backgroundColor: colors.backgroundElevated, borderColor: colors.border }]}>
         <View style={styles.cardInner}>
           <View style={styles.cardContent}>
             <View style={styles.cardHeader}>
@@ -365,7 +368,7 @@ export function CommunityScreen({ navigation }: Props) {
           data={filteredRecipes}
           keyExtractor={(item) => item.id}
           renderItem={renderRecipeItem}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { paddingBottom: getTabBarContentInset(insets.bottom, fontScale) }]}
           initialNumToRender={10}
           maxToRenderPerBatch={10}
           windowSize={7}

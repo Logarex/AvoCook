@@ -55,7 +55,7 @@ export function CategoryPickerModal({
           style={styles.modalScrim}
           onPress={onClose}
         />
-        <GlassPanel
+        <GlassPanel variant="glass"
           style={[
             styles.modalSheet,
             { paddingBottom: getScreenBottomPadding(insets.bottom) },

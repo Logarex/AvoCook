@@ -78,7 +78,7 @@ function Editor({ item, onClose }: { item: PantryItem; onClose: () => void }) {
   return <Modal visible transparent animationType="slide" onRequestClose={() => { if (!saving) onClose(); }}>
     <KeyboardAvoidingView style={styles.root} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <Pressable style={styles.scrim} onPress={onClose} disabled={saving} accessibilityLabel={t("common.close")} accessibilityRole="button" />
-      <GlassPanel style={[styles.panel, { paddingBottom: getScreenBottomPadding(insets.bottom) }]}>
+      <GlassPanel variant="glass" style={[styles.panel, { paddingBottom: getScreenBottomPadding(insets.bottom) }]}>
         <View style={styles.row}><AppText variant="subtitle" style={styles.flex}>{t("shoppingList.editItem")}</AppText><IconButton icon={X} label={t("common.close")} disabled={saving} onPress={onClose} /></View>
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.fields}>
           <TextField label={t("shoppingList.manualItemLabel")} value={name} onChangeText={setName} editable={!disabled} />

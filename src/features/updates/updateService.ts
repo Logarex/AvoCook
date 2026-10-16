@@ -1,4 +1,4 @@
-import Constants from "expo-constants";
+import { APP_VERSION } from "../../version";
 import DeviceInfo from "react-native-device-info";
 import { Platform } from "react-native";
 
@@ -44,7 +44,7 @@ export async function checkForUpdates(): Promise<UpdateInfo | null> {
     }
   }
 
-  const currentVersion = Constants.expoConfig?.version ?? "0.1.0";
+  const currentVersion = APP_VERSION;
   try {
     const response = await fetch(
       "https://api.github.com/repos/Logarex/AvoCook/releases/latest",

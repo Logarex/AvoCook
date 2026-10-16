@@ -1,10 +1,18 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   ArrowRight,
-  ShieldCheck,
-  Plug,
-  Wrench,
   Sparkles,
+  FileText,
+  ShoppingBasket,
+  Bell,
+  Languages,
+  Users,
+  RefreshCw,
+  Image,
+  Plug,
+  Scale,
+  Timer,
+  Compass,
 } from "lucide-react-native";
 import { AppLogo } from "../components/AppLogo";
 import React from "react";
@@ -15,9 +23,26 @@ import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { useOnboarding } from "../features/onboarding/useOnboarding";
+import { RELEASE_NOTE_KEYS } from "../features/updates/releaseNotes";
+import { APP_VERSION } from "../version";
 import type { RootStackParamList } from "../navigation/types";
 import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
+
+const featureIcons = {
+  design: Sparkles,
+  markdown: FileText,
+  shopping: ShoppingBasket,
+  reminders: Bell,
+  translations: Languages,
+  community: Users,
+  sync: RefreshCw,
+  photos: Image,
+  connection: Plug,
+  quantities: Scale,
+  timers: Timer,
+  tour: Compass,
+};
 
 type Props = NativeStackScreenProps<RootStackParamList, "Update">;
 
@@ -58,58 +83,25 @@ export function UpdateScreen({ navigation }: Props) {
             {t("update.title")}
           </AppText>
           <AppText muted style={styles.center}>
-            {t("update.subtitle")}
+            {t("update.subtitle", { version: APP_VERSION })}
           </AppText>
         </View>
 
         <View style={styles.featuresColumn}>
-          <GlassPanel style={styles.featureCardHorizontal}>
-            <View style={[styles.featureIconCircle, { backgroundColor: colors.chip }]}>
-              <ShieldCheck color={colors.primary} size={22} />
-            </View>
-            <View style={styles.featureText}>
-              <AppText variant="label">{t("update.feat1Title")}</AppText>
-              <AppText muted variant="caption">
-                {t("update.feat1Body")}
-              </AppText>
-            </View>
-          </GlassPanel>
-
-          <GlassPanel style={styles.featureCardHorizontal}>
-            <View style={[styles.featureIconCircle, { backgroundColor: colors.chip }]}>
-              <Plug color={colors.primary} size={22} />
-            </View>
-            <View style={styles.featureText}>
-              <AppText variant="label">{t("update.feat2Title")}</AppText>
-              <AppText muted variant="caption">
-                {t("update.feat2Body")}
-              </AppText>
-            </View>
-          </GlassPanel>
-
-          <GlassPanel style={styles.featureCardHorizontal}>
-            <View style={[styles.featureIconCircle, { backgroundColor: colors.chip }]}>
-              <Sparkles color={colors.primary} size={22} />
-            </View>
-            <View style={styles.featureText}>
-              <AppText variant="label">{t("update.feat3Title")}</AppText>
-              <AppText muted variant="caption">
-                {t("update.feat3Body")}
-              </AppText>
-            </View>
-          </GlassPanel>
-
-          <GlassPanel style={styles.featureCardHorizontal}>
-            <View style={[styles.featureIconCircle, { backgroundColor: colors.chip }]}>
-              <Wrench color={colors.primary} size={22} />
-            </View>
-            <View style={styles.featureText}>
-              <AppText variant="label">{t("update.feat4Title")}</AppText>
-              <AppText muted variant="caption">
-                {t("update.feat4Body")}
-              </AppText>
-            </View>
-          </GlassPanel>
+          {RELEASE_NOTE_KEYS.map((key) => {
+            const Icon = featureIcons[key];
+            return (
+              <GlassPanel key={key} style={styles.featureCardHorizontal}>
+                <View style={[styles.featureIconCircle, { backgroundColor: colors.chip }]}>
+                  <Icon color={colors.primary} size={22} />
+                </View>
+                <View style={styles.featureText}>
+                  <AppText variant="label">{t(`update.${key}Title`)}</AppText>
+                  <AppText muted>{t(`update.${key}Body`)}</AppText>
+                </View>
+              </GlassPanel>
+            );
+          })}
         </View>
       </ScrollView>
 
@@ -156,12 +148,13 @@ const styles = StyleSheet.create({
   },
   featureCardHorizontal: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: spacing.sm,
-    paddingVertical: spacing.sm,
+    paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
   },
   featureIconCircle: {
+    flexShrink: 0,
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -170,6 +163,7 @@ const styles = StyleSheet.create({
   },
   featureText: {
     flex: 1,
+    minWidth: 0,
     gap: 2,
   },
   pageActions: {

@@ -14,7 +14,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("react-native", async () => {
   const React = await import("react");
-  return { View: "View", Pressable: "Pressable", Modal: "Modal", KeyboardAvoidingView: "KeyboardView", ScrollView: "ScrollView", Switch: "Switch", TextInput: "TextInput", Platform: { OS: "ios" }, ActivityIndicator: "Spinner", RefreshControl: "Refresh", StyleSheet: { create: (value: unknown) => value, hairlineWidth: 1, absoluteFill: {} },
+  return { useWindowDimensions: () => ({ fontScale: 1 }), View: "View", Pressable: "Pressable", Modal: "Modal", KeyboardAvoidingView: "KeyboardView", ScrollView: "ScrollView", Switch: "Switch", TextInput: "TextInput", Platform: { OS: "ios" }, ActivityIndicator: "Spinner", RefreshControl: "Refresh", StyleSheet: { create: (value: unknown) => value, hairlineWidth: 1, absoluteFill: {} },
     AppState: { currentState: "active", addEventListener: () => ({ remove: vi.fn(), pull: vi.fn(async () => null), add: vi.fn(async () => ({ added: [{ id: "new" }], skipped: [] })), enableReminders: vi.fn(async () => {}), disableReminders: vi.fn(async () => {}), createShare: vi.fn(async () => "ABC123"), switchPantry: vi.fn(async () => {}) }) }, Alert: { alert: mocks.alert }, Share: { share: vi.fn() },
     FlatList: ({ data, renderItem, ListEmptyComponent }: { data: unknown[]; renderItem: (args: { item: unknown; index: number }) => React.ReactNode; ListEmptyComponent: React.ReactNode }) => React.createElement("FlatList", {}, data.length ? data.map((item, index) => React.createElement(React.Fragment, { key: index }, renderItem({ item, index }))) : ListEmptyComponent) };
 });
@@ -26,6 +26,7 @@ vi.mock("../features/shopping/ShoppingListProvider", () => ({ useShoppingList: (
 vi.mock("../theme/ThemeProvider", () => ({ useAppTheme: () => ({ colors: { primary: "green" } }) }));
 vi.mock("../components/Screen", () => ({ Screen: "Screen" }));
 vi.mock("../components/AppText", () => ({ AppText: "Text" }));
+vi.mock("../components/GlassSurface", () => ({ GlassSurface: "GlassSurface" }));
 vi.mock("../components/GlassPanel", () => ({ GlassPanel: "Panel" }));
 vi.mock("../components/IconButton", () => ({ IconButton: "IconButton" }));
 vi.mock("../components/PrimaryButton", () => ({ PrimaryButton: "Button" }));

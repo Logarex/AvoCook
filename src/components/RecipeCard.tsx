@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { getRecipeCategoryLabel } from "../features/recipes/categories";
 import { Clock, Tag } from "lucide-react-native";
 import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
+import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
 import {
   getPreferredDisplayRecipeImage
 } from "../features/recipes/recipeImageReferences";
@@ -13,6 +13,7 @@ import { Recipe } from "../features/recipes/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { humanDuration } from "../utils/duration";
+import { getRecipeCardHeight } from "./recipeCardLayout";
 import { AppText } from "./AppText";
 
 export const RecipeCard = React.memo(function RecipeCard({
@@ -29,6 +30,7 @@ export const RecipeCard = React.memo(function RecipeCard({
   onPress: () => void;
 }) {
   const { colors } = useAppTheme();
+  const { fontScale } = useWindowDimensions();
   const { t } = useTranslation();
   const categoryLabel = getRecipeCategoryLabel(recipe.recipeCategory, t);
   const imageUri = getPreferredDisplayRecipeImage(recipe) || fallbackImageUri;
@@ -55,7 +57,8 @@ export const RecipeCard = React.memo(function RecipeCard({
       style={({ pressed }) => [
         styles.card,
         {
-          backgroundColor: colors.surfaceGlassStrong,
+          height: getRecipeCardHeight(fontScale),
+          backgroundColor: colors.backgroundElevated,
           borderColor: colors.border,
           opacity: pressed ? 0.82 : 1
         }
@@ -118,11 +121,11 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: spacing.sm,
-    height: 116,
     overflow: "hidden",
     padding: spacing.sm
   },
   imageWrap: {
+    alignSelf: "center",
     alignItems: "center",
     aspectRatio: 1,
     borderRadius: radius.sm,

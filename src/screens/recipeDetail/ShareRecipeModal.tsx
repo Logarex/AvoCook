@@ -50,7 +50,7 @@ export function ShareRecipeModal({
           style={styles.modalScrim}
           disabled={disabled}
         />
-        <GlassPanel
+        <GlassPanel variant="glass"
           style={[
             styles.recipeActionSheet,
             { paddingBottom: getScreenBottomPadding(insets.bottom) },

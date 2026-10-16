@@ -10,6 +10,8 @@ import es from "../i18n/locales/es";
 import itLocale from "../i18n/locales/it";
 import da from "../i18n/locales/da";
 import { SUPPORTED_LANGUAGES, resolveAppLanguage } from "../i18n/languages";
+import { RELEASE_NOTE_KEYS } from "../features/updates/releaseNotes";
+import { APP_VERSION } from "../version";
 
 function flatten(object: Record<string, unknown>, prefix = ""): Record<string, string> {
   return Object.fromEntries(Object.entries(object).flatMap(([key, value]) => {
@@ -34,6 +36,31 @@ function sourceFiles(directory: string): string[] {
 }
 
 describe("translations before release", () => {
+  it("keeps app, package, lockfile and website versions aligned", () => {
+    const readJson = (path: string) => JSON.parse(readFileSync(new URL(path, import.meta.url), "utf8"));
+    expect(readJson("../../app.json").expo.version).toBe(APP_VERSION);
+    const lockfile = readJson("../../package-lock.json");
+    expect(lockfile.version).toBe(APP_VERSION);
+    expect(lockfile.packages[""].version).toBe(APP_VERSION);
+    expect(readFileSync(new URL("../../site/index.html", import.meta.url), "utf8"))
+      .toContain(`class="hero-badge-pill">v${APP_VERSION}</span>`);
+  });
+
+  it.each(Object.entries(resources))("renders the current release and every release note in %s", async (language, resource) => {
+    const i18n = createInstance();
+    await i18n.init({ lng: language, fallbackLng: false, resources: { [language]: resource }, interpolation: { escapeValue: false } });
+    const subtitle = i18n.t("update.subtitle", { version: APP_VERSION });
+    expect(subtitle).toContain(`v${APP_VERSION}`);
+    expect(subtitle).not.toContain("{{");
+    for (const key of RELEASE_NOTE_KEYS) {
+      for (const suffix of ["Title", "Body"]) {
+        const translationKey = `update.${key}${suffix}`;
+        expect(i18n.exists(translationKey), `${language}:${translationKey}`).toBe(true);
+        expect(i18n.t(translationKey).trim(), `${language}:${translationKey}`).not.toBe("");
+      }
+    }
+  });
+
   it("includes every supported app and native permission language", () => {
     const config = JSON.parse(readFileSync(new URL("../../app.json", import.meta.url), "utf8")).expo;
     const expected = SUPPORTED_LANGUAGES.map(({ value }) => value).sort();

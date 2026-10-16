@@ -21,3 +21,8 @@ export function getScreenBottomPadding(bottomInset: number) {
 export function getFloatingBottomOffset(bottomInset: number) {
   return spacing.sm + Math.max(bottomInset, 0);
 }
+
+/** Space for the floating 64pt tab bar, its safe-area offset and breathing room. */
+export function getTabBarContentInset(bottomInset: number, fontScale = 1) {
+  return Math.max(64, 41 + 15 * fontScale) + getBottomNavigationPadding(bottomInset) + spacing.lg;
+}

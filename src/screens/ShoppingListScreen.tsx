@@ -1,7 +1,8 @@
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getTabBarContentInset } from "../utils/safeArea";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
 import {
-  Bell,
   Check,
   ChevronDown,
   ChevronUp,
@@ -20,6 +21,7 @@ import {
   AppState,
   type AppStateStatus,
   FlatList,
+  useWindowDimensions,
   Platform,
   Pressable,
   RefreshControl,
@@ -33,7 +35,6 @@ import { AppText } from "../components/AppText";
 import { BottomNavigation } from "../components/BottomNavigation";
 import { ConnectionStatus } from "../components/ConnectionStatus";
 import { EmptyState } from "../components/EmptyState";
-import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
 import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import { ShoppingModeButton } from "../components/ShoppingModeButton";
@@ -54,6 +55,8 @@ type Props = NativeStackScreenProps<RootStackParamList, "ShoppingList">;
 
 export function ShoppingListScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const { fontScale } = useWindowDimensions();
   const { colors } = useAppTheme();
   const {
     addItem,
@@ -94,8 +97,6 @@ export function ShoppingListScreen({ navigation }: Props) {
   backendRef.current = backendKey;
   switchingRef.current = switching;
 
-  const itemsRef = useRef(items);
-  itemsRef.current = items;
   const refreshCurrent = useCallback(async () => {
     if (!switchingRef.current) await refreshItems();
   }, [refreshItems]);
@@ -267,39 +268,6 @@ export function ShoppingListScreen({ navigation }: Props) {
         </View>
       </View>
 
-
-      {sync.available && !sync.linked && !sync.dismissed ? (
-        <GlassPanel style={styles.syncBanner}>
-          <View style={styles.syncBannerHeader}>
-            <View style={styles.syncBannerText}>
-              <AppText variant="label">{t("shoppingList.syncBannerTitle")}</AppText>
-              <AppText muted variant="caption" style={styles.syncBannerBody}>
-                {t("shoppingList.syncBannerBody")}
-              </AppText>
-            </View>
-            <IconButton
-              icon={X}
-              onPress={() => void sync.dismissSyncBanner()}
-              style={styles.syncBannerDismiss}
-              label={t("common.cancel")}
-            />
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => void sync.enableSync(itemsRef.current)}
-            style={({ pressed }) => [
-              styles.syncBannerButton,
-              { backgroundColor: colors.primary, opacity: pressed ? 0.8 : 1 }
-            ]}
-          >
-            <Bell color="#fff" size={14} strokeWidth={2.5} />
-            <AppText style={styles.syncBannerButtonText}>
-              {t("shoppingList.syncEnable")}
-            </AppText>
-          </Pressable>
-        </GlassPanel>
-      ) : null}
-
       <View style={styles.modeRow}>
         <View style={styles.modeControl}><ShoppingModeButton compact disabled={mutating} onPress={() => setShowModes(true)} /></View>
         {mode.kind === "pantry" ? <AppText muted variant="caption" numberOfLines={1} style={styles.activeListName}>{mode.selection.list.name}</AppText> : null}
@@ -361,7 +329,7 @@ export function ShoppingListScreen({ navigation }: Props) {
               ref={listRef}
               data={items}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.listContent}
+              contentContainerStyle={[styles.listContent, { paddingBottom: getTabBarContentInset(insets.bottom, fontScale) }]}
               initialNumToRender={15}
               maxToRenderPerBatch={15}
               windowSize={7}
@@ -482,7 +450,7 @@ function ShoppingListRow({
       style={[
         styles.itemRow,
         {
-          backgroundColor: colors.surfaceGlassStrong,
+          backgroundColor: colors.backgroundElevated,
           borderColor: colors.border
         }
       ]}
@@ -730,43 +698,6 @@ const styles = StyleSheet.create({
     paddingBottom: 0,
     paddingHorizontal: 0,
     paddingTop: spacing.sm
-  },
-  syncBanner: {
-    gap: spacing.sm,
-    paddingHorizontal: spacing.md
-  },
-  syncBannerHeader: {
-    alignItems: "flex-start",
-    flexDirection: "row",
-    gap: spacing.sm,
-    justifyContent: "space-between"
-  },
-  syncBannerText: {
-    flex: 1,
-    gap: spacing.xxs
-  },
-  syncBannerDismiss: {
-    height: 32,
-    marginRight: -spacing.xs,
-    marginTop: -spacing.xs,
-    width: 32
-  },
-  syncBannerBody: {
-    lineHeight: 18
-  },
-  syncBannerButton: {
-    alignItems: "center",
-    alignSelf: "center",
-    borderRadius: radius.pill,
-    flexDirection: "row",
-    gap: spacing.xxs,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs
-  },
-  syncBannerButtonText: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "600"
   },
   reorderAction: {
     alignItems: "center",

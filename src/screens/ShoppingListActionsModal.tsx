@@ -45,7 +45,7 @@ export function ShoppingListActionsModal({
           onPress={onClose}
           style={styles.modalScrim}
         />
-        <GlassPanel
+        <GlassPanel variant="glass"
           style={[
             styles.recipeActionSheet,
             { paddingBottom: getScreenBottomPadding(insets.bottom) },

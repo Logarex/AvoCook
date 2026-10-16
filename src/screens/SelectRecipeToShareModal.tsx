@@ -224,7 +224,7 @@ export function SelectRecipeToShareModal({
           style={styles.modalScrim}
           disabled={submitting}
         />
-        <GlassPanel
+        <GlassPanel variant="glass"
           style={[
             styles.panel,
             { paddingBottom: getScreenBottomPadding(insets.bottom) }

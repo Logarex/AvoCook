@@ -3,6 +3,8 @@ import React from "react";
 import { Pressable, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { GlassSurface } from "./GlassSurface";
+import { useReducedMotion } from "../features/accessibility/useReducedMotion";
 import { AppText } from "./AppText";
 
 type PrimaryButtonProps = {
@@ -22,25 +24,17 @@ export function PrimaryButton({
   variant = "primary",
   disabled = false,
   style,
-  numberOfLines = 1,
+  numberOfLines = 2,
 }: PrimaryButtonProps) {
   const { colors } = useAppTheme();
-  const backgroundColor =
-    variant === "primary"
-      ? colors.primary
-      : variant === "danger"
-        ? colors.danger
-        : variant === "danger-secondary"
-          ? "rgba(219, 68, 85, 0.15)"
-          : variant === "secondary"
-            ? colors.secondary
-            : colors.surfaceGlassStrong;
-  const foregroundColor =
-    variant === "ghost"
-      ? colors.text
-      : variant === "danger-secondary"
-        ? colors.danger
-        : colors.textInverted;
+  const reducedMotion = useReducedMotion();
+  const tintColor = variant === "primary"
+    ? colors.primary
+    : variant === "danger" ? colors.danger : undefined;
+  const foregroundColor = variant === "primary" || variant === "danger"
+    ? colors.textInverted
+    : variant === "danger-secondary" ? colors.danger
+      : variant === "secondary" ? colors.primaryStrong : colors.text;
 
   return (
     <Pressable
@@ -53,15 +47,19 @@ export function PrimaryButton({
       style={({ pressed }) => [
         styles.button,
         {
-          backgroundColor,
-          borderColor: variant === "ghost" ? colors.border : backgroundColor,
-          opacity: disabled ? 0.45 : pressed ? 0.78 : 1
+          transform: [{ scale: pressed && !reducedMotion ? 0.98 : 1 }]
         },
         style
       ]}
     >
-      <View style={styles.content}>
-        {Icon ? <Icon color={foregroundColor} size={19} strokeWidth={2.5} /> : null}
+      <GlassSurface
+        pointerEvents="none"
+        interactive={!disabled}
+        tintColor={tintColor}
+        style={[StyleSheet.absoluteFill, { borderRadius: radius.pill }]}
+      />
+      <View style={[styles.content, { opacity: disabled ? 0.45 : 1 }]}>
+        {Icon ? <Icon color={foregroundColor} size={19} strokeWidth={2} /> : null}
         <AppText
           numberOfLines={numberOfLines}
           adjustsFontSizeToFit={false}
@@ -79,12 +77,14 @@ const styles = StyleSheet.create({
   button: {
     alignItems: "center",
     borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
     minHeight: 48,
     justifyContent: "center",
-    paddingHorizontal: spacing.lg
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs
   },
   content: {
+    maxWidth: "100%",
+    flexShrink: 1,
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.xs,

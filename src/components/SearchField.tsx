@@ -6,9 +6,9 @@ import {
   StyleProp,
   StyleSheet,
   TextInput,
-  View,
   ViewStyle
 } from "react-native";
+import { GlassSurface } from "./GlassSurface";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
@@ -40,18 +40,17 @@ export function SearchField({
   };
 
   return (
-    <View
+    <GlassSurface
       style={[
         styles.container,
         {
-          backgroundColor: colors.surfaceGlassStrong,
           borderColor: colors.border,
           shadowColor: colors.shadow
         },
         style
       ]}
     >
-      <Search color={colors.textMuted} size={19} strokeWidth={2.4} />
+      <Search color={colors.textMuted} size={19} strokeWidth={2} />
       <TextInput
         accessibilityLabel={placeholder}
         autoCapitalize="none"
@@ -75,7 +74,7 @@ export function SearchField({
           <X color={colors.textMuted} size={16} strokeWidth={2.5} />
         </Pressable>
       ) : null}
-    </View>
+    </GlassSurface>
   );
 }
 
@@ -89,7 +88,7 @@ const styles = StyleSheet.create({
   },
   container: {
     alignItems: "center",
-    borderRadius: radius.lg,
+    borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: spacing.sm,

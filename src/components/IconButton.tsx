@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react-native";
 import React, { useEffect, useRef } from "react";
 import { Animated, Easing, Pressable, StyleProp, StyleSheet, ViewStyle } from "react-native";
 import { useReducedMotion } from "../features/accessibility/useReducedMotion";
+import { GlassSurface } from "./GlassSurface";
 import { radius } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
@@ -75,15 +76,21 @@ export function IconButton({
       style={({ pressed }) => [
         styles.button,
         {
-          backgroundColor: colors.surfaceGlassStrong,
-          borderColor: colors.border,
-          opacity: disabled ? 0.45 : spinning ? 0.8 : pressed ? 0.72 : 1
+          transform: [{ scale: pressed && !reducedMotion ? 0.94 : 1 }]
         },
         style
       ]}
     >
-      <Animated.View style={{ transform: [{ rotate: spin }] }}>
-        <Icon color={iconColor} size={21} strokeWidth={2.4} />
+      <GlassSurface
+        pointerEvents="none"
+        interactive={!isButtonDisabled}
+        style={[StyleSheet.absoluteFill, { borderRadius: radius.pill }]}
+      />
+      <Animated.View style={{
+        opacity: disabled ? 0.45 : spinning ? 0.8 : 1,
+        transform: [{ rotate: spin }]
+      }}>
+        <Icon color={iconColor} size={21} strokeWidth={2} />
       </Animated.View>
     </Pressable>
   );
@@ -93,7 +100,6 @@ const styles = StyleSheet.create({
   button: {
     alignItems: "center",
     borderRadius: radius.pill,
-    borderWidth: StyleSheet.hairlineWidth,
     height: 44,
     justifyContent: "center",
     width: 44

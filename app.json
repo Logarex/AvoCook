@@ -3,7 +3,7 @@
     "name": "AvoCook",
     "slug": "avocook",
     "scheme": "avocook",
-    "version": "4.0.1",
+    "version": "4.3.0",
     "locales": {
       "en": "./locales/en.json",
       "fr": "./locales/fr.json",
@@ -71,7 +71,9 @@
         "expo-build-properties",
         {
           "ios": {
-            "enableSceneSupport": true
+            "enableSceneSupport": true,
+            "buildReactNativeFromSource": true,
+            "usePrecompiledModules": false
           }
         }
       ],
@@ -110,12 +112,12 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F7F3EA",
+          "backgroundColor": "#F2F2F7",
           "image": "./assets/logo.png",
           "imageWidth": 220,
           "resizeMode": "contain",
           "dark": {
-            "backgroundColor": "#14120F",
+            "backgroundColor": "#000000",
             "image": "./assets/logo-dark-transparent.png"
           }
         }

@@ -30,7 +30,6 @@ import { CommunityDetailScreen } from "./screens/CommunityDetailScreen";
 import { SubmitCommunityRecipeScreen } from "./screens/SubmitCommunityRecipeScreen";
 import { ImportRecipeScreen } from "./screens/ImportRecipeScreen";
 import { LoginScreen } from "./screens/LoginScreen";
-import { OnboardingScreen } from "./screens/OnboardingScreen";
 import { TourScreen } from "./screens/TourScreen";
 import { UpdateScreen } from "./screens/UpdateScreen";
 import { RecipeDetailScreen } from "./screens/RecipeDetailScreen";
@@ -40,6 +39,7 @@ import { SettingsScreen } from "./screens/SettingsScreen";
 import { ShoppingListScreen } from "./screens/ShoppingListScreen";
 import { PrivacyScreen } from "./screens/PrivacyScreen";
 import { useOnboarding } from "./features/onboarding/useOnboarding";
+import { GlassProvider } from "./theme/GlassProvider";
 import { AppThemeProvider, useAppTheme } from "./theme/ThemeProvider";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -61,19 +61,21 @@ export default function App() {
     <GestureHandlerRootView style={styles.flex}>
       <SafeAreaProvider>
         <AppThemeProvider>
-          <PreferencesProvider>
-            <AuthProvider>
-              <LongActionToastProvider>
-                <RecipesProvider>
-                  <ShoppingListProvider>
-                    <TimersProvider>
-                      <RootNavigator />
-                    </TimersProvider>
-                  </ShoppingListProvider>
-                </RecipesProvider>
-              </LongActionToastProvider>
-            </AuthProvider>
-          </PreferencesProvider>
+          <GlassProvider>
+            <PreferencesProvider>
+              <AuthProvider>
+                <LongActionToastProvider>
+                  <RecipesProvider>
+                    <ShoppingListProvider>
+                      <TimersProvider>
+                        <RootNavigator />
+                      </TimersProvider>
+                    </ShoppingListProvider>
+                  </RecipesProvider>
+                </LongActionToastProvider>
+              </AuthProvider>
+            </PreferencesProvider>
+          </GlassProvider>
         </AppThemeProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
@@ -84,7 +86,7 @@ function RootNavigator() {
   const { credentials, hydrated, isLocalMode } = useAuth();
   const { colors, isDark, navTheme } = useAppTheme();
   const reducedMotion = useReducedMotion();
-  const { introDone, tourDone, showUpdateScreen, onboardingHydrated } = useOnboarding();
+  const { tourDone, showUpdateScreen, onboardingHydrated } = useOnboarding();
 
   if (!hydrated || !onboardingHydrated) {
     return (
@@ -97,15 +99,13 @@ function RootNavigator() {
   }
 
   const isAuthenticated = Boolean(credentials || isLocalMode);
-  const initialRoute: keyof RootStackParamList = !introDone
-    ? "Onboarding"
-    : isAuthenticated && !tourDone
+  const initialRoute: keyof RootStackParamList = !isAuthenticated
+    ? "Login"
+    : !tourDone
       ? "Tour"
-      : isAuthenticated && showUpdateScreen
+      : showUpdateScreen
         ? "Update"
-        : isAuthenticated
-          ? "Recipes"
-          : "Login";
+        : "Recipes";
 
   return (
     <>
@@ -125,7 +125,6 @@ function RootNavigator() {
           })}
         >
 
-          <Stack.Screen name="Onboarding" component={OnboardingScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Tour" component={TourScreen} />
           <Stack.Screen name="Update" component={UpdateScreen} />

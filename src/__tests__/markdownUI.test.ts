@@ -8,8 +8,8 @@ import { InstructionSection } from "../screens/recipeDetail/InstructionSection";
 import { IngredientSection } from "../screens/recipeDetail/IngredientSection";
 import { lightColors, darkColors } from "../theme/colors";
 
-const mocks = vi.hoisted(() => ({ openURL: vi.fn(async () => {}), copy: vi.fn(async () => {}), dark: false }));
-vi.mock("react-native", () => ({ View: "View", Text: "Text", Pressable: "Pressable", ScrollView: "ScrollView", TextInput: "Input", Platform: { OS: "ios" }, Linking: { openURL: mocks.openURL }, StyleSheet: { create: (value: unknown) => value, hairlineWidth: 1 } }));
+const mocks = vi.hoisted(() => ({ openURL: vi.fn(async () => {}), copy: vi.fn(async () => {}), dark: false, platform: "ios" }));
+vi.mock("react-native", () => ({ View: "View", Text: "Text", Pressable: "Pressable", ScrollView: "ScrollView", TextInput: "Input", Platform: { get OS() { return mocks.platform; } }, Linking: { openURL: mocks.openURL }, StyleSheet: { create: (value: unknown) => value, hairlineWidth: 1 } }));
 vi.mock("../theme/ThemeProvider", () => ({ useAppTheme: () => ({ colors: mocks.dark ? darkColors : lightColors }) }));
 vi.mock("../components/GlassPanel", () => ({ GlassPanel: "Panel" }));
 vi.mock("../components/IconButton", () => ({ IconButton: "IconButton" }));
@@ -19,7 +19,7 @@ vi.mock("expo-clipboard", () => ({ setStringAsync: mocks.copy }));
 vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 
 let screen: ReactTestRenderer;
-beforeEach(() => { vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true); vi.clearAllMocks(); mocks.dark = false; });
+beforeEach(() => { vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true); vi.clearAllMocks(); mocks.dark = false; mocks.platform = "ios"; });
 afterEach(async () => { if (screen) await act(async () => screen.unmount()); vi.unstubAllGlobals(); });
 async function render(element: React.ReactElement) { await act(async () => { screen = create(element); }); }
 function markdownView(children: string, props: Omit<React.ComponentProps<typeof MarkdownText>, "children"> = {}) {
@@ -51,6 +51,29 @@ describe("native Markdown display", () => {
     expect(content(text)).toBe("Crème fraîche");
     expect(text.props.numberOfLines).toBe(2);
     expect(text.props.style[1]).toMatchObject({ fontSize: 13, lineHeight: 18 });
+  });
+
+  it("keeps single-line labels readable instead of automatically shrinking them", async () => {
+    await render(React.createElement(AppText, { numberOfLines: 1, variant: "label" }, "Français"));
+    const text = screen.root.findAll((node) => String(node.type) === "Text")[0];
+    expect(text.props.adjustsFontSizeToFit).toBe(false);
+    expect(text.props.style[1]).toMatchObject({ fontSize: 14 });
+  });
+
+  it("bounds explicit font fitting while preserving accessibility text scaling", async () => {
+    await render(React.createElement(AppText, { numberOfLines: 1, adjustsFontSizeToFit: true }, "Long title"));
+    const text = screen.root.findAll((node) => String(node.type) === "Text")[0];
+    expect(text.props.adjustsFontSizeToFit).toBe(true);
+    expect(text.props.minimumFontScale).toBe(0.85);
+    expect(text.props.allowFontScaling).not.toBe(false);
+  });
+
+  it("keeps Android titles readable when Fabric cannot enforce the font-scale floor", async () => {
+    mocks.platform = "android";
+    await render(React.createElement(AppText, { numberOfLines: 1, adjustsFontSizeToFit: true }, "Community"));
+    const text = screen.root.findAll((node) => String(node.type) === "Text")[0];
+    expect(text.props.adjustsFontSizeToFit).toBe(false);
+    expect(text.props.allowFontScaling).not.toBe(false);
   });
 
   it("formats nested emphasis and keeps compact card links from intercepting navigation", async () => {
