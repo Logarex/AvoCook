@@ -1,6 +1,14 @@
 # Privatliv og data
 
-Opdateret: 14. oktober 2026. AvoCook indeholder ikke reklamer eller analyseværktøjer. Nogle funktioner bruger de netværkstjenester, der er beskrevet her.
+Opdateret: 18. oktober 2026. AvoCook indeholder ikke reklamer eller analyseværktøjer. Nogle funktioner bruger de netværkstjenester, der er beskrevet her.
+
+## Mit køkken, stemme og lokale påmindelser
+
+Madplaner, lager, datoer, personlige vurderinger, noter, kostmærker, menuer og historik gemmes lokalt og adskilt efter opskriftskonto. Private noter offentliggøres ikke og indgår ikke i PDF-kogebøger. Den fulde køkkensikkerhedskopi indeholder disse oplysninger og opskrifter; den normale opskriftssikkerhedskopi indeholder ikke køkkendata.
+
+Valgfrie madlavningskommandoer kræver tilladelser til mikrofon og talegenkendelse. Der bruges kun understøttet lokal genkendelse uden netværksalternativ. AvoCook gemmer hverken lyd eller transskriptioner. Lytning stopper, når madlavningstilstanden lukkes, eller appen går i baggrunden.
+
+Valgfrie lagerpåmindelser planlægges på enheden. Varenavne kan vises på låseskærmen efter systemindstillingerne. Genererede ingredienser bruger den valgte indkøbstilstand, herunder aktiveret deling eller synkronisering med Apple-påmindelser. Deltagelse i månedens udfordring tilføjer en synlig offentlig markør til den udgivne beskrivelse.
 
 ## Opskrifter, Nextcloud og sikkerhedskopier
 

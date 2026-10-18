@@ -42,7 +42,9 @@
         "NSCalendarsUsageDescription": "AvoCook requires calendar access because it shares the same system component as reminders, which are used for your grocery lists.",
         "NSCalendarsFullAccessUsageDescription": "AvoCook requires calendar access because it shares the same system component as reminders, which are used for your grocery lists.",
         "NSRemindersUsageDescription": "AvoCook uses your reminders to export and synchronize your grocery lists.",
-        "NSRemindersFullAccessUsageDescription": "AvoCook uses your reminders to export and synchronize your grocery lists."
+        "NSRemindersFullAccessUsageDescription": "AvoCook uses your reminders to export and synchronize your grocery lists.",
+        "NSMicrophoneUsageDescription": "Use the microphone for optional on-device cooking commands.",
+        "NSSpeechRecognitionUsageDescription": "Recognize optional cooking commands on this device. Audio is not sent to a server."
       }
     },
     "android": {
@@ -50,7 +52,6 @@
       "playStoreUrl": "https://play.google.com/store/apps/details?id=app.avocook.mobile",
       "permissions": [],
       "blockedPermissions": [
-        "android.permission.RECORD_AUDIO",
         "android.permission.SYSTEM_ALERT_WINDOW",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",

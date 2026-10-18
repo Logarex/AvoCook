@@ -340,3 +340,25 @@ describe("changes imported from Apple Reminders", () => {
     expect(f.controller.getSnapshot().items).toHaveLength(2); f.controller.dispose();
   });
 });
+
+describe("atomic local weekly shopping updates", () => {
+  it("persists a whole week replacement and keeps the previous list after a failed write", async () => {
+    const f = fixture(); await f.controller.load();
+    const source = { recipeId: "week:local", recipeName: "Week" };
+    await f.controller.replaceGeneratedIngredients(["100 g flour"], source);
+    const before = f.controller.getSnapshot().items;
+    vi.mocked(f.dependencies.saveItems).mockRejectedValueOnce(new Error("disk full"));
+    await expect(f.controller.replaceGeneratedIngredients(["200 g flour"], source)).rejects.toThrow("disk full");
+    expect(f.controller.getSnapshot().items).toEqual(before);
+    await f.controller.replaceGeneratedIngredients(["300 g flour"], source);
+    expect(f.controller.getSnapshot().items.filter(item => item.recipeId === source.recipeId).map(item => item.label)).toEqual(["300 g flour"]);
+    f.controller.dispose();
+  });
+  it("does not attempt a destructive replacement in a remote mode", async () => {
+    const f = fixture(); await f.controller.load(); await f.controller.switchToFirebase();
+    const before = f.controller.getSnapshot().items;
+    await expect(f.controller.replaceGeneratedIngredients([], { recipeId: "week" })).rejects.toThrow("local shopping mode");
+    expect(f.controller.getSnapshot().items).toEqual(before);
+    f.controller.dispose();
+  });
+});

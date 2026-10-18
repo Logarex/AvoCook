@@ -119,3 +119,22 @@ describe("shopping list helpers", () => {
     expect(moveShoppingListItem(items, "item-3", 1)).toBe(items);
   });
 });
+
+describe("generated weekly shopping", () => {
+  it("replaces only its own week, preserving manual items, other weeks and checked rows", async () => {
+    const { replaceGeneratedShoppingItems } = await import("../features/shopping/shoppingList");
+    const source = { recipeId: "kitchen-week:private:2026-10-19", recipeName: "Week" };
+    const generated = addIngredientsToShoppingList([], ["2 eggs", "100 g flour"], source, { createId: (() => { let id = 0; return () => `week-${id++}`; })() }).items;
+    generated[0].checked = true;
+    const manual = addIngredientsToShoppingList([], ["Coffee"], {}, { createId: () => "manual" }).items;
+    const other = addIngredientsToShoppingList([], ["Rice"], { recipeId: "other-week" }, { createId: () => "other" }).items;
+    const current = [...manual, ...generated, ...other];
+    let id = 0;
+    const next = replaceGeneratedShoppingItems(current, ["2 eggs", "250 g flour"], source, { createId: () => `new-${id++}` });
+    expect(next.items.map(item => item.label)).toEqual(["Coffee", "Rice", "2 eggs", "250 g flour"]);
+    expect(next.items.find(item => item.label === "2 eggs")).toMatchObject({ id: "week-0", checked: true });
+    expect(next.added.map(item => item.label)).toEqual(["250 g flour"]);
+    expect(current.find(item => item.label === "100 g flour")).toBeDefined();
+    expect(replaceGeneratedShoppingItems(next.items, [], source).items.map(item => item.label)).toEqual(["Coffee", "Rice"]);
+  });
+});

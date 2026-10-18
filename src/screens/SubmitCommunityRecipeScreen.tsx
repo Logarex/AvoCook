@@ -1,3 +1,4 @@
+import { monthlyChallenge, challengeDescription } from "../features/kitchen/challenges";
 import { splitRecipeText } from "../features/markdown/markdown";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import React, { useState } from "react";
@@ -27,11 +28,13 @@ type Props = NativeStackScreenProps<RootStackParamList, "SubmitCommunityRecipe">
 
 const LANG_OPTIONS = COMMUNITY_LANGUAGES.map((option) => ({ id: option.value, label: option.nativeName }));
 
-export function SubmitCommunityRecipeScreen({ navigation }: Props) {
+export function SubmitCommunityRecipeScreen({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const { colors } = useAppTheme();
   const { communityPseudonym } = usePreferences();
 
+  const [participating, setParticipating] = useState(Boolean(route.params?.challenge));
+  const challenge = monthlyChallenge();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [ingredientsText, setIngredientsText] = useState("");
@@ -84,7 +87,7 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
     try {
       await submitCommunityRecipe({
         title: title.trim(),
-        description: description.trim(),
+        description: participating ? challengeDescription(description, challenge.marker) : description.trim(),
         ingredients,
         steps,
         language,
@@ -132,6 +135,9 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
       </GlassPanel>
 
       <GlassPanel style={styles.form}>
+        <AppText variant="label">{t("kitchen.monthlyChallenge")} · {t(`kitchen.theme_${challenge.theme}`)}</AppText>
+        <PrimaryButton label={t(participating ? "kitchen.joinedChallenge" : "kitchen.joinChallenge")} variant={participating ? "primary" : "secondary"} onPress={() => setParticipating(!participating)} />
+        {participating && <AppText muted>{t("kitchen.challengePublic", { marker: challenge.marker })}</AppText>}
         <AppText muted variant="caption">{t("editor.markdownHelp")}</AppText>
         <TextField markdown
           label={t("editor.name")}

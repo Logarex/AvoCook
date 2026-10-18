@@ -1,5 +1,5 @@
 import {
-  addIngredientsToShoppingList, clearCheckedShoppingListItems, moveShoppingListItem,
+  replaceGeneratedShoppingItems, addIngredientsToShoppingList, clearCheckedShoppingListItems, moveShoppingListItem,
   removeShoppingListItem, setShoppingListItemChecked, updateShoppingListItemLabel,
   type ShoppingListItem, type ShoppingListSource, type ShoppingListAddResult
 } from "./shoppingList";
@@ -333,6 +333,13 @@ export class ShoppingModeController {
       added.push(...this.state.items.filter((item) => !before.has(item.id)));
     }
     return { added, items: this.state.items };
+  });
+  replaceGeneratedIngredients = (ingredients: string[], source: ShoppingListSource & { recipeId: string }): Promise<ShoppingListAddResult> => this.enqueue(async () => {
+    // Remote backends do not expose an atomic group replacement operation.
+    if (this.state.mode.kind !== "local") throw new Error("Generated list replacement requires local shopping mode");
+    const result = replaceGeneratedShoppingItems(this.state.items, ingredients, source, { createId: this.dependencies.createId });
+    await this.persist(result.items);
+    return result;
   });
   toggleItem = (id: string, options?: { skipSync?: boolean }) => this.enqueue(async () => {
     if (this.state.mode.kind === "pantry") return this.requirePantry(this.session!.toggleItem(this.pantryItem(id)));

@@ -7,12 +7,14 @@
   "expo-module": {
     "android": {
       "modules": [
-        "app.avocook.timernotifications.AvoCookTimerNotificationsModule"
+        "app.avocook.timernotifications.AvoCookTimerNotificationsModule",
+        "app.avocook.timernotifications.AvoCookKitchenModule"
       ]
     },
     "apple": {
       "modules": [
-        "AvoCookTimerNotificationsModule"
+        "AvoCookTimerNotificationsModule",
+        "AvoCookKitchenModule"
       ],
       "appDelegateSubscribers": [
         "AvoCookTimerNotificationsAppDelegateSubscriber"

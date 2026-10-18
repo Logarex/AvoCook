@@ -8,6 +8,20 @@ export type SettingsSection =
   | "maintenance"
   | "about";
 
+export type KitchenSection =
+  | "planner"
+  | "stock"
+  | "tonight"
+  | "batch"
+  | "history"
+  | "converter"
+  | "seasonal"
+  | "substitutions"
+  | "book"
+  | "profiles"
+  | "menus"
+  | "backup";
+
 export type RootStackParamList = {
   Tour: undefined;
   Update: undefined;
@@ -21,6 +35,15 @@ export type RootStackParamList = {
         tabTransition?: "slide_from_left" | "slide_from_right";
       }
     | undefined;
+  Kitchen:
+    | {
+        section?: KitchenSection;
+        recipeId?: string;
+        tabTransition?: "slide_from_left" | "slide_from_right";
+      }
+    | undefined;
+  Cooking: { id: string };
+  RecipeJournal: { id: string };
   RecipeDetail: {
     id: string;
   };
@@ -47,7 +70,7 @@ export type RootStackParamList = {
   CommunityDetail: {
     id: string;
   };
-  SubmitCommunityRecipe: undefined;
+  SubmitCommunityRecipe: { challenge?: boolean } | undefined;
   Settings: { section?: SettingsSection } | undefined;
   Privacy: undefined;
 };

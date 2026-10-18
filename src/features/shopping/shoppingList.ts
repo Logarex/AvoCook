@@ -188,3 +188,21 @@ function normalizeForDuplicate(value: string) {
 function createDefaultId() {
   return `shopping-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
+
+/** Replace one generated group without changing manual items or identical checked rows. */
+export function replaceGeneratedShoppingItems(
+  currentItems: ShoppingListItem[], ingredients: string[], source: ShoppingListSource & { recipeId: string }, options: AddOptions = {}
+): ShoppingListAddResult {
+  if (!source.recipeId) throw new Error("A generated shopping group requires a source");
+  const previous = currentItems.filter(item => item.recipeId === source.recipeId);
+  const remaining = currentItems.filter(item => item.recipeId !== source.recipeId);
+  const generated = addIngredientsToShoppingList([], ingredients, source, options);
+  const reused = new Set<string>();
+  const rows = generated.added.map(item => {
+    const existing = previous.find(candidate => !reused.has(candidate.id) && normalizeForDuplicate(candidate.label) === normalizeForDuplicate(item.label));
+    if (!existing) return item;
+    reused.add(existing.id);
+    return { ...existing, label: item.label, recipeName: item.recipeName };
+  });
+  return { items: [...remaining, ...rows], added: rows.filter(item => !reused.has(item.id)) };
+}

@@ -1,6 +1,14 @@
 # Privacy and data
 
-Updated: 14 October 2026. AvoCook has no advertising or analytics tools. Some features use network services as described below.
+Updated: 18 October 2026. AvoCook has no advertising or analytics tools. Some features use network services as described below.
+
+## My kitchen, voice and local reminders
+
+Meal plans, stock, dates, personal ratings, notes, dietary labels, menus and cooking history are stored locally, separately for each recipe account. These private notes are excluded from community publishing and PDF cookbooks. The complete My kitchen backup includes this information and recipes; the usual recipe backup does not include My kitchen data.
+
+Optional cooking commands request microphone and speech permissions. Recognition runs only on a supported on-device recognizer; there is no network fallback. Audio and transcripts are not saved by AvoCook. Listening stops when the cooking screen closes or the app enters the background.
+
+Optional stock reminders are scheduled on the device. Product names may appear on the lock screen according to system settings. Generated ingredients use your selected shopping mode, including any sharing or Apple Reminders sync you enabled. Monthly challenge participation adds a visible public marker to a published recipe description.
 
 ## Recipes, Nextcloud and backups
 

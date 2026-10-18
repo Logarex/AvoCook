@@ -1,6 +1,14 @@
 # Confidentialité et données
 
-Mise à jour : 14 octobre 2026. AvoCook ne contient ni publicité ni outil d’analyse. Certaines fonctions utilisent les services réseau décrits ci-dessous.
+Mise à jour : 18 octobre 2026. AvoCook ne contient ni publicité ni outil d’analyse. Certaines fonctions utilisent les services réseau décrits ci-dessous.
+
+## Ma cuisine, voix et rappels locaux
+
+Planning, stocks, dates, notes personnelles, indications alimentaires, menus et historique sont conservés localement, séparément pour chaque compte de recettes. Les notes privées sont exclues des publications communautaires et des livres PDF. La sauvegarde complète de Ma cuisine contient ces informations et les recettes ; la sauvegarde habituelle des recettes ne contient pas les données de Ma cuisine.
+
+Les commandes vocales facultatives demandent les autorisations de microphone et de reconnaissance vocale. La reconnaissance utilise uniquement un moteur local compatible, sans relais réseau. AvoCook ne conserve ni son ni transcription. L’écoute cesse en quittant le mode cuisine ou lorsque l’app passe en arrière-plan.
+
+Les rappels de stocks facultatifs sont programmés sur l’appareil. Les noms des produits peuvent apparaître sur l’écran verrouillé selon les réglages système. Les ingrédients générés utilisent le mode de courses choisi, y compris le partage ou la synchronisation avec Rappels Apple activés. La participation au défi mensuel ajoute un repère public visible à la description d’une recette publiée.
 
 ## Recettes, Nextcloud et sauvegardes
 

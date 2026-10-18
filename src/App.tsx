@@ -1,3 +1,4 @@
+import { getKitchenNative } from "./features/kitchen/kitchenNative";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   NavigationContainer,
@@ -13,7 +14,13 @@ import { useShareIntent } from "expo-share-intent";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
+import {
+  AppState,
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  View,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AppLogo } from "./components/AppLogo";
@@ -33,6 +40,10 @@ import { initFirebaseAuth } from "./features/firebase/firebaseClient";
 import { logService } from "./features/logging/logService";
 import { useOnboarding } from "./features/onboarding/useOnboarding";
 import { PreferencesProvider } from "./features/preferences/PreferencesProvider";
+import { KitchenProvider } from "./features/kitchen/KitchenProvider";
+import { KitchenScreen } from "./screens/KitchenScreen";
+import { CookingScreen } from "./screens/CookingScreen";
+import { RecipeJournalScreen } from "./screens/RecipeJournalScreen";
 import { RecipesProvider } from "./features/recipes/RecipesProvider";
 import {
   ShoppingListProvider,
@@ -80,9 +91,11 @@ export default function App() {
                 <LongActionToastProvider>
                   <RecipesProvider>
                     <ShoppingListProvider>
-                      <TimersProvider>
-                        <RootNavigator />
-                      </TimersProvider>
+                      <KitchenProvider>
+                        <TimersProvider>
+                          <RootNavigator />
+                        </TimersProvider>
+                      </KitchenProvider>
                     </ShoppingListProvider>
                   </RecipesProvider>
                 </LongActionToastProvider>
@@ -125,11 +138,13 @@ function RootNavigator() {
   const currentTab: BottomNavigationTab | undefined =
     route === "Recipes"
       ? "recipes"
-      : route === "Community"
-        ? "community"
-        : route === "ShoppingList"
-          ? "shoppingList"
-          : undefined;
+      : route === "Kitchen"
+        ? "kitchen"
+        : route === "Community"
+          ? "community"
+          : route === "ShoppingList"
+            ? "shoppingList"
+            : undefined;
   const syncCurrentRoute = () =>
     setCurrentRoute(navigationRef.getCurrentRoute()?.name);
 
@@ -143,6 +158,7 @@ function RootNavigator() {
         onStateChange={syncCurrentRoute}
       >
         {isAuthenticated ? <ShareIntentHandler /> : null}
+        {isAuthenticated ? <KitchenNotificationHandler /> : null}
         {isAuthenticated ? <RemindersOnboardingPrompt /> : null}
         <View style={styles.flex}>
           <Stack.Navigator
@@ -156,6 +172,12 @@ function RootNavigator() {
             <Stack.Screen name="Tour" component={TourScreen} />
             <Stack.Screen name="Update" component={UpdateScreen} />
             <Stack.Screen name="Recipes" component={RecipeListScreen} />
+            <Stack.Screen name="Kitchen" component={KitchenScreen} />
+            <Stack.Screen name="Cooking" component={CookingScreen} />
+            <Stack.Screen
+              name="RecipeJournal"
+              component={RecipeJournalScreen}
+            />
             <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
             <Stack.Screen name="RecipeEditor" component={RecipeEditorScreen} />
             <Stack.Screen name="ImportRecipe" component={ImportRecipeScreen} />
@@ -179,6 +201,7 @@ function RootNavigator() {
               onNavigate={(tab) => {
                 if (tab === currentTab) return;
                 if (tab === "recipes") navigationRef.navigate("Recipes");
+                else if (tab === "kitchen") navigationRef.navigate("Kitchen");
                 else if (tab === "community")
                   navigationRef.navigate("Community");
                 else navigationRef.navigate("ShoppingList");
@@ -189,6 +212,35 @@ function RootNavigator() {
       </NavigationContainer>
     </>
   );
+}
+
+function KitchenNotificationHandler() {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  useEffect(() => {
+    let mounted = true;
+    const native = getKitchenNative();
+    const open = () => {
+      void native
+        ?.consumeStockReminderOpen()
+        .then((pending) => {
+          if (mounted && pending)
+            navigation.navigate("Kitchen", { section: "stock" });
+        })
+        .catch(() => undefined);
+    };
+    open();
+    const subscription = native?.addListener("stockReminderOpen", open);
+    const appState = AppState.addEventListener("change", (state) => {
+      if (state === "active") open();
+    });
+    return () => {
+      mounted = false;
+      subscription?.remove();
+      appState.remove();
+    };
+  }, [navigation]);
+  return null;
 }
 
 function ShareIntentHandler() {
@@ -277,6 +329,7 @@ function getStackAnimation(
   if (
     reducedMotion ||
     routeName === "Recipes" ||
+    routeName === "Kitchen" ||
     routeName === "Community" ||
     routeName === "ShoppingList"
   ) {

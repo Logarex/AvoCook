@@ -22,6 +22,7 @@ type ShoppingListContextValue = {
   items: ShoppingListItem[]; loading: boolean; mode: ShoppingMode; switching: boolean;
   addItem: (label: string, options?: { skipSync?: boolean }) => Promise<ShoppingListAddResult>;
   addIngredients: (ingredients: string[], source?: ShoppingListSource, options?: { allowDuplicates?: boolean; skipSync?: boolean }) => Promise<ShoppingListAddResult>;
+  replaceGeneratedIngredients: (ingredients: string[], source: ShoppingListSource & { recipeId: string }) => Promise<ShoppingListAddResult>;
   clearAll: (options?: { skipSync?: boolean }) => Promise<void>;
   clearChecked: (options?: { skipSync?: boolean }) => Promise<number>;
   moveItem: (id: string, direction: -1 | 1, options?: { skipSync?: boolean }) => Promise<void>;
@@ -132,8 +133,9 @@ export function ShoppingListProvider({ children }: { children: React.ReactNode }
   }, [accountKey, credentials, hydrated]);
 
   const requireController = useCallback(() => { if (!active) throw new Error("Shopping list loading"); return active; }, [active]);
-  const operations = useMemo<Pick<ShoppingListContextValue, "addIngredients" | "addItem" | "clearAll" | "clearChecked" | "moveItem" | "removeItem" | "toggleItem" | "updateItem" | "refreshItems" | "switchToLocal" | "switchToPantry" | "updatePantryItem">>(() => ({
+  const operations = useMemo<Pick<ShoppingListContextValue, "replaceGeneratedIngredients" | "addIngredients" | "addItem" | "clearAll" | "clearChecked" | "moveItem" | "removeItem" | "toggleItem" | "updateItem" | "refreshItems" | "switchToLocal" | "switchToPantry" | "updatePantryItem">>(() => ({
     addIngredients: (...args) => requireController().addIngredients(...args),
+    replaceGeneratedIngredients: (...args) => requireController().replaceGeneratedIngredients(...args),
     addItem: (label, options) => requireController().addIngredients([label], {}, options),
     clearAll: (...args) => requireController().clearAll(...args),
     clearChecked: (...args) => requireController().clearChecked(...args),

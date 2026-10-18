@@ -741,6 +741,10 @@ function RecipeDetailContent({
         ) : null}
       </View>
 
+      <PrimaryButton label={t("kitchen.cooking")} disabled={!recipe.recipeInstructions.length} onPress={() => navigation.navigate("Cooking", { id: recipeId })} />
+      <PrimaryButton label={t("kitchen.planRecipe")} variant="secondary" onPress={() => navigation.navigate("Kitchen", { section: "planner", recipeId })} />
+      <PrimaryButton label={t("kitchen.journal")} variant="secondary" onPress={() => navigation.navigate("RecipeJournal", { id: recipeId })} />
+
       {recipe.recipeCategory ? (
         <View style={styles.pills}>
           <Pill label={getRecipeCategoryLabel(recipe.recipeCategory, t)} />

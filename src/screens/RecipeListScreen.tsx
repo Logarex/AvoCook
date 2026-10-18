@@ -1,3 +1,5 @@
+import { useKitchen } from "../features/kitchen/KitchenProvider";
+import { matchesDietPreference, matchesFoodPreferences } from "../features/kitchen/kitchen";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   AlertTriangle,
@@ -80,6 +82,7 @@ type CategoryOption = {
 };
 
 export function RecipeListScreen({ navigation }: Props) {
+  const kitchen = useKitchen();
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { fontScale, width } = useWindowDimensions();
@@ -211,6 +214,7 @@ export function RecipeListScreen({ navigation }: Props) {
   const filteredRecipes = useMemo(() => {
     const normalizedQuery = normalizeSearchText(query);
     const matchingRecipes = recipes.filter((recipe) => {
+      if (!matchesDietPreference(recipe.id, kitchen.data) || !matchesFoodPreferences(recipe, kitchen.data.excludedWords)) return false;
       const recipeCategory = recipe.recipeCategory.trim();
       const matchesCategory =
         category === null ||
@@ -241,7 +245,7 @@ export function RecipeListScreen({ navigation }: Props) {
         )
       );
     });
-  }, [category, query, recipes]);
+  }, [category, query, recipes, kitchen.data]);
 
   const alphabet = useMemo(() => {
     const letters = new Set<string>();
@@ -468,7 +472,7 @@ export function RecipeListScreen({ navigation }: Props) {
   return (
     <PageSwipeGesture
       onSwipeLeft={() =>
-        navigation.navigate("Community", { tabTransition: "slide_from_right" })
+        navigation.navigate("Kitchen", { tabTransition: "slide_from_right" })
       }
     >
       <Screen
@@ -529,6 +533,7 @@ export function RecipeListScreen({ navigation }: Props) {
           </View>
         </View>
 
+        {(!!kitchen.data.excludedWords || !!kitchen.data.dietaryPreference) && <PrimaryButton label={t("kitchen.profileActive")} variant="ghost" onPress={() => navigation.navigate("Kitchen", { section: "profiles" })} />}
         <View style={styles.searchRow}>
           <SearchField
             onChangeText={setQuery}

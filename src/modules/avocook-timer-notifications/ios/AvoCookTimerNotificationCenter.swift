@@ -57,7 +57,7 @@ public final class AvoCookTimerNotificationCenter: NSObject, UNUserNotificationC
     willPresent notification: UNNotification,
     withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
   ) {
-    guard notification.request.identifier.hasPrefix(timerNotificationPrefix) else {
+    guard notification.request.identifier.hasPrefix(timerNotificationPrefix) || notification.request.identifier.hasPrefix("avocook-stock:") else {
       completionHandler([])
       return
     }
@@ -75,6 +75,11 @@ public final class AvoCookTimerNotificationCenter: NSObject, UNUserNotificationC
     withCompletionHandler completionHandler: @escaping () -> Void
   ) {
     defer { completionHandler() }
+
+    if response.notification.request.identifier.hasPrefix("avocook-stock:") {
+      AvoCookKitchenModule.openStockReminder()
+      return
+    }
 
     guard response.actionIdentifier == stopActionIdentifier else {
       return

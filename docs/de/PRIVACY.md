@@ -1,6 +1,14 @@
 # Datenschutz und Daten
 
-Stand: 14. Oktober 2026. AvoCook enthält keine Werbung oder Analysewerkzeuge. Einige Funktionen nutzen die folgenden Netzwerkdienste.
+Stand: 18. Oktober 2026. AvoCook enthält keine Werbung oder Analysewerkzeuge. Einige Funktionen nutzen die folgenden Netzwerkdienste.
+
+## Meine Küche, Sprache und lokale Erinnerungen
+
+Speisepläne, Vorräte, Daten, persönliche Bewertungen, Notizen, Ernährungsangaben, Menüs und Kochverlauf werden lokal nach Rezeptkonto getrennt gespeichert. Private Notizen werden nicht veröffentlicht oder in PDF-Kochbücher aufgenommen. Die vollständige Küchensicherung enthält diese Informationen und Rezepte; die normale Rezeptsicherung enthält keine Küchendaten.
+
+Optionale Kochbefehle benötigen Mikrofon- und Spracherkennungsberechtigungen. Die Erkennung nutzt ausschließlich einen unterstützten lokalen Erkennungsdienst ohne Netzwerkersatz. AvoCook speichert weder Audio noch Transkripte. Beim Verlassen des Kochmodus oder im Hintergrund endet das Zuhören.
+
+Optionale Vorratserinnerungen werden auf dem Gerät geplant. Produktnamen können je nach Systemeinstellung auf dem Sperrbildschirm erscheinen. Erzeugte Zutaten verwenden den gewählten Einkaufsmodus einschließlich aktivierter Freigabe oder Apple-Erinnerungssynchronisierung. Die Monats-Challenge ergänzt die Beschreibung veröffentlichter Rezepte um eine sichtbare öffentliche Kennung.
 
 ## Rezepte, Nextcloud und Sicherungen
 

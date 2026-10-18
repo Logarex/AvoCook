@@ -36,6 +36,22 @@ I built it for personal use while learning to ship a complete React Native proje
 - Export a recipe as PDF or print it directly;
 - Share a recipe with another app (share sheet).
 
+### My kitchen (local, free)
+
+- Plan a week with drag-and-drop recipes, adjustable servings and lunch/dinner slots;
+- Plan simple meals, leftovers and eating out without creating a recipe; only meals that need groceries generate ingredients;
+- Preview consolidated groceries and update a generated week atomically in local shopping mode, retaining manual items and unchanged checked items;
+- Enter the ingredients available tonight, or use dated fridge, cupboard and freezer stock, to find recipes with fewer missing ingredients;
+- Cook one large-print step at a time with manually attached step timers, and optional strictly on-device voice commands when supported;
+- Keep private ratings, notes, changes, dietary labels, estimated costs and cooking history;
+- Explore a sourced offline mainland-France seasonal catalog, context-specific baking substitutions, batch preparation and reusable celebration menus;
+- Create a text PDF cookbook and export/restore a complete backup including private My kitchen data;
+- Join an optional friendly monthly community challenge using the existing recipe sharing and rating system.
+
+Open the **My kitchen** bottom tab. Dietary labels are entered by the user and do not certify the absence of allergens. Ingredient matching is conservative and does not check available quantities or food safety. See [behavior, limits and validation](docs/LOCAL_KITCHEN.md).
+
+Voice commands and stock reminders require a new native build. Run `npx expo prebuild --clean`, install iOS pods, and rebuild both apps after switching to this branch. The buttons remain optional when capabilities or permissions are unavailable.
+
 ### Optional Markdown
 
 All recipe text fields accept Markdown, in every language: name, description, category, keywords, source name, ingredients, instructions, tools and nutrition values. Plain text remains the default; no Markdown knowledge is needed.

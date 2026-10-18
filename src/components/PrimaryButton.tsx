@@ -24,6 +24,7 @@ type PrimaryButtonProps = {
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   numberOfLines?: number;
+  compact?: boolean;
 };
 
 export function PrimaryButton({
@@ -34,6 +35,7 @@ export function PrimaryButton({
   disabled = false,
   style,
   numberOfLines = 2,
+  compact = false,
 }: PrimaryButtonProps) {
   const { colors } = useAppTheme();
   const reducedMotion = useReducedMotion();
@@ -75,7 +77,7 @@ export function PrimaryButton({
   );
 
   const plain = variant === "ghost" || variant === "danger-secondary";
-  if (nativeUI && !plain && !disabled) {
+  if (nativeUI && !plain && !disabled && !compact) {
     return (
       <NativeGlassButton
         ui={nativeUI}
@@ -101,6 +103,7 @@ export function PrimaryButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
+        compact && { flexShrink: 1 },
         disabled && !plain
           ? {
               backgroundColor: colors.background,

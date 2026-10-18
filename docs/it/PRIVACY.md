@@ -1,6 +1,14 @@
 # Privacy e dati
 
-Aggiornamento: 14 ottobre 2026. AvoCook non contiene pubblicità né strumenti di analisi. Alcune funzioni usano i servizi di rete descritti qui sotto.
+Aggiornamento: 18 ottobre 2026. AvoCook non contiene pubblicità né strumenti di analisi. Alcune funzioni usano i servizi di rete descritti qui sotto.
+
+## La mia cucina, voce e promemoria locali
+
+Piani pasti, scorte, date, voti, note personali, etichette alimentari, menu e cronologia sono salvati localmente e separati per account di ricette. Le note private non sono pubblicate né incluse nei libri PDF. Il backup completo della cucina include questi dati e le ricette; il normale backup delle ricette non include i dati della cucina.
+
+I comandi di cucina facoltativi richiedono permessi per microfono e riconoscimento vocale. Si usa solo un riconoscitore locale supportato, senza alternativa di rete. AvoCook non salva audio né trascrizioni. L’ascolto termina uscendo dalla modalità cucina o passando in background.
+
+I promemoria delle scorte facoltativi sono programmati sul dispositivo. I nomi dei prodotti possono apparire sullo schermo bloccato secondo le impostazioni. Gli ingredienti generati usano la modalità spesa scelta, inclusa la condivisione o la sincronizzazione con Promemoria Apple attivate. Partecipare alla sfida mensile aggiunge un contrassegno pubblico visibile alla descrizione pubblicata.
 
 ## Ricette, Nextcloud e backup
 

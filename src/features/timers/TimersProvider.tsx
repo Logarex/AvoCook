@@ -17,7 +17,7 @@ import {
 } from "./timerNotifications";
 
 export type TimerPreset = {
-  id: "prep" | "cook" | "total";
+  id: string;
   label: string;
   minutes: number;
 };

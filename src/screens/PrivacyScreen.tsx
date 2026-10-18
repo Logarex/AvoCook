@@ -26,6 +26,8 @@ export function PrivacyScreen({ navigation }: Props) {
       title: t("ui.privacyData"),
       paragraphs: [
         t("privacy.local"),
+        t("kitchen.privacyDataSummary"),
+        t("kitchen.privacyVoiceSummary"),
         t("privacy.credentials"),
         t("privacy.photos"),
       ],

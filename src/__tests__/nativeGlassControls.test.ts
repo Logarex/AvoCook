@@ -56,6 +56,7 @@ vi.mock("react-i18next", () => ({
 }));
 vi.mock("lucide-react-native", () => ({
   BookOpen: "Book",
+  CalendarDays: "Calendar",
   Globe: "Globe",
   ShoppingCart: "Cart",
 }));
@@ -109,6 +110,15 @@ function nodes(type: string) {
 }
 
 describe("native Liquid Glass controls", () => {
+  it("keeps compact controls measurable in wrapped rows when native glass is enabled", async () => {
+    const onPress = vi.fn();
+    await render(React.createElement(PrimaryButton, { label: "Meal plan", onPress, compact: true }));
+    expect(nodes("NativeButton")).toHaveLength(0);
+    const button = nodes("Pressable")[0];
+    expect(button.props.accessibilityLabel).toBe("Meal plan");
+    await act(async () => button.props.onPress());
+    expect(onPress).toHaveBeenCalledOnce();
+  });
   it("lets the native button own presses, without an overlaid React Native press handler", async () => {
     const onPress = vi.fn();
     await render(
@@ -204,7 +214,7 @@ describe("native Liquid Glass controls", () => {
     expect(nodes("Pressable")).toHaveLength(0);
     expect(
       tabs.props.items.map((item: { title: string }) => item.title),
-    ).toEqual(["recipes.title", "community.title", "shoppingList.title"]);
+    ).toEqual(["recipes.title", "kitchen.title", "community.title", "shoppingList.title"]);
     await act(async () =>
       tabs.props.onSelect({ nativeEvent: { id: "community" } }),
     );
@@ -249,7 +259,7 @@ describe("native Liquid Glass controls", () => {
       nodes("Pressable").filter(
         (node) => node.props.accessibilityRole === "tab",
       ),
-    ).toHaveLength(3);
+    ).toHaveLength(4);
     const button = nodes("Pressable").find(
       (node) => node.props.accessibilityRole === "button",
     );
