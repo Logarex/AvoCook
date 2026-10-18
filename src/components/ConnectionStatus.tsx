@@ -1,6 +1,4 @@
-import React, { useEffect, useRef } from "react";
-import { Animated, StyleSheet, View } from "react-native";
-import { useReducedMotion } from "../features/accessibility/useReducedMotion";
+import { StyleSheet, View } from "react-native";
 import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { AppText } from "./AppText";
@@ -10,43 +8,22 @@ type ConnectionStatusProps = {
   label: string;
   detail?: string;
   loading?: boolean;
+  neutral?: boolean;
 };
 
 export function ConnectionStatus({
   connected,
   label,
   detail,
-  loading = false
+  loading = false,
+  neutral = false,
 }: ConnectionStatusProps) {
   const { colors } = useAppTheme();
-  const reducedMotion = useReducedMotion();
-  const opacity = useRef(new Animated.Value(connected ? 0.45 : 1)).current;
-  const dotColor = connected ? colors.success : colors.danger;
-
-  useEffect(() => {
-    if (!connected || reducedMotion) {
-      opacity.stopAnimation();
-      opacity.setValue(1);
-      return;
-    }
-
-    const animation = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          duration: 1200,
-          toValue: 1,
-          useNativeDriver: true
-        }),
-        Animated.timing(opacity, {
-          duration: 1200,
-          toValue: 0.45,
-          useNativeDriver: true
-        })
-      ])
-    );
-    animation.start();
-    return () => animation.stop();
-  }, [connected, opacity, reducedMotion]);
+  const dotColor = neutral
+    ? colors.textMuted
+    : connected
+      ? colors.success
+      : colors.danger;
 
   return (
     <View
@@ -55,14 +32,12 @@ export function ConnectionStatus({
       style={styles.wrap}
     >
       <View style={styles.line}>
-        <Animated.View
+        <View
           style={[
             styles.dot,
             {
               backgroundColor: dotColor,
-              opacity,
-              shadowColor: dotColor
-            }
+            },
           ]}
         />
         <AppText muted variant="caption" style={{ flexShrink: 1 }}>
@@ -70,7 +45,11 @@ export function ConnectionStatus({
         </AppText>
       </View>
       {detail ? (
-        <AppText muted variant="caption" style={[styles.detail, { flexShrink: 1 }]}>
+        <AppText
+          muted
+          variant="caption"
+          style={[styles.detail, { flexShrink: 1 }]}
+        >
           {detail}
         </AppText>
       ) : null}
@@ -80,23 +59,20 @@ export function ConnectionStatus({
 
 const styles = StyleSheet.create({
   detail: {
-    paddingLeft: 18
+    paddingLeft: 18,
   },
   dot: {
     borderRadius: 5,
     height: 10,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.45,
-    shadowRadius: 8,
-    width: 10
+    width: 10,
   },
   line: {
     alignItems: "center",
     flexDirection: "row",
-    gap: spacing.xs
+    gap: spacing.xs,
   },
   wrap: {
     gap: spacing.xxs,
-    minWidth: 0
-  }
+    minWidth: 0,
+  },
 });

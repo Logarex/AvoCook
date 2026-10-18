@@ -1,3 +1,13 @@
+export type SettingsSection =
+  | "appearance"
+  | "account"
+  | "shopping"
+  | "backup"
+  | "advanced"
+  | "assistant"
+  | "maintenance"
+  | "about";
+
 export type RootStackParamList = {
   Tour: undefined;
   Update: undefined;
@@ -29,7 +39,7 @@ export type RootStackParamList = {
         tabTransition?: "slide_from_left" | "slide_from_right";
       }
     | undefined;
-  Community: 
+  Community:
     | {
         tabTransition?: "slide_from_left" | "slide_from_right";
       }
@@ -38,6 +48,6 @@ export type RootStackParamList = {
     id: string;
   };
   SubmitCommunityRecipe: undefined;
-  Settings: undefined;
+  Settings: { section?: SettingsSection } | undefined;
   Privacy: undefined;
 };

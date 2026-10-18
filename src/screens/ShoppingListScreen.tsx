@@ -1,7 +1,5 @@
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { getTabBarContentInset } from "../utils/safeArea";
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   Check,
   ChevronDown,
@@ -12,51 +10,59 @@ import {
   ShoppingCart,
   Trash2,
   Users,
-  X
+  X,
 } from "lucide-react-native";
-import React, { useMemo, useState, useRef, useCallback, useEffect } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Alert,
   AppState,
   type AppStateStatus,
   FlatList,
-  useWindowDimensions,
   Platform,
   Pressable,
   RefreshControl,
   Share,
   StyleSheet,
   TextInput,
-  View
+  useWindowDimensions,
+  View,
 } from "react-native";
-import { useTranslation } from "react-i18next";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "../components/AppText";
-import { BottomNavigation } from "../components/BottomNavigation";
 import { ConnectionStatus } from "../components/ConnectionStatus";
 import { EmptyState } from "../components/EmptyState";
 import { IconButton } from "../components/IconButton";
 import { PageSwipeGesture } from "../components/PageSwipeGesture";
+import { Screen } from "../components/Screen";
 import { ShoppingModeButton } from "../components/ShoppingModeButton";
-import { ShoppingModeModal } from "./ShoppingModeModal";
-import { PantryItemEditorModal } from "./PantryItemEditorModal";
+import { TextField } from "../components/TextField";
+import { selectionFeedback } from "../features/accessibility/haptics";
 import { PantryError, type PantryItem } from "../features/pantry/pantryClient";
 import { pantryPermissions } from "../features/pantry/pantrySession";
-import { Screen } from "../components/Screen";
-import { TextField } from "../components/TextField";
-import { ShoppingListActionsModal } from "./ShoppingListActionsModal";
-import { useShoppingList } from "../features/shopping/ShoppingListProvider";
 import type { ShoppingListItem } from "../features/shopping/shoppingList";
+import { useShoppingList } from "../features/shopping/ShoppingListProvider";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { getTabBarContentInset } from "../utils/safeArea";
+import { PantryItemEditorModal } from "./PantryItemEditorModal";
+import { ShoppingListActionsModal } from "./ShoppingListActionsModal";
+import { ShoppingModeModal } from "./ShoppingModeModal";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ShoppingList">;
 
 export function ShoppingListScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { fontScale } = useWindowDimensions();
+  const { fontScale, width } = useWindowDimensions();
   const { colors } = useAppTheme();
   const {
     addItem,
@@ -73,7 +79,7 @@ export function ShoppingListScreen({ navigation }: Props) {
     mode,
     switching,
     pantry,
-    refreshItems
+    refreshItems,
   } = useShoppingList();
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
@@ -86,12 +92,17 @@ export function ShoppingListScreen({ navigation }: Props) {
   const listRef = useRef<FlatList<ShoppingListItem>>(null);
   const remainingCount = useMemo(
     () => items.filter((item) => !item.checked).length,
-    [items]
+    [items],
   );
   const checkedCount = items.length - remainingCount;
 
   const wasInBackground = useRef(false);
-  const backendKey = mode.kind === "firebase" ? `firebase-${mode.code}` : mode.kind === "pantry" ? `pantry-${mode.accountKey}-${mode.selection.house.id}-${mode.selection.list.id}` : "local";
+  const backendKey =
+    mode.kind === "firebase"
+      ? `firebase-${mode.code}`
+      : mode.kind === "pantry"
+        ? `pantry-${mode.accountKey}-${mode.selection.house.id}-${mode.selection.list.id}`
+        : "local";
   const backendRef = useRef(backendKey);
   const switchingRef = useRef(switching);
   backendRef.current = backendKey;
@@ -102,21 +113,34 @@ export function ShoppingListScreen({ navigation }: Props) {
   }, [refreshItems]);
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    try { await refreshCurrent(); } catch { /* The Pantry session exposes refresh errors with the cached list. */ }
-    finally { setRefreshing(false); }
+    try {
+      await refreshCurrent();
+    } catch {
+      /* The Pantry session exposes refresh errors with the cached list. */
+    } finally {
+      setRefreshing(false);
+    }
   }, [refreshCurrent]);
   const typingRef = useRef(false);
-  typingRef.current = Boolean(newItem || pantryEditing || mutating || showModes || showActionsMenu);
+  typingRef.current = Boolean(
+    newItem || pantryEditing || mutating || showModes || showActionsMenu,
+  );
   useEffect(() => {
-    setEditingItemId(null); setPantryEditing(null); setNewItem(""); setShowActionsMenu(false);
+    setEditingItemId(null);
+    setPantryEditing(null);
+    setNewItem("");
+    setShowActionsMenu(false);
   }, [backendKey]);
-  useFocusEffect(useCallback(() => {
-    if (!backendKey.startsWith("pantry-")) return;
-    const timer = setInterval(() => {
-      if (!typingRef.current && AppState.currentState === "active") void refreshCurrent().catch(() => undefined);
-    }, 30000);
-    return () => clearInterval(timer);
-  }, [backendKey, refreshCurrent]));
+  useFocusEffect(
+    useCallback(() => {
+      if (!backendKey.startsWith("pantry-")) return;
+      const timer = setInterval(() => {
+        if (!typingRef.current && AppState.currentState === "active")
+          void refreshCurrent().catch(() => undefined);
+      }, 30000);
+      return () => clearInterval(timer);
+    }, [backendKey, refreshCurrent]),
+  );
 
   useEffect(() => {
     const sub = AppState.addEventListener("change", (next: AppStateStatus) => {
@@ -124,7 +148,8 @@ export function ShoppingListScreen({ navigation }: Props) {
         wasInBackground.current = true;
       } else if (next === "active" && wasInBackground.current) {
         wasInBackground.current = false;
-        if (backendRef.current.startsWith("pantry-") && typingRef.current) return;
+        if (backendRef.current.startsWith("pantry-") && typingRef.current)
+          return;
         void refreshCurrent().catch(() => undefined);
       }
     });
@@ -135,34 +160,87 @@ export function ShoppingListScreen({ navigation }: Props) {
     useCallback(() => {
       if (backendRef.current !== backendKey) return;
       void refreshCurrent().catch(() => undefined);
-    }, [refreshCurrent, backendKey])
+    }, [refreshCurrent, backendKey]),
   );
 
-  const permissions = pantryPermissions(mode.kind === "pantry" ? pantry?.selection ?? mode.selection : null);
-  const writable = !switching && !mutating && (mode.kind !== "pantry" || Boolean(pantry?.fresh && !pantry.busy));
+  const permissions = pantryPermissions(
+    mode.kind === "pantry" ? (pantry?.selection ?? mode.selection) : null,
+  );
+  const writable =
+    !switching &&
+    !mutating &&
+    (mode.kind !== "pantry" || Boolean(pantry?.fresh && !pantry.busy));
   const canAdd = writable && (mode.kind !== "pantry" || permissions.add);
   const canCheck = writable && (mode.kind !== "pantry" || permissions.check);
   const canEdit = writable && (mode.kind !== "pantry" || permissions.edit);
   const canDelete = writable && (mode.kind !== "pantry" || permissions.delete);
-  const perform = useCallback(async (action: () => Promise<unknown>) => {
-    if (mutationPending.current) return false;
-    mutationPending.current = true; setMutating(true);
-    try { await action(); return true; }
-    catch (error) { Alert.alert(t("common.error"), error instanceof PantryError ? t(`pantry.errors.${error.code}`) : t("shoppingModes.editError")); return false; }
-    finally { mutationPending.current = false; setMutating(false); }
-  }, [t]);
-  const handleToggleItem = useCallback(async (id: string) => { await perform(() => toggleItem(id)); }, [perform, toggleItem]);
-  const handleRemoveItem = useCallback(async (id: string) => { await perform(() => removeItem(id)); }, [perform, removeItem]);
-  const handleUpdateItem = useCallback(async (id: string, label: string) => { await perform(() => updateItem(id, label)); }, [perform, updateItem]);
-  const handleStartEditing = useCallback((id: string) => {
-    if (mode.kind === "pantry") {
-      const item = pantry?.items.find((item) => `pantry-${mode.selection.house.id}-${item.listId}-${item.id}` === id);
-      if (item) setPantryEditing(item);
-    } else setEditingItemId(id);
-  }, [mode, pantry?.items]);
+  const perform = useCallback(
+    async (action: () => Promise<unknown>) => {
+      if (mutationPending.current) return false;
+      mutationPending.current = true;
+      setMutating(true);
+      try {
+        await action();
+        return true;
+      } catch (error) {
+        Alert.alert(
+          t("common.error"),
+          error instanceof PantryError
+            ? t(`pantry.errors.${error.code}`)
+            : t("shoppingModes.editError"),
+        );
+        return false;
+      } finally {
+        mutationPending.current = false;
+        setMutating(false);
+      }
+    },
+    [t],
+  );
+  const handleToggleItem = useCallback(
+    async (id: string) => {
+      await perform(() => toggleItem(id));
+    },
+    [perform, toggleItem],
+  );
+  const handleRemoveItem = useCallback(
+    async (id: string) => {
+      await perform(() => removeItem(id));
+    },
+    [perform, removeItem],
+  );
+  const handleUpdateItem = useCallback(
+    async (id: string, label: string) => {
+      await perform(() => updateItem(id, label));
+    },
+    [perform, updateItem],
+  );
+  const handleStartEditing = useCallback(
+    (id: string) => {
+      if (mode.kind === "pantry") {
+        const item = pantry?.items.find(
+          (item) =>
+            `pantry-${mode.selection.house.id}-${item.listId}-${item.id}` ===
+            id,
+        );
+        if (item) setPantryEditing(item);
+      } else setEditingItemId(id);
+    },
+    [mode, pantry?.items],
+  );
   const handleStopEditing = useCallback(() => setEditingItemId(null), []);
-  const handleMoveUp = useCallback((id: string) => { void perform(() => moveItem(id, -1)); }, [perform, moveItem]);
-  const handleMoveDown = useCallback((id: string) => { void perform(() => moveItem(id, 1)); }, [perform, moveItem]);
+  const handleMoveUp = useCallback(
+    (id: string) => {
+      void perform(() => moveItem(id, -1));
+    },
+    [perform, moveItem],
+  );
+  const handleMoveDown = useCallback(
+    (id: string) => {
+      void perform(() => moveItem(id, 1));
+    },
+    [perform, moveItem],
+  );
   async function handleAddItem() {
     const label = newItem.trim();
     if (!label || !canAdd) return;
@@ -188,192 +266,342 @@ export function ShoppingListScreen({ navigation }: Props) {
     let message = t("shoppingList.title") + "\n\n";
 
     if (remaining.length > 0) {
-      message += remaining.map((i) => `• ${i.label}${i.recipeName ? ` (${i.recipeName})` : ''}`).join("\n");
+      message += remaining
+        .map((i) => `• ${i.label}${i.recipeName ? ` (${i.recipeName})` : ""}`)
+        .join("\n");
       message += "\n\n";
     }
 
     if (checked.length > 0) {
-      message += checked.map((i) => `✓ ${i.label}${i.recipeName ? ` (${i.recipeName})` : ''}`).join("\n");
+      message += checked
+        .map((i) => `✓ ${i.label}${i.recipeName ? ` (${i.recipeName})` : ""}`)
+        .join("\n");
       message += "\n";
     }
 
     try {
       await Share.share({
-        message: message.trim()
+        message: message.trim(),
       });
     } catch (error) {
       console.error("Error sharing shopping list:", error);
     }
   }
 
-  const renderItem = useCallback(({ item, index }: { item: ShoppingListItem; index: number }) => (
-    <MemoizedShoppingListRow
-      canMoveDown={canEdit && index < items.length - 1}
-      canMoveUp={canEdit && index > 0}
-      canCheck={canCheck}
-      canEdit={canEdit}
-      canDelete={canDelete}
-      deleteOnly={mode.kind === "pantry" && !permissions.edit && permissions.delete}
-      editing={editingItemId === item.id}
-      item={item}
-      onMoveDown={handleMoveDown}
-      onMoveUp={handleMoveUp}
-      onRemove={handleRemoveItem}
-      onStartEditing={handleStartEditing}
-      onStopEditing={handleStopEditing}
-      onToggle={handleToggleItem}
-      onUpdate={handleUpdateItem}
-    />
-  ), [mode.kind, permissions.edit, permissions.delete, canCheck, canEdit, canDelete, editingItemId, items.length, handleMoveDown, handleMoveUp, handleRemoveItem, handleStartEditing, handleStopEditing, handleToggleItem, handleUpdateItem]);
+  const renderItem = useCallback(
+    ({ item, index }: { item: ShoppingListItem; index: number }) => (
+      <MemoizedShoppingListRow
+        canMoveDown={canEdit && index < items.length - 1}
+        canMoveUp={canEdit && index > 0}
+        canCheck={canCheck}
+        canEdit={canEdit}
+        canDelete={canDelete}
+        deleteOnly={
+          mode.kind === "pantry" && !permissions.edit && permissions.delete
+        }
+        editing={editingItemId === item.id}
+        item={item}
+        onMoveDown={handleMoveDown}
+        onMoveUp={handleMoveUp}
+        onRemove={handleRemoveItem}
+        onStartEditing={handleStartEditing}
+        onStopEditing={handleStopEditing}
+        onToggle={handleToggleItem}
+        onUpdate={handleUpdateItem}
+      />
+    ),
+    [
+      mode.kind,
+      permissions.edit,
+      permissions.delete,
+      canCheck,
+      canEdit,
+      canDelete,
+      editingItemId,
+      items.length,
+      handleMoveDown,
+      handleMoveUp,
+      handleRemoveItem,
+      handleStartEditing,
+      handleStopEditing,
+      handleToggleItem,
+      handleUpdateItem,
+    ],
+  );
 
   return (
-    <PageSwipeGesture onSwipeRight={() => navigation.navigate("Community", { tabTransition: "slide_from_left" })}>
-      <Screen scroll={false} contentStyle={styles.screenContent}>
-      <View style={styles.header}>
-        <View style={styles.titleBlock}>
-          <View style={styles.titleRow}>
-            <ShoppingCart color={colors.primary} size={25} strokeWidth={2.5} />
-            <AppText variant="title" style={styles.title} numberOfLines={1} adjustsFontSizeToFit>
-              {t("shoppingList.title")}
-            </AppText>
+    <PageSwipeGesture
+      onSwipeRight={() =>
+        navigation.navigate("Community", { tabTransition: "slide_from_left" })
+      }
+    >
+      <Screen
+        scroll={false}
+        contentWidth={760}
+        contentStyle={styles.screenContent}
+      >
+        <View
+          style={[
+            styles.header,
+            fontScale > 1.3 || width < 360
+              ? { flexDirection: "column", alignItems: "stretch" }
+              : undefined,
+          ]}
+        >
+          <View style={styles.titleBlock}>
+            <View style={styles.titleRow}>
+              <AppText
+                variant="title"
+                style={styles.title}
+                numberOfLines={fontScale > 1.3 ? undefined : 1}
+                adjustsFontSizeToFit={fontScale <= 1.3}
+              >
+                {t("shoppingList.title")}
+              </AppText>
+            </View>
+            {mode.kind === "pantry" || sync.linked || sharedList.active ? (
+              <ConnectionStatus
+                connected={
+                  mode.kind === "pantry"
+                    ? Boolean(pantry?.fresh)
+                    : sharedList.active ||
+                      (Platform.OS === "ios" && sync.linked)
+                }
+                label={
+                  mode.kind === "pantry"
+                    ? t(
+                        pantry?.fresh
+                          ? "pantry.upToDate"
+                          : "pantry.cachedStatus",
+                      )
+                    : sharedList.active ||
+                        (Platform.OS === "ios" && sync.linked)
+                      ? t("shoppingList.syncActiveInfo")
+                      : t("shoppingList.syncEnable")
+                }
+                loading={sync.syncing || pantry?.busy}
+              />
+            ) : null}
           </View>
-          {mode.kind === "pantry" || sync.available || sharedList.active ? (
-            <ConnectionStatus
-              connected={mode.kind === "pantry" ? Boolean(pantry?.fresh) : sharedList.active || (Platform.OS === 'ios' && sync.linked)}
-              label={
-                mode.kind === "pantry" ? t(pantry?.fresh ? "pantry.upToDate" : "pantry.cachedStatus") : sharedList.active || (Platform.OS === 'ios' && sync.linked)
-                  ? t("shoppingList.syncActiveInfo")
-                  : t("shoppingList.syncEnable")
-              }
-              loading={sync.syncing || pantry?.busy}
+          {items.length ? (
+            <View style={styles.headerActions}>
+              <IconButton
+                disabled={!items.length}
+                icon={ShareIcon}
+                label={t("shoppingList.shareList")}
+                onPress={() => void handleShare()}
+                style={styles.headerIcon}
+              />
+              <IconButton
+                disabled={!items.length || !canDelete}
+                icon={Trash2}
+                label={t("common.delete")}
+                onPress={handleDeleteOptions}
+                tone="danger"
+                style={styles.headerIcon}
+              />
+            </View>
+          ) : null}
+        </View>
+
+        <View style={styles.modeRow}>
+          <View style={styles.modeControl}>
+            <ShoppingModeButton
+              compact
+              disabled={mutating}
+              onPress={() => setShowModes(true)}
+            />
+          </View>
+          {mode.kind === "pantry" ? (
+            <AppText
+              muted
+              variant="caption"
+              numberOfLines={1}
+              style={styles.activeListName}
+            >
+              {mode.selection.list.name}
+            </AppText>
+          ) : null}
+          {mode.kind === "pantry" ? (
+            <IconButton
+              icon={RefreshCw}
+              spinning={pantry?.busy}
+              label={t("pantry.refresh")}
+              disabled={switching || mutating || pantry?.busy}
+              onPress={() => void handleRefresh()}
             />
           ) : null}
         </View>
-        <View style={styles.headerActions}>
-          <IconButton
-            disabled={!items.length}
-            icon={ShareIcon}
-            label={t("shoppingList.shareList")}
-            onPress={() => void handleShare()}
-            style={styles.headerIcon}
-          />
-          <IconButton
-            disabled={!items.length || !canDelete}
-            icon={Trash2}
-            label={t("common.delete")}
-            onPress={handleDeleteOptions}
-            tone="danger"
-            style={styles.headerIcon}
-          />
-        </View>
-      </View>
-
-      <View style={styles.modeRow}>
-        <View style={styles.modeControl}><ShoppingModeButton compact disabled={mutating} onPress={() => setShowModes(true)} /></View>
-        {mode.kind === "pantry" ? <AppText muted variant="caption" numberOfLines={1} style={styles.activeListName}>{mode.selection.list.name}</AppText> : null}
-        {mode.kind === "pantry" ? <IconButton icon={RefreshCw} spinning={pantry?.busy} label={t("pantry.refresh")} disabled={switching || mutating || pantry?.busy} onPress={() => void handleRefresh()} /> : null}
-      </View>
-      {mode.kind === "pantry" && pantry?.error ? <View style={styles.feedback}>
-        <AppText accessibilityRole="alert" style={{ color: colors.danger }}>{t(`pantry.errors.${pantry.error}`)}</AppText>
-        <AppText muted variant="caption">{t("pantry.cachedBody")}</AppText>
-      </View> : null}
-      {mode.kind === "pantry" && !Object.values(permissions).some(Boolean) ? <AppText muted variant="caption">{t("pantry.readOnly")}</AppText> : null}
-      {pantry?.cacheWarning ? <AppText muted variant="caption">{t("pantry.cacheWarning")}</AppText> : null}
-
-      <View style={styles.addRow}>
-        <TextField
-          containerStyle={styles.addField}
-          label={t("shoppingList.manualItemLabel")}
-          onChangeText={setNewItem}
-          onSubmitEditing={() => void handleAddItem()}
-          placeholder={t("shoppingList.itemPlaceholder")}
-          returnKeyType="done"
-          value={newItem}
-          editable={canAdd}
-          autoCorrect={false}
-        />
-        <IconButton
-          disabled={!newItem.trim() || !canAdd}
-          icon={Plus}
-          label={t("shoppingList.addItem")}
-          onPress={() => void handleAddItem()}
-          tone="primary"
-          style={styles.addButton}
-        />
-      </View>
-
-      {loading ? (
-        <View style={styles.loading}>
-          <ActivityIndicator color={colors.primary} />
-        </View>
-      ) : (
-        <>
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: spacing.sm, marginHorizontal: spacing.md, paddingHorizontal: spacing.md, paddingVertical: spacing.sm, backgroundColor: colors.surfaceGlass, borderRadius: radius.md, flexWrap: "wrap" }}>
-            <AppText muted variant="caption" style={{ fontWeight: "600" }}>
-              {t("shoppingList.remainingCount", { count: remainingCount })}
-              {checkedCount > 0
-                ? ` • ${t("shoppingList.checkedCount", { count: checkedCount })}`
-                : ""}
+        {mode.kind === "pantry" && pantry?.error ? (
+          <View style={styles.feedback}>
+            <AppText accessibilityRole="alert" style={{ color: colors.danger }}>
+              {t(`pantry.errors.${pantry.error}`)}
             </AppText>
-            {sharedList.active && sharedList.participantCount ? (
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: colors.chip, paddingHorizontal: spacing.xs, paddingVertical: 2, borderRadius: radius.sm }}>
-                <Users color={colors.primary} size={13} strokeWidth={2.5} />
-                <AppText variant="caption" style={{ color: colors.primary, fontWeight: "600" }}>
-                  {t("shoppingList.participantCount", { count: sharedList.participantCount })}
-                </AppText>
-              </View>
+            <AppText muted variant="caption">
+              {t("pantry.cachedBody")}
+            </AppText>
+          </View>
+        ) : null}
+        {mode.kind === "pantry" && !Object.values(permissions).some(Boolean) ? (
+          <AppText muted variant="caption">
+            {t("pantry.readOnly")}
+          </AppText>
+        ) : null}
+        {pantry?.cacheWarning ? (
+          <AppText muted variant="caption">
+            {t("pantry.cacheWarning")}
+          </AppText>
+        ) : null}
+
+        <View style={styles.addRow}>
+          <TextField
+            containerStyle={styles.addField}
+            label={t("shoppingList.manualItemLabel")}
+            onChangeText={setNewItem}
+            onSubmitEditing={() => void handleAddItem()}
+            placeholder={t("shoppingList.itemPlaceholder")}
+            returnKeyType="done"
+            value={newItem}
+            editable={canAdd}
+            autoCorrect={false}
+          />
+          <IconButton
+            disabled={!newItem.trim() || !canAdd}
+            icon={Plus}
+            label={t("shoppingList.addItem")}
+            onPress={() => void handleAddItem()}
+            tone="primary"
+            style={styles.addButton}
+          />
+        </View>
+
+        {loading ? (
+          <View style={styles.loading}>
+            <ActivityIndicator color={colors.primary} />
+          </View>
+        ) : (
+          <>
+            {items.length ? (
+              <>
+                <View
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: spacing.sm,
+                    marginHorizontal: spacing.md,
+                    paddingHorizontal: spacing.md,
+                    paddingVertical: spacing.sm,
+                    borderRadius: radius.md,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <AppText
+                    muted
+                    variant="caption"
+                    style={{ fontWeight: "600" }}
+                  >
+                    {t("shoppingList.remainingCount", {
+                      count: remainingCount,
+                    })}
+                    {checkedCount > 0
+                      ? ` • ${t("shoppingList.checkedCount", { count: checkedCount })}`
+                      : ""}
+                  </AppText>
+                  {sharedList.active && sharedList.participantCount ? (
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: 4,
+                        backgroundColor: colors.chip,
+                        paddingHorizontal: spacing.xs,
+                        paddingVertical: 2,
+                        borderRadius: radius.sm,
+                      }}
+                    >
+                      <Users
+                        color={colors.primary}
+                        size={13}
+                        strokeWidth={2.5}
+                      />
+                      <AppText
+                        variant="caption"
+                        style={{ color: colors.primary, fontWeight: "600" }}
+                      >
+                        {t("shoppingList.participantCount", {
+                          count: sharedList.participantCount,
+                        })}
+                      </AppText>
+                    </View>
+                  ) : null}
+                </View>
+              </>
             ) : null}
-          </View>
-          <View style={{ flex: 1 }}>
-            <FlatList
-              ref={listRef}
-              data={items}
-              keyExtractor={(item) => item.id}
-              contentContainerStyle={[styles.listContent, { paddingBottom: getTabBarContentInset(insets.bottom, fontScale) }]}
-              initialNumToRender={15}
-              maxToRenderPerBatch={15}
-              windowSize={7}
-              keyboardShouldPersistTaps="handled"
-              removeClippedSubviews={true}
-              ListEmptyComponent={
-                <EmptyState
-                  title={t("shoppingList.emptyTitle")}
-                  body={t("shoppingList.emptyBody")}
-                />
-              }
-              renderItem={renderItem}
-              showsVerticalScrollIndicator={false}
-              refreshControl={
-                sync.linked || mode.kind === "pantry" ? (
-                  <RefreshControl refreshing={refreshing} onRefresh={() => void handleRefresh()} tintColor={colors.primary} />
-                ) : undefined
-              }
-            />
+            <View style={{ flex: 1 }}>
+              <FlatList
+                ref={listRef}
+                data={items}
+                keyExtractor={(item) => item.id}
+                contentContainerStyle={[
+                  styles.listContent,
+                  {
+                    paddingBottom: getTabBarContentInset(
+                      insets.bottom,
+                      fontScale,
+                    ),
+                  },
+                ]}
+                initialNumToRender={15}
+                maxToRenderPerBatch={15}
+                windowSize={7}
+                keyboardShouldPersistTaps="handled"
+                removeClippedSubviews={true}
+                ListEmptyComponent={
+                  <EmptyState
+                    icon={ShoppingCart}
+                    title={t("shoppingList.emptyTitle")}
+                    body={t("shoppingList.emptyBody")}
+                  />
+                }
+                renderItem={renderItem}
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                  sync.linked || mode.kind === "pantry" ? (
+                    <RefreshControl
+                      refreshing={refreshing}
+                      onRefresh={() => void handleRefresh()}
+                      tintColor={colors.primary}
+                    />
+                  ) : undefined
+                }
+              />
+            </View>
+          </>
+        )}
 
-          </View>
-        </>
-      )}
-
-      <BottomNavigation
-        current="shoppingList"
-        onNavigate={(tab) => {
-          if (tab === "recipes") {
-            navigation.navigate("Recipes", { tabTransition: "slide_from_left" });
-          } else if (tab === "community") {
-            navigation.navigate("Community", { tabTransition: "slide_from_left" });
-          }
-        }}
-      />
-      
-      <ShoppingListActionsModal
-        visible={showActionsMenu}
-        onClose={() => setShowActionsMenu(false)}
-        checkedCount={checkedCount}
-        onClearChecked={() => { void perform(clearChecked); }}
-        onClearAll={() => { void perform(clearAll); }}
-      />
-      <ShoppingModeModal visible={showModes} onClose={() => setShowModes(false)} />
-      {pantryEditing && mode.kind === "pantry" ? <PantryItemEditorModal key={`${backendKey}-${pantryEditing.id}`} item={pantryEditing} onClose={() => setPantryEditing(null)} /> : null}
+        <ShoppingListActionsModal
+          visible={showActionsMenu}
+          onClose={() => setShowActionsMenu(false)}
+          checkedCount={checkedCount}
+          onClearChecked={() => {
+            void perform(clearChecked);
+          }}
+          onClearAll={() => {
+            void perform(clearAll);
+          }}
+        />
+        <ShoppingModeModal
+          visible={showModes}
+          onClose={() => setShowModes(false)}
+        />
+        {pantryEditing && mode.kind === "pantry" ? (
+          <PantryItemEditorModal
+            key={`${backendKey}-${pantryEditing.id}`}
+            item={pantryEditing}
+            onClose={() => setPantryEditing(null)}
+          />
+        ) : null}
       </Screen>
     </PageSwipeGesture>
   );
@@ -394,7 +622,7 @@ function ShoppingListRow({
   onStartEditing,
   onStopEditing,
   onToggle,
-  onUpdate
+  onUpdate,
 }: {
   canCheck: boolean;
   canEdit: boolean;
@@ -435,10 +663,20 @@ function ShoppingListRow({
   }
 
   function deleteItem() {
-    Alert.alert(t("pantry.deleteTitle"), t("pantry.deleteBody", { name: item.label }), [
-      { text: t("common.cancel"), style: "cancel" },
-      { text: t("common.delete"), style: "destructive", onPress: () => { void onRemove(item.id); } }
-    ]);
+    Alert.alert(
+      t("pantry.deleteTitle"),
+      t("pantry.deleteBody", { name: item.label }),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("common.delete"),
+          style: "destructive",
+          onPress: () => {
+            void onRemove(item.id);
+          },
+        },
+      ],
+    );
   }
   function cancelEdit() {
     setDraftLabel(item.label);
@@ -451,35 +689,41 @@ function ShoppingListRow({
         styles.itemRow,
         {
           backgroundColor: colors.backgroundElevated,
-          borderColor: colors.border
-        }
+          borderColor: colors.border,
+        },
       ]}
     >
-        <Pressable
-          accessibilityLabel={item.label}
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked: item.checked, disabled: editing || !canCheck }}
-          disabled={editing || !canCheck}
-          onPress={() => void onToggle(item.id)}
-          style={({ pressed }) => [
-            styles.itemToggle,
-            { opacity: editing ? 0.5 : pressed ? 0.72 : 1 }
+      <Pressable
+        accessibilityLabel={item.label}
+        accessibilityRole="checkbox"
+        accessibilityState={{
+          checked: item.checked,
+          disabled: editing || !canCheck,
+        }}
+        disabled={editing || !canCheck}
+        onPress={() => {
+          selectionFeedback();
+          void onToggle(item.id);
+        }}
+        style={({ pressed }) => [
+          styles.itemToggle,
+          { opacity: editing ? 0.5 : pressed ? 0.72 : 1 },
+        ]}
+      >
+        <View
+          style={[
+            styles.checkbox,
+            {
+              backgroundColor: item.checked ? colors.primary : "transparent",
+              borderColor: item.checked ? colors.primary : colors.border,
+            },
           ]}
         >
-          <View
-            style={[
-              styles.checkbox,
-              {
-                backgroundColor: item.checked ? colors.primary : "transparent",
-                borderColor: item.checked ? colors.primary : colors.border
-              }
-            ]}
-          >
-            {item.checked ? (
-              <Check color={colors.textInverted} size={15} strokeWidth={3} />
-            ) : null}
-          </View>
-        </Pressable>
+          {item.checked ? (
+            <Check color={colors.textInverted} size={15} strokeWidth={3} />
+          ) : null}
+        </View>
+      </Pressable>
       <View style={styles.itemText}>
         {editing ? (
           <TextInput
@@ -496,8 +740,8 @@ function ShoppingListRow({
               {
                 backgroundColor: colors.input,
                 borderColor: colors.border,
-                color: colors.text
-              }
+                color: colors.text,
+              },
             ]}
             value={draftLabel}
             autoCorrect={false}
@@ -510,13 +754,14 @@ function ShoppingListRow({
             onPress={() => void onStartEditing(item.id)}
             style={({ pressed }) => [
               styles.itemLabelButton,
-              { opacity: pressed ? 0.72 : 1 }
+              { opacity: pressed ? 0.72 : 1 },
             ]}
           >
-            <AppText markdown
+            <AppText
+              markdown
               style={item.checked ? styles.checkedText : undefined}
-              variant="label"
-              numberOfLines={1}
+              variant="body"
+              numberOfLines={2}
             >
               {item.label}
             </AppText>
@@ -552,12 +797,20 @@ function ShoppingListRow({
             style={styles.itemAction}
           />
         </View>
-      ) : deleteOnly ? <IconButton icon={Trash2} label={t("shoppingList.deleteItem")} disabled={!canDelete} tone="danger" onPress={deleteItem} /> : (
+      ) : deleteOnly ? (
+        <IconButton
+          icon={Trash2}
+          label={t("shoppingList.deleteItem")}
+          disabled={!canDelete}
+          tone="danger"
+          onPress={deleteItem}
+        />
+      ) : (
         <View style={styles.itemActions}>
           <View
             style={[
               styles.reorderActions,
-              { backgroundColor: colors.input, borderColor: colors.border }
+              { backgroundColor: colors.input, borderColor: colors.border },
             ]}
           >
             <Pressable
@@ -568,12 +821,17 @@ function ShoppingListRow({
               onPress={() => onMoveUp(item.id)}
               style={({ pressed }) => [
                 styles.reorderAction,
-                { opacity: !canMoveUp ? 0.28 : pressed ? 0.62 : 1 }
+                { opacity: !canMoveUp ? 0.28 : pressed ? 0.62 : 1 },
               ]}
             >
               <ChevronUp color={colors.text} size={19} strokeWidth={2.5} />
             </Pressable>
-            <View style={[styles.reorderDivider, { backgroundColor: colors.border }]} />
+            <View
+              style={[
+                styles.reorderDivider,
+                { backgroundColor: colors.border },
+              ]}
+            />
             <Pressable
               accessibilityLabel={t("shoppingList.moveItemDown")}
               accessibilityRole="button"
@@ -582,7 +840,7 @@ function ShoppingListRow({
               onPress={() => onMoveDown(item.id)}
               style={({ pressed }) => [
                 styles.reorderAction,
-                { opacity: !canMoveDown ? 0.28 : pressed ? 0.62 : 1 }
+                { opacity: !canMoveDown ? 0.28 : pressed ? 0.62 : 1 },
               ]}
             >
               <ChevronDown color={colors.text} size={19} strokeWidth={2.5} />
@@ -597,26 +855,32 @@ function ShoppingListRow({
 const MemoizedShoppingListRow = React.memo(ShoppingListRow);
 
 const styles = StyleSheet.create({
-  modeRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: spacing.xs, paddingHorizontal: spacing.md },
+  modeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: spacing.xs,
+    paddingHorizontal: spacing.md,
+  },
   modeControl: { flexShrink: 1 },
   activeListName: { flex: 1, minWidth: 0 },
   feedback: { gap: spacing.xs, paddingHorizontal: spacing.md },
   addButton: {
-    marginTop: 25
+    marginTop: 25,
   },
   addField: {
     flex: 1,
-    minWidth: 0
+    minWidth: 0,
   },
   addRow: {
     alignItems: "flex-start",
     flexDirection: "row",
     gap: spacing.xs,
-    paddingHorizontal: spacing.md
+    paddingHorizontal: spacing.md,
   },
   checkedText: {
     opacity: 0.62,
-    textDecorationLine: "line-through"
+    textDecorationLine: "line-through",
   },
   checkbox: {
     alignItems: "center",
@@ -624,34 +888,34 @@ const styles = StyleSheet.create({
     borderWidth: 1.4,
     height: 24,
     justifyContent: "center",
-    width: 24
+    width: 24,
   },
   header: {
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.sm,
     justifyContent: "space-between",
-    paddingHorizontal: spacing.md
+    paddingHorizontal: spacing.md,
   },
   headerActions: {
     flexDirection: "row",
-    gap: spacing.xxs
+    gap: spacing.xxs,
   },
   headerIcon: {
     height: 40,
-    width: 40
+    width: 40,
   },
   editActions: {
     flexDirection: "row",
-    gap: spacing.xxs
+    gap: spacing.xxs,
   },
   itemAction: {
     height: 36,
-    width: 36
+    width: 36,
   },
   itemActions: {
     flexDirection: "row",
-    gap: spacing.xxs
+    gap: spacing.xxs,
   },
   itemLabelButton: {
     justifyContent: "center",
@@ -662,7 +926,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     minHeight: 44,
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs
+    paddingVertical: spacing.xs,
   },
   itemRow: {
     alignItems: "center",
@@ -671,68 +935,62 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.xs,
     minHeight: 60,
-    padding: spacing.sm
+    padding: spacing.sm,
   },
   itemText: {
     flex: 1,
     gap: spacing.xxs,
-    minWidth: 0
+    minWidth: 0,
   },
   itemToggle: {
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 44
+    minHeight: 44,
   },
   listContent: {
     gap: spacing.xs,
     paddingBottom: spacing.md,
-    paddingHorizontal: spacing.md
+    paddingHorizontal: spacing.md,
   },
   loading: {
     alignItems: "center",
     flex: 1,
-    justifyContent: "center"
+    justifyContent: "center",
   },
   screenContent: {
     gap: spacing.sm,
     paddingBottom: 0,
     paddingHorizontal: 0,
-    paddingTop: spacing.sm
+    paddingTop: spacing.sm,
   },
   reorderAction: {
     alignItems: "center",
     height: 34,
     justifyContent: "center",
-    width: 34
+    width: 34,
   },
   reorderActions: {
     alignItems: "center",
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
-    overflow: "hidden"
+    overflow: "hidden",
   },
   reorderDivider: {
     height: 22,
-    width: StyleSheet.hairlineWidth
-  },
-  reorderHandle: {
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 44,
-    width: 24
+    width: StyleSheet.hairlineWidth,
   },
   title: {
     flex: 1,
-    lineHeight: 36
+    lineHeight: 36,
   },
   titleBlock: {
     flex: 1,
-    minWidth: 0
+    minWidth: 0,
   },
   titleRow: {
     alignItems: "center",
     flexDirection: "row",
-    gap: spacing.xs
-  }
+    gap: spacing.xs,
+  },
 });

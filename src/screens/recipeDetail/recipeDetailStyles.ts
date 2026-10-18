@@ -4,7 +4,8 @@ import { radius, spacing } from "../../theme/colors";
 export const styles = StyleSheet.create({
   heroImage: {
     alignItems: "center",
-    aspectRatio: 1.25,
+    aspectRatio: 1.5,
+    maxHeight: 360,
     borderRadius: radius.lg,
     justifyContent: "center",
     overflow: "hidden",
@@ -32,8 +33,8 @@ export const styles = StyleSheet.create({
     gap: spacing.md,
   },
   ingredientAction: {
-    height: 40,
-    width: 40,
+    height: 48,
+    width: 48,
   },
   checkCircle: {
     alignItems: "center",
@@ -52,7 +53,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     gap: spacing.sm,
-    minHeight: 44,
+    minHeight: 48,
     minWidth: 0,
   },
   ingredientHeaderActions: {
@@ -72,7 +73,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.sm,
-    minHeight: 44,
+    minHeight: 48,
   },
   metric: {
     alignItems: "flex-start",
@@ -183,7 +184,7 @@ export const styles = StyleSheet.create({
     alignItems: "flex-start",
     flexDirection: "row",
     gap: spacing.sm,
-    minHeight: 44,
+    minHeight: 48,
     paddingVertical: 11,
   },
   stepHeaderActions: {

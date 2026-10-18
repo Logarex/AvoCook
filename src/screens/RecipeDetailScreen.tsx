@@ -1,7 +1,5 @@
-import { markdownToPlainText } from "../features/markdown/markdown";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { type ImageSource } from "expo-image";
-import { RecipeImage } from "../components/RecipeImage";
 import { useKeepAwake } from "expo-keep-awake";
 import type { LucideIcon } from "lucide-react-native";
 import {
@@ -13,65 +11,56 @@ import {
   Share,
   Trash2,
 } from "lucide-react-native";
-import React, { useEffect, useMemo, useState } from "react";
-import {
-  Alert,
-  Linking,
-  useWindowDimensions,
-  View,
-} from "react-native";
-import { ServingsControl } from "./recipeDetail/ServingsControl";
-import { TimerSection } from "./recipeDetail/TimerSection";
+import { useEffect, useMemo, useState } from "react";
+import { Alert, Linking, View } from "react-native";
+import { RecipeImage } from "../components/RecipeImage";
+import { selectionFeedback } from "../features/accessibility/haptics";
+import { markdownToPlainText } from "../features/markdown/markdown";
+import { HealthSection } from "./recipeDetail/HealthSection";
 import { IngredientSection } from "./recipeDetail/IngredientSection";
 import { InstructionSection } from "./recipeDetail/InstructionSection";
-import { HealthSection } from "./recipeDetail/HealthSection";
 import { RecipeSection } from "./recipeDetail/RecipeSection";
+import { ServingsControl } from "./recipeDetail/ServingsControl";
 import { ShareRecipeModal } from "./recipeDetail/ShareRecipeModal";
-import { styles } from "./recipeDetail/recipeDetailStyles";
+import { TimerSection } from "./recipeDetail/TimerSection";
 import {
-  getTimerPresets,
-  normalizeNutrition,
-  getPrintLabels,
   getImageSource,
-  getToolbarColumnCount,
-  getToolbarActionsWidth,
-  chunkToolbarActions,
+  getPrintLabels,
+  getTimerPresets,
   isUserDismissedShareOrPrint,
-  type ToolbarAction,
+  normalizeNutrition,
   type DetailRecipe,
 } from "./recipeDetail/recipeDetailHelpers";
+import { styles } from "./recipeDetail/recipeDetailStyles";
 
 import { useTranslation } from "react-i18next";
-import { MarkdownText } from "../components/MarkdownText";
+import { ActionMenu, type MenuAction } from "../components/ActionMenu";
 import { AppText } from "../components/AppText";
+import { DisclosureSection } from "../components/DisclosureSection";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
 import { useLongActionToast } from "../components/LongActionToast";
+import { MarkdownText } from "../components/MarkdownText";
 import { Pill } from "../components/Pill";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { ScreenErrorBoundary } from "../components/ScreenErrorBoundary";
+import { ScreenHeader } from "../components/ScreenHeader";
 import { useAuth } from "../features/auth/AuthProvider";
+import { submitCommunityRecipe } from "../features/community/communityClient";
+import { resolveCommunityLanguage } from "../features/community/communityLanguages";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
+import { useRecipes } from "../features/recipes/RecipesProvider";
+import { getRecipeCategoryLabel } from "../features/recipes/categories";
 import { getRecipeHealthProfile } from "../features/recipes/health";
 import {
   shareRecipeFile,
   shareRecipePdf,
 } from "../features/recipes/recipeSharing";
-import { useRecipes } from "../features/recipes/RecipesProvider";
-import { getRecipeCategoryLabel } from "../features/recipes/categories";
-import { useShoppingList } from "../features/shopping/ShoppingListProvider";
-import {
-  useRecipeTimers,
-} from "../features/timers/TimersProvider";
-import {
-  normalizeRecipe,
-} from "../features/recipes/types";
-import {
-  submitCommunityRecipe,
-} from "../features/community/communityClient";
-import { resolveCommunityLanguage } from "../features/community/communityLanguages";
 import { isExternalRecipeSourceUrl } from "../features/recipes/recipeSource";
+import { normalizeRecipe } from "../features/recipes/types";
+import { useShoppingList } from "../features/shopping/ShoppingListProvider";
+import { useRecipeTimers } from "../features/timers/TimersProvider";
 import type { RootStackParamList } from "../navigation/types";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { humanDuration } from "../utils/duration";
@@ -200,7 +189,6 @@ function RecipeDetailContent({
   const { t, i18n } = useTranslation();
   const { colors } = useAppTheme();
   const { watchLongAction } = useLongActionToast();
-  const { width: windowWidth } = useWindowDimensions();
   const [shareAction, setShareAction] = useState<
     "print" | "pdf" | "file" | "source" | null
   >(null);
@@ -213,8 +201,13 @@ function RecipeDetailContent({
   );
   const source = getImageSource();
   const imageClient = getClient();
-  const fallbackImageUri = imageClient && recipe?.id && !recipe.id.startsWith("local-") && !recipe.localMeta?.imageRemoved
-    ? imageClient.getRecipeImageUrl(recipe.id, "full") : undefined;
+  const fallbackImageUri =
+    imageClient &&
+    recipe?.id &&
+    !recipe.id.startsWith("local-") &&
+    !recipe.localMeta?.imageRemoved
+      ? imageClient.getRecipeImageUrl(recipe.id, "full")
+      : undefined;
   const canUpdateFromSource = isExternalRecipeSourceUrl(recipe?.url);
   const nutrition = useMemo(
     () => normalizeNutrition(recipe?.nutrition, t),
@@ -223,7 +216,7 @@ function RecipeDetailContent({
   const baseServings = Math.max(1, recipe?.recipeYield || 1);
   const showServings = !recipe?.localMeta?.hideServings;
   const selectedServings = showServings
-    ? recipe?.localMeta?.servingOverride ?? baseServings
+    ? (recipe?.localMeta?.servingOverride ?? baseServings)
     : baseServings;
   const servingFactor = showServings ? selectedServings / baseServings : 1;
   const scaledIngredients = useMemo(
@@ -359,6 +352,7 @@ function RecipeDetailContent({
       return;
     }
 
+    selectionFeedback();
     const normalizedServings = Math.max(1, Math.round(nextServings));
     const localMeta = { ...recipe.localMeta };
     if (normalizedServings === baseServings) {
@@ -471,7 +465,9 @@ function RecipeDetailContent({
 
   async function handleShareToCommunity() {
     if (!recipe) return;
-    const language = resolveCommunityLanguage(i18n.resolvedLanguage ?? i18n.language);
+    const language = resolveCommunityLanguage(
+      i18n.resolvedLanguage ?? i18n.language,
+    );
     const healthProfile = getRecipeHealthProfile(recipe);
     Alert.alert(
       t("community.shareConfirmTitle"),
@@ -482,34 +478,43 @@ function RecipeDetailContent({
           text: t("common.share"),
           onPress: () => {
             void (async () => {
-              const stopLongActionNotice = watchLongAction("longActions.shareRecipe");
-            try {
-              await submitCommunityRecipe({
-                title: recipe.name,
-                description: recipe.description || "",
-                ingredients: recipe.recipeIngredient,
-                steps: recipe.recipeInstructions,
-                language,
-                authorName: communityPseudonym?.trim() || t("community.anonymousAuthor"),
-                prepTime: recipe.prepTime || null,
-                cookTime: recipe.cookTime || null,
-                servings: recipe.recipeYield ? Number(recipe.recipeYield) : null,
-                nutriScore: healthProfile.grade !== "?" ? (healthProfile.grade as "A" | "B" | "C" | "D" | "E") : null
-              });
-              Alert.alert(
-                t("community.submitSuccessTitle"),
-                t("community.submitSuccessBody")
+              const stopLongActionNotice = watchLongAction(
+                "longActions.shareRecipe",
               );
-            } catch (err) {
-              console.warn("community", "Submit recipe failed", err);
-              Alert.alert(t("common.error"), t("community.submitFailedBody"));
-            } finally {
-              stopLongActionNotice();
-            }
+              try {
+                await submitCommunityRecipe({
+                  title: recipe.name,
+                  description: recipe.description || "",
+                  ingredients: recipe.recipeIngredient,
+                  steps: recipe.recipeInstructions,
+                  language,
+                  authorName:
+                    communityPseudonym?.trim() ||
+                    t("community.anonymousAuthor"),
+                  prepTime: recipe.prepTime || null,
+                  cookTime: recipe.cookTime || null,
+                  servings: recipe.recipeYield
+                    ? Number(recipe.recipeYield)
+                    : null,
+                  nutriScore:
+                    healthProfile.grade !== "?"
+                      ? (healthProfile.grade as "A" | "B" | "C" | "D" | "E")
+                      : null,
+                });
+                Alert.alert(
+                  t("community.submitSuccessTitle"),
+                  t("community.submitSuccessBody"),
+                );
+              } catch (err) {
+                console.warn("community", "Submit recipe failed", err);
+                Alert.alert(t("common.error"), t("community.submitFailedBody"));
+              } finally {
+                stopLongActionNotice();
+              }
             })();
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   }
 
@@ -555,14 +560,20 @@ function RecipeDetailContent({
       return;
     }
 
-    const toAdd = checkedIngredientCount > 0
-      ? scaledIngredients.filter((_, index) => checkedIngredientIndexes.has(index))
-      : scaledIngredients;
+    const toAdd =
+      checkedIngredientCount > 0
+        ? scaledIngredients.filter((_, index) =>
+            checkedIngredientIndexes.has(index),
+          )
+        : scaledIngredients;
 
     if (toAdd.length === 0) return;
 
     try {
-      const result = await addIngredientsToShoppingList(toAdd, { recipeId, recipeName: recipe.name });
+      const result = await addIngredientsToShoppingList(toAdd, {
+        recipeId,
+        recipeName: recipe.name,
+      });
       showShoppingListAddResult(result.added.length);
     } catch {
       Alert.alert(t("common.error"), t("shoppingModes.editError"));
@@ -575,7 +586,10 @@ function RecipeDetailContent({
     }
 
     try {
-      const result = await addIngredientsToShoppingList([ingredient], { recipeId, recipeName: recipe.name });
+      const result = await addIngredientsToShoppingList([ingredient], {
+        recipeId,
+        recipeName: recipe.name,
+      });
       showShoppingListAddResult(result.added.length);
     } catch {
       Alert.alert(t("common.error"), t("shoppingModes.editError"));
@@ -583,6 +597,7 @@ function RecipeDetailContent({
   }
 
   function handleToggleIngredientCheck(index: number) {
+    selectionFeedback();
     setCheckedIngredientIndexes((current) => {
       const next = new Set(current);
       if (next.has(index)) {
@@ -599,6 +614,7 @@ function RecipeDetailContent({
   }
 
   function handleToggleStepCheck(index: number) {
+    selectionFeedback();
     setCheckedStepIndexes((current) => {
       const next = new Set(current);
       if (next.has(index)) {
@@ -634,13 +650,12 @@ function RecipeDetailContent({
     }
   }
 
-  const toolbarActions: ToolbarAction[] = [
+  const menuActions: MenuAction[] = [
     {
-      id: "share",
-      icon: Share,
-      label: t("common.share"),
-      onPress: () => setShowShareMenu(true),
-      disabled: shareAction !== null,
+      id: "edit",
+      icon: Pencil,
+      label: t("common.edit"),
+      onPress: () => navigation.navigate("RecipeEditor", { id: recipeId }),
     },
     ...(canUpdateFromSource
       ? [
@@ -654,53 +669,34 @@ function RecipeDetailContent({
         ]
       : []),
     {
-      id: "edit",
-      icon: Pencil,
-      label: t("common.edit"),
-      onPress: () => navigation.navigate("RecipeEditor", { id: recipeId }),
-      tone: "primary",
-    },
-    {
       id: "delete",
       icon: Trash2,
       label: t("common.delete"),
       onPress: () => void handleDelete(),
-      tone: "danger",
+      destructive: true,
     },
   ];
-  const toolbarColumnCount = getToolbarColumnCount(
-    toolbarActions.length,
-    windowWidth,
-  );
-  const toolbarRows = chunkToolbarActions(toolbarActions, toolbarColumnCount);
-  const toolbarActionsWidth = getToolbarActionsWidth(toolbarColumnCount);
 
   return (
-    <Screen showScrollTop={false}>
-      <View style={styles.toolbar}>
-        <IconButton
-          icon={ArrowLeft}
-          label={t("common.back")}
-          onPress={() => navigation.goBack()}
+    <Screen
+      showScrollTop={false}
+      header={
+        <ScreenHeader
+          onBack={() => navigation.goBack()}
+          actions={
+            <>
+              <IconButton
+                icon={Share}
+                label={t("common.share")}
+                disabled={shareAction !== null}
+                onPress={() => setShowShareMenu(true)}
+              />
+              <ActionMenu actions={menuActions} />
+            </>
+          }
         />
-        <View style={[styles.toolbarActions, { width: toolbarActionsWidth }]}>
-          {toolbarRows.map((row, rowIndex) => (
-            <View key={rowIndex} style={styles.toolbarActionRow}>
-              {row.map((action) => (
-                <IconButton
-                  key={action.id}
-                  icon={action.icon}
-                  label={action.label}
-                  onPress={action.onPress}
-                  disabled={action.disabled}
-                  tone={action.tone}
-                />
-              ))}
-            </View>
-          ))}
-        </View>
-      </View>
-
+      }
+    >
       <ShareRecipeModal
         visible={showShareMenu}
         onClose={() => setShowShareMenu(false)}
@@ -713,7 +709,14 @@ function RecipeDetailContent({
       <View style={[styles.heroImage, { backgroundColor: colors.chip }]}>
         <RecipeImage
           key={`${source?.uri}-${fallbackImageUri}`}
-          fallbackSource={fallbackImageUri ? { uri: fallbackImageUri, headers: imageClient?.getImageHeaders(fallbackImageUri) } : null}
+          fallbackSource={
+            fallbackImageUri
+              ? {
+                  uri: fallbackImageUri,
+                  headers: imageClient?.getImageHeaders(fallbackImageUri),
+                }
+              : null
+          }
           accessibilityLabel={recipe.name}
           accessibilityRole="image"
           source={source}
@@ -738,20 +741,11 @@ function RecipeDetailContent({
         ) : null}
       </View>
 
-      <View style={styles.pills}>
-        {recipe.recipeCategory ? (
+      {recipe.recipeCategory ? (
+        <View style={styles.pills}>
           <Pill label={getRecipeCategoryLabel(recipe.recipeCategory, t)} />
-        ) : null}
-
-        {recipe.keywords
-          .split(",")
-          .map((keyword) => keyword.trim())
-          .filter(Boolean)
-          .slice(0, 5)
-          .map((keyword) => (
-            <Pill key={keyword} label={keyword} />
-          ))}
-      </View>
+        </View>
+      ) : null}
 
       {metricItems.length ? (
         <View style={styles.metrics}>
@@ -774,14 +768,6 @@ function RecipeDetailContent({
         />
       ) : null}
 
-      <TimerSection
-        presets={timerPresets}
-        timers={timers}
-        notificationStatus={timerNotificationStatus}
-        onReset={handleResetTimer}
-        onToggle={(timerId) => void handleToggleTimer(timerId)}
-      />
-
       <IngredientSection
         checkedCount={checkedIngredientCount}
         checkedIndexes={checkedIngredientIndexes}
@@ -802,51 +788,73 @@ function RecipeDetailContent({
         onResetChecked={handleResetStepChecks}
         onToggleItem={handleToggleStepCheck}
       />
+      <TimerSection
+        presets={timerPresets}
+        timers={timers}
+        notificationStatus={timerNotificationStatus}
+        onReset={handleResetTimer}
+        onToggle={(timerId) => void handleToggleTimer(timerId)}
+      />
+
       <RecipeSection title={t("recipes.tools")} items={recipe.tool} />
 
-      {nutrition.length > 0 ? (
-        <GlassPanel style={styles.section}>
-          <AppText variant="subtitle">{t("recipes.nutrition")}</AppText>
-          <View style={styles.nutritionGrid}>
-            {nutrition.map(([label, value]) => (
-              <View key={label} style={styles.nutritionItem}>
-                <AppText muted variant="caption">
-                  {label}
-                </AppText>
-                <MarkdownText variant="label">{value}</MarkdownText>
-              </View>
-            ))}
+      <DisclosureSection title={t("ui.optional")}>
+        {recipe.keywords.trim() ? (
+          <View style={styles.pills}>
+            {recipe.keywords
+              .split(",")
+              .map((keyword) => keyword.trim())
+              .filter(Boolean)
+              .filter((keyword, index, all) => all.indexOf(keyword) === index)
+              .map((keyword) => (
+                <Pill key={keyword} label={keyword} />
+              ))}
           </View>
-        </GlassPanel>
-      ) : null}
+        ) : null}
+        {nutrition.length > 0 ? (
+          <GlassPanel style={styles.section}>
+            <AppText variant="subtitle">{t("recipes.nutrition")}</AppText>
+            <View style={styles.nutritionGrid}>
+              {nutrition.map(([label, value]) => (
+                <View key={label} style={styles.nutritionItem}>
+                  <AppText muted variant="caption">
+                    {label}
+                  </AppText>
+                  <MarkdownText variant="label">{value}</MarkdownText>
+                </View>
+              ))}
+            </View>
+          </GlassPanel>
+        ) : null}
 
-      {recipe.sourceName ? (
-        <GlassPanel style={styles.section}>
-          <AppText muted variant="caption">
-            {t("recipes.source")}
-          </AppText>
-          <MarkdownText variant="label">{recipe.sourceName}</MarkdownText>
-          {recipe.url ? (
-            <PrimaryButton
-              icon={ExternalLink}
-              label={t("recipes.openSource")}
-              onPress={() => void Linking.openURL(recipe.url)}
-              variant="ghost"
-            />
-          ) : null}
-        </GlassPanel>
-      ) : recipe.url ? (
-        <PrimaryButton
-          icon={ExternalLink}
-          label={t("recipes.source")}
-          onPress={() => void Linking.openURL(recipe.url)}
-          variant="ghost"
-        />
-      ) : null}
+        {recipe.sourceName ? (
+          <GlassPanel style={styles.section}>
+            <AppText muted variant="caption">
+              {t("recipes.source")}
+            </AppText>
+            <MarkdownText variant="label">{recipe.sourceName}</MarkdownText>
+            {recipe.url ? (
+              <PrimaryButton
+                icon={ExternalLink}
+                label={t("recipes.openSource")}
+                onPress={() => void Linking.openURL(recipe.url)}
+                variant="ghost"
+              />
+            ) : null}
+          </GlassPanel>
+        ) : recipe.url ? (
+          <PrimaryButton
+            icon={ExternalLink}
+            label={t("recipes.source")}
+            onPress={() => void Linking.openURL(recipe.url)}
+            variant="ghost"
+          />
+        ) : null}
 
-      {healthProfile?.hasNutrition ? (
-        <HealthSection profile={healthProfile} />
-      ) : null}
+        {healthProfile?.hasNutrition ? (
+          <HealthSection profile={healthProfile} />
+        ) : null}
+      </DisclosureSection>
     </Screen>
   );
 }

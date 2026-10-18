@@ -1,20 +1,23 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
+  Pressable,
   StyleProp,
   StyleSheet,
-  Pressable,
   TextInput,
   TextInputProps,
   TextStyle,
   View,
-  ViewStyle
+  ViewStyle,
 } from "react-native";
+import {
+  hasBlockMarkdown,
+  markdownToPlainText,
+} from "../features/markdown/markdown";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { AppText } from "./AppText";
 import { MarkdownText } from "./MarkdownText";
-import { hasBlockMarkdown, markdownToPlainText } from "../features/markdown/markdown";
-import { useTranslation } from "react-i18next";
 
 type TextFieldProps = TextInputProps & {
   label: string;
@@ -22,6 +25,7 @@ type TextFieldProps = TextInputProps & {
   containerStyle?: StyleProp<ViewStyle>;
   rightElement?: React.ReactNode;
   markdown?: boolean;
+  hideLabel?: boolean;
 };
 
 export function TextField({
@@ -32,16 +36,23 @@ export function TextField({
   rightElement,
   style,
   markdown = false,
+  hideLabel = false,
   ...props
 }: TextFieldProps) {
   const { colors } = useAppTheme();
   const { t } = useTranslation();
   const [preview, setPreview] = React.useState(false);
-  
+
   const [internalValue, setInternalValue] = React.useState(props.value);
-  const hasMarkdown = React.useMemo(() => markdown && !!internalValue &&
-    (hasBlockMarkdown(internalValue) || markdownToPlainText(internalValue) !== internalValue), [markdown, internalValue]);
-  
+  const hasMarkdown = React.useMemo(
+    () =>
+      markdown &&
+      !!internalValue &&
+      (hasBlockMarkdown(internalValue) ||
+        markdownToPlainText(internalValue) !== internalValue),
+    [markdown, internalValue],
+  );
+
   React.useEffect(() => {
     setInternalValue(props.value);
   }, [props.value]);
@@ -53,7 +64,7 @@ export function TextField({
 
   return (
     <View style={[styles.container, containerStyle]}>
-      {label ? (
+      {label && !hideLabel ? (
         <AppText variant="label" style={labelStyle}>
           {label}
         </AppText>
@@ -74,9 +85,9 @@ export function TextField({
             {
               backgroundColor: colors.input,
               borderColor: colors.border,
-              color: colors.text
+              color: colors.text,
             },
-            style
+            style,
           ]}
         />
         {rightElement ? (
@@ -85,11 +96,19 @@ export function TextField({
       </View>
       {hasMarkdown ? (
         <>
-          <Pressable accessibilityRole="button" accessibilityState={{ expanded: preview }}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: preview }}
             accessibilityLabel={`${t(preview ? "editor.markdownHidePreview" : "editor.markdownPreview")}: ${label}`}
-            onPress={() => setPreview((current) => !current)} style={styles.previewButton}>
+            onPress={() => setPreview((current) => !current)}
+            style={styles.previewButton}
+          >
             <AppText variant="caption" style={{ color: colors.primary }}>
-              {t(preview ? "editor.markdownHidePreview" : "editor.markdownPreview")}
+              {t(
+                preview
+                  ? "editor.markdownHidePreview"
+                  : "editor.markdownPreview",
+              )}
             </AppText>
           </Pressable>
           {preview ? <MarkdownText>{internalValue || ""}</MarkdownText> : null}
@@ -101,29 +120,33 @@ export function TextField({
 
 const styles = StyleSheet.create({
   container: {
-    gap: spacing.xs
+    gap: spacing.xs,
   },
-  previewButton: { minHeight: 32, justifyContent: "center", alignSelf: "flex-start" },
+  previewButton: {
+    minHeight: 48,
+    justifyContent: "center",
+    alignSelf: "flex-start",
+  },
   inputWrap: {
-    justifyContent: "center"
+    justifyContent: "center",
   },
   input: {
     borderRadius: radius.sm,
     borderWidth: StyleSheet.hairlineWidth,
-    fontSize: 16,
+    fontSize: 17,
     minHeight: 48,
     paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm
+    paddingVertical: spacing.sm,
   },
   inputWithRightElement: {
-    paddingRight: 54
+    paddingRight: 54,
   },
   multiline: {
     minHeight: 120,
-    textAlignVertical: "top"
+    textAlignVertical: "top",
   },
   rightElement: {
     position: "absolute",
-    right: spacing.xs
-  }
+    right: spacing.xs,
+  },
 });

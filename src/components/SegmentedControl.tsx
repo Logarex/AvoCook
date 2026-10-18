@@ -1,9 +1,10 @@
-import React from "react";
-import { Pressable, StyleSheet } from "react-native";
+import { Pressable, StyleSheet, useWindowDimensions } from "react-native";
+import { selectionFeedback } from "../features/accessibility/haptics";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { AppText } from "./AppText";
 import { GlassSurface } from "./GlassSurface";
+import { useNativeControls } from "./NativeGlassControls";
 
 type SegmentedOption<T extends string> = {
   label: string;
@@ -19,9 +20,43 @@ type SegmentedControlProps<T extends string> = {
 export function SegmentedControl<T extends string>({
   options,
   value,
-  onChange
+  onChange,
 }: SegmentedControlProps<T>) {
   const { colors } = useAppTheme();
+  const { isDark } = useAppTheme();
+  const { fontScale } = useWindowDimensions();
+  const nativeUI = useNativeControls();
+  if (nativeUI && fontScale <= 1.3) {
+    const { Host, Picker, Text } = nativeUI.views;
+    const { pickerStyle, tag, tint } = nativeUI.modifiers;
+    return (
+      <Host
+        colorScheme={isDark ? "dark" : "light"}
+        style={styles.native}
+        ignoreSafeArea="all"
+      >
+        <Picker
+          selection={value}
+          onSelectionChange={(next) => {
+            if (
+              next !== value &&
+              options.some((option) => option.value === next)
+            ) {
+              selectionFeedback();
+              onChange(next);
+            }
+          }}
+          modifiers={[pickerStyle("segmented"), tint(colors.primary)]}
+        >
+          {options.map((option) => (
+            <Text key={option.value} modifiers={[tag(option.value)]}>
+              {option.label}
+            </Text>
+          ))}
+        </Picker>
+      </Host>
+    );
+  }
   return (
     <GlassSurface style={styles.container}>
       {options.map((option) => {
@@ -32,19 +67,27 @@ export function SegmentedControl<T extends string>({
             accessibilityRole="button"
             accessibilityState={{ selected }}
             key={option.value}
-            onPress={() => onChange(option.value)}
+            onPress={() => {
+              if (value !== option.value) {
+                selectionFeedback();
+                onChange(option.value);
+              }
+            }}
             style={({ pressed }) => [
               styles.option,
               {
                 backgroundColor: selected ? colors.chip : "transparent",
-                opacity: pressed ? 0.7 : 1
-              }
+                opacity: pressed ? 0.7 : 1,
+              },
             ]}
           >
             <AppText
               numberOfLines={2}
               variant="label"
-              style={[styles.optionLabel, { color: selected ? colors.primaryStrong : colors.text }]}
+              style={[
+                styles.optionLabel,
+                { color: selected ? colors.primaryStrong : colors.text },
+              ]}
             >
               {option.label}
             </AppText>
@@ -56,23 +99,24 @@ export function SegmentedControl<T extends string>({
 }
 
 const styles = StyleSheet.create({
+  native: { height: 48, alignSelf: "stretch" },
   container: {
     borderRadius: radius.pill,
     flexDirection: "row",
     gap: spacing.xxs,
-    padding: spacing.xxs
+    padding: spacing.xxs,
   },
   option: {
     alignItems: "center",
     borderRadius: radius.pill,
     flex: 1,
-    minHeight: 40,
+    minHeight: 48,
     justifyContent: "center",
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xxs
+    paddingVertical: spacing.xxs,
   },
   optionLabel: {
     flexShrink: 1,
-    textAlign: "center"
-  }
+    textAlign: "center",
+  },
 });

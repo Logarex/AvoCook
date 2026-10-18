@@ -1,9 +1,10 @@
-import React from "react";
-import { Pressable, StyleSheet, View } from "react-native";
 import { Star } from "lucide-react-native";
-import { AppText } from "./AppText";
+import { useTranslation } from "react-i18next";
+import { Pressable, StyleSheet, View } from "react-native";
+import { selectionFeedback } from "../features/accessibility/haptics";
 import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { AppText } from "./AppText";
 
 type StarRatingProps = {
   rating: number; // 0 to 5
@@ -22,12 +23,27 @@ export function StarRating({
   interactive = false,
   onRatingChange,
   showCount = false,
-  count
+  count,
 }: StarRatingProps) {
   const { colors } = useAppTheme();
+  const { t } = useTranslation();
+  if (!interactive && showCount && count === 0)
+    return (
+      <AppText muted variant="caption">
+        {t("ui.unrated")}
+      </AppText>
+    );
 
   return (
-    <View style={styles.container}>
+    <View
+      accessible={!interactive}
+      accessibilityLabel={
+        !interactive
+          ? `${rating.toFixed(1)} / 5 · ${t("community.voteCount", { count: count ?? 0 })}`
+          : undefined
+      }
+      style={styles.container}
+    >
       <View style={styles.starsRow}>
         {Array.from({ length: maxStars }).map((_, index) => {
           const starValue = index + 1;
@@ -37,9 +53,10 @@ export function StarRating({
           const StarIcon = (
             <Star
               key={index}
+              accessible={false}
               size={size}
-              color={isFilled || isHalf ? "#FFB800" : colors.textMuted}
-              fill={isFilled ? "#FFB800" : isHalf ? "#FFB800" : "transparent"}
+              color={isFilled || isHalf ? colors.rating : colors.textMuted}
+              fill={isFilled || isHalf ? colors.rating : "transparent"}
               strokeWidth={1.8}
             />
           );
@@ -48,9 +65,17 @@ export function StarRating({
             return (
               <Pressable
                 key={index}
-                onPress={() => onRatingChange(starValue)}
-                hitSlop={4}
-                style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+                accessibilityRole="button"
+                accessibilityLabel={t("ui.ratingLabel", { count: starValue })}
+                accessibilityState={{ selected: rating === starValue }}
+                onPress={() => {
+                  selectionFeedback();
+                  onRatingChange(starValue);
+                }}
+                style={({ pressed }) => [
+                  styles.target,
+                  { opacity: pressed ? 0.7 : 1 },
+                ]}
               >
                 {StarIcon}
               </Pressable>
@@ -73,11 +98,17 @@ const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     flexDirection: "row",
-    gap: spacing.xs
+    gap: spacing.xs,
   },
   starsRow: {
     alignItems: "center",
     flexDirection: "row",
-    gap: 3
-  }
+    gap: 3,
+  },
+  target: {
+    width: 48,
+    height: 48,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 });

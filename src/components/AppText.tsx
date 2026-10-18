@@ -1,7 +1,14 @@
 import React from "react";
-import { StyleProp, StyleSheet, Platform, Text, TextProps, TextStyle } from "react-native";
-import { useAppTheme } from "../theme/ThemeProvider";
+import {
+  Platform,
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextProps,
+  TextStyle,
+} from "react-native";
 import { parseMarkdown } from "../features/markdown/markdown";
+import { useAppTheme } from "../theme/ThemeProvider";
 import { compactMarkdownNodes, MarkdownInline } from "./MarkdownInline";
 
 type AppTextProps = TextProps & {
@@ -20,10 +27,16 @@ export function AppText({
   ...props
 }: AppTextProps) {
   const { colors } = useAppTheme();
-  const nodes = React.useMemo(() => markdown && typeof children === "string"
-    ? compactMarkdownNodes(parseMarkdown(children)) : null, [markdown, children]);
+  const nodes = React.useMemo(
+    () =>
+      markdown && typeof children === "string"
+        ? compactMarkdownNodes(parseMarkdown(children))
+        : null,
+    [markdown, children],
+  );
   // Android Fabric ignores minimumFontScale and can shrink text to 4px.
-  const adjustsFontSizeToFit = Platform.OS !== "android" && (props.adjustsFontSizeToFit ?? false);
+  const adjustsFontSizeToFit =
+    Platform.OS !== "android" && (props.adjustsFontSizeToFit ?? false);
 
   return (
     <Text
@@ -34,10 +47,14 @@ export function AppText({
         styles.base,
         styles[variant],
         { color: muted ? colors.textMuted : colors.text },
-        style
+        style,
       ]}
     >
-      {nodes ? <MarkdownInline nodes={nodes} linkColor={colors.primary} /> : children}
+      {nodes ? (
+        <MarkdownInline nodes={nodes} linkColor={colors.primary} />
+      ) : (
+        children
+      )}
     </Text>
   );
 }
@@ -45,30 +62,30 @@ export function AppText({
 const styles = StyleSheet.create({
   base: {
     letterSpacing: 0,
-    flexShrink: 1
+    flexShrink: 1,
   },
   title: {
     fontSize: 34,
     fontWeight: "700",
     letterSpacing: -0.8,
-    lineHeight: 40
+    lineHeight: 40,
   },
   subtitle: {
     fontSize: 22,
     fontWeight: "700",
-    lineHeight: 28
+    lineHeight: 28,
   },
   body: {
-    fontSize: 16,
-    lineHeight: 22
+    fontSize: 17,
+    lineHeight: 24,
   },
   caption: {
     fontSize: 13,
-    lineHeight: 18
+    lineHeight: 18,
   },
   label: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "600",
-    lineHeight: 18
-  }
+    lineHeight: 18,
+  },
 });

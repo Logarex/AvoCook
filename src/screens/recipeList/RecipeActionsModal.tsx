@@ -1,18 +1,7 @@
-import { AppText } from "../../components/AppText";
-import { IconButton } from "../../components/IconButton";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useReducedMotion } from "../../features/accessibility/useReducedMotion";
-import { getScreenBottomPadding } from "../../utils/safeArea";
-import {
-  Share2,
-  Trash2,
-  FileUp,
-  X,
-} from "lucide-react-native";
-import React from "react";
-import { Modal, Pressable, View } from "react-native";
+import { FileUp, Share2, Trash2 } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
-import { GlassPanel } from "../../components/GlassPanel";
+import { View } from "react-native";
+import { AppSheet, useSheetActions } from "../../components/AppSheet";
 import { PrimaryButton } from "../../components/PrimaryButton";
 import type { Recipe } from "../../features/recipes/types";
 import { useAppTheme } from "../../theme/ThemeProvider";
@@ -36,78 +25,50 @@ export function RecipeActionsModal({
   visible: boolean;
 }) {
   const { t } = useTranslation();
+  const { dismissThen, afterDismiss } = useSheetActions(onClose);
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
-  const reducedMotion = useReducedMotion();
   const busy = action !== null;
 
   return (
-    <Modal
-      animationType={reducedMotion ? "none" : "slide"}
-      onRequestClose={onClose}
-      transparent
+    <AppSheet
       visible={visible}
+      title={recipe?.name ?? t("ui.more")}
+      onClose={onClose}
+      compact
+      onDismiss={afterDismiss}
+      busy={busy}
     >
-      <View style={styles.modalRoot}>
-        <Pressable
-          accessibilityLabel={t("common.close")}
-          accessibilityRole="button"
-          disabled={busy}
-          onPress={onClose}
-          style={styles.modalScrim}
+      <View style={styles.recipeActionGrid}>
+        <PrimaryButton
+          disabled={!recipe || busy}
+          icon={Share2}
+          label={t("recipes.share.sharePdf")}
+          onPress={() => {
+            if (recipe) dismissThen(() => onSharePdf(recipe));
+          }}
+          style={styles.recipeActionButton}
         />
-        <GlassPanel variant="glass"
-          style={[
-            styles.recipeActionSheet,
-            { paddingBottom: getScreenBottomPadding(insets.bottom) },
-          ]}
-        >
-          <View style={styles.modalHeader}>
-            <View style={styles.recipeActionTitle}>
-              <AppText markdown variant="subtitle" numberOfLines={1}>
-                {recipe?.name}
-              </AppText>
-              <AppText muted variant="caption">
-                {t("recipes.title")}
-              </AppText>
-            </View>
-            <IconButton
-              icon={X}
-              label={t("common.close")}
-              onPress={onClose}
-              disabled={busy}
-            />
-          </View>
-          <View style={styles.recipeActionGrid}>
-            <PrimaryButton
-              disabled={!recipe || busy}
-              icon={Share2}
-              label={t("recipes.share.sharePdf")}
-              onPress={() => recipe && onSharePdf(recipe)}
-              style={styles.recipeActionButton}
-            />
-            <PrimaryButton
-              disabled={!recipe || busy}
-              icon={FileUp}
-              label={t("recipes.share.shareFile")}
-              onPress={() => recipe && onShareFile(recipe)}
-              style={styles.recipeActionButton}
-              variant="secondary"
-            />
-            <PrimaryButton
-              disabled={!recipe || busy}
-              icon={Trash2}
-              label={t("common.delete")}
-              onPress={() => recipe && onDelete(recipe)}
-              style={[
-                styles.recipeActionButton,
-                { borderColor: colors.danger },
-              ]}
-              variant="danger"
-            />
-          </View>
-        </GlassPanel>
+        <PrimaryButton
+          disabled={!recipe || busy}
+          icon={FileUp}
+          label={t("recipes.share.shareFile")}
+          onPress={() => {
+            if (recipe) dismissThen(() => onShareFile(recipe));
+          }}
+          style={styles.recipeActionButton}
+          variant="secondary"
+        />
+        <PrimaryButton
+          disabled={!recipe || busy}
+          icon={Trash2}
+          label={t("common.delete")}
+          onPress={() => {
+            if (recipe) dismissThen(() => onDelete(recipe));
+          }}
+          style={[styles.recipeActionButton, { borderColor: colors.danger }]}
+          variant="danger"
+        />
       </View>
-    </Modal>
+    </AppSheet>
   );
 }

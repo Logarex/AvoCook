@@ -95,9 +95,9 @@ The `ios/` and `android/` projects are generated from `app.json`, `tools/plugins
 
 ### Liquid Glass
 
-Buttons, the tab bar and action sheets use [`expo-glass-effect`](https://docs.expo.dev/versions/v57.0.0/sdk/glass-effect/) on iOS 26+. Older iOS versions use blur. Android and Reduce Transparency use opaque backgrounds.
+On iOS 26+, buttons use native SwiftUI controls through [`@expo/ui`](https://docs.expo.dev/versions/v57.0.0/sdk/ui/swift-ui/). SwiftUI also provides sheets, menus and segmented controls. The native UIKit tab bar stays mounted when changing pages so its selection can move between tabs. Search fields use [`expo-glass-effect`](https://docs.expo.dev/versions/v57.0.0/sdk/glass-effect/).
 
-Use `GlassSurface` for controls and sheets, and `GlassPanel` for recipe content and forms. Rebuild the app after adding a native module.
+Older iOS versions use blur. Android and Reduce Transparency use opaque backgrounds. Keep recipe content and forms on `GlassPanel`. Rebuild the app after adding a native module.
 
 Useful commands:
 
@@ -127,7 +127,8 @@ src/
 │   └── auth/                      # Nextcloud authentication
 ├── i18n/                          # Internationalisation (i18next, 6 languages)
 ├── modules/
-│   └── avocook-timer-notifications/  # Native module for timer notifications
+│   ├── avocook-native-controls/     # Native iOS tab bar
+│   └── avocook-timer-notifications/  # Native timer notifications
 └── theme/                         # Colors, typography, shared styles
 tools/                             # Build plugins and import checker
 docs/                              # Documentation in other languages (fr, de, es, it, da)

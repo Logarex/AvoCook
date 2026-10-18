@@ -1,18 +1,17 @@
 import { Pause, Play, RotateCcw, Square, Timer } from "lucide-react-native";
-import React from "react";
-import { View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { View } from "react-native";
 import { AppText } from "../../components/AppText";
 import { GlassPanel } from "../../components/GlassPanel";
 import { IconButton } from "../../components/IconButton";
 import type {
+  TimerNotificationStatus,
   TimerPreset,
   TimerState,
-  TimerNotificationStatus,
 } from "../../features/timers/TimersProvider";
 import { useAppTheme } from "../../theme/ThemeProvider";
-import { styles } from "./recipeDetailStyles";
 import { formatTimerSeconds } from "./recipeDetailHelpers";
+import { styles } from "./recipeDetailStyles";
 
 export function TimerSection({
   presets,
@@ -39,11 +38,9 @@ export function TimerSection({
         <Timer color={colors.primary} size={21} />
         <AppText variant="subtitle">{t("recipes.timers.title")}</AppText>
       </View>
-      {notificationStatus === "unavailable" || notificationStatus === "denied" ? (
-        <AppText
-          variant="caption"
-          style={{ color: colors.danger }}
-        >
+      {notificationStatus === "unavailable" ||
+      notificationStatus === "denied" ? (
+        <AppText variant="caption" style={{ color: colors.warning }}>
           {notificationStatus === "unavailable"
             ? t("recipes.timers.notificationsUnavailable")
             : t("recipes.timers.notificationsOff")}

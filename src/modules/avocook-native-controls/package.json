@@ -1,0 +1,7 @@
+{
+  "name": "avocook-native-controls",
+  "version": "1.0.0",
+  "description": "Native iOS tab bar for AvoCook.",
+  "license": "GPL-3.0",
+  "private": true
+}

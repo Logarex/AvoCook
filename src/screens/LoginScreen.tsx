@@ -1,8 +1,8 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   Bug,
-  ChevronLeft,
   ChefHat,
+  ChevronLeft,
   Cloud,
   Eye,
   EyeOff,
@@ -10,14 +10,15 @@ import {
   Heart,
   HelpCircle,
   LockKeyhole,
-  Mail
+  Mail,
 } from "lucide-react-native";
-import { AppLogo } from "../components/AppLogo";
-import React, { useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { AppLogo } from "../components/AppLogo";
 import { AppText } from "../components/AppText";
 import { DebugLogModal } from "../components/DebugLogModal";
+import { DisclosureSection } from "../components/DisclosureSection";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
 import { LanguagePicker } from "../components/LanguagePicker";
@@ -30,7 +31,7 @@ import { useOnboarding } from "../features/onboarding/useOnboarding";
 import { usePreferences } from "../features/preferences/PreferencesProvider";
 import { useSupportActions } from "../features/support/useSupportActions";
 import type { RootStackParamList } from "../navigation/types";
-import {  spacing } from "../theme/colors";
+import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Login">;
@@ -46,7 +47,9 @@ export function LoginScreen({ route, navigation }: Props) {
   const [appPassword, setAppPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordTutorial, setShowPasswordTutorial] = useState(false);
-  const [showNextcloud, setShowNextcloud] = useState(route.params?.showNextcloud ?? false);
+  const [showNextcloud, setShowNextcloud] = useState(
+    route.params?.showNextcloud ?? false,
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showDebugModal, setShowDebugModal] = useState(false);
@@ -61,7 +64,10 @@ export function LoginScreen({ route, navigation }: Props) {
   async function handleLogin() {
     setSubmitting(true);
     setError(null);
-    logService.info("login", `Attempting login to ${serverUrl} as user ${username}`);
+    logService.info(
+      "login",
+      `Attempting login to ${serverUrl} as user ${username}`,
+    );
     try {
       await login({ serverUrl, username, appPassword });
       logService.info("login", `Login successful for ${serverUrl}`);
@@ -71,24 +77,26 @@ export function LoginScreen({ route, navigation }: Props) {
         serverUrl,
         username,
         error: caught instanceof Error ? caught.message : String(caught),
-        stack: caught instanceof Error ? caught.stack : undefined
+        stack: caught instanceof Error ? caught.stack : undefined,
       });
-      const statusMatch = caught instanceof Error ? caught.message.match(/\b(\d{3})\b/) : null;
+      const statusMatch =
+        caught instanceof Error ? caught.message.match(/\b(\d{3})\b/) : null;
       const httpStatus = statusMatch ? statusMatch[1] : null;
       const message =
         caught instanceof Error && caught.message === "INVALID_URL"
           ? t("auth.invalidUrl")
           : isLikelyTlsError(caught)
             ? t(usesHttp ? "auth.networkError" : "auth.certificateError")
-          : caught instanceof Error && /401|403|997|credentials/i.test(caught.message)
-            ? t("auth.badCredentials")
-          : caught instanceof Error && /404/.test(caught.message)
-            ? t("auth.notFound")
-          : caught instanceof Error && /50\d/.test(caught.message)
-            ? t("auth.serverError")
-            : httpStatus
-              ? `${t("auth.failed")} (HTTP ${httpStatus})`
-              : t("auth.failed");
+            : caught instanceof Error &&
+                /401|403|997|credentials/i.test(caught.message)
+              ? t("auth.badCredentials")
+              : caught instanceof Error && /404/.test(caught.message)
+                ? t("auth.notFound")
+                : caught instanceof Error && /50\d/.test(caught.message)
+                  ? t("auth.serverError")
+                  : httpStatus
+                    ? `${t("auth.failed")} (HTTP ${httpStatus})`
+                    : t("auth.failed");
       setError(message);
     } finally {
       setSubmitting(false);
@@ -98,6 +106,7 @@ export function LoginScreen({ route, navigation }: Props) {
   return (
     <Screen
       contentStyle={styles.screen}
+      contentWidth={640}
       showScrollTop={false}
     >
       <View style={styles.topArea}>
@@ -134,18 +143,22 @@ export function LoginScreen({ route, navigation }: Props) {
             onPress={() => setShowNextcloud(false)}
             style={({ pressed }) => [
               styles.backButton,
-              { opacity: pressed ? 0.7 : 1 }
+              { opacity: pressed ? 0.7 : 1 },
             ]}
           >
             <ChevronLeft color={colors.text} size={24} />
           </Pressable>
-          <AppText variant="subtitle" style={styles.nextcloudTitle} numberOfLines={1}>
+          <AppText
+            variant="subtitle"
+            style={styles.nextcloudTitle}
+            numberOfLines={1}
+          >
             {t("auth.nextcloudLoginTitle" as any)}
           </AppText>
         </View>
       )}
 
-      <View style={{ height: 40 }} />
+      <View style={{ height: spacing.md }} />
 
       <View style={styles.formContainer}>
         {!showNextcloud ? (
@@ -205,7 +218,11 @@ export function LoginScreen({ route, navigation }: Props) {
               rightElement={
                 <IconButton
                   icon={showPassword ? EyeOff : Eye}
-                  label={showPassword ? t("auth.hidePassword") : t("auth.showPassword")}
+                  label={
+                    showPassword
+                      ? t("auth.hidePassword")
+                      : t("auth.showPassword")
+                  }
                   onPress={() => setShowPassword((visible) => !visible)}
                   style={styles.passwordButton}
                 />
@@ -237,11 +254,19 @@ export function LoginScreen({ route, navigation }: Props) {
                   "openSettings",
                   "openSecurity",
                   "createPassword",
-                  "copyPassword"
+                  "copyPassword",
                 ].map((step, index) => (
                   <View key={step} style={styles.tutorialStep}>
-                    <View style={[styles.stepBadge, { backgroundColor: colors.chip }]}>
-                      <AppText variant="caption" style={{ color: colors.primary }}>
+                    <View
+                      style={[
+                        styles.stepBadge,
+                        { backgroundColor: colors.chip },
+                      ]}
+                    >
+                      <AppText
+                        variant="caption"
+                        style={{ color: colors.primary }}
+                      >
                         {index + 1}
                       </AppText>
                     </View>
@@ -282,7 +307,7 @@ export function LoginScreen({ route, navigation }: Props) {
         )}
       </View>
 
-      <View style={styles.supportContainer}>
+      <DisclosureSection title={t("ui.help")}>
         <PrimaryButton
           icon={FileText}
           label={t("auth.shareLogs", "Logs & Débogage")}
@@ -301,12 +326,11 @@ export function LoginScreen({ route, navigation }: Props) {
           onPress={contactByEmail}
           variant="ghost"
         />
-      </View>
+      </DisclosureSection>
 
       <View style={styles.spacer} />
 
-      <View style={styles.bottomArea}>
-      </View>
+      <View style={styles.bottomArea}></View>
 
       <DebugLogModal
         visible={showDebugModal}
@@ -320,7 +344,7 @@ export function LoginScreen({ route, navigation }: Props) {
 function isLikelyTlsError(error: unknown) {
   const message = error instanceof Error ? error.message : String(error);
   return /certificate|cert|ssl|tls|network request failed|trust anchor|timeout|aborted/i.test(
-    message
+    message,
   );
 }
 
@@ -330,30 +354,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingTop: spacing.md,
     paddingBottom: spacing.xxl,
-    minHeight: "100%"
+    minHeight: "100%",
   },
   topArea: {
-    alignItems: "flex-end"
+    alignItems: "flex-end",
   },
   spacer: {
-    flex: 1
+    flex: 1,
   },
   hero: {
     alignItems: "center",
-    gap: spacing.sm
+    gap: spacing.sm,
   },
   heroBadge: {
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.xs,
-    marginTop: spacing.xs
+    marginTop: spacing.xs,
   },
   logo: {
     height: 86,
-    width: 86
+    width: 86,
   },
   center: {
-    textAlign: "center"
+    textAlign: "center",
   },
   nextcloudHeader: {
     alignItems: "center",
@@ -363,33 +387,29 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: spacing.xs,
-    marginLeft: -spacing.xs
+    marginLeft: -spacing.xs,
   },
   nextcloudTitle: {
     fontSize: 22,
-    flex: 1
+    flex: 1,
   },
   formContainer: {
-    width: "100%"
+    width: "100%",
   },
   form: {
     gap: spacing.md,
-    paddingBottom: 20
-  },
-  supportContainer: {
-    gap: spacing.sm,
-    marginTop: spacing.lg,
+    paddingBottom: 20,
   },
   secureBadge: {
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.xs,
     marginTop: -spacing.xs,
-    paddingHorizontal: spacing.xs
+    paddingHorizontal: spacing.xs,
   },
   passwordButton: {
     height: 36,
-    width: 36
+    width: 36,
   },
   helpLink: {
     alignItems: "center",
@@ -403,20 +423,20 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     height: 28,
     justifyContent: "center",
-    width: 28
+    width: 28,
   },
   stepText: {
-    flex: 1
+    flex: 1,
   },
   tutorial: {
-    gap: spacing.sm
+    gap: spacing.sm,
   },
   tutorialStep: {
     flexDirection: "row",
-    gap: spacing.sm
+    gap: spacing.sm,
   },
   bottomArea: {
     minHeight: 48,
-    justifyContent: "center"
-  }
+    justifyContent: "center",
+  },
 });

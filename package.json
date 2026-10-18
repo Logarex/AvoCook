@@ -1,6 +1,6 @@
 {
   "name": "avocook-mobile",
-  "version": "4.3.0",
+  "version": "4.3.1",
   "private": true,
   "description": "Mobile recipe client compatible with Nextcloud Cookbook.",
   "license": "GPL-3.0",
@@ -16,10 +16,12 @@
     "lint": "eslint . --ext .ts,.tsx"
   },
   "dependencies": {
+    "@expo/ui": "~57.0.25",
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/native": "^7.1.8",
     "@react-navigation/native-stack": "^7.8.6",
+    "avocook-native-controls": "file:src/modules/avocook-native-controls",
     "avocook-timer-notifications": "file:src/modules/avocook-timer-notifications",
     "expo": "~57.0.29",
     "expo-blur": "~57.0.3",
@@ -31,6 +33,7 @@
     "expo-file-system": "~57.0.7",
     "expo-font": "~57.0.4",
     "expo-glass-effect": "~57.0.4",
+    "expo-haptics": "~57.0.3",
     "expo-image": "~57.0.5",
     "expo-image-picker": "~57.0.20",
     "expo-keep-awake": "~57.0.2",
@@ -50,6 +53,7 @@
     "lucide-react-native": "^0.555.0",
     "markdown-it": "^15.0.2",
     "react": "19.2.3",
+    "react-dom": "19.2.3",
     "react-i18next": "^16.4.0",
     "react-native": "0.86.3",
     "react-native-device-info": "^15.0.2",

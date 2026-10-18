@@ -1,16 +1,15 @@
 import { HeartPulse } from "lucide-react-native";
-import React from "react";
-import { View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { View } from "react-native";
 import { AppText } from "../../components/AppText";
 import { GlassPanel } from "../../components/GlassPanel";
-import type { HealthProfile } from "../../features/recipes/health";
+import { scoreColors, type HealthProfile } from "../../features/recipes/health";
 import type { NutriScoreGrade } from "../../features/recipes/types";
 import { useAppTheme } from "../../theme/ThemeProvider";
 import { styles } from "./recipeDetailStyles";
 
 export const nutriScoreColors: Record<NutriScoreGrade, string> = {
-  A: "#1B8F4B",
+  A: "#167B40",
   B: "#70B744",
   C: "#F2C84B",
   D: "#EE8E2F",
@@ -62,14 +61,15 @@ export function HealthSection({ profile }: { profile: HealthProfile }) {
               styles.nutriScaleItem,
               {
                 backgroundColor: nutriScoreColors[grade],
-                opacity: profile.grade === grade ? 1 : 0.42,
+                borderWidth: profile.grade === grade ? 2 : 0,
+                borderColor: colors.text,
               },
             ]}
           >
             <AppText
               variant="label"
               style={{
-                color: grade === "C" || grade === "D" ? "#251A05" : "#FFFFFF",
+                color: scoreColors[grade].color,
               }}
             >
               {grade}
@@ -84,7 +84,9 @@ export function HealthSection({ profile }: { profile: HealthProfile }) {
               <AppText muted variant="caption">
                 {t(fact.labelKey)}
               </AppText>
-              <AppText markdown variant="label">{fact.value}</AppText>
+              <AppText markdown variant="label">
+                {fact.value}
+              </AppText>
             </View>
           ))}
         </View>

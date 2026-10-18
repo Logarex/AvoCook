@@ -1,4 +1,3 @@
 export function getRecipeCardHeight(fontScale: number) {
-  // Title, two description lines, metadata, two gaps and vertical padding.
-  return Math.max(116, Math.ceil(72 * fontScale + 40));
+  return Math.max(132, Math.ceil(80 * fontScale + 44));
 }

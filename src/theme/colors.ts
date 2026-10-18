@@ -12,6 +12,7 @@ export type AppColorScheme = {
   danger: string;
   success: string;
   warning: string;
+  rating: string;
   surfaceGlass: string;
   surfaceGlassStrong: string;
   chip: string;
@@ -32,12 +33,13 @@ export const lightColors: AppColorScheme = {
   accent: "#E5B85E",
   danger: "#B93939",
   success: "#2D7D4F",
-  warning: "#B86A1D",
+  warning: "#9A5518",
+  rating: "#A36A00",
   surfaceGlass: "rgba(255, 255, 255, 0.72)",
   surfaceGlassStrong: "rgba(255, 255, 255, 0.9)",
   chip: "rgba(47, 111, 100, 0.1)",
   input: "rgba(255, 255, 255, 0.88)",
-  shadow: "rgba(0, 0, 0, 0.12)"
+  shadow: "rgba(0, 0, 0, 0.12)",
 };
 
 export const darkColors: AppColorScheme = {
@@ -54,11 +56,12 @@ export const darkColors: AppColorScheme = {
   danger: "#F07B7B",
   success: "#78D39A",
   warning: "#F4AE61",
+  rating: "#F0C977",
   surfaceGlass: "rgba(28, 28, 30, 0.65)",
   surfaceGlassStrong: "rgba(44, 44, 46, 0.88)",
   chip: "rgba(131, 207, 193, 0.14)",
   input: "rgba(44, 44, 46, 0.96)",
-  shadow: "rgba(0, 0, 0, 0.38)"
+  shadow: "rgba(0, 0, 0, 0.38)",
 };
 
 export const spacing = {
@@ -68,12 +71,12 @@ export const spacing = {
   md: 16,
   lg: 24,
   xl: 32,
-  xxl: 48
+  xxl: 48,
 };
 
 export const radius = {
   sm: 12,
   md: 18,
   lg: 26,
-  pill: 999
+  pill: 999,
 };

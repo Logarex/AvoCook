@@ -3,7 +3,7 @@ import type {
   NutriScoreGrade,
   Nutrition,
   NutritionValue,
-  Recipe
+  Recipe,
 } from "./types";
 
 export type HealthRecommendation =
@@ -30,16 +30,16 @@ export type HealthProfile = {
   recommendations: HealthRecommendation[];
 };
 
-const scoreColors: Record<
+export const scoreColors: Record<
   NutriScoreGrade,
   { backgroundColor: string; color: string }
 > = {
-  A: { backgroundColor: "#1B8F4B", color: "#FFFFFF" },
+  A: { backgroundColor: "#167B40", color: "#FFFFFF" },
   B: { backgroundColor: "#70B744", color: "#12220E" },
   C: { backgroundColor: "#F2C84B", color: "#261D06" },
   D: { backgroundColor: "#EE8E2F", color: "#281203" },
   E: { backgroundColor: "#D64545", color: "#FFFFFF" },
-  "?": { backgroundColor: "#8A8177", color: "#FFFFFF" }
+  "?": { backgroundColor: "#8A8177", color: "#FFFFFF" },
 };
 
 export function getRecipeHealthProfile(recipe: Recipe): HealthProfile {
@@ -52,8 +52,15 @@ export function getRecipeHealthProfile(recipe: Recipe): HealthProfile {
   const sodium = parseNutrient(nutrition?.sodiumContent, "mg");
   const fiber = parseNutrient(nutrition?.fiberContent);
   const protein = parseNutrient(nutrition?.proteinContent);
-  const hasNutrition = [calories, sugar, fat, saturatedFat, sodium, fiber, protein]
-    .some((value) => value !== null);
+  const hasNutrition = [
+    calories,
+    sugar,
+    fat,
+    saturatedFat,
+    sodium,
+    fiber,
+    protein,
+  ].some((value) => value !== null);
 
   if (!hasNutrition) {
     return buildProfile(override ?? "?", false, [], ["missingNutrition"]);
@@ -122,17 +129,22 @@ export function getRecipeHealthProfile(recipe: Recipe): HealthProfile {
     buildFact("recipes.health.fat", nutrition?.fatContent),
     buildFact("recipes.health.salt", nutrition?.sodiumContent),
     buildFact("recipes.health.fiber", nutrition?.fiberContent),
-    buildFact("recipes.health.protein", nutrition?.proteinContent)
+    buildFact("recipes.health.protein", nutrition?.proteinContent),
   ].filter((fact): fact is HealthFact => Boolean(fact));
 
-  return buildProfile(grade, true, facts, Array.from(recommendations).slice(0, 3));
+  return buildProfile(
+    grade,
+    true,
+    facts,
+    Array.from(recommendations).slice(0, 3),
+  );
 }
 
 function buildProfile(
   grade: NutriScoreGrade,
   hasNutrition: boolean,
   facts: HealthFact[],
-  recommendations: HealthRecommendation[]
+  recommendations: HealthRecommendation[],
 ): HealthProfile {
   const colors = scoreColors[grade];
   return {
@@ -141,7 +153,7 @@ function buildProfile(
     backgroundColor: colors.backgroundColor,
     facts,
     hasNutrition,
-    recommendations
+    recommendations,
   };
 }
 
@@ -162,7 +174,7 @@ function pointsToGrade(points: number): NutriScoreGrade {
 }
 
 function normalizeNutritionNode(
-  nutrition?: Nutrition | Nutrition[] | null
+  nutrition?: Nutrition | Nutrition[] | null,
 ): Nutrition | null {
   const node = Array.isArray(nutrition) ? nutrition[0] : nutrition;
   return node && typeof node === "object" ? node : null;
@@ -198,7 +210,7 @@ function parseNutrient(value?: NutritionValue | null, targetUnit?: "mg") {
 
 function buildFact(
   labelKey: string,
-  value?: NutritionValue | null
+  value?: NutritionValue | null,
 ): HealthFact | null {
   const normalized = normalizeNutrientText(value);
   if (!normalized) {

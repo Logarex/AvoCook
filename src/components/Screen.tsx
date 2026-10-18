@@ -1,4 +1,6 @@
+import { ArrowUp } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import {
   KeyboardAvoidingView,
   LayoutChangeEvent,
@@ -9,16 +11,20 @@ import {
   StyleProp,
   StyleSheet,
   View,
-  ViewStyle
+  ViewStyle,
 } from "react-native";
-import { ArrowUp } from "lucide-react-native";
-import { useTranslation } from "react-i18next";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { useReducedMotion } from "../features/accessibility/useReducedMotion";
-import { IconButton } from "./IconButton";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
-import { getFloatingBottomOffset, getScreenBottomPadding } from "../utils/safeArea";
+import {
+  getFloatingBottomOffset,
+  getScreenBottomPadding,
+} from "../utils/safeArea";
+import { IconButton } from "./IconButton";
 
 type ScreenProps = {
   children: React.ReactNode;
@@ -26,6 +32,9 @@ type ScreenProps = {
   contentStyle?: StyleProp<ViewStyle>;
   showScrollTop?: boolean;
   backgroundColor?: string;
+  header?: React.ReactNode;
+  footer?: React.ReactNode;
+  contentWidth?: number;
 };
 
 export function Screen({
@@ -33,7 +42,10 @@ export function Screen({
   scroll = true,
   contentStyle,
   showScrollTop = scroll,
-  backgroundColor
+  backgroundColor,
+  header,
+  footer,
+  contentWidth = 760,
 }: ScreenProps) {
   const scrollRef = React.useRef<ScrollView>(null);
   const [contentHeight, setContentHeight] = React.useState(0);
@@ -47,8 +59,9 @@ export function Screen({
     <View
       style={[
         styles.content,
+        { maxWidth: contentWidth },
         { paddingBottom: getScreenBottomPadding(insets.bottom) },
-        contentStyle
+        contentStyle,
       ]}
     >
       {children}
@@ -60,7 +73,7 @@ export function Screen({
   function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
     const nextScrolledPastTop = event.nativeEvent.contentOffset.y > 240;
     setScrolledPastTop((current) =>
-      current === nextScrolledPastTop ? current : nextScrolledPastTop
+      current === nextScrolledPastTop ? current : nextScrolledPastTop,
     );
   }
 
@@ -71,10 +84,20 @@ export function Screen({
   return (
     <SafeAreaView
       edges={["top", "left", "right"]}
-      style={[styles.safeArea, { backgroundColor: backgroundColor ?? colors.background }]}
+      style={[
+        styles.safeArea,
+        { backgroundColor: backgroundColor ?? colors.background },
+      ]}
     >
+      {header ? (
+        <View style={[styles.header, { maxWidth: contentWidth }]}>
+          {header}
+        </View>
+      ) : null}
       <KeyboardAvoidingView
-        behavior={scroll ? (Platform.OS === "ios" ? "padding" : "height") : undefined}
+        behavior={
+          scroll ? (Platform.OS === "ios" ? "padding" : "height") : undefined
+        }
         keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 24}
         style={styles.flex}
       >
@@ -97,10 +120,16 @@ export function Screen({
                 label={t("common.backToTop")}
                 icon={ArrowUp}
                 onPress={() =>
-                  scrollRef.current?.scrollTo({ y: 0, animated: !reducedMotion })
+                  scrollRef.current?.scrollTo({
+                    y: 0,
+                    animated: !reducedMotion,
+                  })
                 }
                 tone="primary"
-                style={[styles.scrollTopButton, { bottom: getFloatingBottomOffset(insets.bottom) }]}
+                style={[
+                  styles.scrollTopButton,
+                  { bottom: getFloatingBottomOffset(insets.bottom) },
+                ]}
               />
             ) : null}
           </View>
@@ -108,25 +137,42 @@ export function Screen({
           content
         )}
       </KeyboardAvoidingView>
+      {footer ? (
+        <View
+          style={[
+            styles.footer,
+            {
+              paddingBottom: getScreenBottomPadding(insets.bottom),
+              backgroundColor: colors.background,
+            },
+          ]}
+        >
+          {footer}
+        </View>
+      ) : null}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   flex: {
-    flex: 1
+    flex: 1,
   },
   safeArea: {
-    flex: 1
+    flex: 1,
   },
   scrollContent: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   content: {
+    alignSelf: "center",
+    width: "100%",
     flex: 1,
     gap: spacing.md,
-    padding: spacing.md
+    padding: spacing.md,
   },
+  header: { alignSelf: "center", width: "100%" },
+  footer: { paddingHorizontal: spacing.md, paddingTop: spacing.xs },
   scrollTopButton: {
     alignItems: "center",
     borderRadius: radius.pill,
@@ -139,6 +185,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.12,
     shadowRadius: 16,
     width: 42,
-    elevation: 4
-  }
+    elevation: 4,
+  },
 });

@@ -1,47 +1,34 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   ArrowRight,
-  Sparkles,
-  FileText,
-  ShoppingBasket,
-  Bell,
-  Languages,
-  Users,
-  RefreshCw,
-  Image,
-  Plug,
-  Scale,
-  Timer,
+  BookOpen,
+  CheckCheck,
   Compass,
+  Eye,
+  SlidersHorizontal,
+  Sparkles,
 } from "lucide-react-native";
-import { AppLogo } from "../components/AppLogo";
-import React from "react";
-import { ScrollView, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { AppLogo } from "../components/AppLogo";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { useOnboarding } from "../features/onboarding/useOnboarding";
 import { RELEASE_NOTE_KEYS } from "../features/updates/releaseNotes";
-import { APP_VERSION } from "../version";
 import type { RootStackParamList } from "../navigation/types";
 import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
+import { APP_VERSION } from "../version";
 
 const featureIcons = {
   design: Sparkles,
-  markdown: FileText,
-  shopping: ShoppingBasket,
-  reminders: Bell,
-  translations: Languages,
-  community: Users,
-  sync: RefreshCw,
-  photos: Image,
-  connection: Plug,
-  quantities: Scale,
-  timers: Timer,
-  tour: Compass,
+  settings: SlidersHorizontal,
+  recipes: BookOpen,
+  navigation: Compass,
+  readability: Eye,
+  fixes: CheckCheck,
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, "Update">;
@@ -56,7 +43,8 @@ export function UpdateScreen({ navigation }: Props) {
 
   async function handleContinue() {
     await markUpdateSeen();
-    navigation.replace("Recipes");
+    if (navigation.canGoBack()) navigation.goBack();
+    else navigation.replace("Recipes");
   }
 
   return (
@@ -92,7 +80,12 @@ export function UpdateScreen({ navigation }: Props) {
             const Icon = featureIcons[key];
             return (
               <GlassPanel key={key} style={styles.featureCardHorizontal}>
-                <View style={[styles.featureIconCircle, { backgroundColor: colors.chip }]}>
+                <View
+                  style={[
+                    styles.featureIconCircle,
+                    { backgroundColor: colors.chip },
+                  ]}
+                >
                   <Icon color={colors.primary} size={22} />
                 </View>
                 <View style={styles.featureText}>
@@ -124,6 +117,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
+    alignSelf: "center",
+    width: "100%",
+    maxWidth: 760,
     flexGrow: 1,
     justifyContent: "center",
     paddingHorizontal: spacing.xl,
@@ -167,6 +163,9 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   pageActions: {
+    alignSelf: "center",
+    width: "100%",
+    maxWidth: 760,
     gap: spacing.sm,
     marginTop: spacing.md,
   },

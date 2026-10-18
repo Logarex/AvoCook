@@ -1,49 +1,49 @@
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { getTabBarContentInset } from "../utils/safeArea";
-import { spacing } from "../theme/colors";
-import { markdownToPlainText } from "../features/markdown/markdown";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   AlertTriangle,
+  ArrowDownAZ,
   Download,
   ListFilter,
-  ListPlus,
   Plus,
   RefreshCw,
   Settings,
   X,
 } from "lucide-react-native";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
   FlatList,
-  useWindowDimensions,
   Linking,
   Platform,
-  Pressable,
+  RefreshControl,
   ScrollView,
+  useWindowDimensions,
   View,
 } from "react-native";
-import { CategoryChip } from "./recipeList/CategoryChip";
-import { RecipeActionsModal } from "./recipeList/RecipeActionsModal";
-import { CategoryPickerModal } from "./recipeList/CategoryPickerModal";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { markdownToPlainText } from "../features/markdown/markdown";
+import { spacing } from "../theme/colors";
+import { getTabBarContentInset } from "../utils/safeArea";
 import { AddRecipeModal } from "./recipeList/AddRecipeModal";
+import { CategoryChip } from "./recipeList/CategoryChip";
 import { CategoryEditorModal } from "./recipeList/CategoryEditorModal";
-import { styles } from "./recipeList/recipeListStyles";
+import { CategoryPickerModal } from "./recipeList/CategoryPickerModal";
+import { RecipeActionsModal } from "./recipeList/RecipeActionsModal";
 import {
-  isUserDismissedShareOrPrint,
   getPrintLabels,
-  safeTranslation,
-  getRecipeSearchText,
-  getRecipeSearchScore,
   getRecipeAlphabetLetter,
+  getRecipeSearchScore,
+  getRecipeSearchText,
+  isUserDismissedShareOrPrint,
   normalizeSearchText,
+  safeTranslation,
 } from "./recipeList/recipeListHelpers";
+import { styles } from "./recipeList/recipeListStyles";
 
 import { useTranslation } from "react-i18next";
+import { ActionMenu } from "../components/ActionMenu";
 import { AppText } from "../components/AppText";
-import { BottomNavigation } from "../components/BottomNavigation";
 import { ConnectionStatus } from "../components/ConnectionStatus";
 import { EmptyState } from "../components/EmptyState";
 import { GlassPanel } from "../components/GlassPanel";
@@ -51,24 +51,24 @@ import { IconButton } from "../components/IconButton";
 import { useLongActionToast } from "../components/LongActionToast";
 import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import { PrimaryButton } from "../components/PrimaryButton";
-import { getRecipeCardHeight } from "../components/recipeCardLayout";
 import { RecipeCard } from "../components/RecipeCard";
+import { getRecipeCardHeight } from "../components/recipeCardLayout";
 import { Screen } from "../components/Screen";
 import { SearchField } from "../components/SearchField";
 import { useAuth } from "../features/auth/AuthProvider";
-import { useRecipes } from "../features/recipes/RecipesProvider";
-import { useMilestoneReminders } from "../features/recipes/useMilestoneReminders";
 import { getRecipeCategoryLabel } from "../features/recipes/categories";
+import { canUseRemoteRecipeImageFallback } from "../features/recipes/recipeImageReferences";
 import {
   shareRecipeFile,
   shareRecipePdf,
 } from "../features/recipes/recipeSharing";
-import { canUseRemoteRecipeImageFallback } from "../features/recipes/recipeImageReferences";
+import { useRecipes } from "../features/recipes/RecipesProvider";
+import type { Recipe } from "../features/recipes/types";
+import { useMilestoneReminders } from "../features/recipes/useMilestoneReminders";
 import {
   checkForUpdates,
   type UpdateInfo,
 } from "../features/updates/updateService";
-import type { Recipe } from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
 import { useAppTheme } from "../theme/ThemeProvider";
 type Props = NativeStackScreenProps<RootStackParamList, "Recipes">;
@@ -82,7 +82,8 @@ type CategoryOption = {
 export function RecipeListScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const { fontScale } = useWindowDimensions();
+  const { fontScale, width } = useWindowDimensions();
+  const columns = Math.min(width, 1120) >= 760 && fontScale < 1.5 ? 2 : 1;
   const { colors } = useAppTheme();
   const { watchLongAction } = useLongActionToast();
   const { credentials, getClient, isLocalMode } = useAuth();
@@ -98,9 +99,15 @@ export function RecipeListScreen({ navigation }: Props) {
     sync,
     exportBackup,
     favoriteCategories,
-    toggleFavoriteCategory
+    toggleFavoriteCategory,
   } = useRecipes();
-  const { showBackupReminder, dismissBackupReminder, recordBackupDone, manualTriggerStoreReview } = useMilestoneReminders(recipes.length, isLocalMode);
+  const {
+    showBackupReminder,
+    dismissBackupReminder,
+    recordBackupDone,
+    manualTriggerStoreReview,
+  } = useMilestoneReminders(recipes.length, isLocalMode);
+  const [pullRefreshing, setPullRefreshing] = useState(false);
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState<string | null>(null);
   const [showCategoryPicker, setShowCategoryPicker] = useState(false);
@@ -159,7 +166,7 @@ export function RecipeListScreen({ navigation }: Props) {
       .map(([id, count]) => ({
         id,
         label: getRecipeCategoryLabel(id, t),
-        count
+        count,
       }))
       .sort((a, b) => a.label.localeCompare(b.label));
 
@@ -168,23 +175,29 @@ export function RecipeListScreen({ navigation }: Props) {
     ];
 
     if (uncategorizedCount > 0) {
-      result.push({ id: "", label: t("recipes.uncategorized"), count: uncategorizedCount });
+      result.push({
+        id: "",
+        label: t("recipes.uncategorized"),
+        count: uncategorizedCount,
+      });
     }
 
     return [...result, ...options];
   }, [customCategories, recipes, t]);
 
   const visibleCategoryOptions = useMemo(() => {
-    const allCategories = categoryOptions.find(c => c.id === null);
-    const uncategorized = categoryOptions.find(c => c.id === "");
-    const favorites = categoryOptions.filter(c => c.id !== null && c.id !== "" && favoriteCategories.includes(c.id));
+    const allCategories = categoryOptions.find((c) => c.id === null);
+    const uncategorized = categoryOptions.find((c) => c.id === "");
+    const favorites = categoryOptions.filter(
+      (c) => c.id !== null && c.id !== "" && favoriteCategories.includes(c.id),
+    );
     const selected = categoryOptions.find((item) => item.id === category);
 
     const nextOptions: CategoryOption[] = [];
     if (allCategories) nextOptions.push(allCategories);
     if (uncategorized) nextOptions.push(uncategorized);
-    favorites.forEach(f => {
-      if (!nextOptions.some(item => item.id === f.id)) {
+    favorites.forEach((f) => {
+      if (!nextOptions.some((item) => item.id === f.id)) {
         nextOptions.push(f);
       }
     });
@@ -208,7 +221,11 @@ export function RecipeListScreen({ navigation }: Props) {
 
     if (!normalizedQuery) {
       return matchingRecipes.sort((left, right) =>
-        markdownToPlainText(left.name).localeCompare(markdownToPlainText(right.name), undefined, { sensitivity: "base" })
+        markdownToPlainText(left.name).localeCompare(
+          markdownToPlainText(right.name),
+          undefined,
+          { sensitivity: "base" },
+        ),
       );
     }
 
@@ -217,7 +234,11 @@ export function RecipeListScreen({ navigation }: Props) {
       const rightScore = getRecipeSearchScore(right, normalizedQuery);
       return (
         leftScore - rightScore ||
-        markdownToPlainText(left.name).localeCompare(markdownToPlainText(right.name), undefined, { sensitivity: "base" })
+        markdownToPlainText(left.name).localeCompare(
+          markdownToPlainText(right.name),
+          undefined,
+          { sensitivity: "base" },
+        )
       );
     });
   }, [category, query, recipes]);
@@ -232,15 +253,22 @@ export function RecipeListScreen({ navigation }: Props) {
     return Array.from(letters).sort();
   }, [filteredRecipes]);
 
-  const scrollToLetter = useCallback((letter: string) => {
-    const index = filteredRecipes.findIndex(r => {
-      if (!r.name) return false;
-      return getRecipeAlphabetLetter(r.name) === letter;
-    });
-    if (index !== -1) {
-      recipeListRef.current?.scrollToIndex({ index, animated: true, viewPosition: 0 });
-    }
-  }, [filteredRecipes]);
+  const scrollToLetter = useCallback(
+    (letter: string) => {
+      const index = filteredRecipes.findIndex((r) => {
+        if (!r.name) return false;
+        return getRecipeAlphabetLetter(r.name) === letter;
+      });
+      if (index !== -1) {
+        recipeListRef.current?.scrollToIndex({
+          index: Math.floor(index / columns),
+          animated: true,
+          viewPosition: 0,
+        });
+      }
+    },
+    [filteredRecipes, columns],
+  );
 
   const connected = Boolean(credentials || isLocalMode);
   const imageClient = credentials ? getClient() : null;
@@ -294,8 +322,7 @@ export function RecipeListScreen({ navigation }: Props) {
       await exportBackup();
       await recordBackupDone();
       void manualTriggerStoreReview();
-    } catch {
-    }
+    } catch {}
   }
 
   function handleDeleteCategory(categoryName: string, count: number) {
@@ -419,33 +446,49 @@ export function RecipeListScreen({ navigation }: Props) {
 
   const renderRecipeItem = useCallback(
     ({ item }: { item: Recipe }) => (
-      <RecipeCard
-        fallbackImageUri={
-          imageClient && canUseRemoteRecipeImageFallback(item)
-            ? imageClient.getRecipeImageUrl(item.id, "thumb")
-            : undefined
-        }
-        imageClient={imageClient}
-        recipe={item}
-        onLongPress={() => handleRecipeLongPress(item)}
-        onPress={() =>
-          item.id &&
-          navigation.navigate("RecipeDetail", { id: item.id })
-        }
-      />
+      <View style={{ flex: 1, maxWidth: columns > 1 ? "50%" : undefined }}>
+        <RecipeCard
+          fallbackImageUri={
+            imageClient && canUseRemoteRecipeImageFallback(item)
+              ? imageClient.getRecipeImageUrl(item.id, "thumb")
+              : undefined
+          }
+          imageClient={imageClient}
+          recipe={item}
+          onLongPress={() => handleRecipeLongPress(item)}
+          onPress={() =>
+            item.id && navigation.navigate("RecipeDetail", { id: item.id })
+          }
+        />
+      </View>
     ),
-    [imageClient, handleRecipeLongPress, navigation]
+    [imageClient, handleRecipeLongPress, navigation, columns],
   );
 
   return (
-    <PageSwipeGesture onSwipeLeft={() => navigation.navigate("Community", { tabTransition: "slide_from_right" })}>
-      <Screen scroll={false} contentStyle={styles.screenContent}>
-        <View style={styles.header}>
+    <PageSwipeGesture
+      onSwipeLeft={() =>
+        navigation.navigate("Community", { tabTransition: "slide_from_right" })
+      }
+    >
+      <Screen
+        scroll={false}
+        contentWidth={1120}
+        contentStyle={styles.screenContent}
+      >
+        <View
+          style={[
+            styles.header,
+            fontScale > 1.3 || width < 360
+              ? { flexDirection: "column", alignItems: "stretch" }
+              : undefined,
+          ]}
+        >
           <View style={styles.titleBlock}>
             <AppText
-              adjustsFontSizeToFit
+              adjustsFontSizeToFit={fontScale <= 1.3}
               minimumFontScale={0.84}
-              numberOfLines={1}
+              numberOfLines={fontScale > 1.3 ? undefined : 1}
               variant="title"
               style={styles.listTitle}
             >
@@ -456,9 +499,10 @@ export function RecipeListScreen({ navigation }: Props) {
               detail={statusDetail}
               label={statusLabel}
               loading={loading || syncing}
+              neutral={isLocalMode}
             />
           </View>
-          <View style={styles.actions}>
+          <View style={[styles.actions, { alignSelf: "flex-end" }]}>
             {!isLocalMode ? (
               <IconButton
                 icon={RefreshCw}
@@ -499,37 +543,41 @@ export function RecipeListScreen({ navigation }: Props) {
               onPress={() => setShowCategoryPicker(true)}
               style={styles.headerIcon}
             />
-            <IconButton
-              icon={ListPlus}
-              label={t("recipes.newCategory")}
-              onPress={() => {
-                if (showCategoryCreator && !editingCategory) {
-                  handleCloseCategoryEditor();
-                  return;
-                }
-                setEditingCategory(null);
-                setNewCategory("");
-                setShowCategoryCreator(true);
-              }}
-              tone="primary"
-              style={styles.headerIcon}
-            />
+
+            {filteredRecipes.length > 30 ? (
+              <ActionMenu
+                icon={ArrowDownAZ}
+                label={t("ui.jumpTo")}
+                actions={alphabet.map((letter) => ({
+                  id: letter,
+                  label: letter,
+                  onPress: () => scrollToLetter(letter),
+                }))}
+              />
+            ) : null}
           </View>
         </View>
 
         <CategoryEditorModal
           editingCategory={editingCategory}
           initialCategoryName={newCategory}
-          initialIsFavorite={favoriteCategories.includes(editingCategory || newCategory)}
+          initialIsFavorite={favoriteCategories.includes(
+            editingCategory || newCategory,
+          )}
           onClose={handleCloseCategoryEditor}
-          onSave={(name, isFavorite) => void handleSaveCategory(name, isFavorite)}
+          onSave={(name, isFavorite) =>
+            void handleSaveCategory(name, isFavorite)
+          }
           visible={showCategoryCreator}
         />
 
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={[styles.categoryScroller, { height: Math.max(40, 18 * fontScale + 8) }]}
+          style={[
+            styles.categoryScroller,
+            { height: Math.max(52, 22 * fontScale + 16) },
+          ]}
           contentContainerStyle={styles.categoryList}
         >
           {visibleCategoryOptions.map((item) => (
@@ -541,28 +589,6 @@ export function RecipeListScreen({ navigation }: Props) {
               onPress={() => setCategory(item.id)}
             />
           ))}
-          <Pressable
-            accessibilityLabel={t("common.add")}
-            accessibilityRole="button"
-            onPress={() => setShowCategoryPicker(true)}
-            style={({ pressed }) => [
-              styles.categoryChip,
-              {
-                backgroundColor: colors.surfaceGlassStrong,
-                borderColor: colors.primary,
-                borderStyle: "dashed",
-                opacity: pressed ? 0.78 : 1,
-              },
-            ]}
-          >
-            <Plus color={colors.primary} size={16} strokeWidth={3} />
-            <AppText
-              variant="label"
-              style={{ color: colors.primary }}
-            >
-              {t("common.add")}
-            </AppText>
-          </Pressable>
         </ScrollView>
 
         {updateInfo && !dismissedUpdate ? (
@@ -660,7 +686,10 @@ export function RecipeListScreen({ navigation }: Props) {
                 style={styles.closeIcon}
               />
             </View>
-            <AppText variant="caption" style={{ marginTop: 8, marginBottom: 12 }}>
+            <AppText
+              variant="caption"
+              style={{ marginTop: 8, marginBottom: 12 }}
+            >
               {t("recipes.backupReminderBody", { count: recipes.length })}
             </AppText>
             <View style={styles.updateActions}>
@@ -681,12 +710,38 @@ export function RecipeListScreen({ navigation }: Props) {
         ) : (
           <View style={{ flex: 1 }}>
             <FlatList
+              key={`recipes-${columns}`}
+              numColumns={columns}
+              columnWrapperStyle={columns > 1 ? { gap: spacing.xs } : undefined}
+              refreshControl={
+                !isLocalMode ? (
+                  <RefreshControl
+                    refreshing={pullRefreshing}
+                    onRefresh={() => {
+                      if (!syncing) {
+                        setPullRefreshing(true);
+                        void sync()
+                          .catch((error: unknown) =>
+                            console.warn("sync", "Refresh failed", error),
+                          )
+                          .finally(() => setPullRefreshing(false));
+                      }
+                    }}
+                    tintColor={colors.primary}
+                  />
+                ) : undefined
+              }
               ref={recipeListRef}
               style={styles.recipeList}
               contentContainerStyle={[
                 styles.listContent,
-                { paddingBottom: getTabBarContentInset(insets.bottom, fontScale) },
-                filteredRecipes.length > 0 && { paddingRight: 40 }
+                {
+                  paddingBottom: getTabBarContentInset(
+                    insets.bottom,
+                    fontScale,
+                  ),
+                },
+                { paddingRight: spacing.md },
               ]}
               data={filteredRecipes}
               keyExtractor={(item) => item.id ?? item.name}
@@ -701,40 +756,30 @@ export function RecipeListScreen({ navigation }: Props) {
               })}
               ListEmptyComponent={
                 <EmptyState
-                  title={t("recipes.emptyTitle")}
-                  body={t("recipes.emptyBody")}
+                  title={t(
+                    query.trim() || category !== null
+                      ? "ui.noResults"
+                      : "recipes.emptyTitle",
+                  )}
+                  body={t(
+                    query.trim() || category !== null
+                      ? "ui.noResultsBody"
+                      : "recipes.emptyBody",
+                  )}
                 />
               }
               renderItem={renderRecipeItem}
               showsVerticalScrollIndicator={false}
             />
-            {!loading && filteredRecipes.length > 0 ? (
-              <ScrollView
-                style={[styles.alphabetSidebar, { borderLeftColor: colors.border, bottom: getTabBarContentInset(insets.bottom, fontScale) }]}
-                contentContainerStyle={styles.alphabetSidebarContent}
-                showsVerticalScrollIndicator={false}
-                bounces={false}
-              >
-                {alphabet.map((letter) => (
-                  <Pressable
-                    key={letter}
-                    accessibilityRole="button"
-                    accessibilityLabel={letter}
-                    onPress={() => scrollToLetter(letter)}
-                    hitSlop={6}
-                    style={styles.alphabetLetterButton}
-                  >
-                    <AppText maxFontSizeMultiplier={1.3} style={[styles.alphabetLetter, { color: colors.primary }]}>
-                      {letter}
-                    </AppText>
-                  </Pressable>
-                ))}
-              </ScrollView>
-            ) : null}
           </View>
         )}
 
         <CategoryPickerModal
+          onCreateCategory={() => {
+            setEditingCategory(null);
+            setNewCategory("");
+            setShowCategoryCreator(true);
+          }}
           category={category}
           categoryOptions={categoryOptions}
           favoriteCategories={favoriteCategories}
@@ -769,17 +814,6 @@ export function RecipeListScreen({ navigation }: Props) {
             })
           }
           onImportRecipe={() => navigation.navigate("ImportRecipe")}
-        />
-
-        <BottomNavigation
-          current="recipes"
-          onNavigate={(tab) => {
-            if (tab === "shoppingList") {
-              navigation.navigate("ShoppingList", { tabTransition: "slide_from_right" });
-            } else if (tab === "community") {
-              navigation.navigate("Community", { tabTransition: "slide_from_right" });
-            }
-          }}
         />
       </Screen>
     </PageSwipeGesture>

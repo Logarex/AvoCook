@@ -18,7 +18,7 @@ export const styles = StyleSheet.create({
   },
   categoryScroller: {
     flexGrow: 0,
-    height: 40,
+    height: 48,
     overflow: "visible",
   },
   categoryBadge: {
@@ -34,7 +34,7 @@ export const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: spacing.xs,
-    minHeight: 36,
+    minHeight: 48,
     paddingHorizontal: spacing.sm,
   },
   categoryGrid: {
@@ -58,8 +58,8 @@ export const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   categoryActionIcon: {
-    height: 44,
-    width: 44,
+    height: 48,
+    width: 48,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -74,7 +74,7 @@ export const styles = StyleSheet.create({
     gap: spacing.sm,
     justifyContent: "space-between",
     marginBottom: spacing.xs,
-    paddingHorizontal: spacing.md
+    paddingHorizontal: spacing.md,
   },
   headerIcon: {
     height: 40,
@@ -83,7 +83,7 @@ export const styles = StyleSheet.create({
   listContent: {
     gap: spacing.xs,
     paddingBottom: spacing.sm,
-    paddingHorizontal: spacing.md
+    paddingHorizontal: spacing.md,
   },
   listTitle: {
     lineHeight: 36,
@@ -180,7 +180,7 @@ export const styles = StyleSheet.create({
   alphabetSidebarContent: {
     flexGrow: 1,
     alignItems: "center",
-    justifyContent: "center"
+    justifyContent: "center",
   },
   alphabetLetterButton: {
     paddingHorizontal: 4,
@@ -199,7 +199,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.xs,
-    paddingHorizontal: spacing.md
+    paddingHorizontal: spacing.md,
   },
   titleBlock: {
     flex: 1,

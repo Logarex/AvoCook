@@ -1,27 +1,25 @@
-import { markdownToPlainText } from "../features/markdown/markdown";
-import { RecipeImage } from "./RecipeImage";
-import { useTranslation } from "react-i18next";
-import { getRecipeCategoryLabel } from "../features/recipes/categories";
 import { Clock, Tag } from "lucide-react-native";
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, StyleSheet, View, useWindowDimensions } from "react-native";
-import {
-  getPreferredDisplayRecipeImage
-} from "../features/recipes/recipeImageReferences";
+import { markdownToPlainText } from "../features/markdown/markdown";
 import type { CookbookClient } from "../features/nextcloud/cookbookClient";
+import { getRecipeCategoryLabel } from "../features/recipes/categories";
+import { getPreferredDisplayRecipeImage } from "../features/recipes/recipeImageReferences";
 import { Recipe } from "../features/recipes/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { humanDuration } from "../utils/duration";
-import { getRecipeCardHeight } from "./recipeCardLayout";
 import { AppText } from "./AppText";
+import { getRecipeCardHeight } from "./recipeCardLayout";
+import { RecipeImage } from "./RecipeImage";
 
 export const RecipeCard = React.memo(function RecipeCard({
   fallbackImageUri,
   imageClient,
   recipe,
   onLongPress,
-  onPress
+  onPress,
 }: {
   fallbackImageUri?: string;
   imageClient?: CookbookClient | null;
@@ -37,7 +35,7 @@ export const RecipeCard = React.memo(function RecipeCard({
   const imageSource = imageUri
     ? {
         uri: imageUri,
-        headers: imageClient?.getImageHeaders(imageUri)
+        headers: imageClient?.getImageHeaders(imageUri),
       }
     : null;
   const totalTime = humanDuration(recipe.totalTime || recipe.prepTime);
@@ -45,12 +43,14 @@ export const RecipeCard = React.memo(function RecipeCard({
     recipe.name,
     recipe.description,
     totalTime,
-    categoryLabel
+    categoryLabel,
   ].filter((value): value is string => Boolean(value));
 
   return (
     <Pressable
-      accessibilityLabel={accessibilityParts.map(markdownToPlainText).join(", ")}
+      accessibilityLabel={accessibilityParts
+        .map(markdownToPlainText)
+        .join(", ")}
       accessibilityRole="button"
       onLongPress={onLongPress}
       onPress={onPress}
@@ -60,14 +60,21 @@ export const RecipeCard = React.memo(function RecipeCard({
           height: getRecipeCardHeight(fontScale),
           backgroundColor: colors.backgroundElevated,
           borderColor: colors.border,
-          opacity: pressed ? 0.82 : 1
-        }
+          opacity: pressed ? 0.82 : 1,
+        },
       ]}
     >
       <View style={[styles.imageWrap, { backgroundColor: colors.chip }]}>
         <RecipeImage
           key={`${imageUri}-${fallbackImageUri}`}
-          fallbackSource={fallbackImageUri ? { uri: fallbackImageUri, headers: imageClient?.getImageHeaders(fallbackImageUri) } : null}
+          fallbackSource={
+            fallbackImageUri
+              ? {
+                  uri: fallbackImageUri,
+                  headers: imageClient?.getImageHeaders(fallbackImageUri),
+                }
+              : null
+          }
           accessible={false}
           source={imageSource}
           style={styles.image}
@@ -84,11 +91,17 @@ export const RecipeCard = React.memo(function RecipeCard({
         </RecipeImage>
       </View>
       <View style={styles.body}>
-        <AppText markdown variant="label" numberOfLines={1} adjustsFontSizeToFit={false}>
+        <AppText
+          markdown
+          variant="label"
+          style={styles.title}
+          numberOfLines={2}
+          adjustsFontSizeToFit={false}
+        >
           {recipe.name}
         </AppText>
         {recipe.description ? (
-          <AppText markdown muted variant="caption" numberOfLines={2}>
+          <AppText markdown muted variant="caption" numberOfLines={1}>
             {recipe.description}
           </AppText>
         ) : null}
@@ -104,7 +117,14 @@ export const RecipeCard = React.memo(function RecipeCard({
           {recipe.recipeCategory ? (
             <View style={styles.metaItem}>
               <Tag color={colors.textMuted} size={14} />
-              <AppText markdown muted variant="caption" numberOfLines={1} adjustsFontSizeToFit={false} style={{ flexShrink: 1 }}>
+              <AppText
+                markdown
+                muted
+                variant="caption"
+                numberOfLines={1}
+                adjustsFontSizeToFit={false}
+                style={{ flexShrink: 1 }}
+              >
                 {categoryLabel}
               </AppText>
             </View>
@@ -116,13 +136,14 @@ export const RecipeCard = React.memo(function RecipeCard({
 });
 
 const styles = StyleSheet.create({
+  title: { fontSize: 17, lineHeight: 22 },
   card: {
     borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 0,
     flexDirection: "row",
     gap: spacing.sm,
     overflow: "hidden",
-    padding: spacing.sm
+    padding: spacing.sm,
   },
   imageWrap: {
     alignSelf: "center",
@@ -131,28 +152,28 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
     justifyContent: "center",
     overflow: "hidden",
-    width: 76
+    width: 88,
   },
   image: {
     height: "100%",
-    width: "100%"
+    width: "100%",
   },
   body: {
     flex: 1,
     gap: spacing.xs,
     justifyContent: "center",
-    minWidth: 0
+    minWidth: 0,
   },
   meta: {
     flexDirection: "row",
     gap: spacing.sm,
-    overflow: "hidden"
+    overflow: "hidden",
   },
   metaItem: {
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.xxs,
     maxWidth: "100%",
-    flexShrink: 1
-  }
+    flexShrink: 1,
+  },
 });

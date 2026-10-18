@@ -1,20 +1,17 @@
-import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useFocusEffect } from "@react-navigation/native";
+import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   AlertTriangle,
-  ArrowLeft,
   Bell,
   BookOpen,
   Bot,
-  
-  Database,
-  Download,
   Bug,
   Check,
   CheckCheck,
+  Database,
+  Download,
   Eye,
   EyeOff,
-  
   Globe,
   Info,
   Lock,
@@ -22,62 +19,87 @@ import {
   Mail,
   RefreshCw,
   Save,
-  
+  ShoppingCart,
+  SlidersHorizontal,
   Smartphone,
-  
   Star,
   Upload,
-  User
+  User,
 } from "lucide-react-native";
 import React, { useState } from "react";
-import { Alert, Keyboard, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
 import { useTranslation } from "react-i18next";
+import {
+  Alert,
+  Keyboard,
+  Linking,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Switch,
+  View,
+} from "react-native";
 import { AppText } from "../components/AppText";
+import { ChoiceField } from "../components/ChoiceField";
+import { DisclosureSection } from "../components/DisclosureSection";
 import { GlassPanel } from "../components/GlassPanel";
 import { IconButton } from "../components/IconButton";
+import { LanguagePicker } from "../components/LanguagePicker";
+import { useLongActionToast } from "../components/LongActionToast";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
-import { LanguagePicker } from "../components/LanguagePicker";
+import { ScreenHeader } from "../components/ScreenHeader";
 import { SegmentedControl } from "../components/SegmentedControl";
-import { TextField } from "../components/TextField";
-import { useLongActionToast } from "../components/LongActionToast";
-import { useAuth } from "../features/auth/AuthProvider";
-import { usePreferences, type LlmSettings } from "../features/preferences/PreferencesProvider";
-import { useRecipes } from "../features/recipes/RecipesProvider";
+import { SettingsRow } from "../components/SettingsRow";
 import { ShoppingModeButton } from "../components/ShoppingModeButton";
-import { ShoppingModeModal } from "./ShoppingModeModal";
-import { useShoppingList } from "../features/shopping/ShoppingListProvider";
-import { LLM_PROVIDERS, type LlmProviderId, fetchAvailableModels } from "../features/import/photoRecipeImport";
-import { checkPseudonymAvailable, reservePseudonym, releasePseudonym } from "../features/community/communityClient";
-import type { RecipeDuplicateGroup } from "../features/recipes/backupDuplicates";
-import { useSupportActions } from "../features/support/useSupportActions";
+import { TextField } from "../components/TextField";
+import { useAuth } from "../features/auth/AuthProvider";
+import {
+  checkPseudonymAvailable,
+  releasePseudonym,
+  reservePseudonym,
+} from "../features/community/communityClient";
+import {
+  fetchAvailableModels,
+  LLM_PROVIDERS,
+  type LlmProviderId,
+} from "../features/import/photoRecipeImport";
 import { useOnboarding } from "../features/onboarding/useOnboarding";
-import type { RootStackParamList } from "../navigation/types";
-import { radius, spacing } from "../theme/colors";
-import { type ThemeMode, useAppTheme } from "../theme/ThemeProvider";
+import {
+  usePreferences,
+  type LlmSettings,
+} from "../features/preferences/PreferencesProvider";
+import type { RecipeDuplicateGroup } from "../features/recipes/backupDuplicates";
+import { useRecipes } from "../features/recipes/RecipesProvider";
+import { useSupportActions } from "../features/support/useSupportActions";
 import {
   getTimerNotificationState,
   requestTimerNotificationPermission,
-  type TimerNotificationState
+  type TimerNotificationState,
 } from "../features/timers/timerNotifications";
+import type { RootStackParamList, SettingsSection } from "../navigation/types";
+import { radius, spacing } from "../theme/colors";
+import { useAppTheme, type ThemeMode } from "../theme/ThemeProvider";
 import { containsProfanity } from "../utils/profanityFilter";
+import { APP_VERSION } from "../version";
+import { ShoppingModeModal } from "./ShoppingModeModal";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Settings">;
 
-export function SettingsScreen({ navigation }: Props) {
+export function SettingsScreen({ navigation, route }: Props) {
+  const section = route.params?.section;
   const { t } = useTranslation();
   const { colors, mode, setMode } = useAppTheme();
   const { watchLongAction } = useLongActionToast();
-  const { credentials, getClient, isLocalMode, logout, startLocalMode } = useAuth();
+  const { credentials, getClient, isLocalMode, logout, startLocalMode } =
+    useAuth();
   const {
     exportBackup,
     findDuplicateGroups,
     importBackup,
     mergeDuplicateGroup,
     recipes,
-    sync: recipeSync
+    sync: recipeSync,
   } = useRecipes();
-  const { sync: shoppingSync, items: shoppingItems } = useShoppingList();
   const [showShoppingModes, setShowShoppingModes] = useState(false);
   const {
     keepRecipesLocal,
@@ -97,20 +119,23 @@ export function SettingsScreen({ navigation }: Props) {
     setLanguage,
     setLlmSettings,
     setCommunityPseudonym,
-    setNextcloudImageFolder
+    setNextcloudImageFolder,
   } = usePreferences();
   const [message, setMessage] = useState<string | null>(null);
   const [llmMessage, setLlmMessage] = useState<string | null>(null);
   const [backupAction, setBackupAction] = useState<"export" | "import" | null>(
-    null
+    null,
   );
   const [duplicateAction, setDuplicateAction] = useState(false);
   const [notificationState, setNotificationState] =
     useState<TimerNotificationState>("unavailable");
   const [showApiKey, setShowApiKey] = useState(false);
-  const [localPseudonym, setLocalPseudonym] = useState(communityPseudonym || "");
+  const [localPseudonym, setLocalPseudonym] = useState(
+    communityPseudonym || "",
+  );
   const [pseudoSavedAnim, setPseudoSavedAnim] = useState(false);
-  const [localImageFolder, setLocalImageFolder] = useState(nextcloudImageFolder);
+  const [localImageFolder, setLocalImageFolder] =
+    useState(nextcloudImageFolder);
   const [imageFolderSavedAnim, setImageFolderSavedAnim] = useState(false);
 
   React.useEffect(() => {
@@ -123,7 +148,7 @@ export function SettingsScreen({ navigation }: Props) {
 
   // Reserve pseudonyms created before uniqueness checks were introduced.
   React.useEffect(() => {
-    if (!communityPseudonym) return;
+    if (section !== "account" || !communityPseudonym) return;
     void reservePseudonym(communityPseudonym).catch(() => {
       // Validate reservation errors again when saving.
     });
@@ -139,11 +164,16 @@ export function SettingsScreen({ navigation }: Props) {
   const { resetOnboarding } = useOnboarding();
 
   React.useEffect(() => {
-    if (currentLlm.apiKey.trim() && availableModels === null && !fetchingModels) {
+    if (
+      section === "assistant" &&
+      currentLlm.apiKey.trim() &&
+      availableModels === null &&
+      !fetchingModels
+    ) {
       void handleFetchModels();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentLlm.apiKey]);
+  }, [currentLlm.apiKey, section]);
 
   function handleSelectProvider(id: LlmProviderId) {
     const preset = LLM_PROVIDERS.find((p) => p.id === id) ?? LLM_PROVIDERS[0];
@@ -151,7 +181,7 @@ export function SettingsScreen({ navigation }: Props) {
       providerId: id,
       apiKey: currentLlm.apiKey,
       baseUrl: preset.baseUrl,
-      model: preset.defaultModel
+      model: preset.defaultModel,
     };
     setLlmDraft(next);
     void setLlmSettings(next);
@@ -166,7 +196,7 @@ export function SettingsScreen({ navigation }: Props) {
       const models = await fetchAvailableModels(
         currentLlm.apiKey,
         currentLlm.providerId,
-        currentLlm.baseUrl
+        currentLlm.baseUrl,
       );
       setAvailableModels(models);
     } catch (err) {
@@ -206,7 +236,7 @@ export function SettingsScreen({ navigation }: Props) {
   useFocusEffect(
     React.useCallback(() => {
       void getTimerNotificationState().then(setNotificationState);
-    }, [])
+    }, []),
   );
 
   async function handleToggleNotifications() {
@@ -218,8 +248,11 @@ export function SettingsScreen({ navigation }: Props) {
         t("recipes.timers.notificationsRequiredBody"),
         [
           { text: t("common.cancel"), style: "cancel" },
-          { text: t("common.settings"), onPress: () => void Linking.openSettings() }
-        ]
+          {
+            text: t("common.settings"),
+            onPress: () => void Linking.openSettings(),
+          },
+        ],
       );
     }
   }
@@ -230,20 +263,24 @@ export function SettingsScreen({ navigation }: Props) {
       return;
     }
 
-    Alert.alert(t("settings.reindexConfirmTitle"), t("settings.reindexConfirmBody"), [
-      { text: t("common.cancel"), style: "cancel" },
-      {
-        text: t("settings.reindex"),
-        onPress: () => {
-          const stopLongActionNotice = watchLongAction("longActions.reindex");
-          void client
-            .reindex()
-            .then(recipeSync)
-            .then(() => setMessage(t("settings.reindexDone")))
-            .finally(stopLongActionNotice);
-        }
-      }
-    ]);
+    Alert.alert(
+      t("settings.reindexConfirmTitle"),
+      t("settings.reindexConfirmBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("settings.reindex"),
+          onPress: () => {
+            const stopLongActionNotice = watchLongAction("longActions.reindex");
+            void client
+              .reindex()
+              .then(recipeSync)
+              .then(() => setMessage(t("settings.reindexDone")))
+              .finally(stopLongActionNotice);
+          },
+        },
+      ],
+    );
   }
 
   async function handleLogout() {
@@ -259,9 +296,9 @@ export function SettingsScreen({ navigation }: Props) {
             void logout().then(() => {
               navigation.replace("Login");
             });
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   }
 
@@ -278,9 +315,9 @@ export function SettingsScreen({ navigation }: Props) {
               void logout().then(() => {
                 navigation.replace("Login", { showNextcloud: true });
               });
-            }
-          }
-        ]
+            },
+          },
+        ],
       );
     } else {
       Alert.alert(
@@ -295,9 +332,9 @@ export function SettingsScreen({ navigation }: Props) {
               void startLocalMode().then(() => {
                 navigation.replace("Recipes");
               });
-            }
-          }
-        ]
+            },
+          },
+        ],
       );
     }
   }
@@ -309,16 +346,19 @@ export function SettingsScreen({ navigation }: Props) {
       const result = await exportBackup();
       const successMessage = t("settings.backupExportDone", {
         count: result.recipeCount,
-        images: result.imageCount
+        images: result.imageCount,
       });
       const skippedMessage =
         result.skippedImageCount > 0
           ? `\n${t("settings.backupExportPartial", {
-              count: result.skippedImageCount
+              count: result.skippedImageCount,
             })}`
           : "";
       setMessage(successMessage);
-      Alert.alert(t("settings.backupExportTitle"), `${successMessage}${skippedMessage}`);
+      Alert.alert(
+        t("settings.backupExportTitle"),
+        `${successMessage}${skippedMessage}`,
+      );
     } catch (error) {
       if (isPickerCancel(error)) {
         return;
@@ -327,7 +367,7 @@ export function SettingsScreen({ navigation }: Props) {
         t("settings.backupFailedTitle"),
         error instanceof Error && error.message === "INVALID_RECIPE_BACKUP"
           ? t("settings.backupInvalid")
-          : t("settings.backupFailed")
+          : t("settings.backupFailed"),
       );
     } finally {
       setBackupAction(null);
@@ -344,9 +384,9 @@ export function SettingsScreen({ navigation }: Props) {
           text: t("settings.importBackup"),
           onPress: () => {
             void runImportBackup();
-          }
-        }
-      ]
+          },
+        },
+      ],
     );
   }
 
@@ -359,7 +399,7 @@ export function SettingsScreen({ navigation }: Props) {
         created: result.created,
         updated: result.updated,
         skipped: result.skipped,
-        renamed: result.renamed
+        renamed: result.renamed,
       });
       setMessage(successMessage);
       Alert.alert(t("settings.backupImportTitle"), successMessage);
@@ -371,7 +411,7 @@ export function SettingsScreen({ navigation }: Props) {
         t("settings.backupFailedTitle"),
         error instanceof Error && error.message === "INVALID_RECIPE_BACKUP"
           ? t("settings.backupInvalid")
-          : t("settings.backupFailed")
+          : t("settings.backupFailed"),
       );
     } finally {
       setBackupAction(null);
@@ -388,7 +428,7 @@ export function SettingsScreen({ navigation }: Props) {
     try {
       while (true) {
         const groups = (await findDuplicateGroups()).filter(
-          (group) => !skippedGroups.has(group.id)
+          (group) => !skippedGroups.has(group.id),
         );
         const group = groups[0];
 
@@ -419,7 +459,10 @@ export function SettingsScreen({ navigation }: Props) {
         }
       }
     } catch {
-      Alert.alert(t("settings.duplicatesFailedTitle"), t("settings.duplicatesFailed"));
+      Alert.alert(
+        t("settings.duplicatesFailedTitle"),
+        t("settings.duplicatesFailed"),
+      );
     } finally {
       setDuplicateAction(false);
     }
@@ -434,846 +477,998 @@ export function SettingsScreen({ navigation }: Props) {
           reason: t(`settings.duplicateReason.${group.reason}`),
           recipes: group.recipes
             .map((recipe, index) => `${index + 1}. ${recipe.name}`)
-            .join("\n")
+            .join("\n"),
         }),
         [
           {
             text: t("recipes.keepBoth"),
             onPress: () => resolve("keep"),
-            style: "cancel"
+            style: "cancel",
           },
           {
             text: t("recipes.mergeRecipes"),
-            onPress: () => resolve("merge")
-          }
+            onPress: () => resolve("merge"),
+          },
         ],
         {
           cancelable: true,
-          onDismiss: () => resolve("keep")
-        }
+          onDismiss: () => resolve("keep"),
+        },
       );
     });
   }
 
-  return (
-    <Screen showScrollTop={false}>
-      <View style={styles.toolbar}>
-        <IconButton
-          icon={ArrowLeft}
-          label={t("common.back")}
-          onPress={() => navigation.goBack()}
-        />
-        <AppText variant="subtitle">{t("settings.title")}</AppText>
-        <View style={styles.toolbarSpacer} />
-      </View>
+  const sectionTitle =
+    section === "appearance"
+      ? t("settings.sectionAppearance")
+      : section === "account"
+        ? t("ui.account")
+        : section === "shopping"
+          ? t("ui.shopping")
+          : section === "backup"
+            ? t("ui.backup")
+            : section === "advanced"
+              ? t("settings.advanced")
+              : section === "assistant"
+                ? t("ui.assistant")
+                : section === "maintenance"
+                  ? t("ui.maintenance")
+                  : t("ui.about");
+  function openSection(next: SettingsSection) {
+    navigation.push("Settings", { section: next });
+  }
 
+  return (
+    <Screen
+      showScrollTop={false}
+      contentWidth={640}
+      header={
+        <ScreenHeader
+          title={section ? sectionTitle : undefined}
+          onBack={() => navigation.goBack()}
+        />
+      }
+    >
       {message ? (
-        <AppText accessibilityLiveRegion="polite" style={{ color: colors.success, paddingHorizontal: spacing.md, paddingBottom: spacing.md, textAlign: "center" }}>
+        <AppText
+          accessibilityLiveRegion="polite"
+          style={{ color: colors.success }}
+        >
           {message}
         </AppText>
       ) : null}
-
-      <GlassPanel style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <User color={colors.primary} size={22} />
-          <AppText variant="label">{t("settings.sectionProfile")}</AppText>
-        </View>
-        <AppText muted variant="caption" style={{ marginBottom: spacing.xs }}>
-          {t("settings.communityPseudonymHint")}
-        </AppText>
-        <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
-          <TextField
-            containerStyle={{ flex: 1, marginRight: spacing.sm }}
-            label={t("settings.communityPseudonym")}
-            value={localPseudonym}
-            onChangeText={setLocalPseudonym}
-            placeholder={t("settings.communityPseudonymPlaceholder")}
-            textContentType="nickname"
-            autoComplete="off"
-            autoCorrect={false}
-            importantForAutofill="noExcludeDescendants"
-          />
-          <IconButton
-            icon={pseudoSavedAnim ? CheckCheck : Check}
-            label={t("common.save")}
-            tone={pseudoSavedAnim ? "default" : "primary"}
-            style={pseudoSavedAnim ? { backgroundColor: colors.success } : undefined}
-            onPress={() => {
-              void (async () => {
-                Keyboard.dismiss();
-                if (containsProfanity(localPseudonym)) {
-                  Alert.alert(t("common.error"), t("settings.profanityError"));
-                  return;
-                }
-                const trimmed = localPseudonym.trim();
-                if (trimmed) {
-                  try {
-                    const available = await checkPseudonymAvailable(trimmed);
-                    if (!available) {
-                      Alert.alert(t("common.error"), t("settings.pseudonymTaken"));
-                      return;
-                    }
-                    if (communityPseudonym && communityPseudonym !== trimmed) {
-                      await releasePseudonym(communityPseudonym).catch(() => {});
-                    }
-                    await reservePseudonym(trimmed);
-                  } catch (err) {
-                    console.warn("community", "Pseudonym reservation failed", err);
-                    Alert.alert(t("common.error"), t("settings.pseudonymSaveFailed"));
-                    return;
-                  }
-                }
-                await setCommunityPseudonym(trimmed || null);
-                setPseudoSavedAnim(true);
-                setTimeout(() => setPseudoSavedAnim(false), 2000);
-              })();
-            }}
-          />
-        </View>
-      </GlassPanel>
-
-      <GlassPanel style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Smartphone color={colors.primary} size={22} />
-          <AppText variant="label">{t("settings.sectionAppearance")}</AppText>
-        </View>
-
-        <SegmentedControl<ThemeMode>
-          value={mode}
-          onChange={(value) => void setMode(value)}
-          options={[
-            { label: t("settings.system"), value: "system" },
-            { label: t("settings.light"), value: "light" },
-            { label: t("settings.dark"), value: "dark" }
-          ]}
-        />
-        <View style={styles.divider} />
-
-        <LanguagePicker
-          value={language}
-          onChange={(value) => void setLanguage(value)}
-        />
-        <View style={styles.divider} />
-
-        <View style={styles.rowSectionInner}>
-          <View style={styles.rowText}>
-            <AppText variant="label">{t("settings.keepAwake")}</AppText>
-          </View>
-          <Switch
-            accessibilityLabel={t("settings.keepAwake")}
-            accessibilityRole="switch"
-            accessibilityState={{ checked: keepScreenAwake }}
-            onValueChange={(value) => void setKeepScreenAwake(value)}
-            thumbColor={Platform.OS === "android" ? (keepScreenAwake ? colors.primary : colors.textMuted) : undefined}
-            trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
-            value={keepScreenAwake}
-          />
-        </View>
-        <View style={styles.divider} />
-
-        <View style={styles.rowSectionInner}>
-          <View style={styles.rowText}>
-            <AppText variant="label">{t("settings.showDefaultCategories")}</AppText>
-            <AppText muted variant="caption">
-              {t("settings.showDefaultCategoriesDescription")}
-            </AppText>
-          </View>
-          <Switch
-            accessibilityLabel={t("settings.showDefaultCategories")}
-            accessibilityRole="switch"
-            accessibilityState={{ checked: showDefaultCategories ?? isLocalMode }}
-            onValueChange={(value) => void setShowDefaultCategories(value)}
-            thumbColor={Platform.OS === "android" ? ((showDefaultCategories ?? isLocalMode) ? colors.primary : colors.textMuted) : undefined}
-            trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
-            value={showDefaultCategories ?? isLocalMode}
-          />
-        </View>
-      </GlassPanel>
-
-      <GlassPanel style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Globe color={colors.primary} size={22} />
-          <AppText variant="label">{t("settings.sectionServer")}</AppText>
-        </View>
-
-        <View style={styles.rowSectionInner}>
-          <View style={styles.rowText}>
-            <AppText variant="label">
-              {isLocalMode ? t("settings.localMode") : t("auth.server")}
-            </AppText>
-          </View>
-          
-          <View
-            style={[
-              styles.statusBadge,
-              { backgroundColor: isLocalMode ? colors.border : colors.chip }
-            ]}
-          >
-            <View
-              style={[
-                styles.statusDot,
-                { backgroundColor: isLocalMode ? colors.warning : colors.success }
+      {!section ? (
+        <>
+          <AppText accessibilityRole="header" variant="title">
+            {t("settings.title")}
+          </AppText>
+          <GlassPanel style={styles.menuGroup}>
+            <SettingsRow
+              icon={Smartphone}
+              title={t("settings.sectionAppearance")}
+              value={t("ui.appearanceSummary")}
+              onPress={() => openSection("appearance")}
+            />
+            <SettingsRow
+              icon={User}
+              title={t("ui.account")}
+              value={t("ui.accountSummary")}
+              onPress={() => openSection("account")}
+            />
+            <SettingsRow
+              icon={ShoppingCart}
+              title={t("ui.shopping")}
+              value={t("ui.shoppingSummary")}
+              onPress={() => openSection("shopping")}
+            />
+          </GlassPanel>
+          <GlassPanel style={styles.menuGroup}>
+            <SettingsRow
+              icon={Database}
+              title={t("ui.backup")}
+              value={t("ui.backupSummary")}
+              onPress={() => openSection("backup")}
+            />
+            <SettingsRow
+              icon={SlidersHorizontal}
+              title={t("settings.advanced")}
+              value={t("ui.advancedSummary")}
+              onPress={() => openSection("advanced")}
+            />
+            <SettingsRow
+              icon={Info}
+              title={t("ui.about")}
+              value={t("ui.aboutSummary")}
+              onPress={() => openSection("about")}
+            />
+          </GlassPanel>
+          <AppText muted variant="caption" style={{ textAlign: "center" }}>
+            AvoCook {APP_VERSION}
+          </AppText>
+        </>
+      ) : null}
+      {section === "appearance" ? (
+        <>
+          <GlassPanel style={styles.section}>
+            <SegmentedControl<ThemeMode>
+              value={mode}
+              onChange={(value) => void setMode(value)}
+              options={[
+                { label: t("settings.system"), value: "system" },
+                { label: t("settings.light"), value: "light" },
+                { label: t("settings.dark"), value: "dark" },
               ]}
             />
+            <View
+              style={[styles.divider, { backgroundColor: colors.border }]}
+            />
+
+            <LanguagePicker
+              value={language}
+              onChange={(value) => void setLanguage(value)}
+            />
+            <View
+              style={[styles.divider, { backgroundColor: colors.border }]}
+            />
+
+            <View style={styles.rowSectionInner}>
+              <View style={styles.rowText}>
+                <AppText variant="label">{t("settings.keepAwake")}</AppText>
+              </View>
+              <Switch
+                accessibilityLabel={t("settings.keepAwake")}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: keepScreenAwake }}
+                onValueChange={(value) => void setKeepScreenAwake(value)}
+                thumbColor={
+                  Platform.OS === "android"
+                    ? keepScreenAwake
+                      ? colors.primary
+                      : colors.textMuted
+                    : undefined
+                }
+                trackColor={{
+                  false: colors.border,
+                  true:
+                    Platform.OS === "android" ? colors.chip : colors.primary,
+                }}
+                value={keepScreenAwake}
+              />
+            </View>
+            <View
+              style={[styles.divider, { backgroundColor: colors.border }]}
+            />
+
+            <View style={styles.rowSectionInner}>
+              <View style={styles.rowText}>
+                <AppText variant="label">
+                  {t("settings.showDefaultCategories")}
+                </AppText>
+                <AppText muted variant="caption">
+                  {t("settings.showDefaultCategoriesDescription")}
+                </AppText>
+              </View>
+              <Switch
+                accessibilityLabel={t("settings.showDefaultCategories")}
+                accessibilityRole="switch"
+                accessibilityState={{
+                  checked: showDefaultCategories ?? isLocalMode,
+                }}
+                onValueChange={(value) => void setShowDefaultCategories(value)}
+                thumbColor={
+                  Platform.OS === "android"
+                    ? (showDefaultCategories ?? isLocalMode)
+                      ? colors.primary
+                      : colors.textMuted
+                    : undefined
+                }
+                trackColor={{
+                  false: colors.border,
+                  true:
+                    Platform.OS === "android" ? colors.chip : colors.primary,
+                }}
+                value={showDefaultCategories ?? isLocalMode}
+              />
+            </View>
+          </GlassPanel>
+        </>
+      ) : null}
+      {section === "account" ? (
+        <>
+          <GlassPanel style={styles.section}>
             <AppText
+              muted
               variant="caption"
-              style={[
-                styles.statusText,
-                { color: isLocalMode ? colors.warning : colors.primary }
-              ]}
+              style={{ marginBottom: spacing.xs }}
             >
-              {isLocalMode ? t("common.offline") : t("common.online")}
+              {t("settings.communityPseudonymHint")}
             </AppText>
-          </View>
-        </View>
-
-        <View style={styles.detailsContainer}>
-          {!isLocalMode && credentials?.serverUrl ? (
-            <>
-              <View style={styles.detailRow}>
-                <View style={[styles.detailIconWrapper, { backgroundColor: colors.chip }]}>
-                  <Globe color={colors.primary} size={16} />
-                </View>
-                <View style={styles.detailContent}>
-                  <AppText muted variant="caption">
-                    {t("auth.server")}
-                  </AppText>
-                  <AppText style={styles.detailValue} numberOfLines={1} ellipsizeMode="tail">
-                    {credentials.serverUrl}
-                  </AppText>
-                </View>
-              </View>
-              <View style={[styles.detailDivider, { backgroundColor: colors.border }]} />
-            </>
-          ) : null}
-
-          {!isLocalMode && credentials?.username ? (
-            <>
-              <View style={styles.detailRow}>
-                <View style={[styles.detailIconWrapper, { backgroundColor: colors.chip }]}>
-                  <User color={colors.primary} size={16} />
-                </View>
-                <View style={styles.detailContent}>
-                  <AppText muted variant="caption">
-                    {t("auth.username")}
-                  </AppText>
-                  <AppText style={styles.detailValue} numberOfLines={1}>
-                    {credentials.username}
-                  </AppText>
-                </View>
-              </View>
-              <View style={[styles.detailDivider, { backgroundColor: colors.border }]} />
-            </>
-          ) : null}
-
-          <View style={styles.detailRow}>
-            <View style={[styles.detailIconWrapper, { backgroundColor: colors.chip }]}>
-              <BookOpen color={colors.primary} size={16} />
-            </View>
-            <View style={styles.detailContent}>
-              <AppText muted variant="caption">
-                {t("recipes.title")}
-              </AppText>
-              <AppText style={styles.detailValue}>
-                {t(
-                  recipes.length <= 1
-                    ? "recipes.loadedRecipes_one"
-                    : "recipes.loadedRecipes_other",
-                  { count: recipes.length }
-                )}
-              </AppText>
-            </View>
-          </View>
-        </View>
-
-        <View
-          style={[
-            styles.noticeBanner,
-            { backgroundColor: isLocalMode ? "rgba(184, 106, 29, 0.08)" : colors.chip }
-          ]}
-        >
-          {isLocalMode ? (
-            <Info color={colors.warning} size={16} />
-          ) : (
-            <Lock color={colors.primary} size={16} />
-          )}
-          <AppText muted variant="caption" style={styles.noticeText}>
-            {isLocalMode ? t("settings.localNotice") : t("settings.secureStore")}
-          </AppText>
-        </View>
-
-        <View style={styles.divider} />
-
-        {Platform.OS === "ios" ? (
-          <AppText muted variant="caption">{t("settings.reinstallNotice")}</AppText>
-        ) : null}
-
-        <View style={styles.rowSectionInner}>
-          <View style={styles.rowText}>
-            <AppText variant="label">{t("settings.keepRecipesLocal")}</AppText>
-          </View>
-          <Switch
-            accessibilityLabel={t("settings.keepRecipesLocal")}
-            accessibilityRole="switch"
-            accessibilityState={{
-              checked: keepRecipesLocal || isLocalMode,
-              disabled: isLocalMode
-            }}
-            disabled={isLocalMode}
-            onValueChange={(value) => void setKeepRecipesLocal(value)}
-            thumbColor={Platform.OS === "android" ? (keepRecipesLocal || isLocalMode ? colors.primary : colors.textMuted) : undefined}
-            trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
-            value={keepRecipesLocal || isLocalMode}
-          />
-        </View>
-
-        <View style={styles.divider} />
-        <View style={{ marginBottom: 12 }}>
-          <AppText variant="label">{t("settings.duplicates")}</AppText>
-        </View>
-        <AppText muted variant="caption" style={{ marginBottom: 12 }}>
-          {t(
-            isLocalMode
-              ? "settings.duplicatesLocalBody"
-              : "settings.duplicatesNextcloudBody"
-          )}
-        </AppText>
-        <PrimaryButton
-          disabled={duplicateAction}
-          icon={Database}
-          label={
-            duplicateAction
-              ? t("common.loading")
-              : t("settings.checkDuplicates")
-          }
-          onPress={() => void handleCheckDuplicates()}
-          variant="ghost"
-        />
-
-        {!isLocalMode && credentials ? (
-          <>
-            <View style={styles.divider} />
             <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
               <TextField
                 containerStyle={{ flex: 1, marginRight: spacing.sm }}
-                label={t("settings.imageFolderPath")}
-                value={localImageFolder}
-                onChangeText={setLocalImageFolder}
-                placeholder={t("settings.imageFolderPathPlaceholder")}
-                autoCapitalize="none"
-                autoCorrect={false}
+                label={t("settings.communityPseudonym")}
+                value={localPseudonym}
+                onChangeText={setLocalPseudonym}
+                placeholder={t("settings.communityPseudonymPlaceholder")}
+                textContentType="nickname"
                 autoComplete="off"
+                autoCorrect={false}
                 importantForAutofill="noExcludeDescendants"
               />
               <IconButton
-                icon={imageFolderSavedAnim ? CheckCheck : Check}
+                icon={pseudoSavedAnim ? CheckCheck : Check}
                 label={t("common.save")}
-                tone={imageFolderSavedAnim ? "default" : "primary"}
-                style={imageFolderSavedAnim ? { backgroundColor: colors.success } : undefined}
+                tone={pseudoSavedAnim ? "default" : "primary"}
+                style={
+                  pseudoSavedAnim
+                    ? { backgroundColor: colors.success }
+                    : undefined
+                }
                 onPress={() => {
-                  Keyboard.dismiss();
-                  void setNextcloudImageFolder(localImageFolder.trim());
-                  setImageFolderSavedAnim(true);
-                  setTimeout(() => setImageFolderSavedAnim(false), 2000);
+                  void (async () => {
+                    Keyboard.dismiss();
+                    if (containsProfanity(localPseudonym)) {
+                      Alert.alert(
+                        t("common.error"),
+                        t("settings.profanityError"),
+                      );
+                      return;
+                    }
+                    const trimmed = localPseudonym.trim();
+                    if (trimmed) {
+                      try {
+                        const available =
+                          await checkPseudonymAvailable(trimmed);
+                        if (!available) {
+                          Alert.alert(
+                            t("common.error"),
+                            t("settings.pseudonymTaken"),
+                          );
+                          return;
+                        }
+                        if (
+                          communityPseudonym &&
+                          communityPseudonym !== trimmed
+                        ) {
+                          await releasePseudonym(communityPseudonym).catch(
+                            () => {},
+                          );
+                        }
+                        await reservePseudonym(trimmed);
+                      } catch (err) {
+                        console.warn(
+                          "community",
+                          "Pseudonym reservation failed",
+                          err,
+                        );
+                        Alert.alert(
+                          t("common.error"),
+                          t("settings.pseudonymSaveFailed"),
+                        );
+                        return;
+                      }
+                    }
+                    await setCommunityPseudonym(trimmed || null);
+                    setPseudoSavedAnim(true);
+                    setTimeout(() => setPseudoSavedAnim(false), 2000);
+                  })();
                 }}
               />
             </View>
-            <AppText muted variant="caption" style={{ marginTop: 4, marginBottom: 4 }}>
-              {t("settings.imageFolderPathHint")}
-            </AppText>
-            {nextcloudImageFolder.trim() !== "" && nextcloudImageFolder.trim() !== "AvoCook Images" ? (
-              <View style={[styles.warningRow, { marginTop: 4, marginBottom: 4 }]}>
-                <AlertTriangle color={colors.warning} size={14} />
-                <AppText muted variant="caption" style={[styles.warningText, { color: colors.warning }]}>
-                  {t("settings.imageFolderPathMigrationWarning")}
+          </GlassPanel>
+          <GlassPanel style={styles.section}>
+            <View style={styles.rowSectionInner}>
+              <View style={styles.rowText}>
+                <AppText variant="label">
+                  {isLocalMode ? t("settings.localMode") : t("auth.server")}
+                </AppText>
+              </View>
+
+              <View
+                style={[
+                  styles.statusBadge,
+                  {
+                    backgroundColor: isLocalMode ? colors.border : colors.chip,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.statusDot,
+                    {
+                      backgroundColor: isLocalMode
+                        ? colors.textMuted
+                        : colors.success,
+                    },
+                  ]}
+                />
+                <AppText
+                  variant="caption"
+                  style={[
+                    styles.statusText,
+                    { color: isLocalMode ? colors.textMuted : colors.primary },
+                  ]}
+                >
+                  {isLocalMode ? t("ui.localStatus") : t("common.online")}
+                </AppText>
+              </View>
+            </View>
+
+            <View style={styles.detailsContainer}>
+              {!isLocalMode && credentials?.serverUrl ? (
+                <>
+                  <View style={styles.detailRow}>
+                    <View
+                      style={[
+                        styles.detailIconWrapper,
+                        { backgroundColor: colors.chip },
+                      ]}
+                    >
+                      <Globe color={colors.primary} size={16} />
+                    </View>
+                    <View style={styles.detailContent}>
+                      <AppText muted variant="caption">
+                        {t("auth.server")}
+                      </AppText>
+                      <AppText
+                        style={styles.detailValue}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {credentials.serverUrl}
+                      </AppText>
+                    </View>
+                  </View>
+                  <View
+                    style={[
+                      styles.detailDivider,
+                      { backgroundColor: colors.border },
+                    ]}
+                  />
+                </>
+              ) : null}
+
+              {!isLocalMode && credentials?.username ? (
+                <>
+                  <View style={styles.detailRow}>
+                    <View
+                      style={[
+                        styles.detailIconWrapper,
+                        { backgroundColor: colors.chip },
+                      ]}
+                    >
+                      <User color={colors.primary} size={16} />
+                    </View>
+                    <View style={styles.detailContent}>
+                      <AppText muted variant="caption">
+                        {t("auth.username")}
+                      </AppText>
+                      <AppText style={styles.detailValue} numberOfLines={1}>
+                        {credentials.username}
+                      </AppText>
+                    </View>
+                  </View>
+                  <View
+                    style={[
+                      styles.detailDivider,
+                      { backgroundColor: colors.border },
+                    ]}
+                  />
+                </>
+              ) : null}
+
+              <View style={styles.detailRow}>
+                <View
+                  style={[
+                    styles.detailIconWrapper,
+                    { backgroundColor: colors.chip },
+                  ]}
+                >
+                  <BookOpen color={colors.primary} size={16} />
+                </View>
+                <View style={styles.detailContent}>
+                  <AppText muted variant="caption">
+                    {t("recipes.title")}
+                  </AppText>
+                  <AppText style={styles.detailValue}>
+                    {t(
+                      recipes.length <= 1
+                        ? "recipes.loadedRecipes_one"
+                        : "recipes.loadedRecipes_other",
+                      { count: recipes.length },
+                    )}
+                  </AppText>
+                </View>
+              </View>
+            </View>
+
+            <View
+              style={[
+                styles.noticeBanner,
+                {
+                  backgroundColor: isLocalMode
+                    ? "rgba(184, 106, 29, 0.08)"
+                    : colors.chip,
+                },
+              ]}
+            >
+              {isLocalMode ? (
+                <Info color={colors.warning} size={16} />
+              ) : (
+                <Lock color={colors.primary} size={16} />
+              )}
+              <AppText muted variant="caption" style={styles.noticeText}>
+                {isLocalMode
+                  ? t("settings.localNotice")
+                  : t("settings.secureStore")}
+              </AppText>
+            </View>
+
+            <View
+              style={[styles.divider, { backgroundColor: colors.border }]}
+            />
+          </GlassPanel>
+          <View style={{ marginTop: 16, marginBottom: 32, gap: 8 }}>
+            <PrimaryButton
+              icon={isLocalMode ? Globe : Smartphone}
+              label={
+                isLocalMode
+                  ? t("settings.switchToNextcloud")
+                  : t("settings.switchToLocal")
+              }
+              onPress={() => void handleSwitchMode()}
+              variant="secondary"
+            />
+            {!isLocalMode ? (
+              <PrimaryButton
+                icon={LogOut}
+                label={t("common.logout")}
+                onPress={() => void handleLogout()}
+                variant="danger"
+              />
+            ) : null}
+          </View>
+        </>
+      ) : null}
+      {section === "shopping" ? (
+        <>
+          <GlassPanel style={styles.section}>
+            <View style={styles.rowSectionInner}>
+              <View style={styles.rowText}>
+                <AppText variant="label">
+                  {t("settings.shoppingNotifications")}
+                </AppText>
+                <AppText muted variant="caption">
+                  {t("settings.shoppingNotificationsHint")}
+                </AppText>
+              </View>
+              <Switch
+                accessibilityLabel={t("settings.shoppingNotifications")}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: enableShoppingNotifications }}
+                onValueChange={(value) =>
+                  void setEnableShoppingNotifications(value)
+                }
+                thumbColor={
+                  Platform.OS === "android"
+                    ? enableShoppingNotifications
+                      ? colors.primary
+                      : colors.textMuted
+                    : undefined
+                }
+                trackColor={{
+                  false: colors.border,
+                  true:
+                    Platform.OS === "android" ? colors.chip : colors.primary,
+                }}
+                value={enableShoppingNotifications}
+              />
+            </View>
+
+            <View
+              style={[styles.divider, { backgroundColor: colors.border }]}
+            />
+
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 12,
+              }}
+            >
+              <Bell color={colors.primary} size={22} />
+              <AppText variant="label">{t("settings.notifications")}</AppText>
+            </View>
+            <PrimaryButton
+              disabled={notificationState === "unavailable"}
+              label={
+                notificationState === "ready"
+                  ? t("settings.notificationsEnabled")
+                  : t("settings.notificationsDisabled")
+              }
+              onPress={() => void handleToggleNotifications()}
+              variant={notificationState === "ready" ? "primary" : "ghost"}
+            />
+
+            <View
+              style={[styles.divider, { backgroundColor: colors.border }]}
+            />
+            <ShoppingModeButton onPress={() => setShowShoppingModes(true)} />
+          </GlassPanel>
+        </>
+      ) : null}
+      {section === "backup" ? (
+        <>
+          <GlassPanel style={styles.section}>
+            <View style={styles.rowSectionInner}>
+              <View style={styles.rowText}>
+                <AppText variant="label">
+                  {t("settings.enableBackupReminders")}
+                </AppText>
+              </View>
+              <Switch
+                accessibilityLabel={t("settings.enableBackupReminders")}
+                accessibilityRole="switch"
+                accessibilityState={{ checked: enableBackupReminders }}
+                onValueChange={(value) => void setEnableBackupReminders(value)}
+                thumbColor={
+                  Platform.OS === "android"
+                    ? enableBackupReminders
+                      ? colors.primary
+                      : colors.textMuted
+                    : undefined
+                }
+                trackColor={{
+                  false: colors.border,
+                  true:
+                    Platform.OS === "android" ? colors.chip : colors.primary,
+                }}
+                value={enableBackupReminders}
+              />
+            </View>
+
+            {isLocalMode ? (
+              <View style={[styles.warningRow, { marginBottom: 12 }]}>
+                <AlertTriangle color={colors.danger} size={20} />
+                <AppText style={styles.warningText}>
+                  {t("settings.localDeleteWarning")}
                 </AppText>
               </View>
             ) : null}
-            <View style={styles.divider} />
-            <PrimaryButton
-              icon={RefreshCw}
-              label={t("settings.reindex")}
-              onPress={() => void handleReindex()}
-              variant="ghost"
-            />
-          </>
-        ) : null}
-      </GlassPanel>
-
-      <GlassPanel style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Database color={colors.primary} size={22} />
-          <AppText variant="label">{t("settings.sectionData")}</AppText>
-        </View>
-
-        <View style={styles.rowSectionInner}>
-          <View style={styles.rowText}>
-            <AppText variant="label">{t("settings.enableBackupReminders")}</AppText>
-          </View>
-          <Switch
-            accessibilityLabel={t("settings.enableBackupReminders")}
-            accessibilityRole="switch"
-            accessibilityState={{ checked: enableBackupReminders }}
-            onValueChange={(value) => void setEnableBackupReminders(value)}
-            thumbColor={Platform.OS === "android" ? (enableBackupReminders ? colors.primary : colors.textMuted) : undefined}
-            trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
-            value={enableBackupReminders}
-          />
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={styles.rowSectionInner}>
-          <View style={styles.rowText}>
-            <AppText variant="label">{t("settings.shoppingNotifications")}</AppText>
-            <AppText muted variant="caption">
-              {t("settings.shoppingNotificationsHint")}
-            </AppText>
-          </View>
-          <Switch
-            accessibilityLabel={t("settings.shoppingNotifications")}
-            accessibilityRole="switch"
-            accessibilityState={{ checked: enableShoppingNotifications }}
-            onValueChange={(value) => void setEnableShoppingNotifications(value)}
-            thumbColor={Platform.OS === "android" ? (enableShoppingNotifications ? colors.primary : colors.textMuted) : undefined}
-            trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
-            value={enableShoppingNotifications}
-          />
-        </View>
-
-        <View style={styles.divider} />
-
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
-          <Bell color={colors.primary} size={22} />
-          <AppText variant="label">{t("settings.notifications")}</AppText>
-        </View>
-        <PrimaryButton
-          disabled={notificationState === "unavailable"}
-          label={
-            notificationState === "ready"
-              ? t("settings.notificationsEnabled")
-              : t("settings.notificationsDisabled")
-          }
-          onPress={() => void handleToggleNotifications()}
-          variant={notificationState === "ready" ? "primary" : "ghost"}
-        />
-
-        <View style={styles.divider} />
-        <ShoppingModeButton onPress={() => setShowShoppingModes(true)} />
-
-        {shoppingSync.available ? (
-          <>
-            <View style={styles.divider} />
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 12 }}>
-              <Bell color={colors.primary} size={22} />
-              <AppText variant="label">{t("shoppingList.syncBannerTitle")}</AppText>
-            </View>
-            <PrimaryButton
-              disabled={shoppingSync.syncing}
-              label={
-                shoppingSync.linked
-                  ? t("shoppingList.syncDisable")
-                  : t("shoppingList.syncEnable")
-              }
-              onPress={() =>
-                shoppingSync.linked
-                  ? void shoppingSync.disableSync()
-                  : void shoppingSync.enableSync(shoppingItems)
-              }
-              variant={shoppingSync.linked ? "danger" : "ghost"}
-            />
-          </>
-        ) : null}
-
-        <View style={styles.divider} />
-
-        {isLocalMode ? (
-          <View style={[styles.warningRow, { marginBottom: 12 }]}>
-            <AlertTriangle color={colors.danger} size={20} />
-            <AppText style={styles.warningText}>
-              {t("settings.localDeleteWarning")}
-            </AppText>
-          </View>
-        ) : null}
-        <AppText muted variant="caption" style={{ marginBottom: 16 }}>
-          {t(
-            isLocalMode
-              ? "settings.dataBackupLocalBody"
-              : "settings.dataBackupNextcloudBody"
-          )}
-        </AppText>
-        <View style={styles.backupActions}>
-          <PrimaryButton
-            disabled={backupAction !== null}
-            icon={Download}
-            label={
-              backupAction === "export"
-                ? t("common.loading")
-                : t("settings.exportBackup")
-            }
-            onPress={() => void handleExportBackup()}
-            style={styles.backupButton}
-            variant="ghost"
-            numberOfLines={2}
-          />
-          <PrimaryButton
-            disabled={backupAction !== null}
-            icon={Upload}
-            label={
-              backupAction === "import"
-                ? t("common.loading")
-                : t("settings.importBackup")
-            }
-            onPress={() => handleImportBackup()}
-            style={styles.backupButton}
-            variant="ghost"
-            numberOfLines={2}
-          />
-        </View>
-      </GlassPanel>
-
-      <GlassPanel style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Bot color={colors.primary} size={22} />
-          <AppText variant="label">{t("settings.advanced")}</AppText>
-        </View>
-
-        <View style={{ marginTop: 16, gap: spacing.md }}>
             <AppText muted variant="caption" style={{ marginBottom: 16 }}>
-              {t("settings.llmHint")}
+              {t(
+                isLocalMode
+                  ? "settings.dataBackupLocalBody"
+                  : "settings.dataBackupNextcloudBody",
+              )}
             </AppText>
+            <View style={styles.backupActions}>
+              <PrimaryButton
+                disabled={backupAction !== null}
+                icon={Download}
+                label={
+                  backupAction === "export"
+                    ? t("common.loading")
+                    : t("settings.exportBackup")
+                }
+                onPress={() => void handleExportBackup()}
+                style={styles.backupButton}
+                variant="ghost"
+                numberOfLines={2}
+              />
+              <PrimaryButton
+                disabled={backupAction !== null}
+                icon={Upload}
+                label={
+                  backupAction === "import"
+                    ? t("common.loading")
+                    : t("settings.importBackup")
+                }
+                onPress={() => handleImportBackup()}
+                style={styles.backupButton}
+                variant="ghost"
+                numberOfLines={2}
+              />
+            </View>
+            {Platform.OS === "ios" ? (
+              <DisclosureSection title={t("ui.details")}>
+                <AppText muted variant="caption">
+                  {t("settings.reinstallNotice")}
+                </AppText>
+              </DisclosureSection>
+            ) : null}
+          </GlassPanel>
+        </>
+      ) : null}
+      {section === "assistant" ? (
+        <>
+          <GlassPanel style={styles.section}>
+            <View style={{ marginTop: 16, gap: spacing.md }}>
+              <AppText muted>{t("ui.assistantBody")}</AppText>
 
-            <AppText variant="label">{t("settings.llmProvider")}</AppText>
-            <View style={styles.providerGrid}>
-              {LLM_PROVIDERS.map((preset) => {
-                const selected = currentLlm.providerId === preset.id;
-                const providerLabel = preset.id === "custom" ? t("settings.llmCustomProvider") : preset.label;
-                return (
+              <ChoiceField
+                label={t("settings.llmProvider")}
+                value={currentLlm.providerId}
+                onChange={handleSelectProvider}
+                options={LLM_PROVIDERS.map((preset) => ({
+                  value: preset.id,
+                  label:
+                    preset.id === "custom"
+                      ? t("settings.llmCustomProvider")
+                      : preset.label,
+                }))}
+              />
+
+              <TextField
+                autoCapitalize="none"
+                autoCorrect={false}
+                label={t("settings.llmApiKey")}
+                onBlur={handleLlmFieldBlur}
+                onChangeText={(v) => handleLlmFieldChange("apiKey", v)}
+                placeholder={t("settings.llmApiKeyPlaceholder")}
+                secureTextEntry={!showApiKey}
+                value={currentLlm.apiKey}
+                rightElement={
                   <Pressable
-                    accessibilityLabel={providerLabel}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected }}
-                    key={preset.id}
-                    onPress={() => handleSelectProvider(preset.id)}
+                    accessibilityLabel={
+                      showApiKey
+                        ? t("auth.hidePassword")
+                        : t("auth.showPassword")
+                    }
+                    onPress={() => setShowApiKey((v) => !v)}
+                    hitSlop={8}
+                  >
+                    {showApiKey ? (
+                      <EyeOff color={colors.textMuted} size={20} />
+                    ) : (
+                      <Eye color={colors.textMuted} size={20} />
+                    )}
+                  </Pressable>
+                }
+              />
+
+              {currentLlm.providerId === "custom" ? (
+                <>
+                  <TextField
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    label={t("settings.llmModel")}
+                    onBlur={handleLlmFieldBlur}
+                    onChangeText={(v) => handleLlmFieldChange("model", v)}
+                    placeholder={t("settings.llmModelPlaceholder")}
+                    value={currentLlm.model}
+                  />
+                  <TextField
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="url"
+                    label={t("settings.llmBaseUrl")}
+                    onBlur={handleLlmFieldBlur}
+                    onChangeText={(v) => handleLlmFieldChange("baseUrl", v)}
+                    placeholder="https://api.example.com/v1"
+                    value={currentLlm.baseUrl}
+                  />
+                </>
+              ) : null}
+
+              <PrimaryButton
+                disabled={!currentLlm.apiKey.trim() || fetchingModels}
+                icon={RefreshCw}
+                label={
+                  fetchingModels
+                    ? t("common.loading")
+                    : t("settings.llmFetchModels")
+                }
+                onPress={() => void handleFetchModels()}
+                variant="ghost"
+                style={{ marginTop: 8 }}
+              />
+
+              {fetchModelsError ? (
+                <AppText
+                  variant="caption"
+                  style={{ color: colors.danger, marginTop: 8 }}
+                >
+                  {fetchModelsError}
+                </AppText>
+              ) : null}
+
+              {availableModels?.length ? (
+                <ChoiceField
+                  label={t("settings.llmPickModel")}
+                  value={currentLlm.model}
+                  onChange={handlePickModel}
+                  options={availableModels.map((id) => ({
+                    value: id,
+                    label: id,
+                  }))}
+                />
+              ) : null}
+
+              <DisclosureSection title={t("ui.details")}>
+                <AppText muted variant="caption">
+                  {t("settings.llmHint")}
+                </AppText>
+              </DisclosureSection>
+
+              {llmMessage ? (
+                <View
+                  style={[
+                    styles.warningRow,
+                    {
+                      marginBottom: spacing.md,
+                      backgroundColor: colors.success + "1A",
+                      padding: spacing.sm,
+                      borderRadius: radius.md,
+                      alignItems: "center",
+                    },
+                  ]}
+                >
+                  <Check color={colors.success} size={20} />
+                  <AppText
+                    accessibilityLiveRegion="polite"
                     style={[
-                      styles.providerChip,
-                      {
-                        backgroundColor: selected ? colors.primary : colors.input,
-                        borderColor: selected ? colors.primary : colors.border
-                      }
+                      styles.warningText,
+                      { color: colors.success, fontWeight: "500" },
                     ]}
                   >
-                    <AppText
-                      variant="caption"
-                      style={{ color: selected ? colors.textInverted : colors.text }}
-                    >
-                      {providerLabel}
-                    </AppText>
-                  </Pressable>
-                );
-              })}
+                    {llmMessage}
+                  </AppText>
+                </View>
+              ) : null}
+              <PrimaryButton
+                icon={Save}
+                label={t("common.save")}
+                onPress={handleSaveLlmSettings}
+                disabled={
+                  !llmDraft &&
+                  llmSettings.apiKey === currentLlm.apiKey &&
+                  llmSettings.model === currentLlm.model &&
+                  llmSettings.baseUrl === currentLlm.baseUrl &&
+                  llmSettings.providerId === currentLlm.providerId
+                }
+              />
             </View>
-
-            <TextField
-              autoCapitalize="none"
-              autoCorrect={false}
-              label={t("settings.llmApiKey")}
-              onBlur={handleLlmFieldBlur}
-              onChangeText={(v) => handleLlmFieldChange("apiKey", v)}
-              placeholder={t("settings.llmApiKeyPlaceholder")}
-              secureTextEntry={!showApiKey}
-              value={currentLlm.apiKey}
-              rightElement={
-                <Pressable
-                  accessibilityLabel={showApiKey ? t("auth.hidePassword") : t("auth.showPassword")}
-                  onPress={() => setShowApiKey((v) => !v)}
-                  hitSlop={8}
-                >
-                  {showApiKey
-                    ? <EyeOff color={colors.textMuted} size={20} />
-                    : <Eye color={colors.textMuted} size={20} />}
-                </Pressable>
-              }
-            />
-
-            {currentLlm.providerId === "custom" ? (
-              <>
-                <TextField
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  label={t("settings.llmModel")}
-                  onBlur={handleLlmFieldBlur}
-                  onChangeText={(v) => handleLlmFieldChange("model", v)}
-                  placeholder={t("settings.llmModelPlaceholder")}
-                  value={currentLlm.model}
-                />
-                <TextField
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="url"
-                  label={t("settings.llmBaseUrl")}
-                  onBlur={handleLlmFieldBlur}
-                  onChangeText={(v) => handleLlmFieldChange("baseUrl", v)}
-                  placeholder="https://api.example.com/v1"
-                  value={currentLlm.baseUrl}
-                />
-              </>
-            ) : null}
-
-            <PrimaryButton
-              disabled={!currentLlm.apiKey.trim() || fetchingModels}
-              icon={RefreshCw}
-              label={
-                fetchingModels
-                  ? t("common.loading")
-                  : t("settings.llmFetchModels")
-              }
-              onPress={() => void handleFetchModels()}
-              variant="ghost"
-              style={{ marginTop: 8 }}
-            />
-
-            {fetchModelsError ? (
-              <AppText variant="caption" style={{ color: colors.danger, marginTop: 8 }}>
-                {fetchModelsError}
-              </AppText>
-            ) : null}
-
-            {availableModels && availableModels.length > 0 ? (
-              <>
-                <AppText variant="label" style={{ marginTop: 16 }}>{t("settings.llmPickModel")}</AppText>
-                <ScrollView
-                  style={styles.modelListScroll}
-                  contentContainerStyle={styles.modelListContent}
-                  showsVerticalScrollIndicator
-                  nestedScrollEnabled
-                >
-                  {availableModels.map((id) => {
-                    const selected = currentLlm.model === id;
-                    return (
-                      <Pressable
-                        accessibilityLabel={id}
-                        accessibilityRole="button"
-                        accessibilityState={{ selected }}
-                        key={id}
-                        onPress={() => handlePickModel(id)}
-                        style={[
-                          styles.modelChip,
-                          {
-                            backgroundColor: selected ? colors.primary : colors.input,
-                            borderColor: selected ? colors.primary : colors.border
-                          }
-                        ]}
-                      >
-                        <AppText
-                          variant="caption"
-                          style={{ color: selected ? colors.textInverted : colors.text }}
-                          numberOfLines={1}
-                        >
-                          {id}
-                        </AppText>
-                      </Pressable>
-                    );
-                  })}
-                </ScrollView>
-              </>
-            ) : null}
-
-            {llmMessage ? (
-              <View style={[styles.warningRow, { marginBottom: spacing.md, backgroundColor: colors.success + "1A", padding: spacing.sm, borderRadius: radius.md, alignItems: "center" }]}>
-                <Check color={colors.success} size={20} />
-                <AppText accessibilityLiveRegion="polite" style={[styles.warningText, { color: colors.success, fontWeight: "500" }]}>
-                  {llmMessage}
+          </GlassPanel>
+        </>
+      ) : null}
+      {section === "maintenance" ? (
+        <>
+          <GlassPanel style={styles.section}>
+            <View style={styles.rowSectionInner}>
+              <View style={styles.rowText}>
+                <AppText variant="label">
+                  {t("settings.keepRecipesLocal")}
                 </AppText>
               </View>
-            ) : null}
-            <PrimaryButton
-              icon={Save}
-              label={t("common.save")}
-              onPress={handleSaveLlmSettings}
-              disabled={!llmDraft && llmSettings.apiKey === currentLlm.apiKey && llmSettings.model === currentLlm.model && llmSettings.baseUrl === currentLlm.baseUrl && llmSettings.providerId === currentLlm.providerId}
+              <Switch
+                accessibilityLabel={t("settings.keepRecipesLocal")}
+                accessibilityRole="switch"
+                accessibilityState={{
+                  checked: keepRecipesLocal || isLocalMode,
+                  disabled: isLocalMode,
+                }}
+                disabled={isLocalMode}
+                onValueChange={(value) => void setKeepRecipesLocal(value)}
+                thumbColor={
+                  Platform.OS === "android"
+                    ? keepRecipesLocal || isLocalMode
+                      ? colors.primary
+                      : colors.textMuted
+                    : undefined
+                }
+                trackColor={{
+                  false: colors.border,
+                  true:
+                    Platform.OS === "android" ? colors.chip : colors.primary,
+                }}
+                value={keepRecipesLocal || isLocalMode}
+              />
+            </View>
+
+            <View
+              style={[styles.divider, { backgroundColor: colors.border }]}
             />
-          </View>
-      </GlassPanel>
+            <View style={{ marginBottom: 12 }}>
+              <AppText variant="label">{t("settings.duplicates")}</AppText>
+            </View>
+            <AppText muted variant="caption" style={{ marginBottom: 12 }}>
+              {t(
+                isLocalMode
+                  ? "settings.duplicatesLocalBody"
+                  : "settings.duplicatesNextcloudBody",
+              )}
+            </AppText>
+            <PrimaryButton
+              disabled={duplicateAction}
+              icon={Database}
+              label={
+                duplicateAction
+                  ? t("common.loading")
+                  : t("settings.checkDuplicates")
+              }
+              onPress={() => void handleCheckDuplicates()}
+              variant="ghost"
+            />
 
-      <GlassPanel style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Info color={colors.primary} size={22} />
-          <AppText variant="label">{t("settings.sectionSupport")}</AppText>
-        </View>
-
-        <View style={{ gap: 8 }}>
-          <PrimaryButton
-            icon={Star}
-            label={t("update.settingsButton")}
-            onPress={() => navigation.navigate("Update")}
-            variant="ghost"
+            {!isLocalMode && credentials ? (
+              <>
+                <View
+                  style={[styles.divider, { backgroundColor: colors.border }]}
+                />
+                <View style={{ flexDirection: "row", alignItems: "flex-end" }}>
+                  <TextField
+                    containerStyle={{ flex: 1, marginRight: spacing.sm }}
+                    label={t("settings.imageFolderPath")}
+                    value={localImageFolder}
+                    onChangeText={setLocalImageFolder}
+                    placeholder={t("settings.imageFolderPathPlaceholder")}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    autoComplete="off"
+                    importantForAutofill="noExcludeDescendants"
+                  />
+                  <IconButton
+                    icon={imageFolderSavedAnim ? CheckCheck : Check}
+                    label={t("common.save")}
+                    tone={imageFolderSavedAnim ? "default" : "primary"}
+                    style={
+                      imageFolderSavedAnim
+                        ? { backgroundColor: colors.success }
+                        : undefined
+                    }
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      void setNextcloudImageFolder(localImageFolder.trim());
+                      setImageFolderSavedAnim(true);
+                      setTimeout(() => setImageFolderSavedAnim(false), 2000);
+                    }}
+                  />
+                </View>
+                <AppText
+                  muted
+                  variant="caption"
+                  style={{ marginTop: 4, marginBottom: 4 }}
+                >
+                  {t("settings.imageFolderPathHint")}
+                </AppText>
+                {nextcloudImageFolder.trim() !== "" &&
+                nextcloudImageFolder.trim() !== "AvoCook Images" ? (
+                  <View
+                    style={[
+                      styles.warningRow,
+                      { marginTop: 4, marginBottom: 4 },
+                    ]}
+                  >
+                    <AlertTriangle color={colors.warning} size={14} />
+                    <AppText
+                      muted
+                      variant="caption"
+                      style={[styles.warningText, { color: colors.warning }]}
+                    >
+                      {t("settings.imageFolderPathMigrationWarning")}
+                    </AppText>
+                  </View>
+                ) : null}
+                <View
+                  style={[styles.divider, { backgroundColor: colors.border }]}
+                />
+                <PrimaryButton
+                  icon={RefreshCw}
+                  label={t("settings.reindex")}
+                  onPress={() => void handleReindex()}
+                  variant="ghost"
+                />
+              </>
+            ) : null}
+          </GlassPanel>
+        </>
+      ) : null}
+      {section === "advanced" ? (
+        <GlassPanel style={styles.menuGroup}>
+          <SettingsRow
+            icon={Bot}
+            title={t("ui.assistant")}
+            onPress={() => openSection("assistant")}
           />
-          <PrimaryButton
-            icon={BookOpen}
-            label={t("settings.replayTour")}
-            onPress={() => {
-              void resetOnboarding().then(() => {
-                navigation.navigate("Tour");
-              });
-            }}
-            variant="ghost"
+          <SettingsRow
+            icon={Database}
+            title={t("ui.maintenance")}
+            onPress={() => openSection("maintenance")}
           />
-
-          <PrimaryButton
-            icon={Info}
-            label={t("settings.openPrivacy")}
-            onPress={() => navigation.navigate("Privacy")}
-            variant="ghost"
-          />
-          <PrimaryButton
-            icon={Bug}
-            label={t("support.github")}
-            onPress={openGithubIssue}
-            variant="ghost"
-          />
-          <PrimaryButton
-            icon={Globe}
-            label={t("support.website")}
-            onPress={() => { void Linking.openURL("https://logarex.github.io/AvoCook/"); }}
-            variant="ghost"
-          />
-          <PrimaryButton
-            icon={Mail}
-            label={t("support.email")}
-            onPress={contactByEmail}
-            variant="ghost"
-          />
-        </View>
-      </GlassPanel>
-
-      <View style={{ marginTop: 16, marginBottom: 32, gap: 8 }}>
-        <PrimaryButton
-          icon={isLocalMode ? Globe : Smartphone}
-          label={isLocalMode ? t("settings.switchToNextcloud") : t("settings.switchToLocal")}
-          onPress={() => void handleSwitchMode()}
-          variant="secondary"
-        />
-        {!isLocalMode ? (
-          <PrimaryButton
-            icon={LogOut}
-            label={t("common.logout")}
-            onPress={() => void handleLogout()}
-            variant="danger"
-          />
-        ) : null}
-      </View>
-      <ShoppingModeModal visible={showShoppingModes} onClose={() => setShowShoppingModes(false)} />
+        </GlassPanel>
+      ) : null}
+      {section === "about" ? (
+        <>
+          <GlassPanel style={styles.menuGroup}>
+            <SettingsRow
+              icon={Star}
+              title={t("update.settingsButton")}
+              onPress={() => navigation.navigate("Update")}
+            />
+            <SettingsRow
+              icon={BookOpen}
+              title={t("settings.replayTour")}
+              onPress={() => {
+                void resetOnboarding().then(() => navigation.navigate("Tour"));
+              }}
+            />
+            <SettingsRow
+              icon={Info}
+              title={t("settings.openPrivacy")}
+              onPress={() => navigation.navigate("Privacy")}
+            />
+          </GlassPanel>
+          <GlassPanel style={styles.menuGroup}>
+            <SettingsRow
+              icon={Bug}
+              title={t("support.github")}
+              onPress={openGithubIssue}
+            />
+            <SettingsRow
+              icon={Globe}
+              title={t("support.website")}
+              onPress={() => {
+                void Linking.openURL("https://logarex.github.io/AvoCook/");
+              }}
+            />
+            <SettingsRow
+              icon={Mail}
+              title={t("support.email")}
+              onPress={contactByEmail}
+            />
+          </GlassPanel>
+          <AppText muted variant="caption" style={{ textAlign: "center" }}>
+            AvoCook {APP_VERSION}
+          </AppText>
+        </>
+      ) : null}
+      <ShoppingModeModal
+        visible={showShoppingModes}
+        onClose={() => setShowShoppingModes(false)}
+      />
     </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  actions: {
-    gap: spacing.sm
-  },
+  menuGroup: { padding: 0, borderWidth: 0 },
   backupActions: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: spacing.sm
+    gap: spacing.sm,
   },
   backupButton: {
     flexGrow: 1,
     flexShrink: 1,
     flexBasis: 140,
   },
-  rowSection: {
-    alignItems: "center",
-    flexWrap: "wrap",
-    flexDirection: "row",
-    gap: spacing.md,
-    justifyContent: "space-between"
-  },
   rowText: {
-    flex: 1
+    flex: 1,
   },
   section: {
-    gap: spacing.md
-  },
-  sectionHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: spacing.sm,
-    marginBottom: spacing.xs
+    gap: spacing.md,
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    opacity: 0.5,
-    backgroundColor: "gray",
-    marginVertical: spacing.sm,
+
+    marginVertical: spacing.xxs,
   },
   rowSectionInner: {
     alignItems: "center",
     flexWrap: "wrap",
     flexDirection: "row",
     justifyContent: "space-between",
-    gap: spacing.sm
-  },
-  actionsInner: {
-    gap: spacing.sm
-  },
-  serverHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.xs
-  },
-  advancedHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between"
-  },
-  chevronOpen: {
-    transform: [{ rotate: "180deg" }]
-  },
-  providerGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "center",
     gap: spacing.sm,
-    paddingVertical: spacing.sm
-  },
-  providerChip: {
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm
-  },
-  toolbar: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between"
-  },
-  toolbarSpacer: {
-    width: 44
   },
   warningRow: {
     alignItems: "flex-start",
     flexDirection: "row",
-    gap: spacing.xs
+    gap: spacing.xs,
   },
   warningText: {
-    flex: 1
-  },
-  connectionCard: {
-    gap: spacing.md,
-    padding: spacing.md
-  },
-  connectionHeader: {
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "space-between"
-  },
-  connectionTitleGroup: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: spacing.xs
+    flex: 1,
   },
   statusBadge: {
     alignItems: "center",
@@ -1281,75 +1476,57 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.xxs,
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xxs
+    paddingVertical: spacing.xxs,
   },
   statusDot: {
     borderRadius: 4,
     height: 8,
-    width: 8
+    width: 8,
   },
   statusText: {
-    fontWeight: "600"
+    fontWeight: "600",
   },
   detailsContainer: {
-    gap: spacing.sm
+    gap: spacing.sm,
   },
   detailRow: {
     alignItems: "center",
     flexDirection: "row",
-    gap: spacing.sm
+    gap: spacing.sm,
   },
   detailIconWrapper: {
     alignItems: "center",
     borderRadius: radius.sm,
     height: 32,
     justifyContent: "center",
-    width: 32
+    width: 32,
   },
   detailContent: {
-    flex: 1
+    flex: 1,
   },
   detailValue: {
     fontSize: 15,
     fontWeight: "500",
-    marginTop: 1
+    marginTop: 1,
   },
   detailDivider: {
-    height: StyleSheet.hairlineWidth
+    height: StyleSheet.hairlineWidth,
   },
   noticeBanner: {
     alignItems: "flex-start",
     borderRadius: radius.sm,
     flexDirection: "row",
     gap: spacing.xs,
-    padding: spacing.sm
+    padding: spacing.sm,
   },
   noticeText: {
     flex: 1,
-    lineHeight: 18
+    lineHeight: 18,
   },
-  modelListScroll: {
-    maxHeight: 220,
-    borderRadius: spacing.sm,
-  },
-  modelListContent: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: spacing.xs,
-    paddingBottom: spacing.xs
-  },
-  modelChip: {
-    borderRadius: spacing.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    maxWidth: "100%",
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs
-  }
 });
 
 function isPickerCancel(error: unknown) {
   return (
-    error instanceof Error &&
-    /cancel|aborted|dismiss/i.test(error.message)
+    error instanceof Error && /cancel|aborted|dismiss/i.test(error.message)
   );
 }

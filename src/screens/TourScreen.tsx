@@ -2,31 +2,31 @@ import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   Bug,
   Camera,
-  ChefHat,
   CheckCircle,
+  ChefHat,
   Download,
   ExternalLink,
   FileText,
   FileUp,
+  Globe,
+  HelpCircle,
   ListFilter,
   ListOrdered,
   ListPlus,
-  RefreshCw,
-  Share,
-  Share2,
-  HelpCircle,
-  Globe,
   Mail,
   Plus,
+  RefreshCw,
   Settings,
+  Share,
+  Share2,
   ShoppingCart,
   Smartphone,
   Timer,
   Users,
 } from "lucide-react-native";
 import React, { useCallback, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
-  Alert,
   Animated,
   Linking,
   Platform,
@@ -34,10 +34,10 @@ import {
   StyleSheet,
   View,
 } from "react-native";
-import { useTranslation } from "react-i18next";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "../components/AppText";
 import { PrimaryButton } from "../components/PrimaryButton";
+import { useReducedMotion } from "../features/accessibility/useReducedMotion";
 import { useAuth } from "../features/auth/AuthProvider";
 import { useOnboarding } from "../features/onboarding/useOnboarding";
 import type { RootStackParamList } from "../navigation/types";
@@ -60,27 +60,72 @@ type TourStep = {
 
 function getTourSteps(isLocalMode: boolean, isIos: boolean): TourStep[] {
   const steps: TourStep[] = [
-    { icon: Smartphone, titleKey: "tour.step1Title", bodyKey: "tour.step1Body" },
+    {
+      icon: Smartphone,
+      titleKey: "tour.step1Title",
+      bodyKey: "tour.step1Body",
+    },
     { icon: Plus, titleKey: "tour.step2Title", bodyKey: "tour.step2Body" },
     { icon: Download, titleKey: "tour.step3Title", bodyKey: "tour.step3Body" },
-    { icon: Camera, titleKey: "tour.step4Title", bodyKey: "tour.step4Body", extra: (ctx) => <AIGuide colors={ctx.colors} t={ctx.t} /> },
-    { icon: Users, titleKey: "tour.stepCommunityTitle", bodyKey: "tour.stepCommunityBody" },
+    {
+      icon: Camera,
+      titleKey: "tour.step4Title",
+      bodyKey: "tour.step4Body",
+      extra: (ctx) => <AIGuide colors={ctx.colors} t={ctx.t} />,
+    },
+    {
+      icon: Users,
+      titleKey: "tour.stepCommunityTitle",
+      bodyKey: "tour.stepCommunityBody",
+    },
     { icon: ChefHat, titleKey: "tour.step5Title", bodyKey: "tour.step5Body" },
-    { icon: ListFilter, titleKey: "tour.stepSortTitle", bodyKey: "tour.stepSortBody", extra: (ctx) => <SortGuide {...ctx} /> },
-    { icon: ShoppingCart, titleKey: "tour.step6Title", bodyKey: "tour.step6Body" },
-    { icon: Share2, titleKey: "tour.stepSharedListTitle", bodyKey: "tour.stepSharedListBody" },
+    {
+      icon: ListFilter,
+      titleKey: "tour.stepSortTitle",
+      bodyKey: "tour.stepSortBody",
+      extra: (ctx) => <SortGuide {...ctx} />,
+    },
+    {
+      icon: ShoppingCart,
+      titleKey: "tour.step6Title",
+      bodyKey: "tour.step6Body",
+    },
+    {
+      icon: Share2,
+      titleKey: "tour.stepSharedListTitle",
+      bodyKey: "tour.stepSharedListBody",
+    },
   ];
 
   if (isIos) {
-    steps.push({ icon: ListOrdered, titleKey: "tour.stepAppleTitle", bodyKey: "tour.stepAppleBody", extra: (ctx) => <AppleRemindersGuide {...ctx} /> });
+    steps.push({
+      icon: ListOrdered,
+      titleKey: "tour.stepAppleTitle",
+      bodyKey: "tour.stepAppleBody",
+      extra: (ctx) => <AppleRemindersGuide {...ctx} />,
+    });
   }
 
   steps.push(
     { icon: Timer, titleKey: "tour.step7Title", bodyKey: "tour.step7Body" },
-    { icon: FileText, titleKey: "tour.stepManageTitle", bodyKey: "tour.stepManageBody", extra: (ctx) => <ManageRecipeGuide {...ctx} /> },
+    {
+      icon: FileText,
+      titleKey: "tour.stepManageTitle",
+      bodyKey: "tour.stepManageBody",
+      extra: (ctx) => <ManageRecipeGuide {...ctx} />,
+    },
     { icon: Settings, titleKey: "tour.step8Title", bodyKey: "tour.step8Body" },
-    { icon: HelpCircle, titleKey: "tour.step9Title", bodyKey: "tour.step9Body", extra: (ctx) => <ContactLinks colors={ctx.colors} t={ctx.t} /> },
-    { icon: CheckCircle, titleKey: "tour.step10Title", bodyKey: "tour.step10Body" }
+    {
+      icon: HelpCircle,
+      titleKey: "tour.step9Title",
+      bodyKey: "tour.step9Body",
+      extra: (ctx) => <ContactLinks colors={ctx.colors} t={ctx.t} />,
+    },
+    {
+      icon: CheckCircle,
+      titleKey: "tour.step10Title",
+      bodyKey: "tour.step10Body",
+    },
   );
 
   return steps;
@@ -89,11 +134,15 @@ function getTourSteps(isLocalMode: boolean, isIos: boolean): TourStep[] {
 export function TourScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const { colors } = useAppTheme();
+  const reducedMotion = useReducedMotion();
   const insets = useSafeAreaInsets();
   const { markTourDone } = useOnboarding();
   const { isLocalMode } = useAuth();
   const isIos = Platform.OS === "ios";
-  const STEPS = React.useMemo(() => getTourSteps(isLocalMode, isIos), [isLocalMode, isIos]);
+  const STEPS = React.useMemo(
+    () => getTourSteps(isLocalMode, isIos),
+    [isLocalMode, isIos],
+  );
   const [step, setStep] = useState(0);
   const progress = useRef(new Animated.Value(0)).current;
 
@@ -102,6 +151,10 @@ export function TourScreen({ navigation }: Props) {
 
   const animateProgress = useCallback(
     (toValue: number) => {
+      if (reducedMotion) {
+        progress.setValue(toValue);
+        return;
+      }
       Animated.spring(progress, {
         toValue,
         useNativeDriver: false,
@@ -109,7 +162,7 @@ export function TourScreen({ navigation }: Props) {
         friction: 12,
       }).start();
     },
-    [progress]
+    [progress, reducedMotion],
   );
 
   function goTo(nextStep: number) {
@@ -131,17 +184,7 @@ export function TourScreen({ navigation }: Props) {
   }
 
   async function handleSkip() {
-    Alert.alert(
-      t("tour.skipTitle"),
-      t("tour.skipBody"),
-      [
-        { text: t("common.cancel"), style: "cancel" },
-        {
-          text: t("tour.skipConfirm"),
-          onPress: () => void finish(),
-        },
-      ]
-    );
+    await finish();
   }
 
   const progressWidth = progress.interpolate({
@@ -179,9 +222,7 @@ export function TourScreen({ navigation }: Props) {
         )}
       </View>
 
-      <View
-        style={[styles.progressTrack, { backgroundColor: colors.border }]}
-      >
+      <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
         <Animated.View
           style={[
             styles.progressFill,
@@ -192,13 +233,7 @@ export function TourScreen({ navigation }: Props) {
 
       <View style={styles.contentWrapper}>
         <View style={styles.centerContainer}>
-
-          <View
-            style={[
-              styles.iconCircle,
-              { backgroundColor: colors.chip },
-            ]}
-          >
+          <View style={[styles.iconCircle, { backgroundColor: colors.chip }]}>
             <Icon color={colors.primary} size={48} strokeWidth={1.5} />
           </View>
 
@@ -209,7 +244,6 @@ export function TourScreen({ navigation }: Props) {
           <AppText style={styles.stepBody} muted>
             {t(current.bodyKey as Parameters<typeof t>[0])}
           </AppText>
-
 
           {current.extra?.({ colors, t, isLocalMode, isIos })}
         </View>
@@ -245,10 +279,7 @@ export function TourScreen({ navigation }: Props) {
               style={[
                 styles.dot,
                 {
-                  backgroundColor:
-                    i === step
-                      ? colors.primary
-                      : colors.border,
+                  backgroundColor: i === step ? colors.primary : colors.border,
                   width: i === step ? 24 : 8,
                 },
               ]}
@@ -275,17 +306,45 @@ function AIGuide({
   };
 
   const providers: Provider[] = [
-    { id: "gemini", label: "Gemini", free: true, url: "https://aistudio.google.com/apikey" },
-    { id: "groq", label: "Groq", free: true, url: "https://console.groq.com/keys" },
-    { id: "openai", label: "OpenAI", free: false, url: "https://platform.openai.com/api-keys" },
-    { id: "claude", label: "Anthropic", free: false, url: "https://console.anthropic.com/settings/keys" },
-    { id: "mistral", label: "Mistral", free: false, url: "https://console.mistral.ai/api-keys" },
+    {
+      id: "gemini",
+      label: "Gemini",
+      free: true,
+      url: "https://aistudio.google.com/apikey",
+    },
+    {
+      id: "groq",
+      label: "Groq",
+      free: true,
+      url: "https://console.groq.com/keys",
+    },
+    {
+      id: "openai",
+      label: "OpenAI",
+      free: false,
+      url: "https://platform.openai.com/api-keys",
+    },
+    {
+      id: "claude",
+      label: "Anthropic",
+      free: false,
+      url: "https://console.anthropic.com/settings/keys",
+    },
+    {
+      id: "mistral",
+      label: "Mistral",
+      free: false,
+      url: "https://console.mistral.ai/api-keys",
+    },
     { id: "grok", label: "Grok", free: false, url: "https://console.x.ai/" },
   ];
 
   return (
     <View style={styles.aiGuideContainer}>
-      <AppText variant="label" style={{ marginBottom: spacing.sm, textAlign: "center" }}>
+      <AppText
+        variant="label"
+        style={{ marginBottom: spacing.sm, textAlign: "center" }}
+      >
         {t("tour.aiGuideTitle")}
       </AppText>
 
@@ -304,13 +363,36 @@ function AIGuide({
               },
             ]}
           >
-            <View style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 6 }}>
-              <AppText variant="label" style={{ fontSize: 13 }} numberOfLines={1}>
+            <View
+              style={{
+                flex: 1,
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 6,
+              }}
+            >
+              <AppText
+                variant="label"
+                style={{ fontSize: 13 }}
+                numberOfLines={1}
+              >
                 {p.label}
               </AppText>
               {p.free && (
-                <View style={[styles.freeBadgeCompact, { backgroundColor: colors.chip }]}>
-                  <AppText variant="caption" style={{ color: colors.primary, fontWeight: "700", fontSize: 9 }}>
+                <View
+                  style={[
+                    styles.freeBadgeCompact,
+                    { backgroundColor: colors.chip },
+                  ]}
+                >
+                  <AppText
+                    variant="caption"
+                    style={{
+                      color: colors.primary,
+                      fontWeight: "700",
+                      fontSize: 9,
+                    }}
+                  >
                     {t("tour.free")}
                   </AppText>
                 </View>
@@ -419,42 +501,70 @@ function SortGuide({ colors, t }: { colors: any; t: any }) {
   return (
     <View style={styles.guideListContainer}>
       <View style={styles.guideListItem}>
-        <View style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}>
+        <View
+          style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}
+        >
           <ListFilter color={colors.primary} size={18} />
         </View>
-        <AppText variant="caption" style={styles.guideListText}>{t("tour.sortFilter")}</AppText>
+        <AppText variant="caption" style={styles.guideListText}>
+          {t("tour.sortFilter")}
+        </AppText>
       </View>
       <View style={styles.guideListItem}>
-        <View style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}>
+        <View
+          style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}
+        >
           <ListPlus color={colors.primary} size={18} />
         </View>
-        <AppText variant="caption" style={styles.guideListText}>{t("tour.sortCategory")}</AppText>
+        <AppText variant="caption" style={styles.guideListText}>
+          {t("tour.sortCategory")}
+        </AppText>
       </View>
     </View>
   );
 }
 
-function ManageRecipeGuide({ colors, t, isLocalMode }: { colors: any; t: any; isLocalMode: boolean }) {
+function ManageRecipeGuide({
+  colors,
+  t,
+  isLocalMode,
+}: {
+  colors: any;
+  t: any;
+  isLocalMode: boolean;
+}) {
   return (
     <View style={styles.guideListContainer}>
       <View style={styles.guideListItem}>
-        <View style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}>
+        <View
+          style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}
+        >
           <Share2 color={colors.primary} size={18} />
         </View>
-        <AppText variant="caption" style={styles.guideListText}>{t("tour.manageShare")}</AppText>
+        <AppText variant="caption" style={styles.guideListText}>
+          {t("tour.manageShare")}
+        </AppText>
       </View>
       <View style={styles.guideListItem}>
-        <View style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}>
+        <View
+          style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}
+        >
           <FileUp color={colors.primary} size={18} />
         </View>
-        <AppText variant="caption" style={styles.guideListText}>{t("tour.manageExport")}</AppText>
+        <AppText variant="caption" style={styles.guideListText}>
+          {t("tour.manageExport")}
+        </AppText>
       </View>
       {!isLocalMode && (
         <View style={styles.guideListItem}>
-          <View style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}>
+          <View
+            style={[styles.iconCircleSmall, { backgroundColor: colors.chip }]}
+          >
             <RefreshCw color={colors.primary} size={18} />
           </View>
-          <AppText variant="caption" style={styles.guideListText}>{t("tour.manageSync")}</AppText>
+          <AppText variant="caption" style={styles.guideListText}>
+            {t("tour.manageSync")}
+          </AppText>
         </View>
       )}
     </View>
@@ -465,16 +575,30 @@ function AppleRemindersGuide({ t }: { colors: any; t: any }) {
   return (
     <View style={styles.guideListContainer}>
       <View style={styles.guideListItem}>
-        <View style={[styles.iconCircleSmall, { backgroundColor: "rgba(10, 132, 255, 0.1)" }]}>
+        <View
+          style={[
+            styles.iconCircleSmall,
+            { backgroundColor: "rgba(10, 132, 255, 0.1)" },
+          ]}
+        >
           <Share color="#0A84FF" size={18} />
         </View>
-        <AppText variant="caption" style={styles.guideListText}>{t("tour.appleShare")}</AppText>
+        <AppText variant="caption" style={styles.guideListText}>
+          {t("tour.appleShare")}
+        </AppText>
       </View>
       <View style={styles.guideListItem}>
-        <View style={[styles.iconCircleSmall, { backgroundColor: "rgba(10, 132, 255, 0.1)" }]}>
+        <View
+          style={[
+            styles.iconCircleSmall,
+            { backgroundColor: "rgba(10, 132, 255, 0.1)" },
+          ]}
+        >
           <ListOrdered color="#0A84FF" size={18} />
         </View>
-        <AppText variant="caption" style={styles.guideListText}>{t("tour.appleGrocery")}</AppText>
+        <AppText variant="caption" style={styles.guideListText}>
+          {t("tour.appleGrocery")}
+        </AppText>
       </View>
     </View>
   );
@@ -615,4 +739,3 @@ const styles = StyleSheet.create({
     height: 8,
   },
 });
-

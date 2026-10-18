@@ -1,12 +1,9 @@
-import { Minus, Plus, RotateCcw, Users } from "lucide-react-native";
-import React from "react";
-import { View } from "react-native";
+import { Minus, Plus, RotateCcw } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
+import { View } from "react-native";
 import { AppText } from "../../components/AppText";
 import { GlassPanel } from "../../components/GlassPanel";
 import { IconButton } from "../../components/IconButton";
-import { PrimaryButton } from "../../components/PrimaryButton";
-import { useAppTheme } from "../../theme/ThemeProvider";
 import { styles } from "./recipeDetailStyles";
 
 export function ServingsControl({
@@ -19,26 +16,22 @@ export function ServingsControl({
   onChange: (servings: number) => void;
 }) {
   const { t } = useTranslation();
-  const { colors } = useAppTheme();
   return (
-    <GlassPanel style={styles.section}>
-      <View style={styles.sectionHeader}>
-        <Users color={colors.primary} size={21} />
-        <AppText variant="subtitle">{t("recipes.servings.title")}</AppText>
-      </View>
+    <GlassPanel style={{ gap: 8, paddingVertical: 8 }}>
       <View style={styles.servingsRow}>
+        <AppText style={{ flex: 1 }}>{t("recipes.servings.title")}</AppText>
         <IconButton
           disabled={selectedServings <= 1}
           icon={Minus}
           label={t("recipes.servings.decrease")}
           onPress={() => onChange(selectedServings - 1)}
         />
-        <View style={styles.servingValue}>
-          <AppText variant="title">{selectedServings}</AppText>
-          <AppText muted variant="caption">
-            {t("recipes.servings.people")}
-          </AppText>
-        </View>
+        <AppText
+          variant="subtitle"
+          style={{ minWidth: 28, textAlign: "center" }}
+        >
+          {selectedServings}
+        </AppText>
         <IconButton
           icon={Plus}
           label={t("recipes.servings.increase")}
@@ -46,19 +39,18 @@ export function ServingsControl({
           tone="primary"
         />
       </View>
-      <View style={styles.servingFooter}>
-        <AppText muted variant="caption">
-          {t("recipes.servings.original", { count: baseServings })}
-        </AppText>
-        {selectedServings !== baseServings ? (
-          <PrimaryButton
+      {selectedServings !== baseServings ? (
+        <View style={styles.servingsRow}>
+          <AppText muted variant="caption" style={{ flex: 1 }}>
+            {t("recipes.servings.original", { count: baseServings })}
+          </AppText>
+          <IconButton
             icon={RotateCcw}
             label={t("recipes.servings.reset")}
             onPress={() => onChange(baseServings)}
-            variant="ghost"
           />
-        ) : null}
-      </View>
+        </View>
+      ) : null}
     </GlassPanel>
   );
 }

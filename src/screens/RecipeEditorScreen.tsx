@@ -1,41 +1,36 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import {
-  ArrowLeft,
-  ArrowDown,
-  ArrowUp,
-  Check,
-  ImagePlus,
-  Link,
-  Plus,
-  Save,
-  Trash2,
-  X
-} from "lucide-react-native";
-import React, { useEffect, useMemo, useState } from "react";
-import { Platform, Pressable, StyleSheet, Switch, View } from "react-native";
+import { Check, ImagePlus, Link, Plus, X } from "lucide-react-native";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Platform, Pressable, StyleSheet, Switch, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { markdownToPlainText, trimMarkdownText } from "../features/markdown/markdown";
+import { ActionMenu } from "../components/ActionMenu";
 import { AppText } from "../components/AppText";
+import { DisclosureSection } from "../components/DisclosureSection";
 import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
+import { ScreenHeader } from "../components/ScreenHeader";
 import { TextField } from "../components/TextField";
 import { useAuth } from "../features/auth/AuthProvider";
-import { useRecipes } from "../features/recipes/RecipesProvider";
+import {
+  markdownToPlainText,
+  trimMarkdownText,
+} from "../features/markdown/markdown";
 import { getRecipeCategoryLabel } from "../features/recipes/categories";
-import { persistRecipeImage } from "../features/recipes/recipeImages";
 import {
   getEditableRecipeImageSource,
-  isCookbookImageEndpoint
+  isCookbookImageEndpoint,
 } from "../features/recipes/recipeImageReferences";
+import { persistRecipeImage } from "../features/recipes/recipeImages";
+import { useRecipes } from "../features/recipes/RecipesProvider";
 import {
   createEmptyRecipe,
   normalizeRecipe,
   type Nutrition,
-  type NutritionValue
+  type NutritionValue,
 } from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
 import { spacing } from "../theme/colors";
@@ -46,7 +41,7 @@ import {
   expandEditableListItem,
   getKeywordSuggestions,
   mergeNutritionForSave,
-  normalizeSuggestionSearch
+  normalizeSuggestionSearch,
 } from "./recipeEditorHelpers";
 
 type Props = NativeStackScreenProps<RootStackParamList, "RecipeEditor">;
@@ -58,15 +53,17 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const { getClient } = useAuth();
   const { createRecipe, customCategories, getRecipe, recipes, updateRecipe } =
     useRecipes();
-  const existingRecipe = route.params.id ? getRecipe(route.params.id) : undefined;
+  const existingRecipe = route.params.id
+    ? getRecipe(route.params.id)
+    : undefined;
   const initialRecipe = useMemo(
     () =>
       existingRecipe ??
       normalizeRecipe({
         ...createEmptyRecipe(),
-        recipeCategory: route.params.category ?? ""
+        recipeCategory: route.params.category ?? "",
       }),
-    [existingRecipe, route.params.category]
+    [existingRecipe, route.params.category],
   );
 
   const [name, setName] = useState(initialRecipe.name);
@@ -74,47 +71,49 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const [sourceName, setSourceName] = useState(initialRecipe.sourceName);
   const [sourceUrl, setSourceUrl] = useState(initialRecipe.url);
   const [showSourceFields, setShowSourceFields] = useState(
-    Boolean(initialRecipe.sourceName || initialRecipe.url)
+    Boolean(initialRecipe.sourceName || initialRecipe.url),
   );
   const [photoUrl, setPhotoUrl] = useState(
-    getEditableRecipeImageSource(initialRecipe)
+    getEditableRecipeImageSource(initialRecipe),
   );
   const [photoLocalUri, setPhotoLocalUri] = useState("");
   const [category, setCategory] = useState(initialRecipe.recipeCategory);
   const [keywords, setKeywords] = useState(initialRecipe.keywords);
   const [recipeYield, setRecipeYield] = useState(
-    String(initialRecipe.recipeYield || 1)
+    String(initialRecipe.recipeYield || 1),
   );
   const [showServings, setShowServings] = useState(
-    !initialRecipe.localMeta?.hideServings
+    !initialRecipe.localMeta?.hideServings,
   );
   const [prepMinutes, setPrepMinutes] = useState(
-    minutesToString(initialRecipe.prepTime)
+    minutesToString(initialRecipe.prepTime),
   );
   const [cookMinutes, setCookMinutes] = useState(
-    minutesToString(initialRecipe.cookTime)
+    minutesToString(initialRecipe.cookTime),
   );
   const [totalMinutes, setTotalMinutes] = useState(
-    minutesToString(initialRecipe.totalTime)
+    minutesToString(initialRecipe.totalTime),
   );
   const [ingredients, setIngredients] = useState(
-    createEditableList(initialRecipe.recipeIngredient)
+    createEditableList(initialRecipe.recipeIngredient),
   );
   const [instructions, setInstructions] = useState(
-    createEditableList(initialRecipe.recipeInstructions)
+    createEditableList(initialRecipe.recipeInstructions),
   );
   const [tools, setTools] = useState(createEditableList(initialRecipe.tool));
   const initialNutrition = useMemo(
     () => normalizeNutritionForEditor(initialRecipe.nutrition),
-    [initialRecipe.nutrition]
+    [initialRecipe.nutrition],
   );
   const [calories, setCalories] = useState(initialNutrition.calories);
   const [carbohydrates, setCarbohydrates] = useState(
-    initialNutrition.carbohydrates
+    initialNutrition.carbohydrates,
   );
   const [sugar, setSugar] = useState(initialNutrition.sugar);
   const [fat, setFat] = useState(initialNutrition.fat);
-  const [saturatedFat, setSaturatedFat] = useState(initialNutrition.saturatedFat);
+  const [saturatedFat, setSaturatedFat] = useState(
+    initialNutrition.saturatedFat,
+  );
   const [sodium, setSodium] = useState(initialNutrition.sodium);
   const [fiber, setFiber] = useState(initialNutrition.fiber);
   const [protein, setProtein] = useState(initialNutrition.protein);
@@ -125,22 +124,19 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
     const normalizedCategory = normalizeSuggestionSearch(category);
     const existingCategories = Array.from(
       new Set(
-        [
-          ...customCategories,
-          ...recipes.map((recipe) => recipe.recipeCategory)
-        ]
+        [...customCategories, ...recipes.map((recipe) => recipe.recipeCategory)]
           .map((item) => item.replace(/\s+/g, " ").trim())
-          .filter(Boolean)
-      )
+          .filter(Boolean),
+      ),
     ).sort((left, right) =>
-      left.localeCompare(right, undefined, { sensitivity: "base" })
+      left.localeCompare(right, undefined, { sensitivity: "base" }),
     );
 
     return existingCategories
       .filter((item) => {
         const normalizedItem = normalizeSuggestionSearch(item);
         return (
-          (!normalizedCategory || normalizedItem.includes(normalizedCategory))
+          !normalizedCategory || normalizedItem.includes(normalizedCategory)
         );
       })
       .map((id) => ({ id, label: getRecipeCategoryLabel(id, t) }))
@@ -149,7 +145,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   }, [category, customCategories, recipes, t]);
   const keywordSuggestions = useMemo(
     () => getKeywordSuggestions(keywords, recipes),
-    [keywords, recipes]
+    [keywords, recipes],
   );
   const client = getClient();
   const photoClient = isCookbookImageEndpoint(photoUrl) ? client : null;
@@ -157,7 +153,9 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const photoSource = photoDisplayUri
     ? {
         uri: photoDisplayUri,
-        headers: !photoLocalUri ? photoClient?.getImageHeaders(photoUrl) : undefined
+        headers: !photoLocalUri
+          ? photoClient?.getImageHeaders(photoUrl)
+          : undefined,
       }
     : null;
 
@@ -204,20 +202,24 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           ? {
               image: initialRecipe.image,
               imageUrl: initialRecipe.imageUrl,
-              imagePlaceholderUrl: initialRecipe.imagePlaceholderUrl
+              imagePlaceholderUrl: initialRecipe.imagePlaceholderUrl,
             }
           : {
               image: photoUrl,
               imageUrl: photoUrl,
-              imagePlaceholderUrl: photoUrl
+              imagePlaceholderUrl: photoUrl,
             };
       const photoLocalMeta =
         photoUrl === initialPhotoUrl
           ? initialRecipe.localMeta
-          : getLocalMetaAfterPhotoChange(initialRecipe.localMeta, photoUrl, photoLocalUri || undefined);
+          : getLocalMetaAfterPhotoChange(
+              initialRecipe.localMeta,
+              photoUrl,
+              photoLocalUri || undefined,
+            );
       const localMeta = getLocalMetaAfterServingsVisibilityChange(
         photoLocalMeta,
-        showServings
+        showServings,
       );
       const recipe = normalizeRecipe({
         ...initialRecipe,
@@ -245,8 +247,8 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           saturatedFatContent: formatNutritionValue(saturatedFat, "g"),
           sodiumContent: formatNutritionValue(sodium, "mg"),
           fiberContent: formatNutritionValue(fiber, "g"),
-          proteinContent: formatNutritionValue(protein, "g")
-        })
+          proteinContent: formatNutritionValue(protein, "g"),
+        }),
       });
       const saved = existingRecipe
         ? await updateRecipe(recipe)
@@ -277,8 +279,8 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
     const result = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       aspect: [4, 3],
-      mediaTypes: ['images'],
-      quality: 0.86
+      mediaTypes: ["images"],
+      quality: 0.86,
     });
 
     if (result.canceled || !result.assets[0]?.uri) {
@@ -309,58 +311,35 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
     <Screen
       contentStyle={{ paddingBottom: spacing.md + insets.bottom }}
       showScrollTop={false}
+      header={
+        <ScreenHeader
+          title={
+            existingRecipe ? t("editor.editRecipe") : t("editor.newRecipe")
+          }
+          onBack={() => navigation.goBack()}
+          actions={
+            <IconButton
+              disabled={saving || uploadingPhoto}
+              icon={Check}
+              label={saving ? t("common.loading") : t("common.save")}
+              onPress={() => void handleSave()}
+              tone="primary"
+            />
+          }
+        />
+      }
     >
-      <View style={styles.toolbar}>
-        <IconButton
-          icon={ArrowLeft}
-          label={t("common.back")}
-          onPress={() => navigation.goBack()}
-        />
-        <AppText variant="subtitle">
-          {existingRecipe ? t("editor.editRecipe") : t("editor.newRecipe")}
+      {error ? (
+        <AppText accessibilityRole="alert" style={{ color: colors.danger }}>
+          {error}
         </AppText>
-        <IconButton
-          disabled={saving}
-          icon={Check}
-          label={saving ? t("common.loading") : t("common.save")}
-          onPress={() => void handleSave()}
-          tone="primary"
-        />
-      </View>
-
-      <AppText muted variant="caption">{t("editor.markdownHelp")}</AppText>
-      <TextField markdown label={t("editor.name")} onChangeText={setName} value={name} />
-      <TextField markdown
-        label={t("editor.description")}
-        multiline
-        onChangeText={setDescription}
-        value={description}
+      ) : null}
+      <TextField
+        markdown
+        label={t("editor.name")}
+        onChangeText={setName}
+        value={name}
       />
-      {showSourceFields ? (
-        <View style={styles.lineList}>
-          <TextField markdown
-            label={t("editor.sourceName")}
-            onChangeText={setSourceName}
-            placeholder={t("editor.sourceNamePlaceholder")}
-            value={sourceName}
-          />
-          <TextField
-            autoCapitalize="none"
-            autoCorrect={false}
-            keyboardType="url"
-            label={t("editor.sourceUrl")}
-            onChangeText={setSourceUrl}
-            value={sourceUrl}
-          />
-        </View>
-      ) : (
-        <PrimaryButton
-          icon={Link}
-          label={t("editor.addSource")}
-          onPress={() => setShowSourceFields(true)}
-          variant="ghost"
-        />
-      )}
       {photoUrl ? (
         <View style={styles.photoPreview}>
           <ExpoImage
@@ -372,151 +351,33 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
           />
         </View>
       ) : null}
-      <TextField
-        autoCapitalize="none"
-        autoCorrect={false}
-        keyboardType="url"
-        label={t("editor.photoUrl")}
-        onChangeText={(url) => { setPhotoUrl(url); setPhotoLocalUri(""); }}
-        value={photoUrl}
-      />
       <View style={styles.row}>
         <PrimaryButton
           disabled={uploadingPhoto}
           icon={ImagePlus}
-          label={uploadingPhoto ? t("editor.photoUploading") : t("editor.choosePhoto")}
+          label={
+            uploadingPhoto
+              ? t("editor.photoUploading")
+              : t("editor.choosePhoto")
+          }
           onPress={() => void handleChoosePhoto()}
           style={styles.rowItem}
           variant="ghost"
         />
-        <PrimaryButton
-          disabled={!photoUrl || uploadingPhoto}
-          icon={X}
-          label={t("editor.removePhoto")}
-          onPress={() => { setPhotoUrl(""); setPhotoLocalUri(""); }}
-          style={styles.rowItem}
-          variant="ghost"
-        />
+        {photoUrl ? (
+          <PrimaryButton
+            disabled={!photoUrl || uploadingPhoto}
+            icon={X}
+            label={t("editor.removePhoto")}
+            onPress={() => {
+              setPhotoUrl("");
+              setPhotoLocalUri("");
+            }}
+            style={styles.rowItem}
+            variant="ghost"
+          />
+        ) : null}
       </View>
-      <View style={styles.row}>
-        <TextField markdown
-          containerStyle={styles.rowItem}
-          label={t("editor.category")}
-          onChangeText={setCategory}
-          value={category}
-        />
-        <TextField
-          containerStyle={styles.rowItem}
-          editable={showServings}
-          keyboardType="number-pad"
-          label={t("recipes.yield")}
-          onChangeText={(value) => setRecipeYield(sanitizeIntegerInput(value))}
-          style={!showServings ? styles.disabledInput : undefined}
-          value={recipeYield}
-        />
-      </View>
-      {categorySuggestions.length ? (
-        <View style={styles.suggestionList}>
-          {categorySuggestions.map((suggestion) => (
-            <Pressable
-              key={suggestion.id}
-              accessibilityLabel={suggestion.label}
-              accessibilityRole="button"
-              onPress={() => setCategory(suggestion.id)}
-              style={({ pressed }) => [
-                styles.suggestionChip,
-                {
-                  backgroundColor: colors.chip,
-                  borderColor: colors.border,
-                  opacity: pressed ? 0.76 : 1
-                }
-              ]}
-            >
-              <AppText markdown variant="caption">{suggestion.label}</AppText>
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
-      <Pressable
-        accessibilityLabel={t("editor.showServings")}
-        accessibilityRole="switch"
-        accessibilityState={{ checked: showServings }}
-        onPress={() => setShowServings((current) => !current)}
-        style={({ pressed }) => [
-          styles.switchRow,
-          {
-            backgroundColor: colors.surfaceGlassStrong,
-            borderColor: colors.border,
-            opacity: pressed ? 0.76 : 1
-          }
-        ]}
-      >
-        <View style={styles.switchText}>
-          <AppText variant="label">{t("editor.showServings")}</AppText>
-          <AppText muted variant="caption">
-            {t("editor.showServingsHelp")}
-          </AppText>
-        </View>
-        <Switch
-          onValueChange={setShowServings}
-          thumbColor={Platform.OS === "android" ? (showServings ? colors.primary : colors.textMuted) : undefined}
-          trackColor={{ false: colors.border, true: Platform.OS === "android" ? colors.chip : colors.primary }}
-          value={showServings}
-        />
-      </Pressable>
-      <TextField markdown
-        label={t("editor.keywords")}
-        onChangeText={setKeywords}
-        value={keywords}
-      />
-      {keywordSuggestions.length ? (
-        <View style={styles.suggestionList}>
-          {keywordSuggestions.map((suggestion) => (
-            <Pressable
-              key={suggestion}
-              accessibilityLabel={suggestion}
-              accessibilityRole="button"
-              onPress={() =>
-                setKeywords((currentKeywords) =>
-                  applyKeywordSuggestion(currentKeywords, suggestion)
-                )
-              }
-              style={({ pressed }) => [
-                styles.suggestionChip,
-                {
-                  backgroundColor: colors.chip,
-                  borderColor: colors.border,
-                  opacity: pressed ? 0.76 : 1
-                }
-              ]}
-            >
-              <AppText markdown variant="caption">{suggestion}</AppText>
-            </Pressable>
-          ))}
-        </View>
-      ) : null}
-      <View style={styles.row}>
-        <TextField
-          containerStyle={styles.rowItem}
-          keyboardType="number-pad"
-          label={t("editor.prepMinutes")}
-          onChangeText={(value) => setPrepMinutes(sanitizeIntegerInput(value))}
-          value={prepMinutes}
-        />
-        <TextField
-          containerStyle={styles.rowItem}
-          keyboardType="number-pad"
-          label={t("editor.cookMinutes")}
-          onChangeText={(value) => setCookMinutes(sanitizeIntegerInput(value))}
-          value={cookMinutes}
-        />
-      </View>
-      <TextField
-        keyboardType="number-pad"
-        label={t("editor.totalMinutes")}
-        onChangeText={(value) => setTotalMinutes(sanitizeIntegerInput(value))}
-        value={totalMinutes}
-      />
       <EditableLineList
         addLabel={t("editor.addIngredient")}
         itemLabel={(index) => t("editor.ingredientItem", { count: index + 1 })}
@@ -541,101 +402,285 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
         splitPastedLines
         values={instructions}
       />
-      <EditableLineList
-        addLabel={t("editor.addTool")}
-        itemLabel={(index) => t("editor.toolItem", { count: index + 1 })}
-        label={t("editor.tools")}
-        multiline
-        onChange={setTools}
-        placeholder={t("editor.tools")}
-        removeLabel={t("editor.removeTool")}
-        splitPastedLines
-        values={tools}
-      />
-
-      <View style={styles.sectionTitle}>
-        <AppText variant="subtitle">{t("editor.nutrition")}</AppText>
+      <DisclosureSection title={t("ui.details")}>
+        <TextField
+          markdown
+          label={t("editor.description")}
+          multiline
+          onChangeText={setDescription}
+          value={description}
+        />
+        <View style={styles.row}>
+          <TextField
+            markdown
+            containerStyle={styles.rowItem}
+            label={t("editor.category")}
+            onChangeText={setCategory}
+            value={category}
+          />
+          <TextField
+            containerStyle={styles.rowItem}
+            editable={showServings}
+            keyboardType="number-pad"
+            label={t("recipes.yield")}
+            onChangeText={(value) =>
+              setRecipeYield(sanitizeIntegerInput(value))
+            }
+            style={!showServings ? styles.disabledInput : undefined}
+            value={recipeYield}
+          />
+        </View>
+        {categorySuggestions.length ? (
+          <View style={styles.suggestionList}>
+            {categorySuggestions.map((suggestion) => (
+              <Pressable
+                key={suggestion.id}
+                accessibilityLabel={suggestion.label}
+                accessibilityRole="button"
+                onPress={() => setCategory(suggestion.id)}
+                style={({ pressed }) => [
+                  styles.suggestionChip,
+                  {
+                    backgroundColor: colors.chip,
+                    borderColor: colors.border,
+                    opacity: pressed ? 0.76 : 1,
+                  },
+                ]}
+              >
+                <AppText markdown variant="caption">
+                  {suggestion.label}
+                </AppText>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
+        <Pressable
+          accessibilityLabel={t("editor.showServings")}
+          accessibilityRole="switch"
+          accessibilityState={{ checked: showServings }}
+          onPress={() => setShowServings((current) => !current)}
+          style={({ pressed }) => [
+            styles.switchRow,
+            {
+              backgroundColor: colors.surfaceGlassStrong,
+              borderColor: colors.border,
+              opacity: pressed ? 0.76 : 1,
+            },
+          ]}
+        >
+          <View style={styles.switchText}>
+            <AppText variant="label">{t("editor.showServings")}</AppText>
+            <AppText muted variant="caption">
+              {t("editor.showServingsHelp")}
+            </AppText>
+          </View>
+          <Switch
+            onValueChange={setShowServings}
+            thumbColor={
+              Platform.OS === "android"
+                ? showServings
+                  ? colors.primary
+                  : colors.textMuted
+                : undefined
+            }
+            trackColor={{
+              false: colors.border,
+              true: Platform.OS === "android" ? colors.chip : colors.primary,
+            }}
+            value={showServings}
+          />
+        </Pressable>
+        <View style={styles.row}>
+          <TextField
+            containerStyle={styles.rowItem}
+            keyboardType="number-pad"
+            label={t("editor.prepMinutes")}
+            onChangeText={(value) =>
+              setPrepMinutes(sanitizeIntegerInput(value))
+            }
+            value={prepMinutes}
+          />
+          <TextField
+            containerStyle={styles.rowItem}
+            keyboardType="number-pad"
+            label={t("editor.cookMinutes")}
+            onChangeText={(value) =>
+              setCookMinutes(sanitizeIntegerInput(value))
+            }
+            value={cookMinutes}
+          />
+        </View>
+        <TextField
+          keyboardType="number-pad"
+          label={t("editor.totalMinutes")}
+          onChangeText={(value) => setTotalMinutes(sanitizeIntegerInput(value))}
+          value={totalMinutes}
+        />
+      </DisclosureSection>
+      <DisclosureSection title={t("ui.optional")}>
+        {showSourceFields ? (
+          <View style={styles.lineList}>
+            <TextField
+              markdown
+              label={t("editor.sourceName")}
+              onChangeText={setSourceName}
+              placeholder={t("editor.sourceNamePlaceholder")}
+              value={sourceName}
+            />
+            <TextField
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="url"
+              label={t("editor.sourceUrl")}
+              onChangeText={setSourceUrl}
+              value={sourceUrl}
+            />
+          </View>
+        ) : (
+          <PrimaryButton
+            icon={Link}
+            label={t("editor.addSource")}
+            onPress={() => setShowSourceFields(true)}
+            variant="ghost"
+          />
+        )}
+        <TextField
+          autoCapitalize="none"
+          autoCorrect={false}
+          keyboardType="url"
+          label={t("editor.photoUrl")}
+          onChangeText={(url) => {
+            setPhotoUrl(url);
+            setPhotoLocalUri("");
+          }}
+          value={photoUrl}
+        />
+        <TextField
+          markdown
+          label={t("editor.keywords")}
+          onChangeText={setKeywords}
+          value={keywords}
+        />
+        {keywordSuggestions.length ? (
+          <View style={styles.suggestionList}>
+            {keywordSuggestions.map((suggestion) => (
+              <Pressable
+                key={suggestion}
+                accessibilityLabel={suggestion}
+                accessibilityRole="button"
+                onPress={() =>
+                  setKeywords((currentKeywords) =>
+                    applyKeywordSuggestion(currentKeywords, suggestion),
+                  )
+                }
+                style={({ pressed }) => [
+                  styles.suggestionChip,
+                  {
+                    backgroundColor: colors.chip,
+                    borderColor: colors.border,
+                    opacity: pressed ? 0.76 : 1,
+                  },
+                ]}
+              >
+                <AppText markdown variant="caption">
+                  {suggestion}
+                </AppText>
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
+        <EditableLineList
+          addLabel={t("editor.addTool")}
+          itemLabel={(index) => t("editor.toolItem", { count: index + 1 })}
+          label={t("editor.tools")}
+          multiline
+          onChange={setTools}
+          placeholder={t("editor.tools")}
+          removeLabel={t("editor.removeTool")}
+          splitPastedLines
+          values={tools}
+        />
+        <AppText muted variant="caption">
+          {t("editor.markdownHelp")}
+        </AppText>
+      </DisclosureSection>
+      <DisclosureSection title={t("ui.nutrition")}>
         <AppText muted variant="caption">
           {t("editor.nutritionHelp")}
         </AppText>
-      </View>
-      <View style={styles.row}>
-        <TextField markdown
-          containerStyle={styles.rowItem}
-          keyboardType="default"
-          label={t("editor.caloriesKcal")}
-          onChangeText={setCalories}
-          value={calories}
-        />
-        <TextField markdown
-          containerStyle={styles.rowItem}
-          keyboardType="default"
-          label={t("editor.carbsGrams")}
-          onChangeText={setCarbohydrates}
-          value={carbohydrates}
-        />
-      </View>
-      <View style={styles.row}>
-        <TextField markdown
-          containerStyle={styles.rowItem}
-          keyboardType="default"
-          label={t("editor.sugarGrams")}
-          onChangeText={setSugar}
-          value={sugar}
-        />
-        <TextField markdown
-          containerStyle={styles.rowItem}
-          keyboardType="default"
-          label={t("editor.fatGrams")}
-          onChangeText={setFat}
-          value={fat}
-        />
-      </View>
-      <View style={styles.row}>
-        <TextField markdown
-          containerStyle={styles.rowItem}
-          keyboardType="default"
-          label={t("editor.saturatedFatGrams")}
-          onChangeText={setSaturatedFat}
-          value={saturatedFat}
-        />
-        <TextField markdown
-          containerStyle={styles.rowItem}
-          keyboardType="default"
-          label={t("editor.sodiumMg")}
-          onChangeText={setSodium}
-          value={sodium}
-        />
-      </View>
-      <View style={styles.row}>
-        <TextField markdown
-          containerStyle={styles.rowItem}
-          keyboardType="default"
-          label={t("editor.fiberGrams")}
-          onChangeText={setFiber}
-          value={fiber}
-        />
-        <TextField markdown
-          containerStyle={styles.rowItem}
-          keyboardType="default"
-          label={t("editor.proteinGrams")}
-          onChangeText={setProtein}
-          value={protein}
-        />
-      </View>
-
-      {error ? (
-        <AppText accessibilityRole="alert" style={{ color: colors.danger }}>
-          {error}
-        </AppText>
-      ) : null}
-
-      <PrimaryButton
-        disabled={saving}
-        icon={Save}
-        label={saving ? t("common.loading") : t("common.save")}
-        onPress={() => void handleSave()}
-      />
+        <View style={styles.row}>
+          <TextField
+            markdown
+            containerStyle={styles.rowItem}
+            keyboardType="default"
+            label={t("editor.caloriesKcal")}
+            onChangeText={setCalories}
+            value={calories}
+          />
+          <TextField
+            markdown
+            containerStyle={styles.rowItem}
+            keyboardType="default"
+            label={t("editor.carbsGrams")}
+            onChangeText={setCarbohydrates}
+            value={carbohydrates}
+          />
+        </View>
+        <View style={styles.row}>
+          <TextField
+            markdown
+            containerStyle={styles.rowItem}
+            keyboardType="default"
+            label={t("editor.sugarGrams")}
+            onChangeText={setSugar}
+            value={sugar}
+          />
+          <TextField
+            markdown
+            containerStyle={styles.rowItem}
+            keyboardType="default"
+            label={t("editor.fatGrams")}
+            onChangeText={setFat}
+            value={fat}
+          />
+        </View>
+        <View style={styles.row}>
+          <TextField
+            markdown
+            containerStyle={styles.rowItem}
+            keyboardType="default"
+            label={t("editor.saturatedFatGrams")}
+            onChangeText={setSaturatedFat}
+            value={saturatedFat}
+          />
+          <TextField
+            markdown
+            containerStyle={styles.rowItem}
+            keyboardType="default"
+            label={t("editor.sodiumMg")}
+            onChangeText={setSodium}
+            value={sodium}
+          />
+        </View>
+        <View style={styles.row}>
+          <TextField
+            markdown
+            containerStyle={styles.rowItem}
+            keyboardType="default"
+            label={t("editor.fiberGrams")}
+            onChangeText={setFiber}
+            value={fiber}
+          />
+          <TextField
+            markdown
+            containerStyle={styles.rowItem}
+            keyboardType="default"
+            label={t("editor.proteinGrams")}
+            onChangeText={setProtein}
+            value={protein}
+          />
+        </View>
+      </DisclosureSection>
     </Screen>
   );
 }
@@ -652,7 +697,7 @@ function EditableLineList({
   reorderable = false,
   removeLabel,
   splitPastedLines = false,
-  values
+  values,
 }: {
   addLabel: string;
   itemLabel: (index: number) => string;
@@ -668,11 +713,12 @@ function EditableLineList({
   values: string[];
 }) {
   function updateItem(index: number, value: string) {
-    const isPaste = Math.abs(value.length - values[index].length) > 1 && value.includes("\n");
+    const isPaste =
+      Math.abs(value.length - values[index].length) > 1 && value.includes("\n");
     onChange(
       splitPastedLines && isPaste
         ? expandEditableListItem(values, index, value)
-        : values.map((item, itemIndex) => (itemIndex === index ? value : item))
+        : values.map((item, itemIndex) => (itemIndex === index ? value : item)),
     );
   }
 
@@ -698,43 +744,48 @@ function EditableLineList({
       <AppText variant="subtitle">{label}</AppText>
       {values.map((value, index) => (
         <View key={index} style={styles.lineItem}>
-          <TextField markdown
+          <TextField
+            markdown
             containerStyle={styles.lineInput}
             label={itemLabel(index)}
+            hideLabel
             multiline={multiline || splitPastedLines}
             onChangeText={(nextValue) => updateItem(index, nextValue)}
             placeholder={placeholder}
             style={multiline ? styles.instructionInput : styles.compactInput}
             value={value}
           />
-          <View style={styles.lineActions}>
-            {reorderable ? (
-              <>
-                <IconButton
-                  disabled={index === 0}
-                  icon={ArrowUp}
-                  label={moveUpLabel ?? ""}
-                  onPress={() => moveItem(index, -1)}
-                  style={styles.lineActionButton}
-                />
-                <IconButton
-                  disabled={index === values.length - 1}
-                  icon={ArrowDown}
-                  label={moveDownLabel ?? ""}
-                  onPress={() => moveItem(index, 1)}
-                  style={styles.lineActionButton}
-                />
-              </>
-            ) : null}
-            <IconButton
-              disabled={values.length === 1 && !value.trim()}
-              icon={Trash2}
-              label={removeLabel}
-              onPress={() => removeItem(index)}
-              tone="danger"
-              style={styles.lineActionButton}
+          {values.length > 1 || value.trim() ? (
+            <ActionMenu
+              label={`${label}: ${index + 1}`}
+              actions={[
+                ...(reorderable && index > 0
+                  ? [
+                      {
+                        id: "up",
+                        label: moveUpLabel ?? "",
+                        onPress: () => moveItem(index, -1),
+                      },
+                    ]
+                  : []),
+                ...(reorderable && index < values.length - 1
+                  ? [
+                      {
+                        id: "down",
+                        label: moveDownLabel ?? "",
+                        onPress: () => moveItem(index, 1),
+                      },
+                    ]
+                  : []),
+                {
+                  id: "delete",
+                  label: removeLabel,
+                  destructive: true,
+                  onPress: () => removeItem(index),
+                },
+              ]}
             />
-          </View>
+          ) : null}
         </View>
       ))}
       <PrimaryButton
@@ -765,7 +816,7 @@ function sanitizeIntegerInput(value: string) {
 }
 
 function normalizeNutritionForEditor(
-  nutrition?: Nutrition | Nutrition[] | null
+  nutrition?: Nutrition | Nutrition[] | null,
 ) {
   const node = Array.isArray(nutrition) ? nutrition[0] : nutrition;
   return {
@@ -776,7 +827,7 @@ function normalizeNutritionForEditor(
     saturatedFat: stripNutritionUnit(node?.saturatedFatContent),
     sodium: stripNutritionUnit(node?.sodiumContent),
     fiber: stripNutritionUnit(node?.fiberContent),
-    protein: stripNutritionUnit(node?.proteinContent)
+    protein: stripNutritionUnit(node?.proteinContent),
   };
 }
 
@@ -807,14 +858,15 @@ function formatNutritionValue(value: string, unit: "g" | "kcal" | "mg") {
 function getLocalMetaAfterPhotoChange(
   localMeta: ReturnType<typeof normalizeRecipe>["localMeta"],
   photoUrl: string,
-  cachedLocalUri?: string
+  cachedLocalUri?: string,
 ) {
   const nextLocalMeta: NonNullable<
     ReturnType<typeof normalizeRecipe>["localMeta"]
   > = { ...(localMeta ?? {}) };
   delete nextLocalMeta.cachedImage;
 
-  const cacheUri = cachedLocalUri || (/^file:\/\//i.test(photoUrl) ? photoUrl : undefined);
+  const cacheUri =
+    cachedLocalUri || (/^file:\/\//i.test(photoUrl) ? photoUrl : undefined);
   if (cacheUri) {
     nextLocalMeta.cachedImage = cacheUri;
   }
@@ -824,7 +876,7 @@ function getLocalMetaAfterPhotoChange(
 
 function getLocalMetaAfterServingsVisibilityChange(
   localMeta: ReturnType<typeof normalizeRecipe>["localMeta"],
-  showServings: boolean
+  showServings: boolean,
 ) {
   const nextLocalMeta: NonNullable<
     ReturnType<typeof normalizeRecipe>["localMeta"]
@@ -853,65 +905,54 @@ function normalizeNutritionInput(value?: NutritionValue | null) {
 const styles = StyleSheet.create({
   photo: {
     height: "100%",
-    width: "100%"
+    width: "100%",
   },
   photoPreview: {
     aspectRatio: 4 / 3,
     borderRadius: 12,
-    overflow: "hidden"
+    overflow: "hidden",
   },
   row: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: spacing.sm
+    gap: spacing.sm,
   },
   rowItem: {
     flex: 1,
-    minWidth: 150
+    minWidth: 150,
   },
   suggestionChip: {
     borderRadius: 999,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs
+    paddingVertical: spacing.xs,
   },
   suggestionList: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: spacing.xs
-  },
-  sectionTitle: {
-    gap: spacing.xs
+    gap: spacing.xs,
   },
   compactInput: {
-    minHeight: 48
+    minHeight: 48,
   },
   disabledInput: {
-    opacity: 0.55
+    opacity: 0.55,
   },
   instructionInput: {
     minHeight: 130,
-    textAlignVertical: "top"
+    textAlignVertical: "top",
   },
   lineInput: {
     flex: 1,
-    minWidth: 0
-  },
-  lineActionButton: {
-    height: 38,
-    width: 38
-  },
-  lineActions: {
-    gap: spacing.xs,
-    paddingTop: 26
+    minWidth: 0,
   },
   lineItem: {
     flexDirection: "row",
     alignItems: "flex-start",
-    gap: spacing.sm
+    gap: spacing.sm,
   },
   lineList: {
-    gap: spacing.md
+    gap: spacing.md,
   },
   switchRow: {
     alignItems: "center",
@@ -920,17 +961,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: spacing.sm,
     justifyContent: "space-between",
-    padding: spacing.sm
+    padding: spacing.sm,
   },
   switchText: {
     flex: 1,
     gap: spacing.xxs,
-    minWidth: 0
+    minWidth: 0,
   },
-  toolbar: {
-    alignItems: "center",
-    flexDirection: "row",
-    gap: spacing.md,
-    justifyContent: "space-between"
-  }
 });
