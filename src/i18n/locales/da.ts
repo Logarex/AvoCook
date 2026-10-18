@@ -256,8 +256,9 @@ export default {
       "alreadyInShopping": "Disse varer findes allerede på indkøbslisten.",
       "planRecipe": "Føj til madplan",
       "privacyDataSummary": "Køkkenplaner, lager, menuer, noter og historik er lokale og adskilt efter konto. Private noter udgives ikke med opskrifter. Den fulde køkkensikkerhedskopi indeholder private data og bør opbevares et omhyggeligt valgt sted.",
-      "privacyVoiceSummary": "Valgfrie stemmekommandoer bruger mikrofon og kun lokal genkendelse uden at gemme lyd eller transskriptioner. Lytning stopper i baggrunden. Lagerpåmindelser er lokale; varenavne kan vises på låseskærmen efter dine indstillinger."
-    },
+      "privacyVoiceSummary": "Valgfrie stemmekommandoer bruger mikrofon og kun lokal genkendelse uden at gemme lyd eller transskriptioner. Lytning stopper i baggrunden. Lagerpåmindelser er lokale; varenavne kan vises på låseskærmen efter dine indstillinger.",
+      "timerPersistenceError": "Timerens tilstand kunne ikke gemmes. Timeren kører i denne session, men gendannelse efter lukning er ikke sikret."
+},
     ui: {
       privacyData: "Dine data",
       privacyServices: "Forbundne tjenester",

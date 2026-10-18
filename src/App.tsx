@@ -1,3 +1,4 @@
+import { CookingTimerPersistence } from "./features/kitchen/CookingTimerPersistence";
 import { getKitchenNative } from "./features/kitchen/kitchenNative";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -93,6 +94,7 @@ export default function App() {
                     <ShoppingListProvider>
                       <KitchenProvider>
                         <TimersProvider>
+                          <CookingTimerPersistence />
                           <RootNavigator />
                         </TimersProvider>
                       </KitchenProvider>

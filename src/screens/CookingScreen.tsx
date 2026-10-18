@@ -1,3 +1,4 @@
+import { cookingTimerScope } from "../features/kitchen/cookingTimerState";
 import { useCookingVoice } from "../features/kitchen/useCookingVoice";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useKeepAwake } from "expo-keep-awake";
@@ -88,9 +89,13 @@ function CookingSteps({
   );
   const [busy, setBusy] = useState(false);
   const safeStep = Math.min(step, recipe.recipeInstructions.length - 1);
-  const timerScope = `cooking:${kitchen.account}:${route.params.id}`;
+  const timerScope = cookingTimerScope(kitchen.account, route.params.id);
   const { timers, toggleTimer, resetTimer, notificationStatus } =
-    useRecipeTimers(timerScope, presets);
+    useRecipeTimers(
+      timerScope,
+      presets,
+      kitchen.data.journals[route.params.id]?.stepTimerStates,
+    );
   const stepPresets = useMemo(
     () =>
       presets.filter(
@@ -167,6 +172,9 @@ function CookingSteps({
         />
       }
     >
+      {kitchen.timerPersistenceError && (
+        <AppText>{t("kitchen.timerPersistenceError")}</AppText>
+      )}
       {voice.available && (
         <PrimaryButton
           label={t(

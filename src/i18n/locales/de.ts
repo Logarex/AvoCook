@@ -256,8 +256,9 @@ export default {
       "alreadyInShopping": "Diese Artikel stehen bereits auf der Einkaufsliste.",
       "planRecipe": "Zum Speiseplan hinzufügen",
       "privacyDataSummary": "Küchenpläne, Vorräte, Menüs, Notizen und Verlauf sind lokal und nach Konto getrennt. Private Notizen werden nicht mit Rezepten veröffentlicht. Die vollständige Küchensicherung enthält private Daten und sollte sicher aufbewahrt werden.",
-      "privacyVoiceSummary": "Optionale Sprachbefehle nutzen Mikrofon und ausschließlich lokale Erkennung, ohne Audio oder Transkripte zu speichern. Im Hintergrund endet das Zuhören. Vorratserinnerungen sind lokal; Produktnamen können nach Einstellung auf dem Sperrbildschirm erscheinen."
-    },
+      "privacyVoiceSummary": "Optionale Sprachbefehle nutzen Mikrofon und ausschließlich lokale Erkennung, ohne Audio oder Transkripte zu speichern. Im Hintergrund endet das Zuhören. Vorratserinnerungen sind lokal; Produktnamen können nach Einstellung auf dem Sperrbildschirm erscheinen.",
+      "timerPersistenceError": "Timerzustand konnte nicht gespeichert werden. Der Timer bleibt in dieser Sitzung aktiv. Eine Wiederherstellung nach dem Schließen ist nicht gesichert."
+},
     ui: {
       privacyData: "Deine Daten",
       privacyServices: "Verbundene Dienste",

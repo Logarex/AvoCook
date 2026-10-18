@@ -256,8 +256,9 @@ export default {
       "alreadyInShopping": "Estos artículos ya están en la lista de compra.",
       "planRecipe": "Añadir al plan",
       "privacyDataSummary": "Planes, existencias, menús, notas e historial de Mi cocina son locales y separados por cuenta. Las notas privadas no se publican con las recetas. La copia completa contiene datos privados y debe guardarse en un lugar elegido con cuidado.",
-      "privacyVoiceSummary": "Los comandos de voz opcionales usan micrófono y reconocimiento local, sin guardar audio ni transcripciones. La escucha se detiene en segundo plano. Los avisos de existencias son locales; los productos pueden aparecer en la pantalla bloqueada según ajustes."
-    },
+      "privacyVoiceSummary": "Los comandos de voz opcionales usan micrófono y reconocimiento local, sin guardar audio ni transcripciones. La escucha se detiene en segundo plano. Los avisos de existencias son locales; los productos pueden aparecer en la pantalla bloqueada según ajustes.",
+      "timerPersistenceError": "No se pudo guardar el temporizador. Sigue activo en esta sesión, pero no se asegura su recuperación al cerrar la app."
+},
     ui: {
       privacyData: "Tus datos",
       privacyServices: "Servicios conectados",

@@ -256,8 +256,9 @@ export default {
       "alreadyInShopping": "Questi articoli sono già nella lista della spesa.",
       "planRecipe": "Aggiungi al piano pasti",
       "privacyDataSummary": "Piani, scorte, menu, note e cronologia della cucina sono locali e separati per account. Le note private non sono pubblicate con le ricette. Il backup completo contiene dati privati e va conservato in un luogo scelto con cura.",
-      "privacyVoiceSummary": "I comandi vocali facoltativi usano microfono e riconoscimento locale, senza salvare audio o trascrizioni. L’ascolto termina in background. I promemoria sono locali; i nomi possono apparire sullo schermo bloccato secondo le impostazioni."
-    },
+      "privacyVoiceSummary": "I comandi vocali facoltativi usano microfono e riconoscimento locale, senza salvare audio o trascrizioni. L’ascolto termina in background. I promemoria sono locali; i nomi possono apparire sullo schermo bloccato secondo le impostazioni.",
+      "timerPersistenceError": "Impossibile salvare lo stato del timer. Resta attivo in questa sessione, ma il ripristino dopo la chiusura non è assicurato."
+},
     ui: {
       privacyData: "I tuoi dati",
       privacyServices: "Servizi collegati",

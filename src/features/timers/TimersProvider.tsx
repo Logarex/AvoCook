@@ -1,3 +1,4 @@
+import { restoreCookingTimer } from "../kitchen/cookingTimerState";
 import React, {
   createContext,
   useCallback,
@@ -5,7 +6,7 @@ import React, {
   useEffect,
   useMemo,
   useRef,
-  useState
+  useState,
 } from "react";
 import { Vibration } from "react-native";
 import {
@@ -13,7 +14,7 @@ import {
   cancelTimerNotification,
   getTimerNotificationState,
   scheduleTimerNotification,
-  type TimerNotificationState
+  type TimerNotificationState,
 } from "./timerNotifications";
 
 export type TimerPreset = {
@@ -36,14 +37,18 @@ type ToggleTimerOptions = {
   title: string;
 };
 type TimerContextValue = {
-  ensureRecipeTimers: (recipeId: string, presets: TimerPreset[]) => void;
+  ensureRecipeTimers: (
+    recipeId: string,
+    presets: TimerPreset[],
+    restored?: Record<string, TimerState>,
+  ) => void;
   notificationStatus: TimerNotificationStatus;
   resetRecipeTimer: (recipeId: string, timerId: string) => void;
   timersByRecipe: TimersByRecipe;
   toggleRecipeTimer: (
     recipeId: string,
     timerId: string,
-    options: ToggleTimerOptions
+    options: ToggleTimerOptions,
   ) => Promise<TimerNotificationState>;
 };
 
@@ -54,7 +59,9 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
   const currentTimers = useRef(timersByRecipe);
   currentTimers.current = timersByRecipe;
   const revisions = useRef(new Map<string, number>());
-  const pendingToggles = useRef(new Map<string, Promise<TimerNotificationState>>());
+  const pendingToggles = useRef(
+    new Map<string, Promise<TimerNotificationState>>(),
+  );
   const [notificationStatus, setNotificationStatus] =
     useState<TimerNotificationStatus>("unknown");
 
@@ -62,20 +69,35 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
     () =>
       Object.values(timersByRecipe).some((recipeTimers) =>
         Object.values(recipeTimers).some(
-          (timer) => timer.running && timer.remainingSeconds > 0
-        )
+          (timer) => timer.running && timer.remainingSeconds > 0,
+        ),
       ),
-    [timersByRecipe]
+    [timersByRecipe],
   );
 
   const ensureRecipeTimers = useCallback(
-    (recipeId: string, presets: TimerPreset[]) => {
-      for (const [timerId, timer] of Object.entries(currentTimers.current[recipeId] ?? {})) {
+    (
+      recipeId: string,
+      presets: TimerPreset[],
+      restored?: Record<string, TimerState>,
+    ) => {
+      for (const [timerId, timer] of Object.entries(
+        currentTimers.current[recipeId] ?? {},
+      )) {
         const preset = presets.find((preset) => preset.id === timerId);
         if (!preset || preset.minutes * 60 !== timer.durationSeconds) {
           const key = JSON.stringify([recipeId, timerId]);
           revisions.current.set(key, (revisions.current.get(key) ?? 0) + 1);
           pendingToggles.current.delete(key);
+          void cancelTimerNotification(timer.notificationId);
+        }
+      }
+      for (const [timerId, timer] of Object.entries(restored ?? {})) {
+        const preset = presets.find((preset) => preset.id === timerId);
+        if (
+          !currentTimers.current[recipeId]?.[timerId] &&
+          (!preset || preset.minutes * 60 !== timer.durationSeconds)
+        ) {
           void cancelTimerNotification(timer.notificationId);
         }
       }
@@ -85,61 +107,66 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
 
         for (const preset of presets) {
           const durationSeconds = preset.minutes * 60;
-          const existing = currentRecipeTimers[preset.id];
+          const saved = restored?.[preset.id];
+          const existing =
+            currentRecipeTimers[preset.id] ??
+            (saved ? restoreCookingTimer(saved, Date.now()) : undefined);
           nextRecipeTimers[preset.id] =
             existing && existing.durationSeconds === durationSeconds
               ? existing
               : {
                   durationSeconds,
                   remainingSeconds: durationSeconds,
-                  running: false
+                  running: false,
                 };
         }
 
         return {
           ...current,
-          [recipeId]: nextRecipeTimers
+          [recipeId]: nextRecipeTimers,
         };
       });
     },
-    []
+    [],
   );
 
-  const resetRecipeTimer = useCallback(
-    (recipeId: string, timerId: string) => {
-      const key = JSON.stringify([recipeId, timerId]);
-      revisions.current.set(key, (revisions.current.get(key) ?? 0) + 1);
-      pendingToggles.current.delete(key);
-      const notificationId = currentTimers.current[recipeId]?.[timerId]?.notificationId;
-      void cancelTimerNotification(notificationId);
+  const resetRecipeTimer = useCallback((recipeId: string, timerId: string) => {
+    const key = JSON.stringify([recipeId, timerId]);
+    revisions.current.set(key, (revisions.current.get(key) ?? 0) + 1);
+    pendingToggles.current.delete(key);
+    const notificationId =
+      currentTimers.current[recipeId]?.[timerId]?.notificationId;
+    void cancelTimerNotification(notificationId);
 
-      setTimersByRecipe((current) => {
-        const recipeTimers = current[recipeId];
-        const timer = recipeTimers?.[timerId];
-        if (!recipeTimers || !timer) {
-          return current;
-        }
+    setTimersByRecipe((current) => {
+      const recipeTimers = current[recipeId];
+      const timer = recipeTimers?.[timerId];
+      if (!recipeTimers || !timer) {
+        return current;
+      }
 
-        return {
-          ...current,
-          [recipeId]: {
-            ...recipeTimers,
-            [timerId]: {
-              ...timer,
-              endsAt: undefined,
-              notificationId: null,
-              remainingSeconds: timer.durationSeconds,
-              running: false
-            }
-          }
-        };
-      });
-    },
-    []
-  );
+      return {
+        ...current,
+        [recipeId]: {
+          ...recipeTimers,
+          [timerId]: {
+            ...timer,
+            endsAt: undefined,
+            notificationId: null,
+            remainingSeconds: timer.durationSeconds,
+            running: false,
+          },
+        },
+      };
+    });
+  }, []);
 
   const toggleRecipeTimer = useCallback(
-    (recipeId: string, timerId: string, { body, title }: ToggleTimerOptions): Promise<TimerNotificationState> => {
+    (
+      recipeId: string,
+      timerId: string,
+      { body, title }: ToggleTimerOptions,
+    ): Promise<TimerNotificationState> => {
       const key = JSON.stringify([recipeId, timerId]);
       const pending = pendingToggles.current.get(key);
       if (pending) return pending;
@@ -147,7 +174,10 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
       const isCurrent = () => (revisions.current.get(key) ?? 0) === revision;
       const operation = (async (): Promise<TimerNotificationState> => {
         const timer = currentTimers.current[recipeId]?.[timerId];
-        if (!timer) return notificationStatus === "unknown" ? "unavailable" : notificationStatus;
+        if (!timer)
+          return notificationStatus === "unknown"
+            ? "unavailable"
+            : notificationStatus;
 
         if (timer.running) {
           await cancelTimerNotification(timer.notificationId);
@@ -158,20 +188,37 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
             if (!currentTimer || !isCurrent()) return current;
             return {
               ...current,
-              [recipeId]: { ...recipeTimers, [timerId]: {
-                ...currentTimer,
-                endsAt: undefined,
-                notificationId: null,
-                remainingSeconds: Math.max(0, Math.ceil(((currentTimer.endsAt ?? Date.now()) - Date.now()) / 1000)),
-                running: false
-              } }
+              [recipeId]: {
+                ...recipeTimers,
+                [timerId]: {
+                  ...currentTimer,
+                  endsAt: undefined,
+                  notificationId: null,
+                  remainingSeconds: Math.max(
+                    0,
+                    Math.ceil(
+                      ((currentTimer.endsAt ?? Date.now()) - Date.now()) / 1000,
+                    ),
+                  ),
+                  running: false,
+                },
+              },
             };
           });
           return "ready";
         }
 
-        const remainingSeconds = timer.remainingSeconds > 0 ? timer.remainingSeconds : timer.durationSeconds;
-        const scheduled = await scheduleTimerNotification({ body, recipeId, seconds: remainingSeconds, timerId, title });
+        const remainingSeconds =
+          timer.remainingSeconds > 0
+            ? timer.remainingSeconds
+            : timer.durationSeconds;
+        const scheduled = await scheduleTimerNotification({
+          body,
+          recipeId,
+          seconds: remainingSeconds,
+          timerId,
+          title,
+        });
         if (!isCurrent()) {
           await cancelTimerNotification(scheduled.notificationId);
           return scheduled.state;
@@ -186,21 +233,30 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
           if (!currentTimer || !isCurrent()) return current;
           return {
             ...current,
-            [recipeId]: { ...recipeTimers, [timerId]: {
-              ...currentTimer, endsAt, notificationId: scheduled.notificationId,
-              remainingSeconds, running: true
-            } }
+            [recipeId]: {
+              ...recipeTimers,
+              [timerId]: {
+                ...currentTimer,
+                endsAt,
+                notificationId: scheduled.notificationId,
+                remainingSeconds,
+                running: true,
+              },
+            },
           };
         });
         return "ready";
       })();
       pendingToggles.current.set(key, operation);
-      void operation.finally(() => {
-        if (pendingToggles.current.get(key) === operation) pendingToggles.current.delete(key);
-      }).catch(() => undefined);
+      void operation
+        .finally(() => {
+          if (pendingToggles.current.get(key) === operation)
+            pendingToggles.current.delete(key);
+        })
+        .catch(() => undefined);
       return operation;
     },
-    [notificationStatus]
+    [notificationStatus],
   );
 
   useEffect(() => {
@@ -225,7 +281,11 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
       setTimersByRecipe((current) => {
         const recipeTimers = current[event.recipeId];
         const timer = recipeTimers?.[event.timerId];
-        if (!recipeTimers || !timer || timer.notificationId !== event.notificationId) {
+        if (
+          !recipeTimers ||
+          !timer ||
+          timer.notificationId !== event.notificationId
+        ) {
           return current;
         }
 
@@ -238,9 +298,9 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
               endsAt: undefined,
               notificationId: null,
               remainingSeconds: timer.durationSeconds,
-              running: false
-            }
-          }
+              running: false,
+            },
+          },
         };
       });
     }).then((nextSubscription) => {
@@ -274,7 +334,7 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
             const remainingSeconds = timer.running
               ? Math.max(
                   0,
-                  Math.ceil(((timer.endsAt ?? Date.now()) - Date.now()) / 1000)
+                  Math.ceil(((timer.endsAt ?? Date.now()) - Date.now()) / 1000),
                 )
               : timer.remainingSeconds;
 
@@ -290,7 +350,7 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
               ...timer,
               remainingSeconds,
               running: timer.running && remainingSeconds > 0,
-              endsAt: remainingSeconds > 0 ? timer.endsAt : undefined
+              endsAt: remainingSeconds > 0 ? timer.endsAt : undefined,
             };
           }
 
@@ -310,21 +370,27 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
       notificationStatus,
       resetRecipeTimer,
       timersByRecipe,
-      toggleRecipeTimer
+      toggleRecipeTimer,
     }),
     [
       ensureRecipeTimers,
       notificationStatus,
       resetRecipeTimer,
       timersByRecipe,
-      toggleRecipeTimer
-    ]
+      toggleRecipeTimer,
+    ],
   );
 
-  return <TimerContext.Provider value={value}>{children}</TimerContext.Provider>;
+  return (
+    <TimerContext.Provider value={value}>{children}</TimerContext.Provider>
+  );
 }
 
-export function useRecipeTimers(recipeId: string, presets: TimerPreset[]) {
+export function useRecipeTimers(
+  recipeId: string,
+  presets: TimerPreset[],
+  restored?: Record<string, TimerState>,
+) {
   const context = useContext(TimerContext);
   if (!context) {
     throw new Error("useRecipeTimers must be used inside TimersProvider");
@@ -335,27 +401,33 @@ export function useRecipeTimers(recipeId: string, presets: TimerPreset[]) {
     notificationStatus,
     resetRecipeTimer,
     timersByRecipe,
-    toggleRecipeTimer
+    toggleRecipeTimer,
   } = context;
 
   useEffect(() => {
-    ensureRecipeTimers(recipeId, presets);
-  }, [ensureRecipeTimers, presets, recipeId]);
+    ensureRecipeTimers(recipeId, presets, restored);
+  }, [ensureRecipeTimers, presets, recipeId, restored]);
 
   const resetTimer = useCallback(
     (timerId: string) => resetRecipeTimer(recipeId, timerId),
-    [recipeId, resetRecipeTimer]
+    [recipeId, resetRecipeTimer],
   );
   const toggleTimer = useCallback(
     (timerId: string, options: ToggleTimerOptions) =>
       toggleRecipeTimer(recipeId, timerId, options),
-    [recipeId, toggleRecipeTimer]
+    [recipeId, toggleRecipeTimer],
   );
 
   return {
     notificationStatus,
     resetTimer,
     timers: timersByRecipe[recipeId] ?? {},
-    toggleTimer
+    toggleTimer,
   };
+}
+
+export function useTimerSnapshot() {
+  const context = useContext(TimerContext);
+  if (!context) throw new Error("TimersProvider missing");
+  return context.timersByRecipe;
 }

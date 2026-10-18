@@ -1,3 +1,7 @@
+import {
+  validCookingTimer,
+  type CookingTimerSnapshot,
+} from "./cookingTimerState";
 import type { SavedMenu } from "./menus";
 import type { Recipe } from "../recipes/types";
 import { markdownToPlainText } from "../markdown/markdown";
@@ -24,6 +28,7 @@ export type StockItem = {
 export type StepTimer = { id: string; step: number; minutes: number };
 export type Diet = "vegetarian" | "vegan" | "glutenFree";
 export type Journal = {
+  stepTimerStates?: Record<string, CookingTimerSnapshot>;
   diets?: Diet[];
   stepTimers?: StepTimer[];
   rating: number;
@@ -549,6 +554,14 @@ export function parseKitchenData(value: unknown): KitchenData {
         text(j.notes) &&
         text(j.changes) &&
         text(j.cost) &&
+        (j.stepTimerStates === undefined ||
+          (j.stepTimerStates !== null &&
+            typeof j.stepTimerStates === "object" &&
+            !Array.isArray(j.stepTimerStates) &&
+            Object.entries(j.stepTimerStates).every(
+              ([key, timer]) =>
+                /^step-\d+$/.test(key) && validCookingTimer(timer),
+            ))) &&
         (j.diets === undefined ||
           (Array.isArray(j.diets) &&
             j.diets.every((diet) =>

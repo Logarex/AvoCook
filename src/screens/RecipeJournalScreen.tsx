@@ -101,7 +101,11 @@ function JournalEditor({ navigation, route }: Props) {
         ...data,
         journals: {
           ...data.journals,
-          [id]: { ...journal, stepTimers: data.journals[id]?.stepTimers },
+          [id]: {
+            ...journal,
+            stepTimers: data.journals[id]?.stepTimers,
+            stepTimerStates: data.journals[id]?.stepTimerStates,
+          },
         },
       }));
       saved.current = true;

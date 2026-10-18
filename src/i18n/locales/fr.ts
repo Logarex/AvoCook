@@ -256,8 +256,9 @@ export default {
       "alreadyInShopping": "Ces éléments figurent déjà dans les courses.",
       "planRecipe": "Ajouter au planning",
       "privacyDataSummary": "Planning, stocks, menus, notes et historique de Ma cuisine sont locaux et séparés par compte. Le carnet privé n’est pas publié avec les recettes. La sauvegarde complète de Ma cuisine contient ces données privées et doit être conservée dans un emplacement choisi avec soin.",
-      "privacyVoiceSummary": "Les commandes vocales facultatives utilisent le microphone et une reconnaissance sur l’appareil uniquement, sans sauvegarder le son ni les transcriptions. L’écoute s’arrête en arrière-plan. Les rappels de stocks sont locaux ; les noms des produits peuvent apparaître sur l’écran verrouillé selon vos réglages."
-    },
+      "privacyVoiceSummary": "Les commandes vocales facultatives utilisent le microphone et une reconnaissance sur l’appareil uniquement, sans sauvegarder le son ni les transcriptions. L’écoute s’arrête en arrière-plan. Les rappels de stocks sont locaux ; les noms des produits peuvent apparaître sur l’écran verrouillé selon vos réglages.",
+      "timerPersistenceError": "Impossible d’enregistrer l’état du minuteur. Le compteur reste actif dans cette session, mais sa reprise après fermeture de l’app n’est pas assurée."
+},
     ui: {
       privacyData: "Vos données",
       privacyServices: "Services connectés",

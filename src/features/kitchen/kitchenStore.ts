@@ -18,6 +18,7 @@ export function createKitchenStore(storage: Storage, account: string) {
     ready: false,
     error: false,
     reminderError: false,
+    timerPersistenceError: false,
   };
   let pending: Promise<unknown> = Promise.resolve();
   const listeners = new Set<() => void>();
@@ -32,6 +33,10 @@ export function createKitchenStore(storage: Storage, account: string) {
   }
   return {
     account,
+    setTimerPersistenceError: (timerPersistenceError: boolean) => {
+      if (snapshot.timerPersistenceError !== timerPersistenceError)
+        publish({ ...snapshot, timerPersistenceError });
+    },
     setReminderError: (reminderError: boolean) => {
       if (snapshot.reminderError !== reminderError)
         publish({ ...snapshot, reminderError });
@@ -63,6 +68,7 @@ export function createKitchenStore(storage: Storage, account: string) {
           }
           publish({
             reminderError: snapshot.reminderError,
+            timerPersistenceError: snapshot.timerPersistenceError,
             data,
             ready: true,
             error: false,
@@ -80,6 +86,7 @@ export function createKitchenStore(storage: Storage, account: string) {
         await storage.setItem(kitchenStorageKey(account), JSON.stringify(data));
         publish({
           reminderError: snapshot.reminderError,
+          timerPersistenceError: snapshot.timerPersistenceError,
           data,
           ready: true,
           error: false,

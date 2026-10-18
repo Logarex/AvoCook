@@ -35,7 +35,7 @@ export function remapKitchenBackup(
   const journals = Object.fromEntries(
     Object.entries(data.journals).map(([id, journal]) => [
       resolve(id),
-      journal,
+      { ...journal, stepTimerStates: undefined },
     ]),
   );
   const meals = data.meals.map((meal) =>

@@ -256,8 +256,9 @@ export default {
       "alreadyInShopping": "These items are already in your shopping list.",
       "planRecipe": "Add to meal plan",
       "privacyDataSummary": "My kitchen plans, stock, menus, notes and history are local and account-scoped. Private notes are not published with recipes. The full My kitchen backup contains private data and should be kept in a carefully chosen location.",
-      "privacyVoiceSummary": "Optional voice commands use the microphone and on-device recognition only, without saving audio or transcripts. Listening stops in the background. Stock reminders are local; product names may appear on the lock screen according to your settings."
-    },
+      "privacyVoiceSummary": "Optional voice commands use the microphone and on-device recognition only, without saving audio or transcripts. Listening stops in the background. Stock reminders are local; product names may appear on the lock screen according to your settings.",
+      "timerPersistenceError": "Could not save the timer state. The timer remains active in this session, but recovery after closing the app is not assured."
+},
     ui: {
       privacyData: "Your data",
       privacyServices: "Connected services",

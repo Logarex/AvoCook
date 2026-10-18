@@ -321,3 +321,63 @@ describe("history and bounded substitution advice", () => {
       expect(substitutionAmount(context, amount)).toBeNull();
   });
 });
+
+describe("durable cooking timer snapshots", () => {
+  it("keeps the persisted deadline stable across ticks and scopes it to its account", async () => {
+    const { timerSnapshot, cookingTimerScope, timerScopeRecipe } = await import(
+      "../features/kitchen/cookingTimerState"
+    );
+    const timer = {
+      durationSeconds: 300,
+      remainingSeconds: 250,
+      endsAt: 1000000,
+      running: true,
+      notificationId: "local-alarm",
+    };
+    expect(timerSnapshot(timer)).toEqual(
+      timerSnapshot({ ...timer, remainingSeconds: 249 }),
+    );
+    expect(
+      timerSnapshot({ ...timer, running: false, remainingSeconds: 249 })
+        .remainingSeconds,
+    ).toBe(249);
+    const scope = cookingTimerScope("https://account.example:user", "step:1");
+    expect(timerScopeRecipe(scope, "https://account.example:user")).toBe(
+      "step:1",
+    );
+    expect(timerScopeRecipe(scope, "another-account")).toBeNull();
+  });
+  it("rejects corrupt timer state and drops native identifiers when restoring a backup", async () => {
+    const bad = {
+      ...emptyJournal(),
+      stepTimerStates: {
+        "step-0": { durationSeconds: 60, remainingSeconds: 60, running: true },
+      },
+    };
+    expect(() =>
+      parseKitchenData({ ...emptyKitchen(), journals: { r: bad } }),
+    ).toThrow();
+    const source = recipe("r", "Recipe");
+    const data = {
+      ...emptyKitchen(),
+      journals: {
+        r: {
+          ...emptyJournal(),
+          stepTimerStates: {
+            "step-0": {
+              durationSeconds: 60,
+              remainingSeconds: 60,
+              running: true,
+              endsAt: 1000000,
+              notificationId: "other-device",
+            },
+          },
+        },
+      },
+    };
+    expect(
+      remapKitchenBackup(data, [source], [source]).data.journals.r
+        .stepTimerStates,
+    ).toBeUndefined();
+  });
+});

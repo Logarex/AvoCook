@@ -77,6 +77,7 @@ export function useKitchen() {
     ...state,
     account: store.account,
     setReminderError: store.setReminderError,
+    setTimerPersistenceError: store.setTimerPersistenceError,
     update: store.update,
     reload: store.load,
   };
