@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react-native';
 import React from "react";
 import { Pressable, View } from "react-native";
 import { AppText } from "../../components/AppText";
@@ -22,6 +23,7 @@ export function CategoryChip({
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
+      hitSlop={{ top: 4, bottom: 4 }}
       style={({ pressed }) => [
         styles.categoryChip,
         {
@@ -33,12 +35,12 @@ export function CategoryChip({
         },
       ]}
     >
+      {selected ? (
+        <Check color={colors.textInverted} size={16} strokeWidth={3} />
+      ) : null}
       <AppText markdown
         variant="label"
-        style={[
-          styles.categoryLabel,
-          { color: selected ? colors.textInverted : colors.text },
-        ]}
+        style={{ color: selected ? colors.textInverted : colors.text }}
       >
         {label}
       </AppText>
@@ -52,10 +54,7 @@ export function CategoryChip({
       >
         <AppText
           variant="caption"
-          style={[
-            styles.categoryCount,
-            { color: selected ? colors.textInverted : colors.textMuted },
-          ]}
+          style={{ color: selected ? colors.textInverted : colors.textMuted }}
         >
           {count}
         </AppText>

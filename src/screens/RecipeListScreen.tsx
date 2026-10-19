@@ -581,7 +581,7 @@ export function RecipeListScreen({ navigation }: Props) {
           showsHorizontalScrollIndicator={false}
           style={[
             styles.categoryScroller,
-            { height: Math.max(48, 22 * fontScale + 12) },
+            { height: Math.max(44, 22 * fontScale + 12) },
           ]}
           contentContainerStyle={styles.categoryList}
         >
