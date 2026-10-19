@@ -16,10 +16,6 @@ import {
 import { foodsInSeason, seasonalRecipes } from "../features/kitchen/seasonal";
 import { stockReminderPlan } from "../features/kitchen/stockReminders";
 import { cookingCommand } from "../features/kitchen/voiceCommands";
-import {
-  monthlyChallenge,
-  challengeDescription,
-} from "../features/kitchen/challenges";
 import { suggestMenu } from "../features/kitchen/menus";
 import { remapKitchenBackup } from "../features/kitchen/kitchenBackup";
 import { createRecipeBookHtml } from "../features/kitchen/recipeBook";
@@ -252,20 +248,7 @@ describe("private backups, books and community challenges", () => {
     expect(html).not.toContain("servingOverride");
     expect(html).not.toMatch(/<script/);
   });
-  it("uses stable monthly markers and does not duplicate them in public descriptions", () => {
-    const challenge = monthlyChallenge(new Date(2026, 9, 18));
-    expect(challenge).toEqual({
-      id: "2026-10",
-      marker: "[AvoCook-2026-10]",
-      theme: "squash",
-    });
-    expect(challengeDescription("Recipe", challenge.marker)).toBe(
-      "Recipe\n\n[AvoCook-2026-10]",
-    );
-    expect(challengeDescription(challenge.marker, challenge.marker)).toBe(
-      challenge.marker,
-    );
-  });
+
 });
 
 describe("history and bounded substitution advice", () => {

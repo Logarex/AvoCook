@@ -8,7 +8,7 @@ Speisepläne, Vorräte, Daten, persönliche Bewertungen, Notizen, Ernährungsang
 
 Optionale Kochbefehle benötigen Mikrofon- und Spracherkennungsberechtigungen. Die Erkennung nutzt ausschließlich einen unterstützten lokalen Erkennungsdienst ohne Netzwerkersatz. AvoCook speichert weder Audio noch Transkripte. Beim Verlassen des Kochmodus oder im Hintergrund endet das Zuhören.
 
-Optionale Vorratserinnerungen werden auf dem Gerät geplant. Produktnamen können je nach Systemeinstellung auf dem Sperrbildschirm erscheinen. Erzeugte Zutaten verwenden den gewählten Einkaufsmodus einschließlich aktivierter Freigabe oder Apple-Erinnerungssynchronisierung. Die Monats-Challenge ergänzt die Beschreibung veröffentlichter Rezepte um eine sichtbare öffentliche Kennung.
+Optionale Vorratserinnerungen werden auf dem Gerät geplant. Produktnamen können je nach Systemeinstellung auf dem Sperrbildschirm erscheinen. Erzeugte Zutaten verwenden den gewählten Einkaufsmodus einschließlich aktivierter Freigabe oder Apple-Erinnerungssynchronisierung.
 
 ## Rezepte, Nextcloud und Sicherungen
 

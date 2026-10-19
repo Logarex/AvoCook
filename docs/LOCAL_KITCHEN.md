@@ -1,10 +1,14 @@
 # Local kitchen features
 
-All features below run on the device. Community challenges reuse the existing optional Firebase community. Source links open a browser only when requested.
+All features below run on the device. Source links open a browser only when requested.
 
 ## Everyday planning
 
-The fourth bottom tab is My kitchen, between Recipes and Community. Navigation swipes follow the same order. Choose a week and a day, then add lunch or dinner. A recipe detail also offers Add to meal plan.
+The fourth bottom tab is My kitchen, between Recipes and Community. Navigation swipes follow the same order. Today is the default kitchen view. Four primary sections cover Today, Week, My food and Meal ideas; occasional tools live under the header wrench button. Choose a week and a day, then add lunch or dinner. A recipe detail also offers Add to meal plan.
+
+A simple meal needs only a name to save; grocery lines and date/serving controls are optional. Today offers editable meal combinations even with an empty recipe library, and can reuse previously recorded simple meals. Stock with upcoming dates has direct idea, leftover planning and consumption actions, including undo.
+
+The daily date refreshes at local midnight and when the app returns to the foreground; it does not poll in the background. Explicit ingredient searches only show recipes using at least one entered ingredient. Stock consumption can also be undone from the food list. The new Today screen, one-field meal editor and ingredient search were checked in the iOS simulator; draft test entries were closed without saving.
 
 A meal can be a recipe, a simple meal with optional grocery lines for the whole meal, leftovers, or eating out. Leftovers and eating out never add ingredients to shopping. Mark meals as eaten to include them in history; unconfirmed plans are not treated as meals actually eaten.
 
@@ -12,7 +16,7 @@ Hold a recipe search result or a planned meal for 350 ms and drag it onto a visi
 
 ## Groceries and matching
 
-The generated shopping preview scales recipes by servings and includes each planned occurrence. It consolidates exact ingredient identities with compatible mass or volume units. Known common ingredient names and plural forms work across the six supported languages. Different ingredients, mass versus volume, opaque units, ranges and ambiguous thousands separators are not guessed. Opaque lines show repetitions and scaling factors for manual checking.
+The generated shopping preview scales recipes by servings and includes each future, uncompleted planned occurrence. Users select which lines to buy before confirming. Exact stock matches are marked; an explicit action can deselect them, with a reminder to check quantities. It consolidates exact ingredient identities with compatible mass or volume units. Known common ingredient names and plural forms work across the six supported languages. Different ingredients, mass versus volume, opaque units, ranges and ambiguous thousands separators are not guessed. Opaque lines show repetitions and scaling factors for manual checking.
 
 In local shopping mode, Update this week's shopping replaces only that week's generated group in one persisted operation. Manual purchases and other weeks remain; identical lines preserve their IDs and checked states. An empty week can remove its previous generated group. Its source uses a random local namespace, not an account URL or username. Remote shopping modes offer explicit additions rather than an unsafe multi-request replacement.
 
@@ -44,7 +48,7 @@ Celebration menus suggest known starter/main/dessert categories, preferring occa
 
 PDF cookbooks contain up to 50 selected recipes, in selection order, with a contents page, ingredients and steps. They exclude images and private notes and are generated locally. The full My kitchen JSON backup includes recipes, available local photos and private data. The standard Settings recipe backup remains recipe-only. Restore previews counts, imports recipes using existing duplicate handling, remaps references only when unambiguous, and replaces My kitchen data. Unresolved references remain unavailable. Reminders are disabled on restore. The previous My kitchen state can be restored from the same screen; recipe imports themselves are not undone.
 
-Monthly challenges are friendly themes with public opt-in description markers, using the existing publication and moderation flow. Loaded entries rank by community rating and vote count. This is not a separately audited competition or prize system; rankings may change as further entries load.
+The monthly challenge interface was removed to keep the community focused on finding and sharing recipes. Existing published descriptions are preserved.
 
 ## Development validation
 

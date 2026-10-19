@@ -1,4 +1,3 @@
-import { monthlyChallenge } from "../features/kitchen/challenges";
 import { useFocusEffect } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
@@ -85,7 +84,6 @@ export function CommunityScreen({ navigation }: Props) {
   const [recipes, setRecipes] = useState<CommunityRecipe[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const challenge = monthlyChallenge();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState<
     RecipeLanguage | "all"
@@ -330,10 +328,8 @@ export function CommunityScreen({ navigation }: Props) {
           );
         });
     // Keep page order while translations arrive and new pages are appended.
-    return q === challenge.marker.toLowerCase()
-      ? [...matches].sort((a, b) => b.avgRating - a.avgRating || b.ratingCount - a.ratingCount)
-      : matches;
-  }, [recipes, searchQuery, challenge.marker]);
+    return matches;
+  }, [recipes, searchQuery]);
 
   const renderRecipeItem = useCallback(
     ({ item }: { item: CommunityRecipe }) => (
@@ -463,11 +459,6 @@ export function CommunityScreen({ navigation }: Props) {
           </View>
         </View>
 
-        <View style={{ gap: 6 }}>
-          <AppText variant="label">{t("kitchen.monthlyChallenge")} · {t(`kitchen.theme_${challenge.theme}`)}</AppText>
-          <PrimaryButton label={t(searchQuery === challenge.marker ? "kitchen.allCommunity" : "kitchen.viewChallenge")} variant="secondary" onPress={() => setSearchQuery(searchQuery === challenge.marker ? "" : challenge.marker)} />
-          {searchQuery === challenge.marker && <><AppText muted variant="caption">{t("kitchen.challengeHelp")}</AppText><PrimaryButton label={t("kitchen.joinChallenge")} variant="secondary" onPress={() => navigation.navigate("SubmitCommunityRecipe", { challenge: true })} /></>}
-        </View>
         <View style={styles.searchRow}>
           <SearchField
             placeholder={t("common.search")}

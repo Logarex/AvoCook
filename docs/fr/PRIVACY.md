@@ -8,7 +8,7 @@ Planning, stocks, dates, notes personnelles, indications alimentaires, menus et 
 
 Les commandes vocales facultatives demandent les autorisations de microphone et de reconnaissance vocale. La reconnaissance utilise uniquement un moteur local compatible, sans relais réseau. AvoCook ne conserve ni son ni transcription. L’écoute cesse en quittant le mode cuisine ou lorsque l’app passe en arrière-plan.
 
-Les rappels de stocks facultatifs sont programmés sur l’appareil. Les noms des produits peuvent apparaître sur l’écran verrouillé selon les réglages système. Les ingrédients générés utilisent le mode de courses choisi, y compris le partage ou la synchronisation avec Rappels Apple activés. La participation au défi mensuel ajoute un repère public visible à la description d’une recette publiée.
+Les rappels de stocks facultatifs sont programmés sur l’appareil. Les noms des produits peuvent apparaître sur l’écran verrouillé selon les réglages système. Les ingrédients générés utilisent le mode de courses choisi, y compris le partage ou la synchronisation avec Rappels Apple activés.
 
 ## Recettes, Nextcloud et sauvegardes
 

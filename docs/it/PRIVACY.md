@@ -8,7 +8,7 @@ Piani pasti, scorte, date, voti, note personali, etichette alimentari, menu e cr
 
 I comandi di cucina facoltativi richiedono permessi per microfono e riconoscimento vocale. Si usa solo un riconoscitore locale supportato, senza alternativa di rete. AvoCook non salva audio né trascrizioni. L’ascolto termina uscendo dalla modalità cucina o passando in background.
 
-I promemoria delle scorte facoltativi sono programmati sul dispositivo. I nomi dei prodotti possono apparire sullo schermo bloccato secondo le impostazioni. Gli ingredienti generati usano la modalità spesa scelta, inclusa la condivisione o la sincronizzazione con Promemoria Apple attivate. Partecipare alla sfida mensile aggiunge un contrassegno pubblico visibile alla descrizione pubblicata.
+I promemoria delle scorte facoltativi sono programmati sul dispositivo. I nomi dei prodotti possono apparire sullo schermo bloccato secondo le impostazioni. Gli ingredienti generati usano la modalità spesa scelta, inclusa la condivisione o la sincronizzazione con Promemoria Apple attivate.
 
 ## Ricette, Nextcloud e backup
 

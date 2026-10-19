@@ -8,7 +8,7 @@ Meal plans, stock, dates, personal ratings, notes, dietary labels, menus and coo
 
 Optional cooking commands request microphone and speech permissions. Recognition runs only on a supported on-device recognizer; there is no network fallback. Audio and transcripts are not saved by AvoCook. Listening stops when the cooking screen closes or the app enters the background.
 
-Optional stock reminders are scheduled on the device. Product names may appear on the lock screen according to system settings. Generated ingredients use your selected shopping mode, including any sharing or Apple Reminders sync you enabled. Monthly challenge participation adds a visible public marker to a published recipe description.
+Optional stock reminders are scheduled on the device. Product names may appear on the lock screen according to system settings. Generated ingredients use your selected shopping mode, including any sharing or Apple Reminders sync you enabled.
 
 ## Recipes, Nextcloud and backups
 

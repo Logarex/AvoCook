@@ -8,7 +8,7 @@ Planes, existencias, fechas, notas personales, etiquetas alimentarias, menús e 
 
 Los comandos de cocina opcionales solicitan permisos de micrófono y reconocimiento de voz. Solo se usa un reconocedor local compatible, sin alternativa en red. AvoCook no guarda audio ni transcripciones. La escucha se detiene al salir del modo cocina o pasar a segundo plano.
 
-Los avisos de existencias opcionales se programan en el dispositivo. Los nombres de productos pueden mostrarse en la pantalla bloqueada según los ajustes. Los ingredientes generados usan el modo de compra elegido, incluido el uso compartido o la sincronización con Recordatorios de Apple activados. Participar en el reto mensual añade un marcador público visible a la descripción publicada.
+Los avisos de existencias opcionales se programan en el dispositivo. Los nombres de productos pueden mostrarse en la pantalla bloqueada según los ajustes. Los ingredientes generados usan el modo de compra elegido, incluido el uso compartido o la sincronización con Recordatorios de Apple activados.
 
 ## Recetas, Nextcloud y copias de seguridad
 

@@ -46,7 +46,7 @@ I built it for personal use while learning to ship a complete React Native proje
 - Keep private ratings, notes, changes, dietary labels, estimated costs and cooking history;
 - Explore a sourced offline mainland-France seasonal catalog, context-specific baking substitutions, batch preparation and reusable celebration menus;
 - Create a text PDF cookbook and export/restore a complete backup including private My kitchen data;
-- Join an optional friendly monthly community challenge using the existing recipe sharing and rating system.
+- Start from Today: note a meal without a recipe, repeat your usual meals, use urgent stock and review groceries before adding them.
 
 Open the **My kitchen** bottom tab. Dietary labels are entered by the user and do not certify the absence of allergens. Ingredient matching is conservative and does not check available quantities or food safety. See [behavior, limits and validation](docs/LOCAL_KITCHEN.md).
 

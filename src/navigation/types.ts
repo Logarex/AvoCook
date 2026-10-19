@@ -9,6 +9,7 @@ export type SettingsSection =
   | "about";
 
 export type KitchenSection =
+  | "today"
   | "planner"
   | "stock"
   | "tonight"
@@ -70,7 +71,7 @@ export type RootStackParamList = {
   CommunityDetail: {
     id: string;
   };
-  SubmitCommunityRecipe: { challenge?: boolean } | undefined;
+  SubmitCommunityRecipe: undefined;
   Settings: { section?: SettingsSection } | undefined;
   Privacy: undefined;
 };
