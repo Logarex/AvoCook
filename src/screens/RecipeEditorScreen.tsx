@@ -342,7 +342,6 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   return (
     <Screen
       contentStyle={{ paddingBottom: spacing.md + insets.bottom }}
-      showScrollTop={false}
       header={
         <ScreenHeader
           title={

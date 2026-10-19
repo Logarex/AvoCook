@@ -164,7 +164,6 @@ function CookingSteps({
   };
   return (
     <Screen
-      showScrollTop={false}
       header={
         <ScreenHeader
           title={t("kitchen.cooking")}

@@ -44,7 +44,6 @@ export function PrivacyScreen({ navigation }: Props) {
   ];
   return (
     <Screen
-      showScrollTop={false}
       header={
         <ScreenHeader
           title={t("privacy.title")}

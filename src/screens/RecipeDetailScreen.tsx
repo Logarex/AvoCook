@@ -679,7 +679,6 @@ function RecipeDetailContent({
 
   return (
     <Screen
-      showScrollTop={false}
       header={
         <ScreenHeader
           onBack={() => navigation.goBack()}

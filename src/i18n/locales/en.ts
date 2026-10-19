@@ -380,7 +380,6 @@ export default {
 
       add: "Add",
       back: "Back",
-      backToTop: "Back to top",
       cancel: "Cancel",
       clearSearch: "Clear search",
       delete: "Delete",

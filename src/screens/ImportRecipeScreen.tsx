@@ -419,7 +419,6 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
           : t("ui.importFile");
   return (
     <Screen
-      showScrollTop={false}
       contentWidth={640}
       header={
         <ScreenHeader

@@ -396,7 +396,6 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
   ];
   return (
     <Screen
-      showScrollTop={false}
       header={
         <ScreenHeader
           onBack={() => navigation.goBack()}

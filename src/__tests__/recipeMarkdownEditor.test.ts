@@ -34,7 +34,6 @@ vi.mock("lucide-react-native", () =>
     [
       "ArrowLeft",
       "ArrowDown",
-      "ArrowUp",
       "Check",
       "ImagePlus",
       "Link",

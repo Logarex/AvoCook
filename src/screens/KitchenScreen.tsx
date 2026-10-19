@@ -414,7 +414,6 @@ function KitchenContent({ navigation, route }: Props) {
       >
         <Screen
           contentStyle={{ paddingBottom: getTabBarContentInset(insets.bottom) }}
-          floatingBottomOffset={getTabBarContentInset(insets.bottom)}
           header={
             <ScreenHeader
               title={t("kitchen.title")}

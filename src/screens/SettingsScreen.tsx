@@ -520,7 +520,6 @@ export function SettingsScreen({ navigation, route }: Props) {
 
   return (
     <Screen
-      showScrollTop={false}
       contentWidth={640}
       header={
         <ScreenHeader

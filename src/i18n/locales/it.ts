@@ -381,7 +381,6 @@ export default {
 
       add: "Aggiungi",
       back: "Indietro",
-      backToTop: "Torna in alto",
       cancel: "Annulla",
       clearSearch: "Cancella ricerca",
       delete: "Elimina",

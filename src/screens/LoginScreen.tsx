@@ -107,7 +107,6 @@ export function LoginScreen({ route, navigation }: Props) {
     <Screen
       contentStyle={styles.screen}
       contentWidth={640}
-      showScrollTop={false}
     >
       <View style={styles.topArea}>
         <LanguagePicker

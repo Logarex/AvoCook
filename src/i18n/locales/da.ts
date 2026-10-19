@@ -380,7 +380,6 @@ export default {
       saved: "Gemt",
       add: "Tilføj",
       back: "Tilbage",
-      backToTop: "Tilbage til toppen",
       cancel: "Annuller",
       clearSearch: "Ryd søgning",
       delete: "Slet",
