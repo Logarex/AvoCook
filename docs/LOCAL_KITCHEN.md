@@ -18,6 +18,8 @@ In local shopping mode, Update this week's shopping replaces only that week's ge
 
 Tonight accepts temporary comma-separated ingredient names as well as saved stock. Exact name matches are indicative: quantities and freshness are not verified. Past product dates are excluded. Fewer missing ingredients ranks first; use of products dated within three days breaks ties. Users can preview missing ingredients before adding them.
 
+Tonight initially renders eight results and three missing ingredients per card; the shopping preview contains all missing lines. Further results load on request. Recipe pickers and seasonal suggestions also load progressively, with full recipe titles. Imported optional plural notation such as `Œuf(s)` and `Pomme(s) de terre` matches its ordinary food name.
+
 Food profiles filter the personal recipe list and Tonight. Excluded words are matched against ingredient text. Vegetarian, vegan and gluten-free labels must be entered by the user in a recipe's private journal; unlabelled recipes are excluded when a label is required. None of these filters certifies allergy safety or detects cross-contamination.
 
 ## Cooking, stock and notes
@@ -45,6 +47,8 @@ PDF cookbooks contain up to 50 selected recipes, in selection order, with a cont
 Monthly challenges are friendly themes with public opt-in description markers, using the existing publication and moderation flow. Loaded entries rank by community rating and vote count. This is not a separately audited competition or prize system; rankings may change as further entries load.
 
 ## Development validation
+
+Simulator visual checks on 19 October 2026 covered week navigation, returning to the current week, meal and recipe selection sheets, scrolling, and live Dynamic Type changes from the default setting to an accessibility size. Week controls use a separate date heading; days keep a minimum readable width with horizontal scrolling when necessary. Scrollable screen content keeps its intrinsic height, and text recalculates native measurements when the system font scale changes. The simulator text setting was restored after these checks.
 
 Run `npm run typecheck`, `npm run lint`, and `npm test` (integration tests bind localhost). Rebuild native iOS and Android after prebuild/pod installation: the optional kitchen module is registered in the existing local native package.
 

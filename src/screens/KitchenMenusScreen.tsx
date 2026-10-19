@@ -1,3 +1,4 @@
+import { KitchenRecipeList } from "../components/KitchenRecipeList";
 import React, { useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -106,14 +107,18 @@ export function KitchenMenusScreen() {
                   value={query}
                   onChangeText={setQuery}
                 />
-                {recipes
-                  .filter((recipe) =>
+                <KitchenRecipeList
+                  key={query}
+                  recipes={recipes.filter((recipe) =>
                     markdownToPlainText(recipe.name)
                       .toLocaleLowerCase()
                       .includes(query.toLocaleLowerCase()),
-                  )
-                  .map((recipe) => (
+                  )}
+                >
+                  {(recipe) => (
                     <PrimaryButton
+                      compact
+                      numberOfLines={0}
                       key={recipe.id}
                       label={`${menu.recipeIds.includes(recipe.id!) ? "✓ " : ""}${markdownToPlainText(recipe.name)}`}
                       variant="secondary"
@@ -127,7 +132,8 @@ export function KitchenMenusScreen() {
                           });
                       }}
                     />
-                  ))}
+                  )}
+                </KitchenRecipeList>
                 <PrimaryButton
                   label={t("kitchen.done")}
                   onPress={() => setPicker(false)}

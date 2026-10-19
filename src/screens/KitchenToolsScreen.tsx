@@ -1,3 +1,4 @@
+import { KitchenRecipeList } from "../components/KitchenRecipeList";
 import {
   substitutionAmount,
   EGG_SUBSTITUTION_SOURCE,
@@ -110,16 +111,24 @@ export function KitchenToolsScreen({ section, openRecipe }: Props) {
                 ))}
               </GlassPanel>
               <AppText variant="subtitle">{t("kitchen.recipeIdeas")}</AppText>
-              {seasonal.map((result) => (
-                <PrimaryButton
-                  key={result.recipe.id}
-                  label={`${markdownToPlainText(result.recipe.name)} · ${result.foods.map((food) => t(`kitchen.food_${food.id}`)).join(", ")}`}
-                  variant="secondary"
-                  onPress={() =>
-                    result.recipe.id && openRecipe(result.recipe.id)
-                  }
-                />
-              ))}
+              <KitchenRecipeList
+                key={`${kitchen.data.country}:${month}`}
+                recipes={seasonal.map((result) => result.recipe)}
+              >
+                {(recipe) => (
+                  <PrimaryButton
+                    compact
+                    numberOfLines={0}
+                    key={recipe.id}
+                    label={`${markdownToPlainText(recipe.name)} · ${seasonal
+                      .find((result) => result.recipe === recipe)!
+                      .foods.map((food) => t(`kitchen.food_${food.id}`))
+                      .join(", ")}`}
+                    variant="secondary"
+                    onPress={() => recipe.id && openRecipe(recipe.id)}
+                  />
+                )}
+              </KitchenRecipeList>
               {!seasonal.length && (
                 <AppText muted>{t("kitchen.noResults")}</AppText>
               )}
@@ -318,14 +327,18 @@ export function KitchenToolsScreen({ section, openRecipe }: Props) {
                 value={query}
                 onChangeText={setQuery}
               />
-              {recipes
-                .filter((recipe) =>
+              <KitchenRecipeList
+                key={query}
+                recipes={recipes.filter((recipe) =>
                   markdownToPlainText(recipe.name)
                     .toLocaleLowerCase()
                     .includes(query.toLocaleLowerCase()),
-                )
-                .map((recipe) => (
+                )}
+              >
+                {(recipe) => (
                   <PrimaryButton
+                    compact
+                    numberOfLines={0}
                     key={recipe.id}
                     label={`${selected.includes(recipe.id!) ? "✓ " : ""}${markdownToPlainText(recipe.name)}`}
                     variant="secondary"
@@ -341,7 +354,8 @@ export function KitchenToolsScreen({ section, openRecipe }: Props) {
                         );
                     }}
                   />
-                ))}
+                )}
+              </KitchenRecipeList>
               <PrimaryButton
                 label={t("kitchen.done")}
                 onPress={() => setPicking(false)}

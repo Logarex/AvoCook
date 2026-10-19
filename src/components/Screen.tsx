@@ -59,6 +59,7 @@ export function Screen({
     <View
       style={[
         styles.content,
+        !scroll && styles.flex,
         { maxWidth: contentWidth },
         { paddingBottom: getScreenBottomPadding(insets.bottom) },
         contentStyle,
@@ -167,7 +168,8 @@ const styles = StyleSheet.create({
   content: {
     alignSelf: "center",
     width: "100%",
-    flex: 1,
+    flexGrow: 1,
+    flexShrink: 0,
     gap: spacing.md,
     padding: spacing.md,
   },

@@ -6,6 +6,7 @@ import {
   Text,
   TextProps,
   TextStyle,
+  useWindowDimensions,
 } from "react-native";
 import { parseMarkdown } from "../features/markdown/markdown";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -27,6 +28,7 @@ export function AppText({
   ...props
 }: AppTextProps) {
   const { colors } = useAppTheme();
+  const { fontScale } = useWindowDimensions();
   const nodes = React.useMemo(
     () =>
       markdown && typeof children === "string"
@@ -40,6 +42,8 @@ export function AppText({
 
   return (
     <Text
+      // Recreate native text measurements after live Dynamic Type changes.
+      key={fontScale}
       {...props}
       adjustsFontSizeToFit={adjustsFontSizeToFit}
       minimumFontScale={props.minimumFontScale ?? 0.85}

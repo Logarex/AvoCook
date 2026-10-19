@@ -92,6 +92,7 @@ export function normalizeFood(value: string): string {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
+    .replace(/(\p{L})\((?:s|x)\)(?=\s|$)/gu, "$1")
     .replace(/œ/g, "oe")
     .replace(/æ/g, "ae")
     .replace(/ø/g, "o")

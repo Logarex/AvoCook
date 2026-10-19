@@ -1,3 +1,4 @@
+import { KitchenRecipeList } from "../components/KitchenRecipeList";
 import { kitchenHistory } from "../features/kitchen/history";
 import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import { KitchenBackupScreen } from "./KitchenBackupScreen";
@@ -19,7 +20,9 @@ import {
   ActivityIndicator,
   Alert,
   Pressable,
+  ScrollView,
   StyleSheet,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useTranslation } from "react-i18next";
@@ -97,6 +100,8 @@ function KitchenContent({ navigation, route }: Props) {
   const kitchen = useKitchen();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const { fontScale } = useWindowDimensions();
+  const [calendarWidth, setCalendarWidth] = useState(0);
   const [selectedDay, setSelectedDay] = useState(localDate());
   const { recipes, loading: recipesLoading } = useRecipes();
   const shopping = useShoppingList();
@@ -131,6 +136,11 @@ function KitchenContent({ navigation, route }: Props) {
   const [rated, setRated] = useState(false);
   const [difficulty, setDifficulty] = useState(false);
   const [excluded, setExcluded] = useState("");
+  const [showFilters, setShowFilters] = useState(false);
+  const [resultLimit, setResultLimit] = useState(8);
+  useEffect(() => {
+    setResultLimit(8);
+  }, [availableInput, query, quick, rated, difficulty, excluded, kitchen.data]);
   const [busy, setBusy] = useState(false);
   const [meal, setMeal] = useState<Meal | null>(null);
   const [freeIngredients, setFreeIngredients] = useState("");
@@ -395,21 +405,26 @@ function KitchenContent({ navigation, route }: Props) {
             <>
               {tab === "planner" && (
                 <>
+                  <AppText variant="label" style={styles.weekTitle}>
+                    {dateLabel(dates[0])} – {dateLabel(dates[6])}
+                  </AppText>
                   <View style={styles.weekRow}>
                     <IconButton
                       icon={ArrowLeft}
                       label={t("kitchen.previousWeek")}
                       onPress={() => setWeek(shiftDate(week, -7))}
                     />
-                    <View style={{ flex: 1 }}>
-                      <AppText variant="label" style={{ textAlign: "center" }}>
-                        {dateLabel(dates[0])} – {dateLabel(dates[6])}
-                      </AppText>
-                      {button("thisWeek", () => {
+                    <PrimaryButton
+                      compact
+                      numberOfLines={0}
+                      style={styles.weekToday}
+                      variant="secondary"
+                      label={t("kitchen.thisWeek")}
+                      onPress={() => {
                         setWeek(today);
                         setSelectedDay(today);
-                      })}
-                    </View>
+                      }}
+                    />
                     <IconButton
                       icon={ArrowRight}
                       label={t("kitchen.nextWeek")}
@@ -417,47 +432,63 @@ function KitchenContent({ navigation, route }: Props) {
                     />
                   </View>
                   <AppText muted>{t("kitchen.plannerHelp")}</AppText>
-                  <View style={styles.wrapDays}>
-                    {dates.map((date) => (
-                      <Pressable
-                        ref={(view) => {
-                          if (view) dayRefs.current.set(date, view);
-                          else dayRefs.current.delete(date);
-                        }}
-                        key={date}
-                        accessibilityRole="button"
-                        accessibilityState={{ selected: date === activeDay }}
-                        accessibilityLabel={dateLabel(date)}
-                        onPress={() => setSelectedDay(date)}
-                        style={[
-                          styles.day,
-                          {
-                            backgroundColor:
-                              date === activeDay
-                                ? colors.chip
-                                : colors.backgroundElevated,
-                            borderColor:
-                              date === activeDay
-                                ? colors.primary
-                                : colors.border,
-                          },
-                        ]}
-                      >
-                        <AppText variant="caption" numberOfLines={1}>
-                          {new Date(`${date}T12:00:00`).toLocaleDateString(
-                            i18n.language,
-                            { weekday: "short" },
-                          )}
-                        </AppText>
-                        <AppText variant="subtitle">
-                          {new Date(`${date}T12:00:00`).getDate()}
-                        </AppText>
-                        <AppText variant="caption" muted>
-                          {planned.filter((meal) => meal.date === date)
-                            .length || "—"}
-                        </AppText>
-                      </Pressable>
-                    ))}
+                  <View
+                    onLayout={(event) =>
+                      setCalendarWidth(event.nativeEvent.layout.width)
+                    }
+                  >
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.wrapDays}
+                    >
+                      {dates.map((date) => (
+                        <Pressable
+                          ref={(view) => {
+                            if (view) dayRefs.current.set(date, view);
+                            else dayRefs.current.delete(date);
+                          }}
+                          key={date}
+                          accessibilityRole="button"
+                          accessibilityState={{ selected: date === activeDay }}
+                          accessibilityLabel={dateLabel(date)}
+                          onPress={() => setSelectedDay(date)}
+                          style={[
+                            styles.day,
+                            {
+                              width: Math.max(
+                                44 * fontScale,
+                                (calendarWidth - 24) / 7,
+                              ),
+                            },
+                            {
+                              backgroundColor:
+                                date === activeDay
+                                  ? colors.chip
+                                  : colors.backgroundElevated,
+                              borderColor:
+                                date === activeDay
+                                  ? colors.primary
+                                  : colors.border,
+                            },
+                          ]}
+                        >
+                          <AppText variant="caption" style={styles.dayText}>
+                            {new Date(`${date}T12:00:00`).toLocaleDateString(
+                              i18n.language,
+                              { weekday: "short" },
+                            )}
+                          </AppText>
+                          <AppText variant="subtitle">
+                            {new Date(`${date}T12:00:00`).getDate()}
+                          </AppText>
+                          <AppText variant="caption" muted>
+                            {planned.filter((meal) => meal.date === date)
+                              .length || "—"}
+                          </AppText>
+                        </Pressable>
+                      ))}
+                    </ScrollView>
                   </View>
                   <AppText variant="caption" muted>
                     {t("kitchen.dragHelp")}
@@ -774,29 +805,45 @@ function KitchenContent({ navigation, route }: Props) {
                     value={availableInput}
                     onChangeText={setAvailableInput}
                   />
-                  <AppText muted>{t("kitchen.matchHelp")}</AppText>
-                  <TextField
-                    label={t("common.search")}
-                    value={query}
-                    onChangeText={setQuery}
-                  />
-                  <TextField
-                    label={t("kitchen.exclude")}
-                    value={excluded}
-                    onChangeText={setExcluded}
-                  />
                   <AppText variant="caption" muted>
-                    {t("kitchen.allergyNotice")}
+                    {t("kitchen.matchHelp")}
                   </AppText>
-                  <View style={styles.wrap}>
-                    {button("quick", () => setQuick(!quick), quick)}
-                    {button("highRating", () => setRated(!rated), rated)}
-                    {button(
-                      "easy",
-                      () => setDifficulty(!difficulty),
-                      difficulty,
+                  <PrimaryButton
+                    compact
+                    variant="secondary"
+                    label={t(
+                      showFilters
+                        ? "kitchen.hideFilters"
+                        : "kitchen.showFilters",
                     )}
-                  </View>
+                    onPress={() => setShowFilters(!showFilters)}
+                  />
+                  {showFilters && (
+                    <>
+                      <TextField
+                        label={t("common.search")}
+                        value={query}
+                        onChangeText={setQuery}
+                      />
+                      <TextField
+                        label={t("kitchen.exclude")}
+                        value={excluded}
+                        onChangeText={setExcluded}
+                      />
+                      <AppText variant="caption" muted>
+                        {t("kitchen.allergyNotice")}
+                      </AppText>
+                      <View style={styles.wrap}>
+                        {button("quick", () => setQuick(!quick), quick)}
+                        {button("highRating", () => setRated(!rated), rated)}
+                        {button(
+                          "easy",
+                          () => setDifficulty(!difficulty),
+                          difficulty,
+                        )}
+                      </View>
+                    </>
+                  )}
                   <PrimaryButton
                     label={t("kitchen.surprise")}
                     disabled={!candidates.length}
@@ -809,39 +856,62 @@ function KitchenContent({ navigation, route }: Props) {
                   {!suggestions.length && (
                     <AppText muted>{t("kitchen.noResults")}</AppText>
                   )}
-                  {suggestions.map(({ recipe, missing, expiring }) => (
-                    <GlassPanel key={recipe.id} style={styles.panel}>
-                      <AppText variant="subtitle">
-                        {markdownToPlainText(recipe.name)}
-                      </AppText>
-                      <AppText>
-                        {t("kitchen.missing", { count: missing.length })}
-                        {expiring
-                          ? ` · ${t("kitchen.urgent", { count: expiring })}`
-                          : ""}
-                      </AppText>
-                      {missing.map((line, i) => (
-                        <AppText key={i} muted>
-                          • {markdownToPlainText(line)}
+                  <AppText muted>
+                    {t("kitchen.resultCount", {
+                      shown: Math.min(resultLimit, suggestions.length),
+                      total: suggestions.length,
+                    })}
+                  </AppText>
+                  {suggestions
+                    .slice(0, resultLimit)
+                    .map(({ recipe, missing, expiring }) => (
+                      <GlassPanel key={recipe.id} style={styles.panel}>
+                        <AppText variant="subtitle">
+                          {markdownToPlainText(recipe.name)}
                         </AppText>
-                      ))}
-                      <View style={styles.wrap}>
-                        {button(
-                          "open",
-                          () =>
-                            recipe.id &&
-                            navigation.navigate("RecipeDetail", {
-                              id: recipe.id,
-                            }),
+                        <AppText>
+                          {t("kitchen.missing", { count: missing.length })}
+                          {expiring
+                            ? ` · ${t("kitchen.urgent", { count: expiring })}`
+                            : ""}
+                        </AppText>
+                        {missing.slice(0, 3).map((line, i) => (
+                          <AppText key={i} muted>
+                            • {markdownToPlainText(line)}
+                          </AppText>
+                        ))}
+                        {missing.length > 3 && (
+                          <AppText muted variant="caption">
+                            {t("kitchen.otherMissing", {
+                              count: missing.length - 3,
+                            })}
+                          </AppText>
                         )}
-                        {!!missing.length &&
-                          button("addMissing", () => {
-                            setPreviewWeek(null);
-                            setPreview(missing);
-                          })}
-                      </View>
-                    </GlassPanel>
-                  ))}
+                        <View style={styles.wrap}>
+                          {button(
+                            "open",
+                            () =>
+                              recipe.id &&
+                              navigation.navigate("RecipeDetail", {
+                                id: recipe.id,
+                              }),
+                          )}
+                          {!!missing.length &&
+                            button("addMissing", () => {
+                              setPreviewWeek(null);
+                              setPreview(missing);
+                            })}
+                        </View>
+                      </GlassPanel>
+                    ))}
+                  {resultLimit < suggestions.length && (
+                    <PrimaryButton
+                      compact
+                      variant="secondary"
+                      label={t("kitchen.showMore")}
+                      onPress={() => setResultLimit((limit) => limit + 8)}
+                    />
+                  )}
                 </>
               )}
               {tab === "batch" && (
@@ -1189,14 +1259,18 @@ function KitchenContent({ navigation, route }: Props) {
                 {!recipes.length && (
                   <AppText muted>{t("kitchen.noResults")}</AppText>
                 )}
-                {recipes
-                  .filter((recipe) =>
+                <KitchenRecipeList
+                  key={recipeQuery}
+                  recipes={recipes.filter((recipe) =>
                     markdownToPlainText(recipe.name)
                       .toLocaleLowerCase()
                       .includes(recipeQuery.toLocaleLowerCase()),
-                  )
-                  .map((recipe) => (
+                  )}
+                >
+                  {(recipe) => (
                     <PrimaryButton
+                      compact
+                      numberOfLines={0}
                       key={recipe.id}
                       label={`${tab === "batch" && batch.includes(recipe.id!) ? "✓ " : ""}${markdownToPlainText(recipe.name)}`}
                       variant="secondary"
@@ -1207,7 +1281,8 @@ function KitchenContent({ navigation, route }: Props) {
                       }
                       onPress={() => selectRecipe(recipe)}
                     />
-                  ))}
+                  )}
+                </KitchenRecipeList>
                 {button("done", () => setPicker(false))}
               </View>
             )}
@@ -1361,10 +1436,12 @@ const styles = StyleSheet.create({
   panel: { gap: 12 },
   wrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   weekRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  weekTitle: { textAlign: "center", flexShrink: 1 },
+  weekToday: { flex: 1, minWidth: 0 },
   wrapDays: { flexDirection: "row", gap: 4 },
+  dayText: { textAlign: "center" },
   day: {
-    flex: 1,
-    minWidth: 0,
+    flexShrink: 0,
     minHeight: 82,
     alignItems: "center",
     justifyContent: "center",

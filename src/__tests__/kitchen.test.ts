@@ -37,6 +37,23 @@ const stock = (name: string, expires = ""): StockItem => ({
 });
 
 describe("local kitchen", () => {
+  it("matches imported optional plural notation without removing preparation details", () => {
+    const results = rankRecipes(
+      [
+        recipe("eggs", ["2 Œuf(s)"]),
+        recipe("potatoes", ["3 Pomme(s) de terre"]),
+      ],
+      [stock("œufs"), stock("pommes de terre")],
+      "2026-10-19",
+    );
+    expect(results.every((result) => result.missing.length === 0)).toBe(true);
+    expect(parseIngredient("2 œufs (blancs)").key).not.toBe(
+      parseIngredient("œufs").key,
+    );
+    expect(
+      consolidateIngredients([{ line: "1 Œuf(s)" }, { line: "2 œufs" }]),
+    ).toEqual(["3 Œuf(s)"]);
+  });
   it("builds Monday–Sunday weeks across DST, year boundaries and leap years", () => {
     expect(weekDates("2026-10-25")).toEqual([
       "2026-10-19",

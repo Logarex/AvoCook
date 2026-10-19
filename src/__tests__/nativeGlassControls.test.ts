@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BottomNavigation } from "../components/BottomNavigation";
 import { IconButton } from "../components/IconButton";
 import { PrimaryButton } from "../components/PrimaryButton";
+import { KitchenRecipeList } from "../components/KitchenRecipeList";
+import type { Recipe } from "../features/recipes/types";
 
 const mocks = vi.hoisted(() => ({ native: true }));
 vi.mock("expo", () => ({ requireOptionalNativeModule: () => null }));
@@ -110,9 +112,55 @@ function nodes(type: string) {
 }
 
 describe("native Liquid Glass controls", () => {
+  it("keeps a large kitchen collection responsive while allowing access to later recipes", async () => {
+    const recipes = Array.from({ length: 168 }, (_, index) => ({
+      id: String(index),
+      name: `Recipe ${index}`,
+    })) as Recipe[];
+    const onSelect = vi.fn();
+    await render(
+      // Render-function children are not ReactNode arguments to createElement.
+      // eslint-disable-next-line react/no-children-prop
+      React.createElement(KitchenRecipeList, {
+        recipes,
+        children: (recipe: Recipe) =>
+          React.createElement(PrimaryButton, {
+            key: recipe.id,
+            compact: true,
+            label: recipe.name,
+            onPress: () => onSelect(recipe.id),
+          }),
+      }),
+    );
+    expect(nodes("Pressable")).toHaveLength(13);
+    expect(
+      nodes("Pressable").some(
+        (node) => node.props.accessibilityLabel === "Recipe 12",
+      ),
+    ).toBe(false);
+    await act(async () =>
+      nodes("Pressable")
+        .find((node) => node.props.accessibilityLabel === "kitchen.showMore")!
+        .props.onPress(),
+    );
+    expect(nodes("Pressable")).toHaveLength(25);
+    await act(async () =>
+      nodes("Pressable")
+        .find((node) => node.props.accessibilityLabel === "Recipe 23")!
+        .props.onPress(),
+    );
+    expect(onSelect).toHaveBeenCalledWith("23");
+    expect(nodes("NativeButton")).toHaveLength(0);
+  });
   it("keeps compact controls measurable in wrapped rows when native glass is enabled", async () => {
     const onPress = vi.fn();
-    await render(React.createElement(PrimaryButton, { label: "Meal plan", onPress, compact: true }));
+    await render(
+      React.createElement(PrimaryButton, {
+        label: "Meal plan",
+        onPress,
+        compact: true,
+      }),
+    );
     expect(nodes("NativeButton")).toHaveLength(0);
     const button = nodes("Pressable")[0];
     expect(button.props.accessibilityLabel).toBe("Meal plan");
@@ -214,7 +262,12 @@ describe("native Liquid Glass controls", () => {
     expect(nodes("Pressable")).toHaveLength(0);
     expect(
       tabs.props.items.map((item: { title: string }) => item.title),
-    ).toEqual(["recipes.title", "kitchen.title", "community.title", "shoppingList.title"]);
+    ).toEqual([
+      "recipes.title",
+      "kitchen.title",
+      "community.title",
+      "shoppingList.title",
+    ]);
     await act(async () =>
       tabs.props.onSelect({ nativeEvent: { id: "community" } }),
     );

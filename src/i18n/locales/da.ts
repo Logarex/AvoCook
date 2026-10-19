@@ -257,7 +257,12 @@ export default {
       "planRecipe": "Føj til madplan",
       "privacyDataSummary": "Køkkenplaner, lager, menuer, noter og historik er lokale og adskilt efter konto. Private noter udgives ikke med opskrifter. Den fulde køkkensikkerhedskopi indeholder private data og bør opbevares et omhyggeligt valgt sted.",
       "privacyVoiceSummary": "Valgfrie stemmekommandoer bruger mikrofon og kun lokal genkendelse uden at gemme lyd eller transskriptioner. Lytning stopper i baggrunden. Lagerpåmindelser er lokale; varenavne kan vises på låseskærmen efter dine indstillinger.",
-      "timerPersistenceError": "Timerens tilstand kunne ikke gemmes. Timeren kører i denne session, men gendannelse efter lukning er ikke sikret."
+      "timerPersistenceError": "Timerens tilstand kunne ikke gemmes. Timeren kører i denne session, men gendannelse efter lukning er ikke sikret.",
+      "showFilters": "Vis filtre",
+      "hideFilters": "Skjul filtre",
+      "showMore": "Vis flere opskrifter",
+      "resultCount": "Viser {{shown}} af {{total}} opskrifter",
+      "otherMissing": "Andre manglende ingredienser: {{count}}"
 },
     ui: {
       privacyData: "Dine data",

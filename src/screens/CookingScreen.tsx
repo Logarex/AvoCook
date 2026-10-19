@@ -201,12 +201,14 @@ function CookingSteps({
       </GlassPanel>
       <View style={styles.row}>
         <PrimaryButton
+          compact
           label={t("kitchen.previous")}
           disabled={safeStep === 0}
           onPress={() => setStep(safeStep - 1)}
           style={styles.flex}
         />
         <PrimaryButton
+          compact
           label={t("kitchen.next")}
           disabled={safeStep === recipe.recipeInstructions.length - 1}
           onPress={() => setStep(safeStep + 1)}
@@ -307,7 +309,7 @@ function CookingSteps({
 }
 const styles = StyleSheet.create({
   step: { fontSize: 28, lineHeight: 42 },
-  row: { flexDirection: "row", gap: 12 },
-  flex: { flex: 1 },
+  row: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  flex: { flexGrow: 1, flexBasis: 130 },
   panel: { gap: 12 },
 });
