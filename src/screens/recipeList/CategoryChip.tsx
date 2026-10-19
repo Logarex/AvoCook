@@ -1,4 +1,3 @@
-import { Check } from 'lucide-react-native';
 import React from "react";
 import { Pressable, View } from "react-native";
 import { AppText } from "../../components/AppText";
@@ -34,9 +33,6 @@ export function CategoryChip({
         },
       ]}
     >
-      {selected ? (
-        <Check color={colors.textInverted} size={14} strokeWidth={3} />
-      ) : null}
       <AppText markdown
         variant="label"
         style={[
