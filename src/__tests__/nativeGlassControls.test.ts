@@ -4,6 +4,7 @@ import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { BottomNavigation } from "../components/BottomNavigation";
 import { IconButton } from "../components/IconButton";
+import { ScreenHeader } from "../components/ScreenHeader";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { KitchenRecipeList } from "../components/KitchenRecipeList";
 import type { Recipe } from "../features/recipes/types";
@@ -47,6 +48,7 @@ vi.mock("../theme/ThemeProvider", () => ({
       textInverted: "white",
       text: "black",
       textMuted: "gray",
+      backgroundElevated: "white",
     },
   }),
 }));
@@ -58,6 +60,7 @@ vi.mock("react-i18next", () => ({
 }));
 vi.mock("lucide-react-native", () => ({
   BookOpen: "Book",
+  ArrowLeft: "Back",
   CalendarDays: "Calendar",
   Globe: "Globe",
   ShoppingCart: "Cart",
@@ -112,6 +115,23 @@ function nodes(type: string) {
 }
 
 describe("native Liquid Glass controls", () => {
+  it("omits back navigation for tab headers and preserves it on secondary screens", async () => {
+    await render(React.createElement(ScreenHeader, { title: "Ma cuisine" }));
+    expect(nodes("NativeButton")).toHaveLength(0);
+    expect(nodes("Pressable")).toHaveLength(0);
+    const onBack = vi.fn();
+    await act(async () => screen!.update(React.createElement(ScreenHeader, { title: "Recipe", onBack })));
+    expect(nodes("NativeButton")).toHaveLength(1);
+    await act(async () => nodes("NativeButton")[0].props.onPress());
+    expect(onBack).toHaveBeenCalledOnce();
+  });
+  it("outlines compact secondary actions even when the glass surface is transparent", async () => {
+    await render(React.createElement(PrimaryButton, {
+      label: "Change meal options", compact: true, variant: "secondary", onPress: vi.fn(),
+    }));
+    expect(nodes("Pressable")[0].props.style({ pressed: false })).toContainEqual({ borderColor: "green", borderWidth: 1 });
+  });
+
   it("keeps a large kitchen collection responsive while allowing access to later recipes", async () => {
     const recipes = Array.from({ length: 168 }, (_, index) => ({
       id: String(index),
@@ -218,6 +238,9 @@ describe("native Liquid Glass controls", () => {
       expect(nodes("Glass")).toHaveLength(0);
       expect(nodes("Text")[0].props.style).toContainEqual({ color: "gray" });
       expect(nodes("Pressable")[0].props.disabled).toBe(true);
+      expect(nodes("Pressable")[0].props.style({ pressed: false })).toContainEqual({
+        backgroundColor: "white", borderColor: "gray", borderWidth: 1,
+      });
       const labelContainer = nodes("Text")[0].parent!;
       expect(labelContainer.props.style.opacity).toBeUndefined();
     },

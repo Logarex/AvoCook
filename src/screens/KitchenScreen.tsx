@@ -417,7 +417,6 @@ function KitchenContent({ navigation, route }: Props) {
           header={
             <ScreenHeader
               title={t("kitchen.title")}
-              onBack={() => navigation.goBack()}
               actions={
                 <IconButton
                   icon={Wrench}
@@ -1356,7 +1355,7 @@ function KitchenContent({ navigation, route }: Props) {
                 </AppText>
                 <PrimaryButton
                   compact
-                  variant="ghost"
+                  variant="secondary"
                   label={t(
                     mealOptions
                       ? "kitchen.hideMealOptions"

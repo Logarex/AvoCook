@@ -104,11 +104,14 @@ export function PrimaryButton({
       style={({ pressed }) => [
         styles.button,
         compact && { flexShrink: 1 },
+        !plain && !disabled && variant === "secondary"
+          ? { borderColor: colors.primary, borderWidth: 1 }
+          : undefined,
         disabled && !plain
           ? {
-              backgroundColor: colors.background,
-              borderColor: colors.border,
-              borderWidth: StyleSheet.hairlineWidth,
+              backgroundColor: colors.backgroundElevated,
+              borderColor: colors.textMuted,
+              borderWidth: 1,
             }
           : undefined,
         {

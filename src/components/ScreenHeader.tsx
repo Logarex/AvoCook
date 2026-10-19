@@ -12,13 +12,17 @@ export function ScreenHeader({
   actions,
 }: {
   title?: string;
-  onBack: () => void;
+  onBack?: () => void;
   actions?: React.ReactNode;
 }) {
   const { t } = useTranslation();
   return (
     <View style={styles.header}>
-      <IconButton icon={ArrowLeft} label={t("common.back")} onPress={onBack} />
+      {onBack ? (
+        <IconButton icon={ArrowLeft} label={t("common.back")} onPress={onBack} />
+      ) : (
+        <View style={styles.backPlaceholder} />
+      )}
       {title ? (
         <AppText
           accessibilityRole="header"
@@ -45,6 +49,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
+  backPlaceholder: { width: 44 },
   title: {
     flex: 1,
     minWidth: 0,
