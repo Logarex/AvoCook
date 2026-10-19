@@ -35,6 +35,7 @@ type ScreenProps = {
   header?: React.ReactNode;
   footer?: React.ReactNode;
   contentWidth?: number;
+  floatingBottomOffset?: number;
 };
 
 export function Screen({
@@ -46,6 +47,7 @@ export function Screen({
   header,
   footer,
   contentWidth = 760,
+  floatingBottomOffset,
 }: ScreenProps) {
   const scrollRef = React.useRef<ScrollView>(null);
   const [contentHeight, setContentHeight] = React.useState(0);
@@ -129,7 +131,10 @@ export function Screen({
                 tone="primary"
                 style={[
                   styles.scrollTopButton,
-                  { bottom: getFloatingBottomOffset(insets.bottom) },
+                  {
+                    bottom:
+                      floatingBottomOffset ?? getFloatingBottomOffset(insets.bottom),
+                  },
                 ]}
               />
             ) : null}

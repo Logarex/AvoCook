@@ -1,10 +1,18 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { usePreventRemove } from "@react-navigation/native";
 import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { Check, ImagePlus, Link, Plus, X } from "lucide-react-native";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Platform, Pressable, StyleSheet, Switch, View } from "react-native";
+import {
+  Alert,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Switch,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ActionMenu } from "../components/ActionMenu";
 import { AppText } from "../components/AppText";
@@ -59,11 +67,18 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const initialRecipe = useMemo(
     () =>
       existingRecipe ??
+      (route.params.draft
+        ? normalizeRecipe({
+            ...route.params.draft,
+            id: null,
+            recipe_id: undefined,
+          })
+        : undefined) ??
       normalizeRecipe({
         ...createEmptyRecipe(),
         recipeCategory: route.params.category ?? "",
       }),
-    [existingRecipe, route.params.category],
+    [existingRecipe, route.params.category, route.params.draft],
   );
 
   const [name, setName] = useState(initialRecipe.name);
@@ -118,6 +133,22 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const [fiber, setFiber] = useState(initialNutrition.fiber);
   const [protein, setProtein] = useState(initialNutrition.protein);
   const [saving, setSaving] = useState(false);
+  const savedDraft = useRef(false);
+  usePreventRemove(Boolean(route.params.draft), ({ data }) => {
+    if (savedDraft.current) {
+      navigation.dispatch(data.action);
+      return;
+    }
+    if (saving) return;
+    Alert.alert(t("kitchen.unsaved"), t("kitchen.unsavedBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("kitchen.discard"),
+        style: "destructive",
+        onPress: () => navigation.dispatch(data.action),
+      },
+    ]);
+  });
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const categorySuggestions = useMemo(() => {
@@ -253,6 +284,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
       const saved = existingRecipe
         ? await updateRecipe(recipe)
         : await createRecipe(recipe);
+      savedDraft.current = true;
       if (saved.id) {
         if (existingRecipe && navigation.canGoBack()) {
           navigation.goBack();

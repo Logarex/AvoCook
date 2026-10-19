@@ -28,6 +28,7 @@ export function KitchenDailyScreen({
   onStock,
   onWeek,
   onRecipe,
+  onFridge,
 }: {
   today?: string;
   onAdd: (slot: Meal["slot"], kind?: Meal["kind"]) => void;
@@ -36,6 +37,7 @@ export function KitchenDailyScreen({
   onStock: () => void;
   onWeek: () => void;
   onRecipe: (id: string) => void;
+  onFridge: () => void;
 }) {
   const { t, i18n } = useTranslation();
   const kitchen = useKitchen();
@@ -164,6 +166,7 @@ export function KitchenDailyScreen({
         label={t("kitchen.decideTonight")}
         onPress={() => onIdeas()}
       />
+    <PrimaryButton compact variant="secondary" label={t("kitchen.fridgeAction")} onPress={onFridge} />
       <PrimaryButton
         compact
         variant="ghost"

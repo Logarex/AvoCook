@@ -1,6 +1,6 @@
 # Local kitchen features
 
-All features below run on the device. Source links open a browser only when requested.
+The planning, stock, matching and cooking tools run on the device. The optional fridge AI assistant contacts the provider configured by the user, only on explicit request. Source links open a browser only when requested.
 
 ## Everyday planning
 
@@ -25,6 +25,18 @@ Tonight accepts temporary comma-separated ingredient names as well as saved stoc
 Tonight initially renders eight results and three missing ingredients per card; the shopping preview contains all missing lines. Further results load on request. Recipe pickers and seasonal suggestions also load progressively, with full recipe titles. Imported optional plural notation such as `Œuf(s)` and `Pomme(s) de terre` matches its ordinary food name.
 
 Food profiles filter the personal recipe list and Tonight. Excluded words are matched against ingredient text. Vegetarian, vegan and gluten-free labels must be entered by the user in a recipe's private journal; unlabelled recipes are excluded when a label is required. None of these filters certifies allergy safety or detects cross-contamination.
+
+## Optional fridge AI assistant
+
+Today and Meal ideas offer a recipe draft from entered ingredients or a fridge/leftovers photo. It reuses the Assistant API key, provider and model. Without a key, the screen links to Assistant settings. Provider charges may apply; the local kitchen tools remain available without AI.
+
+Selecting a photo does not upload it. Analyze sends the chosen JPEG to the configured vision-capable model. Recognized food names become editable text; uncertain names stay separate. Users check this list before explicitly generating a recipe, with portions, target time and visible editable preferences. Stock is imported only on request, excluding past dates. Photo data is cleared from screen state after analysis and is not attached to the recipe or saved in My kitchen data.
+
+Generation sends the confirmed text and constraints, then displays a draft. Edit and save opens the existing recipe editor; saving is explicit and follows the normal recipe storage/sync settings. Neither groceries nor stock is modified automatically. Model output cannot supply recipe IDs, images or source URLs. Ingredient quantities, cooking guidance and dietary compatibility still need user review; image recognition cannot verify freshness or allergens.
+
+Requests have a 60-second limit, cancellation, no automatic paid retries and no provider fallback. Changing account or assistant configuration cancels pending work; late responses are ignored. Provider failures preserve input and show translated recovery guidance. The full photo is preserved by disabling square cropping; JPEG payloads above approximately 4.5 MB are rejected before upload. Image requests use the existing provider adapters; see [OpenAI image input documentation](https://developers.openai.com/api/docs/guides/images-vision).
+
+Automated tests mock providers and cover all six app languages, provider request formats, rejected keys, quotas, malformed responses, timeout/cancellation, photo review, draft handoff and explicit saving. The iOS simulator check covered entry and the no-key setup state. No live paid provider request or real-device camera test was performed.
 
 ## Cooking, stock and notes
 

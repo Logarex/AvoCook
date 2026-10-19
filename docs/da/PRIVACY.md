@@ -1,6 +1,6 @@
 # Privatliv og data
 
-Opdateret: 18. oktober 2026. AvoCook indeholder ikke reklamer eller analyseværktøjer. Nogle funktioner bruger de netværkstjenester, der er beskrevet her.
+Opdateret: 19. oktober 2026. AvoCook indeholder ikke reklamer eller analyseværktøjer. Nogle funktioner bruger de netværkstjenester, der er beskrevet her.
 
 ## Mit køkken, stemme og lokale påmindelser
 
@@ -31,6 +31,8 @@ URL-import henter den valgte side direkte fra webstedet. Webstedet modtager sæd
 Valgfri AI-import og opskriftsgenerering sender det valgte billede eller den indtastede tekst til udbyderen i Indstillinger med din API-nøgle. Kamera og billedbibliotek kan også bruges til at tilføje lokale billeder. Billeder fra synkroniserede, delte eller udgivne opskrifter kan forlade enheden.
 
 Automatisk oversættelse af fællesskabsopskrifter sender teksten til Google Translate og ved fejl til MyMemory. Din AI-API-nøgle bruges ikke. Hentede opskrifter og vellykkede oversættelser gemmes til læsning offline. Udbyderne behandler anmodninger efter deres egne vilkår og privatlivspolitikker.
+
+Den valgfrie køleskabsassistent sender kun et foto, når du vælger Analysér, og kun de bekræftede ingredienser og synlige ønsker, når du vælger Generér. Fotoet vedhæftes ikke opskriften og gemmes ikke i dataene for Mit køkken. At gemme det redigerbare opskriftsudkast er en separat handling og følger dine normale lager- og synkroniseringsindstillinger. Din udbyder kan opkræve betaling for disse anmodninger.
 
 ## Apple Påmindelser, opdateringer og diagnostik
 

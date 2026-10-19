@@ -1,6 +1,6 @@
 # Confidentialité et données
 
-Mise à jour : 18 octobre 2026. AvoCook ne contient ni publicité ni outil d’analyse. Certaines fonctions utilisent les services réseau décrits ci-dessous.
+Mise à jour : 19 octobre 2026. AvoCook ne contient ni publicité ni outil d’analyse. Certaines fonctions utilisent les services réseau décrits ci-dessous.
 
 ## Ma cuisine, voix et rappels locaux
 
@@ -31,6 +31,8 @@ L’importation par URL télécharge directement la page choisie. Le site reçoi
 L’analyse et la génération par IA, facultatives, transmettent la photo sélectionnée ou le texte saisi au fournisseur configuré dans les Réglages, avec votre clé API. L’accès à l’appareil photo et à la photothèque permet aussi d’ajouter des images locales. Les images de recettes synchronisées, partagées ou publiées peuvent quitter l’appareil.
 
 La traduction automatique des recettes communautaires transmet leur texte à Google Translate, puis à MyMemory en cas d’échec. Elle n’utilise pas votre clé API d’IA. Les recettes déjà chargées et les traductions réussies sont conservées sur l’appareil pour une lecture hors ligne. Ces fournisseurs traitent les requêtes selon leurs propres conditions et politiques de confidentialité.
+
+L’assistant frigo facultatif transmet une photo uniquement avec l’action Analyser, puis les ingrédients confirmés et les contraintes visibles uniquement avec l’action Générer. La photo n’est pas jointe à la recette ni enregistrée dans les données de Ma cuisine. Enregistrer le brouillon modifiable est une action distincte, suivant vos réglages habituels de stockage et de synchronisation. Votre fournisseur peut facturer ces requêtes.
 
 ## Rappels Apple, mises à jour et diagnostic
 

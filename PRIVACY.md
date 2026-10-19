@@ -1,6 +1,6 @@
 # Privacy and data
 
-Updated: 18 October 2026. AvoCook has no advertising or analytics tools. Some features use network services as described below.
+Updated: 19 October 2026. AvoCook has no advertising or analytics tools. Some features use network services as described below.
 
 ## My kitchen, voice and local reminders
 
@@ -31,6 +31,8 @@ URL import downloads the selected page directly from its website. That site rece
 Optional AI scanning and generation send the selected photo or entered text to the API provider configured in Settings, using your API key. Camera and photo access also let you add recipe images locally. Images in recipes you sync, share or publish may leave the device.
 
 Automatic community translation sends recipe text to Google Translate, with MyMemory as a fallback. It does not use your configured AI API key. Previously loaded community recipes and successful translations are cached on the device for offline reading. These providers process requests under their own terms and privacy policies.
+
+The optional fridge assistant sends a photo only when you choose Analyze, then sends the confirmed ingredient text and visible constraints only when you choose Generate. The photo is not attached to the recipe or saved in My kitchen data. Saving the editable recipe draft is a separate action and follows your normal storage and sync settings. Your configured provider may charge for these requests.
 
 ## Apple Reminders, updates and diagnostics
 

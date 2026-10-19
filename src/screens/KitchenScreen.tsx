@@ -414,6 +414,7 @@ function KitchenContent({ navigation, route }: Props) {
       >
         <Screen
           contentStyle={{ paddingBottom: getTabBarContentInset(insets.bottom) }}
+          floatingBottomOffset={getTabBarContentInset(insets.bottom)}
           header={
             <ScreenHeader
               title={t("kitchen.title")}
@@ -477,6 +478,7 @@ function KitchenContent({ navigation, route }: Props) {
                     setTab("planner");
                   }}
                   onRecipe={(id) => navigation.navigate("Cooking", { id })}
+                  onFridge={() => navigation.navigate("FridgeRecipe")}
                 />
               )}
               {tab === "planner" && (
@@ -912,6 +914,7 @@ function KitchenContent({ navigation, route }: Props) {
                   <AppText variant="caption" muted>
                     {t("kitchen.matchHelp")}
                   </AppText>
+                  <PrimaryButton compact variant="secondary" label={t("kitchen.fridgeAction")} onPress={() => navigation.navigate("FridgeRecipe", { ingredients: availableInput })} />
                   {button("quick", () => setQuick(!quick), quick)}
                   <PrimaryButton
                     compact

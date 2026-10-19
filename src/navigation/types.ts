@@ -1,3 +1,5 @@
+import type { Recipe } from "../features/recipes/types";
+
 export type SettingsSection =
   | "appearance"
   | "account"
@@ -45,12 +47,14 @@ export type RootStackParamList = {
     | undefined;
   Cooking: { id: string };
   RecipeJournal: { id: string };
+  FridgeRecipe: { ingredients?: string } | undefined;
   RecipeDetail: {
     id: string;
   };
   RecipeEditor: {
     id?: string;
     category?: string;
+    draft?: Recipe;
   };
   ImportRecipe:
     | {

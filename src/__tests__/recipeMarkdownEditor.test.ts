@@ -8,9 +8,14 @@ import { RecipeEditorScreen } from "../screens/RecipeEditorScreen";
 const mocks = vi.hoisted(() => ({
   recipe: undefined as Recipe | undefined,
   save: vi.fn(async (recipe: Recipe) => ({ ...recipe, id: "test" })),
+  preventRemove: vi.fn(),
+}));
+vi.mock("@react-navigation/native", () => ({
+  usePreventRemove: mocks.preventRemove,
 }));
 vi.mock("react-native", () => ({
   View: "View",
+  Alert: { alert: vi.fn() },
   Pressable: "Pressable",
   Switch: "Switch",
   Platform: { OS: "ios" },
@@ -102,11 +107,11 @@ afterEach(async () => {
   if (screen) await act(async () => screen.unmount());
   vi.unstubAllGlobals();
 });
-async function render() {
+async function render(draft?: Recipe) {
   await act(async () => {
     screen = create(
       React.createElement(RecipeEditorScreen, {
-        route: { params: { id: mocks.recipe?.id } },
+        route: { params: { id: mocks.recipe?.id, draft } },
         navigation: {
           canGoBack: () => true,
           goBack: vi.fn(),
@@ -161,6 +166,33 @@ async function save() {
 }
 
 describe("Markdown recipe editing and saving", () => {
+  it("keeps an AI draft editable and unsaved until explicit save, without treating its ID as an update", async () => {
+    const draft = normalizeRecipe({
+      id: "untrusted-model-id",
+      name: "Fridge omelette",
+      recipeYield: 2,
+      recipeIngredient: ["2 eggs"],
+      recipeInstructions: ["Whisk", "Cook"],
+    });
+    await render(draft);
+    expect(input(en.translation.editor.name).props.value).toBe(
+      "Fridge omelette",
+    );
+    expect(mocks.save).not.toHaveBeenCalled();
+    expect(mocks.preventRemove).toHaveBeenLastCalledWith(
+      true,
+      expect.any(Function),
+    );
+    await enter(en.translation.editor.name, "My omelette");
+    await save();
+    expect(mocks.save.mock.calls[0][0]).toMatchObject({
+      id: null,
+      name: "My omelette",
+      recipeYield: 2,
+      recipeIngredient: ["2 eggs"],
+      recipeInstructions: ["Whisk", "Cook"],
+    });
+  });
   it("starts with essentials and preserves existing optional values without opening their sections", async () => {
     mocks.recipe = normalizeRecipe({
       id: "42",

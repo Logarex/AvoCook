@@ -39,6 +39,7 @@ const actions = {
   onStock: vi.fn(),
   onWeek: vi.fn(),
   onRecipe: vi.fn(),
+  onFridge: vi.fn(),
 };
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);

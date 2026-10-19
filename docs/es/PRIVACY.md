@@ -1,6 +1,6 @@
 # Privacidad y datos
 
-Actualizado: 18 de octubre de 2026. AvoCook no incluye publicidad ni herramientas de análisis. Algunas funciones usan los servicios de red descritos a continuación.
+Actualizado: 19 de octubre de 2026. AvoCook no incluye publicidad ni herramientas de análisis. Algunas funciones usan los servicios de red descritos a continuación.
 
 ## Mi cocina, voz y avisos locales
 
@@ -31,6 +31,8 @@ La importación por URL descarga la página elegida directamente del sitio. Este
 La importación y generación con IA son opcionales y envían la foto seleccionada o el texto introducido al proveedor configurado en Ajustes, usando tu clave API. La cámara y la galería también permiten añadir imágenes locales. Las imágenes de recetas sincronizadas, compartidas o publicadas pueden salir del dispositivo.
 
 La traducción automática de recetas de la comunidad envía su texto a Google Translate y, si falla, a MyMemory. No usa tu clave API de IA. Las recetas cargadas y las traducciones se guardan para leerlas sin conexión. Los proveedores procesan las solicitudes según sus propias condiciones y políticas de privacidad.
+
+El asistente opcional del frigorífico envía una foto solo al elegir Analizar y los ingredientes confirmados y las preferencias visibles solo al elegir Generar. AvoCook no adjunta la foto a la receta ni la guarda en los datos de Mi cocina. Guardar el borrador editable es una acción separada que sigue los ajustes habituales de almacenamiento y sincronización. Tu proveedor puede cobrar estas solicitudes.
 
 ## Recordatorios de Apple, actualizaciones y diagnóstico
 

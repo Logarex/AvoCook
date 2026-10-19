@@ -1,6 +1,6 @@
 # Datenschutz und Daten
 
-Stand: 18. Oktober 2026. AvoCook enthält keine Werbung oder Analysewerkzeuge. Einige Funktionen nutzen die folgenden Netzwerkdienste.
+Stand: 19. Oktober 2026. AvoCook enthält keine Werbung oder Analysewerkzeuge. Einige Funktionen nutzen die folgenden Netzwerkdienste.
 
 ## Meine Küche, Sprache und lokale Erinnerungen
 
@@ -31,6 +31,8 @@ Der URL-Import lädt die gewählte Seite direkt vom Anbieter. Die Website erhäl
 Optionaler KI-Import und Rezeptgenerierung senden das gewählte Foto oder den eingegebenen Text mit deinem API-Schlüssel an den in den Einstellungen gewählten Anbieter. Kamera und Fotomediathek ermöglichen auch lokale Rezeptbilder. Bilder synchronisierter, geteilter oder veröffentlichter Rezepte können das Gerät verlassen.
 
 Automatische Community-Übersetzungen senden Rezepttexte an Google Translate und bei Bedarf an MyMemory. Dein KI-API-Schlüssel wird dafür nicht verwendet. Geladene Community-Rezepte und erfolgreiche Übersetzungen werden zum Offline-Lesen gespeichert. Die Anbieter verarbeiten Anfragen nach ihren eigenen Bedingungen und Datenschutzrichtlinien.
+
+Der optionale Kühlschrankassistent sendet ein Foto erst mit Analysieren und die bestätigten Zutaten und sichtbaren Vorgaben erst mit Generieren. Das Foto wird dem Rezept nicht beigefügt und nicht in den Daten von Meine Küche gespeichert. Das Speichern des bearbeitbaren Rezeptentwurfs ist ein separater Schritt und folgt Ihren üblichen Speicher- und Synchronisierungseinstellungen. Ihr Anbieter kann diese Anfragen berechnen.
 
 ## Apple Erinnerungen, Updates und Diagnose
 

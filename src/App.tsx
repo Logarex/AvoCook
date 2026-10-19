@@ -43,6 +43,7 @@ import { useOnboarding } from "./features/onboarding/useOnboarding";
 import { PreferencesProvider } from "./features/preferences/PreferencesProvider";
 import { KitchenProvider } from "./features/kitchen/KitchenProvider";
 import { KitchenScreen } from "./screens/KitchenScreen";
+import { FridgeRecipeScreen } from "./screens/FridgeRecipeScreen";
 import { CookingScreen } from "./screens/CookingScreen";
 import { RecipeJournalScreen } from "./screens/RecipeJournalScreen";
 import { RecipesProvider } from "./features/recipes/RecipesProvider";
@@ -175,6 +176,7 @@ function RootNavigator() {
             <Stack.Screen name="Update" component={UpdateScreen} />
             <Stack.Screen name="Recipes" component={RecipeListScreen} />
             <Stack.Screen name="Kitchen" component={KitchenScreen} />
+            <Stack.Screen name="FridgeRecipe" component={FridgeRecipeScreen} />
             <Stack.Screen name="Cooking" component={CookingScreen} />
             <Stack.Screen
               name="RecipeJournal"
