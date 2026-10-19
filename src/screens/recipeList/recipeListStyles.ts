@@ -24,18 +24,26 @@ export const styles = StyleSheet.create({
   categoryBadge: {
     alignItems: "center",
     borderRadius: radius.pill,
-    minWidth: 26,
-    paddingHorizontal: spacing.xs,
-    paddingVertical: 2,
+    minWidth: 22,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
   },
   categoryChip: {
     alignItems: "center",
     borderRadius: radius.pill,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
-    gap: spacing.xs,
-    minHeight: 48,
-    paddingHorizontal: spacing.sm,
+    gap: 6,
+    minHeight: 44,
+    paddingHorizontal: 10,
+  },
+  categoryLabel: {
+    fontSize: 14,
+    lineHeight: 18,
+  },
+  categoryCount: {
+    fontSize: 12,
+    lineHeight: 16,
   },
   categoryGrid: {
     gap: spacing.xs,

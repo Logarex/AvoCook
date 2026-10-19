@@ -35,11 +35,14 @@ export function CategoryChip({
       ]}
     >
       {selected ? (
-        <Check color={colors.textInverted} size={16} strokeWidth={3} />
+        <Check color={colors.textInverted} size={14} strokeWidth={3} />
       ) : null}
       <AppText markdown
         variant="label"
-        style={{ color: selected ? colors.textInverted : colors.text }}
+        style={[
+          styles.categoryLabel,
+          { color: selected ? colors.textInverted : colors.text },
+        ]}
       >
         {label}
       </AppText>
@@ -53,7 +56,10 @@ export function CategoryChip({
       >
         <AppText
           variant="caption"
-          style={{ color: selected ? colors.textInverted : colors.textMuted }}
+          style={[
+            styles.categoryCount,
+            { color: selected ? colors.textInverted : colors.textMuted },
+          ]}
         >
           {count}
         </AppText>
