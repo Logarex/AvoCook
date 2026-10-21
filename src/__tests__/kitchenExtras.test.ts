@@ -109,7 +109,7 @@ describe("everyday meals and food preferences", () => {
 
 describe("seasonal catalog and menus", () => {
   it("does not extrapolate a French calendar to another country or invalid month", () => {
-    expect(foodsInSeason("DE", 10)).toEqual([]);
+    expect(foodsInSeason("NZ", 10)).toEqual([]);
     expect(foodsInSeason(undefined, 10)).toEqual([]);
     expect(foodsInSeason("FR", 13)).toEqual([]);
     expect(foodsInSeason("FR", 10).map((food) => food.id)).not.toContain(

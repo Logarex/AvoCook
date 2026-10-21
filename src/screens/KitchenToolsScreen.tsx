@@ -4,7 +4,7 @@ import {
   EGG_SUBSTITUTION_SOURCE,
   BAKING_SUBSTITUTION_SOURCE,
 } from "../features/kitchen/substitutions";
-import React, { useMemo, useState } from "react";
+import React, { useState } from "react";
 import { Alert, Linking, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import * as Print from "expo-print";
@@ -18,12 +18,7 @@ import { TextField } from "../components/TextField";
 import { useKitchen } from "../features/kitchen/KitchenProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import { markdownToPlainText } from "../features/markdown/markdown";
-import {
-  seasonalFoods,
-  foodsInSeason,
-  seasonalRecipes,
-  SEASONAL_SOURCE,
-} from "../features/kitchen/seasonal";
+import { KitchenSeasonalSection } from "./KitchenSeasonalSection";
 import { createRecipeBookHtml } from "../features/kitchen/recipeBook";
 
 type Props = {
@@ -31,10 +26,9 @@ type Props = {
   openRecipe: (id: string) => void;
 };
 export function KitchenToolsScreen({ section, openRecipe }: Props) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const kitchen = useKitchen();
   const { recipes } = useRecipes();
-  const [month, setMonth] = useState(String(new Date().getMonth() + 1));
   const [context, setContext] = useState("muffins");
   const [eggs, setEggs] = useState("1");
   const [selected, setSelected] = useState<string[]>([]);
@@ -47,10 +41,6 @@ export function KitchenToolsScreen({ section, openRecipe }: Props) {
     eggs.trim() && /^\d+(?:[.,]\d+)?$/.test(eggs.trim())
       ? substitutionAmount(context, Number(eggs.replace(",", ".")))
       : null;
-  const seasonal = useMemo(
-    () => seasonalRecipes(recipes, kitchen.data.country, Number(month)),
-    [recipes, kitchen.data.country, month],
-  );
   const fail = () => Alert.alert(t("common.error"), t("kitchen.saveError"));
   async function run(action: () => Promise<void>) {
     if (busy) return;
@@ -65,86 +55,7 @@ export function KitchenToolsScreen({ section, openRecipe }: Props) {
   }
   return (
     <View style={styles.panel}>
-      {section === "seasonal" && (
-        <>
-          <ChoiceField
-            label={t("kitchen.country")}
-            value={kitchen.data.country ?? "unset"}
-            options={[
-              { value: "unset", label: t("kitchen.chooseCountry") },
-              { value: "FR", label: t("kitchen.mainlandFrance") },
-              { value: "other", label: t("kitchen.otherCountry") },
-            ]}
-            disabled={busy}
-            onChange={(country) => {
-              if (country !== "unset")
-                void run(() =>
-                  kitchen.update((data) => ({
-                    ...data,
-                    country: country as "FR" | "other",
-                  })),
-                );
-            }}
-          />
-          {kitchen.data.country === "FR" ? (
-            <>
-              <ChoiceField
-                label={t("kitchen.month")}
-                value={month}
-                options={Array.from({ length: 12 }, (_, index) => ({
-                  value: String(index + 1),
-                  label: new Date(2026, index, 1).toLocaleDateString(
-                    i18n.language,
-                    { month: "long" },
-                  ),
-                }))}
-                onChange={setMonth}
-              />
-              <AppText muted>
-                {t("kitchen.seasonHelp", { count: seasonalFoods.length })}
-              </AppText>
-              <GlassPanel style={styles.panel}>
-                {foodsInSeason("FR", Number(month)).map((food) => (
-                  <AppText key={food.id}>
-                    • {t(`kitchen.food_${food.id}`)}
-                  </AppText>
-                ))}
-              </GlassPanel>
-              <AppText variant="subtitle">{t("kitchen.recipeIdeas")}</AppText>
-              <KitchenRecipeList
-                key={`${kitchen.data.country}:${month}`}
-                recipes={seasonal.map((result) => result.recipe)}
-              >
-                {(recipe) => (
-                  <PrimaryButton
-                    compact
-                    numberOfLines={0}
-                    key={recipe.id}
-                    label={`${markdownToPlainText(recipe.name)} · ${seasonal
-                      .find((result) => result.recipe === recipe)!
-                      .foods.map((food) => t(`kitchen.food_${food.id}`))
-                      .join(", ")}`}
-                    variant="secondary"
-                    onPress={() => recipe.id && openRecipe(recipe.id)}
-                  />
-                )}
-              </KitchenRecipeList>
-              {!seasonal.length && (
-                <AppText muted>{t("kitchen.noResults")}</AppText>
-              )}
-            </>
-          ) : (
-            <AppText muted>{t("kitchen.noCountryCatalog")}</AppText>
-          )}
-          <PrimaryButton
-            label={t("kitchen.source")}
-            variant="ghost"
-            onPress={() => {
-              void Linking.openURL(SEASONAL_SOURCE).catch(fail);
-            }}
-          />
-        </>
-      )}
+      {section === "seasonal" && <KitchenSeasonalSection openRecipe={openRecipe} />}
       {section === "substitutions" && (
         <>
           <AppText muted>{t("kitchen.substitutionHelp")}</AppText>

@@ -44,7 +44,7 @@ I built it for personal use while learning to ship a complete React Native proje
 - Enter the ingredients available tonight, or use dated fridge, cupboard and freezer stock, to find recipes with fewer missing ingredients;
 - Cook one large-print step at a time with manually attached step timers, and optional strictly on-device voice commands when supported;
 - Keep private ratings, notes, changes, dietary labels, estimated costs and cooking history;
-- Explore a sourced offline mainland-France seasonal catalog, context-specific baking substitutions, batch preparation and reusable celebration menus;
+- Explore sourced offline fruit and vegetable calendars for 11 countries, with explicit regional coverage, context-specific baking substitutions, batch preparation and reusable celebration menus;
 - Create a text PDF cookbook and export/restore a complete backup including private My kitchen data;
 - Start from Today: note a meal without a recipe, repeat your usual meals, use urgent stock and review groceries before adding them;
 - Optionally create an editable recipe draft from fridge ingredients or a photo, using your configured AI key and model. Review recognized foods before generation; provider charges may apply.

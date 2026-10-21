@@ -900,6 +900,12 @@ function KitchenContent({ navigation, route }: Props) {
               )}
               {tab === "tonight" && (
                 <>
+                  <PrimaryButton
+                    compact
+                    variant="secondary"
+                    label={t("kitchen.seasonal")}
+                    onPress={() => setTab("seasonal")}
+                  />
                   <AppText variant="subtitle">
                     {t("kitchen.recipeIdeas")}
                   </AppText>

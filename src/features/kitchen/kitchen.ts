@@ -1,3 +1,4 @@
+import { isSeasonalArea, type SeasonalAreaId } from "./seasonalAreas";
 import {
   validCookingTimer,
   type CookingTimerSnapshot,
@@ -43,7 +44,7 @@ export type KitchenData = {
   dietaryPreference?: Diet | "";
   remindersEnabled?: boolean;
   menus?: SavedMenu[];
-  country?: "FR" | "other";
+  country?: SeasonalAreaId | "other";
   excludedWords?: string;
   version: 1;
   meals: Meal[];
@@ -494,7 +495,9 @@ export function parseKitchenData(value: unknown): KitchenData {
   )
     throw new Error("Invalid reminders preference");
   if (
-    (raw.country !== undefined && !["FR", "other"].includes(raw.country)) ||
+    (raw.country !== undefined &&
+      raw.country !== "other" &&
+      !isSeasonalArea(raw.country)) ||
     (raw.excludedWords !== undefined && typeof raw.excludedWords !== "string")
   )
     throw new Error("Invalid kitchen preferences");
