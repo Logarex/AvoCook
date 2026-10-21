@@ -1,6 +1,12 @@
 # AvoCook
 
-AvoCook er en mobil opskriftsbog — den fungerer helt offline på din enhed uden brug af en konto. Hvis du har en Nextcloud-server, kan du valgfrit forbinde den for at holde dine opskrifter synkroniseret.
+[English](../../README.md) · [Français](../fr/README.md) · [Deutsch](../de/README.md) · [Español](../es/README.md) · [Italiano](../it/README.md) · [Dansk](README.md)
+
+AvoCook er en gratis køkkenhjælper med åben kildekode til iOS og Android, med eller uden opskrift. Gem opskrifter, planlæg hverdagens måltider, brug de råvarer, du har, og forbered indkøb. De lokale værktøjer virker offline uden at oprette en konto; fællesskab, delte lister, import, valgfri AI og Nextcloud-forbindelser bruger onlinetjenester.
+
+> Denne README beskriver den aktuelle kildekodegren. Butiks- og GitHub-udgivelser indeholder muligvis ikke de seneste ændringer endnu.
+
+[App Store](https://apps.apple.com/app/avocook/id6769012665) · [Google Play](https://play.google.com/store/apps/details?id=app.avocook.mobile) · [APK](https://github.com/Logarex/AvoCook/releases/latest)
 
 ---
 
@@ -12,7 +18,8 @@ AvoCook er en mobil opskriftsbog — den fungerer helt offline på din enhed ude
 - Opskrifter fra fællesskabet vises automatisk på appens sprog, både på listen og i opskriftens detaljer;
 - Se den originale opskrift når som helst, eller importer den oversatte version til din opskriftsbog;
 - Del dine bedste retter ved at oprette en fællesskabsprofil;
-- Sikker og modereret platform med indbygget spambeskyttelse.
+- Indeholder fællesskabsrapportering og spamkontrol; offentliggjort indhold kommer fra brugerne.
+- Vælg et særskilt oversættelsessprog til fællesskabet, herunder kinesisk, portugisisk, nederlandsk, japansk, koreansk, arabisk og russisk. Indlæste opskrifter og vellykkede oversættelser gemmes til offlinelæsning.
 
 ### Opskrifter
 
@@ -22,6 +29,30 @@ AvoCook er en mobil opskriftsbog — den fungerer helt offline på din enhed ude
 - Tilføj et eller flere fotos til hver opskrift;
 - Eksporter en opskrift som PDF eller udskriv den direkte;
 - Del en opskrift med en anden app.
+
+### Mit køkken — hverdagens måltider, lokalt
+
+Start i Mit køkken: I dag, Uge, Mine madvarer og Måltidsidéer. Andre værktøjer findes under skruenøglen.
+
+- **Planlæg ugen** — Tilføj frokost og aftensmad, træk opskrifter mellem dage, og tilpas portioner. Gennemgå samlede ingredienser, før du tilføjer dem til indkøb.
+- **Måltider uden opskrift** — Notér et hurtigt måltid, gentag et sædvanligt måltid, eller planlæg rester og restaurantbesøg. Kun måltider med ingredienser bidrager til indkøb.
+- **Brug det, du har** — Gem køleskabs-, skabs- og frostvarer med datoer. Find opskrifter med færre manglende ingredienser, og gennemgå indkøb. Valgfrie lokale datopåmindelser.
+- **Frugt og grønt i sæson** — Vælg område og måned, søg eller filtrér, og vælg varer til indkøb eller opskriftsidéer. Kildebaserede offlinekalendere med tydelig regional dækning.
+- **Lav mad trin for trin** — Ét trin med stor skrift, fremdrift, ingredienser og timere. Valgfrie lokale stemmekommandoer på understøttede enheder; beskeder afhænger af tilladelser og systemindstillinger.
+- **En opskrift fra køleskabet (AI)** — Indtast ingredienser eller analysér et foto, ret de genkendte madvarer, og generér et redigerbart udkast. Valgfrit: egen API-nøgle og egnet model; udbyderen kan opkræve betaling.
+- **En privat køkkendagbog** — Bedømmelser, noter, ændringer, tilberedningsdatoer, sværhedsgrad og manuelt angivne priser. Egne kostmærker og filtre hjælper med at sortere; de garanterer ikke fravær af allergener.
+- **Batch cooking og menuer** — Vælg 3–5 opskrifter, saml indkøb, og gennemgå forberedelsen efter varighed. Gem og planlæg festmenuer; ingen automatisk parallel madlavning.
+- **Din egen kogebog** — Vælg op til 50 opskrifter til en lokal tekst-PDF med indhold, ingredienser og trin. Private noter og fotos medtages ikke.
+- **Praktiske køkkenværktøjer** — Vælg en tilfældig opskrift, omregn kompatible enheder og temperaturer, eller se bageerstatninger til bestemte tilberedninger med forhold og forholdsregler. Ingen gættet omregning fra gram til milliliter.
+- **Sikkerhedskopier under din kontrol** — Eksportér opskrifter til JSON, eller brug den komplette Mit køkken-kopi til opskrifter, tilgængelige lokale fotos og private plandata. Gennemgå før gendannelse.
+
+Tilgængelige kalendere: det franske fastland, Vallonien (Belgien), Schweiz, Tyskland, Spanien, Italien, Storbritannien, Danmark, Ontario (Canada), staten New York (USA) og Sydney (Australien). 11 lande med regionale grænser, ikke verdensdækning. Kilderne skelner mellem høst, opbevaring eller markedsudbud; det er vejledning, ikke realtidsprognoser.
+
+Ingredienssøgning kontrollerer ikke tilgængelige mængder, friskhed eller allergener. Kostmærker indtastes af brugeren. Erstatninger gælder kun understøttede tilberedninger. Stemme og meddelelser afhænger af enhed og tilladelser.
+
+[Funktion og begrænsninger](../LOCAL_KITCHEN.md) · [Kilder til sæsonkataloget](../SEASONAL_CATALOG.md)
+
+Filtrér idéer efter kendt varighed (≤30 minutter), egen bedømmelse (≥4/5), let sværhedsgrad og egne kostmærker. Historikken gemmer måltider bekræftet som spist og tilberedninger registreret i dagbogen eller madlavningstilstanden.
 
 ### Valgfri Markdown
 
@@ -33,12 +64,13 @@ Hver ingrediens og instruktion beholder sin Markdown, inklusive afsnit og indlej
 
 ### Import
 
-- Importer en opskrift fra en URL — fungerer på alle websteder med `schema.org/Recipe` data;
+- Importér fra understøttede sider med tilgængelige `schema.org/Recipe`-data; nogle websteder blokerer udtræk eller leverer ufuldstændige data.
 - Modtag en URL fra en browser eller en anden app for at importere med ét tryk;
-- Scan en opskrift fra et foto, eller generer en opskrift fra et billede af en ret ved hjælp af AI (kræver en OpenAI-kompatibel API-nøgle).
+- Valgfri AI: scan opskrifter, generér fra tekst eller et foto af en ret, eller opret et køleskabsudkast. Vælg OpenAI, Gemini, Groq, Grok, Mistral, Claude eller et eget endpoint i assistentindstillingerne. Kræver egen API-nøgle og kompatibel model; fotos kræver billedforståelse, og udbyderen kan opkræve betaling.
 
 ### Indkøbsliste
 
+- Vælg lokal liste, AvoCook-deling eller Nextcloud Pantry med overførsel af varer ved skift. Valgfri iOS Påmindelser-synkronisering fungerer i alle tre tilstande. [Nextcloud Pantry](../NEXTCLOUD_PANTRY.md).
 - Del indkøbslister med en kode på 6 tegn, et deltagerantal og lokale beskeder, mens AvoCook kører;
 - Kopier ingredienser til udklipsholderen med ét tryk;
 - Eksporter en indkøbsliste til Apple Påmindelser.
@@ -46,7 +78,7 @@ Hver ingrediens og instruktion beholder sin Markdown, inklusive afsnit og indlej
 ### Timere
 
 - Start en eller flere tilberedningstimere direkte fra en opskrift;
-- Timere udløser en lokal meddelelse, selv når appen er i baggrunden.
+- Lokale timerbeskeder kan fungere i baggrunden, når tilladelser og systemindstillinger tillader det; kontrollér leveringen på din enhed.
 
 ### Data & synkronisering
 
@@ -67,13 +99,15 @@ Fransk · Engelsk · Tysk · Spansk · Italiensk · Dansk
 
 ## Opsætning til udvikling
 
-Projektet bruger Expo SDK 57, React Native 0.86 og TypeScript. Node.js 22.13 eller nyere er påkrævet. Lokale iOS-builds bruger Xcode 27 og Device Hub; den laveste understøttede iOS-version er 16.4.
+Projektet bruger Expo SDK 57, React Native 0.86 og TypeScript. Node.js >=22.13 og <27 er påkrævet. Lokale iOS-builds bruger Xcode 27 og Device Hub; den laveste understøttede iOS-version er 16.4.
 
 ```bash
-npm install
+npm ci
 npm run ios      # iOS-simulator
 npm run android  # Android-emulator
 ```
+
+Efter ændringer af native afhængigheder skal du køre `npx expo prebuild --clean` og bygge igen. Lokal stemmestyring og lagerpåmindelser kræver de lokale native moduler; Expo Go er ikke nok.
 
 Ved første start kompileres et udviklingsbuild med native moduler. Derefter åbner appen direkte.
 
@@ -87,6 +121,19 @@ npm test                               # Enhedstests (Vitest)
 npm run lint                           # ESLint
 npm run import:check -- <opskrift-url>  # Test import fra en URL
 ```
+
+---
+
+## Websted
+
+Webstedet ligger i `site/`, med tekster på seks sprog i `site/main.js`. Kommandoen nedenfor forbereder de samme filer som GitHub Pages, inklusive skærmbilleder. Webstedet udgives til `gh-pages` ved push til `main` eller via den manuelle Deploy site-workflow; push kun til denne gren udgiver ikke webstedet.
+
+```bash
+node tools/scripts/build-site.mjs
+python3 -m http.server 8765 --bind 127.0.0.1 --directory dist/site
+```
+
+[http://127.0.0.1:8765/](http://127.0.0.1:8765/)
 
 ---
 

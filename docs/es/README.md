@@ -1,6 +1,8 @@
 # AvoCook
 
-AvoCook es un cuaderno de recetas móvil — funciona completamente sin conexión, en tu dispositivo, sin necesidad de cuenta. Si ya tienes un servidor Nextcloud, puedes conectarlo de forma opcional para sincronizar tus recetas entre dispositivos.
+[English](../../README.md) · [Français](../fr/README.md) · [Deutsch](../de/README.md) · [Español](README.md) · [Italiano](../it/README.md) · [Dansk](../da/README.md)
+
+AvoCook es un compañero de cocina gratuito y de código abierto para iOS y Android, con o sin receta. Guarda recetas, organiza las comidas diarias, aprovecha los alimentos disponibles y prepara la compra. Las herramientas locales funcionan sin conexión ni crear una cuenta; la comunidad, las listas compartidas, las importaciones, la IA opcional y las conexiones Nextcloud utilizan servicios en línea.
 
 Lo desarrollé para uso personal mientras aprendía a llevar un proyecto React Native completo de principio a fin.
 
@@ -19,7 +21,8 @@ Lo desarrollé para uso personal mientras aprendía a llevar un proyecto React N
 - Las recetas de la comunidad se muestran automáticamente en el idioma de la aplicación, tanto en la lista como en los detalles;
 - Consulta la receta original en cualquier momento o importa la versión traducida a tu recetario;
 - Comparte tus mejores comidas configurando un perfil de la comunidad;
-- Plataforma segura y moderada con detección de spam integrada.
+- Incluye denuncias comunitarias y controles antispam; los contenidos publicados proceden de los usuarios.
+- Elige otro idioma para la traducción comunitaria, incluidos chino, portugués, neerlandés, japonés, coreano, árabe y ruso. Las recetas cargadas y traducciones correctas se guardan para leer sin conexión.
 
 ### Recetas
 
@@ -29,6 +32,30 @@ Lo desarrollé para uso personal mientras aprendía a llevar un proyecto React N
 - Añadir una o varias fotos a cada receta;
 - Exportar una receta en PDF o imprimirla directamente;
 - Compartir una receta con otra aplicación.
+
+### Mi cocina — comidas diarias, en local
+
+Empieza en Mi cocina: Hoy, Semana, Mis alimentos e Ideas de comidas. Las herramientas ocasionales están bajo la llave inglesa.
+
+- **Organiza la semana** — Añade comidas y cenas, arrastra recetas entre días y ajusta las raciones. Revisa los ingredientes agrupados antes de añadirlos a la compra.
+- **Comidas sin receta** — Anota una comida rápida, repite una habitual o planifica sobras y salidas. Solo las comidas con ingredientes aportan productos a la compra.
+- **Aprovecha lo que tienes** — Guarda alimentos de nevera, despensa y congelador con sus fechas. Encuentra recetas con menos ingredientes que falten y revisa las compras. Recordatorios locales de fechas opcionales.
+- **Frutas y verduras de temporada** — Elige zona y mes, busca o filtra y selecciona productos para la compra o ideas de recetas. Calendarios sin conexión con fuentes y cobertura regional explícita.
+- **Cocina paso a paso** — Un paso en letra grande, progreso, ingredientes y temporizadores. Órdenes de voz locales opcionales si son compatibles; avisos según permisos y ajustes del dispositivo.
+- **Una receta con tu nevera (IA)** — Escribe ingredientes o analiza una foto, corrige los alimentos reconocidos y genera un borrador editable. Opcional: tu clave API y un modelo adecuado; el proveedor puede cobrar las consultas.
+- **Un diario de cocina privado** — Valoraciones, notas, cambios, fechas de preparación, dificultad y costes introducidos a mano. Las etiquetas alimentarias y filtros personales ayudan a ordenar; no certifican la ausencia de alérgenos.
+- **Batch cooking y menús** — Elige de 3 a 5 recetas, agrupa la compra y revisa tareas de preparación por duración. Guarda y planifica menús de fiesta; sin cocinar en paralelo automáticamente.
+- **Tu propio libro de recetas** — Selecciona hasta 50 recetas para un PDF de texto local con índice, ingredientes y pasos. No incluye notas privadas ni fotos.
+- **Herramientas prácticas** — Elige una receta sorpresa, convierte unidades compatibles y temperaturas o consulta sustituciones de repostería según la preparación, con proporciones y precauciones. Sin inventar conversiones entre gramos y mililitros.
+- **Copias bajo tu control** — Exporta recetas a JSON o usa la copia completa de Mi cocina para recetas, fotos locales disponibles y planificación privada. Revisa antes de restaurar.
+
+Calendarios disponibles: Francia metropolitana, Valonia (Bélgica), Suiza, Alemania, España, Italia, Reino Unido, Dinamarca, Ontario (Canadá), estado de Nueva York (EE. UU.) y Sídney (Australia). Son 11 países con límites regionales, no cobertura mundial. Las fuentes distinguen cosecha, conservación o disponibilidad comercial; son orientaciones, no previsiones en tiempo real.
+
+La búsqueda por ingredientes no comprueba cantidades disponibles, frescura ni alérgenos. El usuario introduce las etiquetas alimentarias. Las sustituciones se limitan a preparaciones compatibles. Voz y notificaciones dependen del dispositivo y los permisos.
+
+[Funcionamiento y límites](../LOCAL_KITCHEN.md) · [Fuentes del catálogo de temporada](../SEASONAL_CATALOG.md)
+
+Filtra ideas por duración conocida (≤30 minutos), valoración personal (≥4/5), dificultad fácil y etiquetas alimentarias personales. El historial guarda comidas confirmadas como consumidas y preparaciones registradas en el diario o modo cocina.
 
 ### Markdown opcional
 
@@ -40,12 +67,13 @@ Cada ingrediente e instrucción conserva su Markdown, incluidos párrafos y list
 
 ### Importación
 
-- Importar una receta desde una URL — funciona en cualquier sitio que exponga datos `schema.org/Recipe` (Marmiton, 750g, BBC Good Food y muchos más);
+- Importa desde páginas compatibles con datos `schema.org/Recipe` accesibles; algunos sitios bloquean la extracción o proporcionan datos incompletos.
 - Recibir una URL compartida desde un navegador u otra app para importar una receta con un toque;
-- Escanear una receta desde una foto, o generar una receta a partir de la foto de un plato con IA (requiere una clave API compatible con OpenAI).
+- IA opcional: escanea recetas, genera desde texto o una foto de un plato, o crea un borrador con tu nevera. Elige OpenAI, Gemini, Groq, Grok, Mistral, Claude o un punto de acceso personalizado en los ajustes del Asistente. Requiere tu clave API y un modelo compatible; las fotos necesitan visión y el proveedor puede cobrar las consultas.
 
 ### Lista de la compra
 
+- Elige compra local, uso compartido AvoCook o Nextcloud Pantry, con traslado de artículos al cambiar. La sincronización opcional con Recordatorios iOS funciona en los tres modos. [Nextcloud Pantry](../NEXTCLOUD_PANTRY.md).
 - Comparte listas de compras con un código de 6 caracteres, un contador de participantes y avisos locales mientras AvoCook está en ejecución;
 - Copiar los ingredientes al portapapeles con un toque;
 - Exportar una lista de la compra a Recordatorios de iOS para aprovechar el sistema de compartir de Apple y la integración con Siri.
@@ -53,7 +81,7 @@ Cada ingrediente e instrucción conserva su Markdown, incluidos párrafos y list
 ### Temporizadores
 
 - Iniciar uno o varios temporizadores de cocina directamente desde una receta;
-- Los temporizadores lanzan una notificación local incluso cuando la app está en segundo plano.
+- Los avisos locales de temporizadores pueden funcionar en segundo plano según los permisos y ajustes del sistema; comprueba la recepción en tu dispositivo.
 
 ### Datos y sincronización
 
@@ -61,6 +89,8 @@ Cada ingrediente e instrucción conserva su Markdown, incluidos párrafos y list
 - **Opcional**: conectar un servidor Nextcloud Cookbook para sincronizar recetas entre dispositivos. Los datos van directamente entre la app y tu servidor, sin pasar por ningún servicio de terceros.
 
 > Las recetas locales se quedan en el dispositivo salvo que las sincronices, compartas o exportes. La comunidad usa Firebase con una sesión anónima al iniciar. Consulta [Privacidad y datos](PRIVACY.md).
+
+> Este README describe la rama de código actual. Las versiones de las tiendas y las publicaciones GitHub pueden no incluir aún los últimos cambios.
 
 ---
 
@@ -72,13 +102,15 @@ Francés · Inglés · Alemán · Español · Italiano · Danés
 
 ## Configuración de desarrollo
 
-El proyecto utiliza Expo SDK 57, React Native 0.86 y TypeScript. Se requiere Node.js 22.13 o posterior. Las compilaciones locales de iOS utilizan Xcode 27 y Device Hub; la versión mínima de iOS compatible es 16.4.
+El proyecto utiliza Expo SDK 57, React Native 0.86 y TypeScript. Se requiere Node.js >=22.13 y <27. Las compilaciones locales de iOS utilizan Xcode 27 y Device Hub; la versión mínima de iOS compatible es 16.4.
 
 ```bash
-npm install
+npm ci
 npm run ios      # Simulador iOS
 npm run android  # Emulador Android
 ```
+
+Tras cambiar dependencias nativas, ejecuta `npx expo prebuild --clean` y recompila. La voz local y los recordatorios de alimentos requieren los módulos nativos locales; Expo Go no basta.
 
 En el primer inicio se compila una build de desarrollo con módulos nativos. Después, la app se abre directamente.
 
@@ -103,6 +135,8 @@ src/
 ├── screens/                             # Pantallas (lista, detalle, editor, ajustes…)
 ├── components/                          # Componentes de UI reutilizables
 ├── features/
+│   ├── kitchen/                         # Mi cocina — comidas diarias, en local
+│   ├── community/                       # Firebase
 │   ├── recipes/                         # Almacenamiento local (SQLite), lógica recetas, backup
 │   ├── nextcloud/                       # Cliente HTTP para Nextcloud Cookbook
 │   ├── import/                          # Importación por URL y foto
@@ -149,6 +183,19 @@ Las pull requests son bienvenidas. Consulta [CONTRIBUTING.md](../../.github/CONT
 Si AvoCook te resulta útil, puedes ayudar a cubrir los costes:
 
 **[→ Donar vía Revolut](https://revolut.me/logarex)** · **[→ Donar vía PayPal](https://paypal.me/logarex31)**
+
+---
+
+## Sitio web
+
+La web está en `site/`, con textos en seis idiomas en `site/main.js`. El comando siguiente prepara los mismos archivos que GitHub Pages, incluidas las capturas. Se publica en `gh-pages` al enviar cambios a `main` o mediante el workflow manual Deploy site; enviar solo esta rama no publica la web.
+
+```bash
+node tools/scripts/build-site.mjs
+python3 -m http.server 8765 --bind 127.0.0.1 --directory dist/site
+```
+
+[http://127.0.0.1:8765/](http://127.0.0.1:8765/)
 
 ---
 

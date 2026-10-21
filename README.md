@@ -1,6 +1,8 @@
 # AvoCook
 
-AvoCook is a mobile recipe notebook — it works entirely offline, on your device, with no account needed. If you already run a Nextcloud server, you can optionally connect it to keep everything in sync.
+[English](README.md) · [Français](docs/fr/README.md) · [Deutsch](docs/de/README.md) · [Español](docs/es/README.md) · [Italiano](docs/it/README.md) · [Dansk](docs/da/README.md)
+
+AvoCook is a free, open-source kitchen companion for iOS and Android, with or without a recipe. Keep recipes, plan everyday meals, use food you already have and prepare your shopping. The local tools work offline without creating an account; community, shared lists, imports, optional AI and Nextcloud connections use online services.
 
 I built it for personal use while learning to ship a complete React Native project from start to finish.
 
@@ -13,6 +15,8 @@ I built it for personal use while learning to ship a complete React Native proje
   <img src="assets/screenshots/en/recipe.png" width="280" alt="Recipe detail" />
 </div>
 
+> This README describes the current source branch. Store and GitHub releases may not yet include its latest changes.
+
 ---
 
 ## Features
@@ -21,11 +25,10 @@ I built it for personal use while learning to ship a complete React Native proje
 
 - Discover, rate, and import recipes from the AvoCook community;
 - Community recipes automatically appear in your app language, in both the list and the recipe details;
-- Choose a separate translation language for the community, including Chinese, Portuguese, Dutch, Japanese, Korean, Arabic and Russian;
-- Previously loaded community recipes and successful translations are cached on the device for faster reopening and offline reading;
 - View the original recipe at any time, or import the translated version into your recipe book;
 - Share your best meals by setting up a community profile;
-- Safe and moderated platform with built-in spam detection.
+- Community reporting and spam checks are included; published content is contributed by users.
+- Choose a separate community translation language, including Chinese, Portuguese, Dutch, Japanese, Korean, Arabic and Russian. Loaded recipes and successful translations are cached for offline reading.
 
 ### Recipes
 
@@ -36,22 +39,29 @@ I built it for personal use while learning to ship a complete React Native proje
 - Export a recipe as PDF or print it directly;
 - Share a recipe with another app (share sheet).
 
-### My kitchen (local, free)
+### My kitchen — everyday meals, locally
 
-- Plan a week with drag-and-drop recipes, adjustable servings and lunch/dinner slots;
-- Plan simple meals, leftovers and eating out without creating a recipe; only meals that need groceries generate ingredients;
-- Preview consolidated groceries and update a generated week atomically in local shopping mode, retaining manual items and unchanged checked items;
-- Enter the ingredients available tonight, or use dated fridge, cupboard and freezer stock, to find recipes with fewer missing ingredients;
-- Cook one large-print step at a time with manually attached step timers, and optional strictly on-device voice commands when supported;
-- Keep private ratings, notes, changes, dietary labels, estimated costs and cooking history;
-- Explore sourced offline fruit and vegetable calendars for 11 countries, with explicit regional coverage, context-specific baking substitutions, batch preparation and reusable celebration menus;
-- Create a text PDF cookbook and export/restore a complete backup including private My kitchen data;
-- Start from Today: note a meal without a recipe, repeat your usual meals, use urgent stock and review groceries before adding them;
-- Optionally create an editable recipe draft from fridge ingredients or a photo, using your configured AI key and model. Review recognized foods before generation; provider charges may apply.
+Start in My kitchen: Today, Week, My food and Meal ideas. Occasional tools are under the wrench button.
 
-Open the **My kitchen** bottom tab. Dietary labels are entered by the user and do not certify the absence of allergens. Ingredient matching is conservative and does not check available quantities or food safety. See [behavior, limits and validation](docs/LOCAL_KITCHEN.md).
+- **Plan your week** — Add lunch and dinner, drag recipes between days and adjust servings. Preview grouped ingredients before adding them to shopping.
+- **Meals without a recipe** — Note a quick meal, reuse a usual meal or plan leftovers and eating out. Only meals with ingredients contribute to shopping.
+- **Use what you have** — Save fridge, cupboard and freezer stock with dates. Find recipes with fewer missing ingredients and review what to buy. Optional local date reminders.
+- **Seasonal fruit and vegetables** — Choose an area and month, filter or search, then select produce for shopping or recipe ideas. Sourced offline calendars with explicit regional coverage.
+- **Cook step by step** — One large-print step at a time, progress, ingredients and timers. Optional on-device voice commands where supported; alerts depend on permissions and device settings.
+- **A recipe from your fridge (AI)** — Enter ingredients or analyze a photo, correct the recognized foods, then generate an editable draft. Optional: your API key and a suitable model; provider charges may apply.
+- **A private cooking journal** — Ratings, notes, changes, preparation dates, difficulty and manually entered costs. Personal dietary labels and filters help organize your recipes; they do not certify allergy safety.
+- **Batch cooking and menus** — Select 3–5 recipes, group groceries and review preparation tasks in duration order. Save celebration menus and schedule them; no automatic parallel cooking.
+- **Your own cookbook** — Select up to 50 recipes for a local text PDF with contents, ingredients and steps. Private journal notes and photos are excluded.
+- **Practical kitchen tools** — Pick a surprise recipe, convert compatible units and temperatures, or consult context-specific baking substitutions with ratios and precautions. No guessed grams-to-millilitres conversion.
+- **Backups you control** — Export recipes to JSON, or use the complete My kitchen backup for recipes, available photos and private planning data. Review before restoring.
 
-Voice commands and stock reminders require a new native build. Run `npx expo prebuild --clean`, install iOS pods, and rebuild both apps after switching to this branch. The buttons remain optional when capabilities or permissions are unavailable.
+Available calendars: mainland France, Wallonia (Belgium), Switzerland, Germany, Spain, Italy, the UK, Denmark, Ontario (Canada), New York State (USA) and Sydney (Australia). These are 11 countries with regional limits, not worldwide coverage. Sources distinguish harvest, storage or market availability; they are guides rather than live availability forecasts.
+
+Ingredient matching does not check available quantities, freshness or allergens. Dietary labels are user-entered. Substitutions are limited to supported preparation contexts. Voice commands and notifications depend on the device and permissions.
+
+[Behavior and limits](docs/LOCAL_KITCHEN.md) · [Seasonal catalog sources](docs/SEASONAL_CATALOG.md)
+
+Filter meal ideas by known duration (≤30 minutes), personal rating (≥4/5), easy difficulty and personal dietary labels. History records meals confirmed as eaten or preparations recorded in the journal or cooking mode.
 
 ### Optional Markdown
 
@@ -63,21 +73,21 @@ Each ingredient and instruction keeps its own Markdown, including paragraphs and
 
 ### Import
 
-- Import a recipe from a URL — works on any site that exposes `schema.org/Recipe` data (Marmiton, 750g, BBC Good Food, and many others);
+- Import from supported pages exposing accessible `schema.org/Recipe` data; some websites block extraction or provide incomplete data.
 - Receive a URL shared from a browser or another app to import a recipe in one tap;
-- Scan a recipe from a photo, or generate a recipe from a picture of a dish using AI (requires an OpenAI-compatible API key).
+- Optional AI: scan a recipe, generate from text or a dish photo, or create a fridge draft. Choose OpenAI, Gemini, Groq, Grok, Mistral, Claude or a custom endpoint in Assistant settings. Your own API key and a compatible model are required; photo analysis needs vision support and provider charges may apply.
 
 ### Shopping list
 
+- Choose local shopping, AvoCook live sharing or Nextcloud Pantry, with item carry-over when switching. Optional iOS Reminders sync works with all three modes. [Nextcloud Pantry](docs/NEXTCLOUD_PANTRY.md).
 - Share grocery lists using a 6-character code, with a participant count and local change alerts while AvoCook is running;
 - Copy ingredients to the clipboard with a tap;
-- Choose one shopping mode at a time: local, AvoCook live sharing, or an optional [Nextcloud Pantry household list](docs/NEXTCLOUD_PANTRY.md). Your items are carried over when switching modes;
 - Export a shopping list to iOS Reminders to take advantage of Apple's sharing and Siri integration.
 
 ### Timers
 
 - Start one or several cooking timers directly from a recipe;
-- Timers trigger a local notification even when the app is in the background.
+- Local timer alerts can run in the background when notification permissions and system settings allow it; verify delivery on your device.
 
 ### Data & sync
 
@@ -96,15 +106,17 @@ French · English · German · Spanish · Italian · Danish
 
 ## Development setup
 
-The project uses Expo SDK 57, React Native 0.86 and TypeScript. Node.js 22.13 or newer is required. Local iOS builds use Xcode 27 and Device Hub; the minimum supported iOS version is 16.4.
+The project uses Expo SDK 57, React Native 0.86 and TypeScript. Node.js >=22.13 and <27 is required. Local iOS builds use Xcode 27 and Device Hub; the minimum supported iOS version is 16.4.
 
 Local Android builds require JDK 17 and Android SDK 36. Set `JAVA_HOME` to your JDK 17 installation if your system still defaults to an older Java version.
 
 ```bash
-npm install
+npm ci
 npm run ios      # iOS simulator
 npm run android  # Android emulator
 ```
+
+After native dependency changes, run `npx expo prebuild --clean` and rebuild. On-device voice commands and stock reminders require the local native modules; Expo Go is insufficient.
 
 A development build with native modules is compiled on the first run. After that, the app opens directly.
 
@@ -135,6 +147,8 @@ src/
 ├── screens/                       # Application screens (list, detail, editor, settings…)
 ├── components/                    # Reusable UI components
 ├── features/
+│   ├── kitchen/                   # My kitchen — everyday meals, locally
+│   ├── community/                 # Firebase
 │   ├── recipes/                   # Local storage (SQLite), recipe logic, backup/restore
 │   ├── nextcloud/                 # HTTP client for Nextcloud Cookbook
 │   ├── import/                    # URL and photo recipe import

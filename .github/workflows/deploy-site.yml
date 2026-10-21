@@ -18,33 +18,12 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Prepare deployment folder
-        run: |
-          mkdir -p _deploy
-
-          # Copy site files
-          cp -r site/. _deploy/
-
-          # Copy logos
-          for f in assets/icon.svg; do
-            [ -f "$f" ] && cp "$f" _deploy/
-          done
-          [ -f "assets/logo-transparent.png" ] && cp "assets/logo-transparent.png" _deploy/logo.png
-          [ -f "assets/logo-dark-transparent.png" ] && cp "assets/logo-dark-transparent.png" _deploy/logo-dark.png
-
-          # Copy screenshots if they exist
-          mkdir -p _deploy/screenshots
-          if [ -d "assets/screenshots" ]; then
-            cp -r assets/screenshots/* _deploy/screenshots/
-          fi
-
-          echo "Deployment contents:"
-          ls -lh _deploy/
-          ls -lh _deploy/screenshots/ 2>/dev/null || echo "(no screenshots yet)"
+        run: node tools/scripts/build-site.mjs
 
       - name: Deploy to gh-pages branch
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           branch: gh-pages
-          folder: _deploy
+          folder: dist/site
           clean: true
           commit-message: "chore: deploy site [skip ci]"

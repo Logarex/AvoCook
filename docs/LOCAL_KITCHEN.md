@@ -4,7 +4,7 @@ The planning, stock, matching and cooking tools run on the device. The optional 
 
 ## Everyday planning
 
-The fourth bottom tab is My kitchen, between Recipes and Community. Navigation swipes follow the same order. Today is the default kitchen view. Four primary sections cover Today, Week, My food and Meal ideas; occasional tools live under the header wrench button. Choose a week and a day, then add lunch or dinner. A recipe detail also offers Add to meal plan.
+The My kitchen bottom tab sits between Recipes and Community. Navigation swipes follow the same order. Today is the default kitchen view. Four primary sections cover Today, Week, My food and Meal ideas; occasional tools live under the header wrench button. Choose a week and a day, then add lunch or dinner. A recipe detail also offers Add to meal plan.
 
 A simple meal needs only a name to save; grocery lines and date/serving controls are optional. Today offers editable meal combinations even with an empty recipe library, and can reuse previously recorded simple meals. Stock with upcoming dates has direct idea, leftover planning and consumption actions, including undo.
 
