@@ -11,7 +11,6 @@ function getNextBackupMilestone(lastAcknowledgedCount: number): number {
   return nextMultiple * 30;
 }
 
-// Request store reviews at launch, then after 2, 4, 8, 16... recipes.
 function getNextReviewMilestone(lastRequestedCount: number): number {
   if (lastRequestedCount < 0) return 0;
   if (lastRequestedCount === 0) return 2;

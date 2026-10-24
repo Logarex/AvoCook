@@ -1,3 +1,9 @@
+import { StockInventoryList } from "./StockInventoryList";
+import { DisclosureSection } from "../components/DisclosureSection";
+import { StockExpiryField } from "./StockExpiryField";
+import { StockProductLookup } from "./StockProductLookup";
+import { StockProductScores } from "./StockProductScores";
+import { SegmentedControl } from "../components/SegmentedControl";
 import { KitchenRecipeList } from "../components/KitchenRecipeList";
 import { kitchenHistory } from "../features/kitchen/history";
 import { KitchenDailyScreen } from "./KitchenDailyScreen";
@@ -28,6 +34,7 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -35,7 +42,7 @@ import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { AppSheet } from "../components/AppSheet";
 import { IconButton } from "../components/IconButton";
-import { ArrowLeft, ArrowRight, Wrench } from "lucide-react-native";
+import { ArrowLeft, ArrowRight, Wrench, Pencil, ScanBarcode } from "lucide-react-native";
 import { GlassPanel } from "../components/GlassPanel";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
@@ -67,7 +74,7 @@ import { useShoppingList } from "../features/shopping/ShoppingListProvider";
 import type { Recipe } from "../features/recipes/types";
 import type { RootStackParamList } from "../navigation/types";
 
-type Props = NativeStackScreenProps<RootStackParamList, "Kitchen">;
+type Props = NativeStackScreenProps<RootStackParamList, "Kitchen" | "Planning">;
 type Tab =
   | "today"
   | "planner"
@@ -82,28 +89,16 @@ type Tab =
   | "profiles"
   | "menus"
   | "backup";
-const tabs: Tab[] = [
-  "today",
-  "planner",
-  "stock",
-  "tonight",
-  "batch",
-  "history",
-  "converter",
-  "seasonal",
-  "substitutions",
-  "book",
-  "profiles",
-  "menus",
-  "backup",
-];
 export function KitchenScreen(props: Props) {
   const { account } = useKitchen();
-  return <KitchenContent key={account} {...props} />;
+  return <KitchenContent key={`${account}:${props.route.name}`} {...props} />;
 }
 
 function KitchenContent({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
+  const planning = route.name === "Planning";
+  const mainTabs: Tab[] = planning ? ["today", "planner"] : ["stock", "tonight"];
+  const extraTabs: Tab[] = planning ? ["menus", "batch", "history"] : ["seasonal", "converter", "substitutions", "book", "profiles", "backup"];
   const kitchen = useKitchen();
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
@@ -132,12 +127,16 @@ function KitchenContent({ navigation, route }: Props) {
     ],
   }));
   const [dragQuery, setDragQuery] = useState("");
-  const [tab, setTab] = useState<Tab>(route.params?.section ?? "today");
+  const [tab, setTab] = useState<Tab>(route.params?.section ?? (planning ? "today" : "stock"));
   useEffect(() => {
     if (route.params?.section) setTab(route.params.section);
   }, [route.params?.section]);
   const [week, setWeek] = useState(localDate());
-  const [availableInput, setAvailableInput] = useState("");
+  const incomingIngredients = route.params && "ingredients" in route.params ? route.params.ingredients : undefined;
+  const [availableInput, setAvailableInput] = useState<string>(incomingIngredients ?? "");
+  useEffect(() => {
+    if (incomingIngredients !== undefined) setAvailableInput(incomingIngredients);
+  }, [incomingIngredients]);
   const [query, setQuery] = useState("");
   const [quick, setQuick] = useState(false);
   const [rated, setRated] = useState(false);
@@ -157,6 +156,8 @@ function KitchenContent({ navigation, route }: Props) {
   const [servings, setServings] = useState("1");
   const [picker, setPicker] = useState(false);
   const [recipeQuery, setRecipeQuery] = useState("");
+  const [stockLocation, setStockLocation] = useState<StockItem["location"]>("fridge");
+  const [scanStock, setScanStock] = useState(false);
   const [stock, setStock] = useState<StockItem | null>(null);
   const [usedStock, setUsedStock] = useState<StockItem | null>(null);
   const [batch, setBatch] = useState<string[]>([]);
@@ -210,14 +211,17 @@ function KitchenContent({ navigation, route }: Props) {
     [kitchen.data.meals, dates],
   );
   const weekShopping = useMemo(
-    () => mealIngredients(upcomingMeals(planned, today), recipes),
-    [planned, recipes, today],
+    () => tab === "planner" ? mealIngredients(upcomingMeals(planned, today), recipes) : [],
+    [tab, planned, recipes, today],
   );
-  const batchRecipes = batch.flatMap(
-    (id) => recipes.find((recipe) => recipe.id === id) ?? [],
-  );
+  const batchRecipes = useMemo(() => {
+    if (tab !== "batch") return [];
+    const byId = new Map(recipes.map((recipe) => [recipe.id, recipe]));
+    return batch.flatMap((id) => byId.get(id) ?? []);
+  }, [tab, batch, recipes]);
   const exclusionText = `${excluded},${kitchen.data.excludedWords ?? ""}`;
   const candidates = useMemo(() => {
+    if (tab !== "tonight") return [];
     const exclusions = exclusionText
       .split(",")
       .map((item) => item.trim().toLocaleLowerCase())
@@ -242,7 +246,7 @@ function KitchenContent({ navigation, route }: Props) {
         )
       );
     });
-  }, [recipes, kitchen.data, query, quick, rated, difficulty, exclusionText]);
+  }, [tab, recipes, kitchen.data, query, quick, rated, difficulty, exclusionText]);
   const suggestions = useMemo(
     () =>
       tab === "tonight"
@@ -268,8 +272,8 @@ function KitchenContent({ navigation, route }: Props) {
     [tab, candidates, kitchen.data.stock, availableInput, today],
   );
   const history = useMemo(
-    () => kitchenHistory(kitchen.data, recipes),
-    [kitchen.data, recipes],
+    () => tab === "history" ? kitchenHistory(kitchen.data, recipes) : [],
+    [tab, kitchen.data, recipes],
   );
   const dateLabel = (date: string) =>
     new Date(`${date}T12:00:00`).toLocaleDateString(i18n.language, {
@@ -396,6 +400,39 @@ function KitchenContent({ navigation, route }: Props) {
       disabled={disabled || busy}
     />
   );
+  function toggleStockReminders() {
+    void run(async () => {
+      if (kitchen.data.remindersEnabled) {
+        await kitchen.update((data) => ({
+          ...data,
+          remindersEnabled: false,
+        }));
+        await replaceStockReminders([]);
+        return;
+      }
+      const native = getKitchenNative();
+      if (
+        !native ||
+        !(await native.requestReminderPermission())
+      ) {
+        Alert.alert(t("kitchen.remindersUnavailable"));
+        return;
+      }
+      const plan = stockReminderPlan(
+        kitchen.data.stock,
+        new Date(),
+        t("kitchen.reminderTitle"),
+        (names) => t("kitchen.reminderBody", { names }),
+      );
+      if (!(await replaceStockReminders(plan)))
+        throw new Error("Reminder scheduling unavailable");
+      await kitchen.update((data) => ({
+        ...data,
+        remindersEnabled: true,
+      }));
+    });
+  }
+
   const conversion =
     amount.trim() && /^-?\d+(?:[.,]\d+)?$/.test(amount.trim())
       ? convertKitchen(Number(amount.replace(",", ".")), from, to)
@@ -404,19 +441,21 @@ function KitchenContent({ navigation, route }: Props) {
     <>
       <PageSwipeGesture
         onSwipeRight={() =>
-          navigation.navigate("Recipes", { tabTransition: "slide_from_left" })
+          planning
+            ? navigation.navigate("Kitchen", { tabTransition: "slide_from_left" })
+            : navigation.navigate("Recipes", { tabTransition: "slide_from_left" })
         }
         onSwipeLeft={() =>
-          navigation.navigate("Community", {
-            tabTransition: "slide_from_right",
-          })
+          planning
+            ? navigation.navigate("Community", { tabTransition: "slide_from_right" })
+            : navigation.navigate("Planning", { section: "today", tabTransition: "slide_from_right" })
         }
       >
         <Screen
-          contentStyle={{ paddingBottom: getTabBarContentInset(insets.bottom) }}
+          contentStyle={{ gap: 20, paddingBottom: getTabBarContentInset(insets.bottom) }}
           header={
             <ScreenHeader
-              title={t("kitchen.title")}
+              title={t(planning ? "kitchen.planningTitle" : "kitchen.title")}
               actions={
                 <IconButton
                   icon={Wrench}
@@ -427,22 +466,15 @@ function KitchenContent({ navigation, route }: Props) {
             />
           }
         >
-          <View style={styles.wrap}>
-            {(["today", "planner", "stock", "tonight"] as const).map(
-              (value) => (
-                <PrimaryButton
-                  compact
-                  style={styles.mainSection}
-                  numberOfLines={0}
-                  key={value}
-                  label={t(`kitchen.nav_${value}`)}
-                  variant={tab === value ? "primary" : "secondary"}
-                  onPress={() => setTab(value)}
-                />
-              ),
-            )}
-          </View>
-          {!["today", "planner", "stock", "tonight"].includes(tab) && (
+          <SegmentedControl
+            options={mainTabs.map((value) => ({
+              value,
+              label: t(`kitchen.nav_${value}`),
+            }))}
+            value={mainTabs.includes(tab) ? tab : ""}
+            onChange={(value) => setTab(value as Tab)}
+          />
+          {!mainTabs.includes(tab) && (
             <AppText variant="subtitle">{t(`kitchen.${tab}`)}</AppText>
           )}
           {!kitchen.ready || recipesLoading ? (
@@ -466,15 +498,9 @@ function KitchenContent({ navigation, route }: Props) {
                   onAdd={(slot, kind) => openMeal(today, slot, kind)}
                   onEdit={editMeal}
                   onIdeas={(ingredients) => {
-                    setAvailableInput(ingredients ?? "");
-                    setTab("tonight");
+                    navigation.navigate("Kitchen", { section: "tonight", ingredients: ingredients ?? "" });
                   }}
-                  onStock={() => setTab("stock")}
-                  onWeek={() => {
-                    setWeek(today);
-                    setSelectedDay(today);
-                    setTab("planner");
-                  }}
+                  onStock={() => navigation.navigate("Kitchen", { section: "stock" })}
                   onRecipe={(id) => navigation.navigate("Cooking", { id })}
                   onFridge={() => navigation.navigate("FridgeRecipe")}
                 />
@@ -753,81 +779,40 @@ function KitchenContent({ navigation, route }: Props) {
               )}
               {tab === "stock" && (
                 <>
-                  <AppText muted>{t("kitchen.startStock")}</AppText>
-                  {button("addStock", () =>
-                    setStock({
-                      id: newKitchenId(),
-                      name: "",
-                      quantity: "",
-                      location: "fridge",
-                      expires: "",
-                    }),
-                  )}
-                  {!kitchen.data.stock.length && (
-                    <AppText muted>{t("kitchen.emptyStock")}</AppText>
-                  )}
-                  {[...kitchen.data.stock]
-                    .sort((a, b) =>
-                      (a.expires || "9999").localeCompare(b.expires || "9999"),
-                    )
-                    .map((item) => (
-                      <GlassPanel key={item.id} style={styles.panel}>
-                        <AppText variant="subtitle">
-                          {item.name}
-                          {item.quantity ? ` · ${item.quantity}` : ""}
-                        </AppText>
-                        <AppText muted>
-                          {t(`kitchen.${item.location}`)}
-                          {item.expires ? ` · ${dateLabel(item.expires)}` : ""}
-                        </AppText>
-                        {!!item.expires && item.expires < today && (
-                          <AppText>{t("kitchen.datePassed")}</AppText>
-                        )}
-                        {!!item.expires &&
-                          item.expires >= today &&
-                          item.expires <= shiftDate(today, 3) && (
-                            <AppText>{t("kitchen.soon")}</AppText>
-                          )}
-                        {(!item.expires || item.expires >= today) && (
-                          <View style={styles.wrap}>
-                            {button("findUse", () => {
-                              setAvailableInput(item.name);
-                              setTab("tonight");
-                            })}
-                            {button("planLeftover", () =>
-                              editMeal({
-                                id: newKitchenId(),
-                                kind: "leftovers",
-                                date: today,
-                                slot: "dinner",
-                                title: item.name,
-                                recipeId: "",
-                                servings: 1,
-                              }),
-                            )}
-                          </View>
-                        )}
-                        <View style={styles.wrap}>
-                          {button("edit", () => setStock(item))}
-                          {button(
-                            item.expires && item.expires < today
-                              ? "remove"
-                              : "usedUp",
-                            () => {
-                              void run(async () => {
-                                await kitchen.update((data) => ({
-                                  ...data,
-                                  stock: data.stock.filter(
-                                    (s) => s.id !== item.id,
-                                  ),
-                                }));
-                                setUsedStock(item);
-                              });
-                            },
-                          )}
-                        </View>
-                      </GlassPanel>
-                    ))}
+                  <AppText muted variant="caption">{t("kitchen.reserveHelp")}</AppText>
+                  <View style={[styles.stockActions, { backgroundColor: colors.backgroundElevated, borderColor: colors.border }]}>
+                    <Pressable accessibilityRole="button" accessibilityLabel={t("kitchen.scanProduct")}
+                      style={({ pressed }) => [styles.stockAction, { backgroundColor: pressed ? colors.chip : "transparent" }]}
+                      onPress={() => {
+                        setScanStock(true);
+                        setStock({ id: newKitchenId(), name: "", quantity: "", location: stockLocation, expires: "" });
+                      }}>
+                      <ScanBarcode size={21} color={colors.primaryStrong} />
+                      <AppText variant="label" style={styles.stockActionLabel}>{t("kitchen.scanShort")}</AppText>
+                    </Pressable>
+                    <View style={[styles.stockActionDivider, { backgroundColor: colors.border }]} />
+                    <Pressable accessibilityRole="button" accessibilityLabel={t("kitchen.addStock")}
+                      style={({ pressed }) => [styles.stockAction, { backgroundColor: pressed ? colors.chip : "transparent" }]}
+                      onPress={() => {
+                        setScanStock(false);
+                        setStock({ id: newKitchenId(), name: "", quantity: "", location: stockLocation, expires: "" });
+                      }}>
+                      <Pencil size={20} color={colors.primaryStrong} />
+                      <AppText variant="label" style={styles.stockActionLabel}>{t("kitchen.manualShort")}</AppText>
+                    </Pressable>
+                  </View>
+                  <StockInventoryList
+                    items={kitchen.data.stock} today={today} busy={busy}
+                    onLocationChange={setStockLocation}
+                    onEdit={(item) => { setScanStock(false); setStock(item); }}
+                    onIdeas={(item) => { setAvailableInput(item.name); setTab("tonight"); }}
+                    onUse={(item) => {
+                      void run(async () => {
+                        await kitchen.update((data) => ({ ...data, stock: data.stock.filter((entry) => entry.id !== item.id) }));
+                        setUsedStock(item);
+                      });
+                    }}
+                  />
                   {usedStock && (
                     <PrimaryButton
                       compact
@@ -857,41 +842,10 @@ function KitchenContent({ navigation, route }: Props) {
                     )}
                     variant="secondary"
                     disabled={busy}
-                    onPress={() => {
-                      void run(async () => {
-                        if (kitchen.data.remindersEnabled) {
-                          await kitchen.update((data) => ({
-                            ...data,
-                            remindersEnabled: false,
-                          }));
-                          await replaceStockReminders([]);
-                          return;
-                        }
-                        const native = getKitchenNative();
-                        if (
-                          !native ||
-                          !(await native.requestReminderPermission())
-                        ) {
-                          Alert.alert(t("kitchen.remindersUnavailable"));
-                          return;
-                        }
-                        const plan = stockReminderPlan(
-                          kitchen.data.stock,
-                          new Date(),
-                          t("kitchen.reminderTitle"),
-                          (names) => t("kitchen.reminderBody", { names }),
-                        );
-                        if (!(await replaceStockReminders(plan)))
-                          throw new Error("Reminder scheduling unavailable");
-                        await kitchen.update((data) => ({
-                          ...data,
-                          remindersEnabled: true,
-                        }));
-                      });
-                    }}
+                    onPress={toggleStockReminders}
                   />
                   <AppText variant="caption" muted>
-                    {t("kitchen.remindersHelp")}
+                    {t("kitchen.reminderShort")}
                   </AppText>
                   {kitchen.reminderError && (
                     <AppText>{t("kitchen.reminderSyncError")}</AppText>
@@ -1253,22 +1207,19 @@ function KitchenContent({ navigation, route }: Props) {
             visible={toolsOpen}
             onClose={() => setToolsOpen(false)}
           >
-            {tabs
-              .filter(
-                (value) =>
-                  !["today", "planner", "stock", "tonight"].includes(value),
-              )
-              .map((value) => (
-                <PrimaryButton
+            {extraTabs.map((value) => (
+                <Pressable
                   key={value}
-                  compact
-                  variant="secondary"
-                  label={t(`kitchen.${value}`)}
+                  accessibilityRole="button"
                   onPress={() => {
                     setToolsOpen(false);
                     setTab(value);
                   }}
-                />
+                  style={({ pressed }) => [styles.toolRow, { borderColor: colors.border, opacity: pressed ? 0.6 : 1 }]}
+                >
+                  <AppText style={{ flex: 1 }}>{t(`kitchen.${value}`)}</AppText>
+                  <ArrowRight size={18} color={colors.textMuted} />
+                </Pressable>
               ))}
           </AppSheet>
           <AppSheet
@@ -1477,32 +1428,47 @@ function KitchenContent({ navigation, route }: Props) {
           >
             {stock && (
               <View style={styles.panel}>
+                <StockProductLookup key={stock.id} initiallyOpen={scanStock} onProduct={(product) => {
+                  setStock((current) => current ? { ...current, ...product, expires: current.expires } : null);
+                }} />
                 <TextField
                   label={t("kitchen.foodName")}
                   value={stock.name}
-                  onChangeText={(name) => setStock({ ...stock, name })}
+                  onChangeText={(name) => setStock({ ...stock, name, ...(name !== stock.name ? { barcode: undefined, nutriScore: undefined, greenScore: undefined } : {}) })}
                 />
+                <StockProductScores item={stock} />
+                <DisclosureSection title={`${t("kitchen.quantity")}${stock.quantity ? ` · ${stock.quantity}` : ""}`}>
                 <TextField
                   label={t("kitchen.quantity")}
                   value={stock.quantity}
                   onChangeText={(quantity) => setStock({ ...stock, quantity })}
                 />
-                <TextField
-                  label={t("kitchen.expiry")}
-                  placeholder="YYYY-MM-DD"
-                  value={stock.expires}
-                  onChangeText={(expires) => setStock({ ...stock, expires })}
-                />
-                <View style={styles.wrap}>
-                  {(["fridge", "cupboard", "freezer"] as const).map(
-                    (location) =>
-                      button(
-                        location,
-                        () => setStock({ ...stock, location }),
-                        stock.location === location,
-                      ),
-                  )}
+                </DisclosureSection>
+                <StockExpiryField value={stock.expires} onChange={(expires) => setStock({ ...stock, expires })} />
+                {!!stock.barcode && <AppText muted variant="caption">{t("kitchen.expiryHelp")}</AppText>}
+                <View style={styles.reminderSetting}>
+                  <AppText variant="label" style={{ flex: 1 }}>
+                    {t("kitchen.stockReminders")}
+                  </AppText>
+                  <Switch
+                    accessibilityLabel={t("kitchen.stockReminders")}
+                    value={kitchen.data.remindersEnabled}
+                    disabled={busy}
+                    onValueChange={toggleStockReminders}
+                    trackColor={{ true: colors.primary }}
+                  />
                 </View>
+                {kitchen.data.remindersEnabled && <AppText muted variant="caption">{t("kitchen.reminderShort")}</AppText>}
+                {kitchen.reminderError && (
+                  <AppText accessibilityRole="alert" style={{ color: colors.danger }}>
+                    {t("kitchen.reminderSyncError")}
+                  </AppText>
+                )}
+                <SegmentedControl
+                  options={(["fridge", "cupboard", "freezer"] as const).map((value) => ({ value, label: t(`kitchen.${value}`) }))}
+                  value={stock.location}
+                  onChange={(location) => setStock({ ...stock, location })}
+                />
                 <PrimaryButton
                   label={t("common.save")}
                   disabled={
@@ -1519,6 +1485,7 @@ function KitchenContent({ navigation, route }: Props) {
                           { ...stock, name: stock.name.trim() },
                         ],
                       }));
+                      setStockLocation(stock.location);
                       setStock(null);
                     });
                   }}
@@ -1663,7 +1630,19 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   panel: { gap: 12 },
-  mainSection: { flexBasis: "47%", flexGrow: 1 },
+  stockActions: { flexDirection: "row", alignItems: "center", borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, overflow: "hidden" },
+  stockAction: { flex: 1, minWidth: 0, minHeight: 56, paddingVertical: 12, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
+  stockActionLabel: { flexShrink: 1, fontSize: 16 },
+  stockActionDivider: { width: StyleSheet.hairlineWidth, height: 24 },
+  reminderSetting: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 44 },
+  toolRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    minHeight: 52,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   shoppingLine: {
     flexDirection: "row",
     alignItems: "center",

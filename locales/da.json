@@ -6,7 +6,7 @@
   "NSPhotoLibraryUsageDescription": "Tillad adgang til billeder for at tilføje et billede til en opskrift.",
   "NSPhotoLibraryAddUsageDescription": "Tillad at gemme opskriftsbilleder om nødvendigt.",
   "NSLocalNetworkUsageDescription": "Tillad kun lokal netværksadgang for at oprette forbindelse til en Nextcloud-server hostet på dit netværk.",
-  "NSCameraUsageDescription": "Tillad kameraadgang for at scanne opskrifter fra billeder.",
+  "NSCameraUsageDescription": "Tillad kameraadgang for at scanne opskrifter og stregkoder på madvarer.",
   "NSMicrophoneUsageDescription": "Brug mikrofonen til valgfrie lokale madlavningskommandoer.",
   "NSSpeechRecognitionUsageDescription": "Genkend madlavningskommandoer på denne enhed. Lyd sendes ikke til en server."
 }

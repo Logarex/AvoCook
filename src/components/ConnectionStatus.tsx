@@ -1,4 +1,6 @@
-import { StyleSheet, View } from "react-native";
+import { useEffect, useRef } from "react";
+import { Animated, Easing, StyleSheet, View } from "react-native";
+import { useReducedMotion } from "../features/accessibility/useReducedMotion";
 import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { AppText } from "./AppText";
@@ -9,6 +11,7 @@ type ConnectionStatusProps = {
   detail?: string;
   loading?: boolean;
   neutral?: boolean;
+  compact?: boolean;
 };
 
 export function ConnectionStatus({
@@ -17,8 +20,25 @@ export function ConnectionStatus({
   detail,
   loading = false,
   neutral = false,
+  compact = false,
 }: ConnectionStatusProps) {
   const { colors } = useAppTheme();
+  const reducedMotion = useReducedMotion();
+  const opacity = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (!compact || !connected || neutral || reducedMotion) {
+      opacity.setValue(1);
+      return;
+    }
+    const animation = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.35, duration: 900, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration: 900, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+      ]),
+    );
+    animation.start();
+    return () => animation.stop();
+  }, [compact, connected, neutral, reducedMotion, opacity]);
   const dotColor = neutral
     ? colors.textMuted
     : connected
@@ -27,24 +47,28 @@ export function ConnectionStatus({
 
   return (
     <View
+      accessible
       accessibilityLabel={[label, detail].filter(Boolean).join(", ")}
       accessibilityLiveRegion={loading ? "polite" : "none"}
       style={styles.wrap}
     >
       <View style={styles.line}>
-        <View
+        <Animated.View
           style={[
             styles.dot,
             {
               backgroundColor: dotColor,
+              opacity,
             },
           ]}
         />
-        <AppText muted variant="caption" style={{ flexShrink: 1 }}>
-          {label}
-        </AppText>
+        {!compact ? (
+          <AppText muted variant="caption" style={{ flexShrink: 1 }}>
+            {label}
+          </AppText>
+        ) : null}
       </View>
-      {detail ? (
+      {detail && !compact ? (
         <AppText
           muted
           variant="caption"

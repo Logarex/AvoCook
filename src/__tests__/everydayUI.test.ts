@@ -16,12 +16,16 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("react-native", () => ({
   View: "View",
+  Pressable: "Pressable",
   Alert: { alert: mocks.alert },
   StyleSheet: { create: (styles: unknown) => styles },
 }));
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: "fr" } }),
 }));
+vi.mock("lucide-react-native", () => ({ Archive: "Archive", ArrowRight: "ArrowRight", Check: "Check", Pencil: "Pencil", Plus: "Plus", ChevronDown: "ChevronDown" }));
+vi.mock("../components/IconButton", () => ({ IconButton: "Button" }));
+vi.mock("../theme/ThemeProvider", () => ({ useAppTheme: () => ({ colors: { textMuted: "gray" } }) }));
 vi.mock("../components/AppText", () => ({ AppText: "Text" }));
 vi.mock("../components/PrimaryButton", () => ({ PrimaryButton: "Button" }));
 vi.mock("../components/GlassPanel", () => ({ GlassPanel: "Panel" }));
@@ -68,13 +72,17 @@ function buttons(label: string) {
 describe("daily kitchen workflows", () => {
   it("lets a new user note lunch without needing any saved recipe", async () => {
     await render();
-    await act(async () => buttons("kitchen.quickMeal")[0].props.onPress());
+    await act(async () => buttons("kitchen.addMeal · kitchen.lunch")[0].props.onPress());
     expect(actions.onAdd).toHaveBeenCalledWith("lunch", "simple");
     expect(mocks.update).not.toHaveBeenCalled();
-    expect(buttons("kitchen.chooseMeal").length).toBeGreaterThan(0);
+    expect(buttons("kitchen.chooseMeal")).toHaveLength(0);
   });
   it("previews a meal idea with editable shopping lines before saving anything", async () => {
     await render();
+    const disclosure = screen.root.findAll(
+      (node) => String(node.type) === "Pressable" && node.props.accessibilityState?.expanded === false,
+    ).find((node) => node.findAll((child) => String(child.type) === "Text" && child.props.children === "kitchen.withoutRecipe").length > 0)!;
+    await act(async () => disclosure.props.onPress());
     await act(async () => buttons("kitchen.chooseMeal")[0].props.onPress());
     expect(actions.onEdit).toHaveBeenCalledWith(
       expect.objectContaining({

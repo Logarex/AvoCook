@@ -1,5 +1,6 @@
 import {
   BookOpen,
+  CookingPot,
   CalendarDays,
   Globe,
   ShoppingCart,
@@ -15,7 +16,7 @@ import { AppText } from "./AppText";
 import { GlassSurface } from "./GlassSurface";
 import { NativeTabBar, useNativeGlassControls } from "./NativeGlassControls";
 
-export type BottomNavigationTab = "recipes" | "kitchen" | "community" | "shoppingList";
+export type BottomNavigationTab = "recipes" | "kitchen" | "planning" | "community" | "shoppingList";
 
 type BottomNavigationProps = {
   current: BottomNavigationTab;
@@ -25,7 +26,8 @@ type BottomNavigationProps = {
 const tabs: { id: BottomNavigationTab; icon: LucideIcon; labelKey: string }[] =
   [
     { id: "recipes", icon: BookOpen, labelKey: "recipes.title" },
-    { id: "kitchen", icon: CalendarDays, labelKey: "kitchen.title" },
+    { id: "kitchen", icon: CookingPot, labelKey: "kitchen.title" },
+    { id: "planning", icon: CalendarDays, labelKey: "kitchen.planningTitle" },
     { id: "community", icon: Globe, labelKey: "community.title" },
     { id: "shoppingList", icon: ShoppingCart, labelKey: "shoppingList.title" },
   ];
@@ -42,7 +44,8 @@ export function BottomNavigation({
   if (nativeUI && NativeTabBar) {
     const symbols = {
       recipes: "book.closed",
-      kitchen: "calendar",
+      kitchen: "frying.pan",
+      planning: "calendar",
       community: "globe",
       shoppingList: "cart",
     } as const;

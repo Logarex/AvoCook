@@ -23,32 +23,6 @@ function withAndroidSplitsAndOptimizations(config) {
   config = withAppBuildGradle(config, (nextConfig) => {
     let buildGradle = nextConfig.modResults.contents;
 
-    if (!buildGradle.includes("splits {")) {
-      const splitsConfig = `
-    /* 
-    splits {
-        abi {
-            enable true
-            reset()
-            include "armeabi-v7a", "arm64-v8a", "x86_64"
-            universalApk true
-        }
-    }
-
-    applicationVariants.all { variant ->
-        variant.outputs.each { output ->
-            def abi = output.getFilter(com.android.build.OutputFile.ABI)
-            if (abi != null) {
-                def versionCodes = ["armeabi-v7a": 1, "arm64-v8a": 2, "x86_64": 3]
-                output.versionCodeOverride = versionCodes.get(abi) * 1048576 + defaultConfig.versionCode
-            }
-        }
-    }
-    */
-    `;
-      buildGradle = buildGradle.replace("buildTypes {", splitsConfig + "buildTypes {");
-    }
-
     if (!buildGradle.includes("dependenciesInfo {")) {
       const androidBlockMatch = buildGradle.match(/android\s*\{/);
       if (androidBlockMatch) {

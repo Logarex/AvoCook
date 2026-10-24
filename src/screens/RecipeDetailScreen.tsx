@@ -5,6 +5,9 @@ import { useKeepAwake } from "expo-keep-awake";
 import type { LucideIcon } from "lucide-react-native";
 import {
   ArrowLeft,
+  BookOpen,
+  CalendarPlus,
+  Play,
   Clock,
   ExternalLink,
   Pencil,
@@ -743,9 +746,28 @@ function RecipeDetailContent({
         ) : null}
       </View>
 
-      <PrimaryButton label={t("kitchen.cooking")} disabled={!recipe.recipeInstructions.length} onPress={() => navigation.navigate("Cooking", { id: recipeId })} />
-      <PrimaryButton label={t("kitchen.planRecipe")} variant="secondary" onPress={() => navigation.navigate("Kitchen", { section: "planner", recipeId })} />
-      <PrimaryButton label={t("kitchen.journal")} variant="secondary" onPress={() => navigation.navigate("RecipeJournal", { id: recipeId })} />
+      <View style={styles.recipeActions}>
+        <PrimaryButton
+          icon={Play}
+          label={t("kitchen.cooking")}
+          compact
+          style={styles.cookingButton}
+          disabled={!recipe.recipeInstructions.length}
+          onPress={() => navigation.navigate("Cooking", { id: recipeId })}
+        />
+        <IconButton
+          icon={CalendarPlus}
+          label={t("kitchen.planRecipe")}
+          tone="primary"
+          onPress={() => navigation.navigate("Planning", { section: "planner", recipeId })}
+        />
+        <IconButton
+          icon={BookOpen}
+          label={t("kitchen.journal")}
+          tone="primary"
+          onPress={() => navigation.navigate("RecipeJournal", { id: recipeId })}
+        />
+      </View>
 
       {recipe.recipeCategory ? (
         <View style={styles.pills}>

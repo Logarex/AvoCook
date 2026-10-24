@@ -1,5 +1,10 @@
+import { Archive, ArrowRight, Check, Pencil, Plus } from "lucide-react-native";
+import { IconButton } from "../components/IconButton";
+import { DisclosureSection } from "../components/DisclosureSection";
+import { useAppTheme } from "../theme/ThemeProvider";
+import { spacing } from "../theme/colors";
 import React, { useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
@@ -26,7 +31,6 @@ export function KitchenDailyScreen({
   onEdit,
   onIdeas,
   onStock,
-  onWeek,
   onRecipe,
   onFridge,
 }: {
@@ -35,12 +39,12 @@ export function KitchenDailyScreen({
   onEdit: (meal: Meal) => void;
   onIdeas: (ingredients?: string) => void;
   onStock: () => void;
-  onWeek: () => void;
   onRecipe: (id: string) => void;
   onFridge: () => void;
 }) {
   const { t, i18n } = useTranslation();
   const kitchen = useKitchen();
+  const { colors } = useAppTheme();
   const { recipes } = useRecipes();
   const meals = kitchen.data.meals.filter((meal) => meal.date === today);
   const urgent = urgentStock(kitchen.data.stock, today);
@@ -76,6 +80,14 @@ export function KitchenDailyScreen({
   );
   return (
     <>
+      <Pressable accessibilityRole="button" accessibilityLabel={t("kitchen.reserveAction")} onPress={onStock} style={({ pressed }) => [styles.reserveEntry, { backgroundColor: colors.chip, opacity: pressed ? 0.7 : 1 }]}>
+        <Archive size={24} color={colors.primaryStrong} />
+        <View style={styles.heading}>
+          <AppText variant="label">{t("kitchen.reserveAction")}</AppText>
+          <AppText muted variant="caption">{t("kitchen.reserveActionHelp")}</AppText>
+        </View>
+        <ArrowRight size={20} color={colors.primaryStrong} />
+      </Pressable>
       <AppText variant="subtitle">{t("kitchen.todayMeals")}</AppText>
       <AppText muted variant="caption">
         {new Date(`${today}T12:00:00`).toLocaleDateString(i18n.language, {
@@ -86,7 +98,10 @@ export function KitchenDailyScreen({
       </AppText>
       {(["lunch", "dinner"] as const).map((slot) => (
         <GlassPanel key={slot} style={styles.panel}>
-          <AppText variant="label">{t(`kitchen.${slot}`)}</AppText>
+          <View style={styles.sectionHeader}>
+            <AppText muted variant="label" style={styles.heading}>{t(`kitchen.${slot}`)}</AppText>
+            <IconButton icon={Plus} label={`${t("kitchen.addMeal")} · ${t(`kitchen.${slot}`)}`} onPress={() => onAdd(slot, recipes.length ? "recipe" : "simple")} tone="primary" />
+          </View>
           {meals
             .filter((meal) => meal.slot === slot)
             .map((meal) => {
@@ -111,15 +126,10 @@ export function KitchenDailyScreen({
                         onPress={() => recipe.id && onRecipe(recipe.id)}
                       />
                     )}
-                    <PrimaryButton
-                      compact
-                      variant="secondary"
-                      label={t("kitchen.edit")}
-                      onPress={() => onEdit(meal)}
-                    />
-                    <PrimaryButton
-                      compact
-                      variant="secondary"
+                    <IconButton icon={Pencil} label={t("kitchen.edit")} onPress={() => onEdit(meal)} />
+                    <IconButton
+                      icon={Check}
+                      tone={meal.completed ? "primary" : "default"}
                       disabled={busy}
                       label={t(
                         meal.completed
@@ -144,44 +154,19 @@ export function KitchenDailyScreen({
           {!meals.some((meal) => meal.slot === slot) && (
             <AppText muted>{t("kitchen.notDecided")}</AppText>
           )}
-          <View style={styles.row}>
-            <PrimaryButton
-              compact
-              variant="secondary"
-              label={t("kitchen.quickMeal")}
-              onPress={() => onAdd(slot, "simple")}
-            />
-            <PrimaryButton
-              compact
-              variant="secondary"
-              label={t("kitchen.recipe")}
-              onPress={() => onAdd(slot, "recipe")}
-            />
-          </View>
+
         </GlassPanel>
       ))}
-      <PrimaryButton
-        compact
-        variant="secondary"
-        label={t("kitchen.decideTonight")}
-        onPress={() => onIdeas()}
-      />
-    <PrimaryButton compact variant="secondary" label={t("kitchen.fridgeAction")} onPress={onFridge} />
-      <PrimaryButton
-        compact
-        variant="ghost"
-        label={t("kitchen.viewWeek")}
-        onPress={onWeek}
-      />
-      <AppText variant="subtitle">{t("kitchen.useFirst")}</AppText>
-      {!urgent.length && (
-        <AppText muted>
-          {t(
-            kitchen.data.stock.length
-              ? "kitchen.noUrgentStock"
-              : "kitchen.startStock",
-          )}
-        </AppText>
+      <View style={styles.section}>
+        <PrimaryButton
+          compact
+          label={t("kitchen.decideTonight")}
+          onPress={() => onIdeas()}
+        />
+        <PrimaryButton compact variant="ghost" label={t("kitchen.fridgeAction")} onPress={onFridge} />
+      </View>
+      {(urgent.length > 0 || used) && (
+        <AppText variant="subtitle">{t("kitchen.useFirst")}</AppText>
       )}
       {urgent.slice(0, 3).map((item) => (
         <GlassPanel key={item.id} style={styles.panel}>
@@ -253,15 +238,11 @@ export function KitchenDailyScreen({
           }}
         />
       )}
-      <PrimaryButton
-        compact
-        variant="secondary"
-        label={t("kitchen.manageStock")}
-        onPress={onStock}
-      />
+      {urgent.length > 0 && (
+        <PrimaryButton compact variant="ghost" label={t("kitchen.manageStock")} onPress={onStock} />
+      )}
       {!!recent.length && (
-        <>
-          <AppText variant="subtitle">{t("kitchen.mealsToRepeat")}</AppText>
+        <DisclosureSection title={t("kitchen.mealsToRepeat")}>
           <AppText muted variant="caption">
             {t("kitchen.repeatHelp")}
           </AppText>
@@ -275,11 +256,10 @@ export function KitchenDailyScreen({
               onPress={() => onEdit(repeatMeal(meal, today))}
             />
           ))}
-        </>
+        </DisclosureSection>
       )}
       {!!ideas.length && (
-        <>
-          <AppText variant="subtitle">{t("kitchen.withoutRecipe")}</AppText>
+        <DisclosureSection title={t("kitchen.withoutRecipe")}>
           <AppText muted variant="caption">
             {t("kitchen.simpleIdeasHelp")}
           </AppText>
@@ -312,12 +292,16 @@ export function KitchenDailyScreen({
               />
             </GlassPanel>
           ))}
-        </>
+        </DisclosureSection>
       )}
     </>
   );
 }
 const styles = StyleSheet.create({
-  panel: { gap: 10 },
+  reserveEntry: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderRadius: 16, minHeight: 76 },
+  section: { gap: spacing.xs, marginVertical: spacing.sm },
+  sectionHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
+  heading: { flex: 1, minWidth: 0 },
+  panel: { gap: spacing.sm },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
 });

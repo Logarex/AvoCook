@@ -20,6 +20,9 @@ export type Meal = {
   servings: number;
 };
 export type StockItem = {
+  barcode?: string;
+  nutriScore?: string;
+  greenScore?: string;
   id: string;
   name: string;
   quantity: string;
@@ -546,6 +549,9 @@ export function parseKitchenData(value: unknown): KitchenData {
         s.name.trim() &&
         text(s.quantity) &&
         ["fridge", "cupboard", "freezer"].includes(s.location) &&
+        (s.barcode === undefined || (text(s.barcode) && /^\d{8,14}$/.test(s.barcode))) &&
+        (s.nutriScore === undefined || (text(s.nutriScore) && /^[A-E]$/.test(s.nutriScore))) &&
+        (s.greenScore === undefined || (text(s.greenScore) && /^[A-E]$/.test(s.greenScore))) &&
         text(s.expires) &&
         (!s.expires || validDate(s.expires)),
     ) ||

@@ -37,6 +37,7 @@ export function PrivacyScreen({ navigation }: Props) {
       paragraphs: [
         t("privacy.sharedListsAndCommunity"),
         t("privacy.ai"),
+        t("kitchen.privacyBarcodeSummary"),
         t("privacy.translations"),
         t("privacy.reminders"),
       ],

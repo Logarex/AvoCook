@@ -9,7 +9,6 @@ import { useShoppingList } from "../features/shopping/ShoppingListProvider";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { spacing } from "../theme/colors";
 
-// Apple Reminders accompanies every mode; configuring it never opens a backend.
 export function ShoppingRemindersControls({
   onBusyChange,
 }: {

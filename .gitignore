@@ -45,3 +45,9 @@ Icon
 Network Trash Folder
 Temporary Items
 .Trashes
+
+# Store metadata generated from store/locales and store/release.json
+/store/generated/
+/fastlane/report.xml
+/fastlane/Preview.html
+/fastlane/vendor/

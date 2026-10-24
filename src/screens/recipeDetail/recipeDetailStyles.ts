@@ -58,16 +58,17 @@ export const styles = StyleSheet.create({
   },
   ingredientHeaderActions: {
     alignItems: "center",
-    flexBasis: "100%",
     flexDirection: "row",
-    flexGrow: 1,
-    flexWrap: "wrap",
     gap: spacing.xs,
   },
-  ingredientHeaderButton: {
-    flexBasis: 190,
-    flexGrow: 1,
-    minWidth: 190,
+  recipeActions: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: spacing.sm,
+  },
+  cookingButton: {
+    flex: 1,
+    minHeight: 44,
   },
   ingredientRow: {
     alignItems: "center",

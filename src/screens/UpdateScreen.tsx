@@ -1,13 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import {
-  ArrowRight,
-  BookOpen,
-  CheckCheck,
-  Compass,
-  Eye,
-  SlidersHorizontal,
-  Sparkles,
-} from "lucide-react-native";
+import { ArrowRight, Archive, CalendarDays, ChefHat, Wrench, WandSparkles, Sparkles } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -23,12 +15,12 @@ import { useAppTheme } from "../theme/ThemeProvider";
 import { APP_VERSION } from "../version";
 
 const featureIcons = {
-  design: Sparkles,
-  settings: SlidersHorizontal,
-  recipes: BookOpen,
-  navigation: Compass,
-  readability: Eye,
-  fixes: CheckCheck,
+  reserves: Archive,
+  planning: CalendarDays,
+  cooking: ChefHat,
+  tools: Wrench,
+  assistant: WandSparkles,
+  clarity: Sparkles,
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, "Update">;

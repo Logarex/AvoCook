@@ -58,7 +58,6 @@ export type Recipe = {
   recipeCategory: string;
   tool: string[];
   recipeIngredient: string[];
-  // Flatten nested schema.org instructions.
   recipeInstructions: string[];
   nutrition: Nutrition | Nutrition[] | null;
   localMeta?: RecipeLocalMeta;

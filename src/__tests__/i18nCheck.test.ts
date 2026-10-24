@@ -42,6 +42,13 @@ describe("translations before release", () => {
     const lockfile = readJson("../../package-lock.json");
     expect(lockfile.version).toBe(APP_VERSION);
     expect(lockfile.packages[""].version).toBe(APP_VERSION);
+    const release = readJson("../../store/release.json");
+    expect(release.version).toBe(APP_VERSION);
+    for (const note of Object.values(release.notes)) {
+      expect(typeof note).toBe("string");
+      expect(String(note).trim().length).toBeGreaterThan(0);
+      expect([...String(note)].length).toBeLessThanOrEqual(500);
+    }
     expect(readFileSync(new URL("../../site/index.html", import.meta.url), "utf8"))
       .toContain(`class="hero-badge-pill">v${APP_VERSION}</span>`);
   });

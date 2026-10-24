@@ -45,3 +45,5 @@ Diagnostic logs are stored locally. Secrets are masked, but a report may still c
 ## Contact
 
 For questions, use [the GitHub repository](https://github.com/Logarex/AvoCook) or the contact button in the app.
+
+Optional barcode lookup sends only the scanned or entered barcode and app language to Open Food Facts, which also receives normal network information such as your IP address. Camera frames stay on the device. Your inventory, storage locations and expiry dates are not sent. Product names and scores from Open Food Facts are stored locally with source attribution under ODbL; missing scores are left blank.

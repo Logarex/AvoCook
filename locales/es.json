@@ -6,7 +6,7 @@
   "NSPhotoLibraryUsageDescription": "Permita el acceso a las fotos para añadir una imagen a una receta.",
   "NSPhotoLibraryAddUsageDescription": "Permita guardar imágenes de recetas si es necesario.",
   "NSLocalNetworkUsageDescription": "Permita el acceso a la red local solo para conectarse a un servidor Nextcloud alojado en su red.",
-  "NSCameraUsageDescription": "Permitir el acceso a la cámara para escanear texto de recetas desde fotos.",
+  "NSCameraUsageDescription": "Permitir la cámara para escanear recetas y códigos de barras de alimentos.",
   "NSMicrophoneUsageDescription": "Usar el micrófono para comandos de cocina locales opcionales.",
   "NSSpeechRecognitionUsageDescription": "Reconocer comandos de cocina en este dispositivo. El audio no se envía a un servidor."
 }

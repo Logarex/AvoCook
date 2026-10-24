@@ -104,9 +104,19 @@ Les modifications des paramètres réseau natifs nécessitent une nouvelle compi
 
 ## 6 — Soumission
 
+Les textes des stores sont conservés dans [`store/`](../../store/README.md). Renseigner les nouveautés, lancer `npm run store:prepare`, puis copier les textes générés ou les envoyer avec les commandes Fastlane documentées. La soumission EAS seule ne transmet pas ces fichiers.
+
 ```bash
 npx eas submit --platform ios
 npx eas submit --platform android
 ```
 
 > AvoCook est un client indépendant compatible avec Nextcloud Cookbook. Il ne doit pas être présenté comme une application Nextcloud officielle.
+
+## Validation 5.0.0 (24 octobre 2026)
+
+- Comparaison de `amelioration` avec `main`, modifications en cours comprises. Les nouveautés couvrent réserves, codes-barres, planning séparé, cuisine, minuteurs, carnet, saison, assistant frigo facultatif et interfaces.
+- 777 tests automatisés passent, dont une réserve de 500 aliments ; TypeScript et ESLint sans avertissement passent.
+- Clés, variables et textes de version de l’app et du site contrôlés en anglais, français, allemand, espagnol, italien et danois. Textes des boutiques valides dans les six langues.
+- Exports JavaScript de production iOS et Android réussis. Compilation iOS signée et lancement sur simulateur réussis en 5.0.0. Aucune publication sur les boutiques ou du site n’a été effectuée.
+- Scan sur téléphone réel, livraison des notifications et commandes vocales restent à tester sur appareil. Aucune compilation Android native n’a été effectuée pendant cette validation.

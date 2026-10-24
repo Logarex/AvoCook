@@ -151,7 +151,9 @@ vi.mock("../components/NativeGlassControls", () => ({
 vi.mock("../components/GlassPanel", () => ({ GlassPanel: "Panel" }));
 vi.mock("../components/IconButton", () => ({ IconButton: "IconButton" }));
 vi.mock("../components/PrimaryButton", () => ({ PrimaryButton: "Button" }));
-vi.mock("../components/TextField", () => ({ TextField: "Input" }));
+vi.mock("../components/TextField", () => ({
+  TextField: ({ rightElement, ...props }: { rightElement?: React.ReactNode }) => React.createElement("Input", props, rightElement),
+}));
 vi.mock("../components/EmptyState", () => ({ EmptyState: "Empty" }));
 vi.mock("../components/PageSwipeGesture", () => ({
   PageSwipeGesture: "Swipe",
@@ -276,7 +278,7 @@ async function shoppingScreen(fresh = true) {
 }
 function host(label: string) {
   return screen.root.findAll(
-    (node) => typeof node.type === "string" && node.props.label === label,
+    (node) => typeof node.type === "string" && (node.props.label === label || node.props.accessibilityLabel === label),
   )[0];
 }
 function accessible(label: string) {
@@ -412,7 +414,7 @@ describe("one shopping screen and one configuration sheet", () => {
     expect(screen.root.findAllByType("Swipe" as never)).toHaveLength(1);
     expect(
       host(en.translation.shoppingList.manualItemLabel).props.placeholder,
-    ).toBe(en.translation.shoppingList.itemPlaceholder);
+    ).toBe(en.translation.shoppingList.manualItemLabel);
     expect(host(en.translation.shoppingList.sharedTitle)).toBeUndefined();
     expect(JSON.stringify(screen.toJSON())).toContain("500 g Tomatoes");
     expect(screen.root.findByType("Status" as never).props.connected).toBe(

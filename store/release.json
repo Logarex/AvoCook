@@ -1,0 +1,11 @@
+{
+  "version": "5.0.0",
+  "notes": {
+    "fr-FR": "Nouveau : Ma cuisine et Planning séparés, réserves organisées par rangement, ajout par code-barres avec scores disponibles, dates et rappels. Repas du jour et de la semaine, mode cuisine, carnet privé, produits de saison, assistant frigo facultatif et sauvegardes complètes. Interfaces de recettes et courses allégées.",
+    "en-US": "New: separate My kitchen and Meal plan tabs, food organized by storage location, barcode entry with available scores, dates and reminders. Daily and weekly meals, cooking mode, private journal, seasonal produce, optional fridge assistant and complete backups. Simpler recipe and shopping controls.",
+    "de-DE": "Neu: getrennte Tabs für Meine Küche und Wochenplan, Vorräte nach Lagerort, Strichcodes mit verfügbaren Bewertungen, Daten und Erinnerungen. Tages- und Wochenplanung, Kochmodus, privates Tagebuch, Saisonprodukte, optionaler Kühlschrank-Assistent und vollständige Sicherungen. Einfachere Rezept- und Einkaufsaktionen.",
+    "es-ES": "Nuevo: Mi cocina y Plan separados, alimentos organizados por lugar, códigos de barras con puntuaciones disponibles, fechas y avisos. Comidas del día y la semana, modo cocina, diario privado, productos de temporada, asistente de nevera opcional y copias completas. Controles de recetas y compra más sencillos.",
+    "it-IT": "Novità: La mia cucina e Pianifica separate, scorte per posizione, codici a barre con punteggi disponibili, date e promemoria. Pasti del giorno e della settimana, modalità cucina, diario privato, prodotti stagionali, assistente frigo facoltativo e backup completi. Controlli di ricette e spesa più semplici.",
+    "da-DK": "Nyt: separate faner til Mit køkken og Madplan, forråd efter opbevaring, stregkoder med tilgængelige vurderinger, datoer og påmindelser. Dagens og ugens måltider, madlavningstilstand, privat dagbog, sæsonvarer, valgfri køleskabsassistent og komplette sikkerhedskopier. Enklere opskrifts- og indkøbsknapper."
+  }
+}

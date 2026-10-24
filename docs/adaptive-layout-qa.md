@@ -18,5 +18,4 @@ text scale. Recipe details and cooking use two panes when each pane has at least
   search, scroll, and refresh in each size.
 - Test keyboard entry for timer minutes and confirm navigation remains reachable.
 
-Automated layout checks do not replace a native iPhone Duo hardware / simulator run.
-No hinge-angle or tabletop posture detection is implemented.
+Automated layout checks do not replace checks on a physical device.

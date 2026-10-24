@@ -143,11 +143,13 @@ function RootNavigator() {
       ? "recipes"
       : route === "Kitchen"
         ? "kitchen"
-        : route === "Community"
-          ? "community"
-          : route === "ShoppingList"
-            ? "shoppingList"
-            : undefined;
+        : route === "Planning"
+          ? "planning"
+          : route === "Community"
+            ? "community"
+            : route === "ShoppingList"
+              ? "shoppingList"
+              : undefined;
   const syncCurrentRoute = () =>
     setCurrentRoute(navigationRef.getCurrentRoute()?.name);
 
@@ -176,6 +178,7 @@ function RootNavigator() {
             <Stack.Screen name="Update" component={UpdateScreen} />
             <Stack.Screen name="Recipes" component={RecipeListScreen} />
             <Stack.Screen name="Kitchen" component={KitchenScreen} />
+            <Stack.Screen name="Planning" component={KitchenScreen} />
             <Stack.Screen name="FridgeRecipe" component={FridgeRecipeScreen} />
             <Stack.Screen name="Cooking" component={CookingScreen} />
             <Stack.Screen
@@ -206,6 +209,7 @@ function RootNavigator() {
                 if (tab === currentTab) return;
                 if (tab === "recipes") navigationRef.navigate("Recipes");
                 else if (tab === "kitchen") navigationRef.navigate("Kitchen");
+                else if (tab === "planning") navigationRef.navigate("Planning", { section: "today" });
                 else if (tab === "community")
                   navigationRef.navigate("Community");
                 else navigationRef.navigate("ShoppingList");
@@ -334,6 +338,7 @@ function getStackAnimation(
     reducedMotion ||
     routeName === "Recipes" ||
     routeName === "Kitchen" ||
+    routeName === "Planning" ||
     routeName === "Community" ||
     routeName === "ShoppingList"
   ) {

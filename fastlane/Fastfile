@@ -1,0 +1,43 @@
+require 'json'
+
+ROOT = File.expand_path('..', __dir__)
+
+before_all do
+  sh('node', File.join(ROOT, 'tools/scripts/prepare-store.mjs'))
+end
+
+platform :ios do
+  desc 'Upload store texts to the editable version; no binary or review submission'
+  lane :metadata do
+    upload_to_app_store(
+      app_identifier: 'org.epimac.avocook',
+      app_version: JSON.parse(File.read(File.join(ROOT, 'store/release.json')))['version'],
+      api_key_path: ENV.fetch('APP_STORE_CONNECT_API_KEY_PATH'),
+      metadata_path: File.join(ROOT, 'store/generated/ios'),
+      skip_binary_upload: true,
+      skip_screenshots: true,
+      submit_for_review: false,
+      automatic_release: false,
+      run_precheck_before_submit: false
+    )
+  end
+end
+
+platform :android do
+  desc 'Upload listing texts and notes for an existing build on the selected track'
+  lane :metadata do
+    code = ENV.fetch('PLAY_VERSION_CODE')
+    UI.user_error!('PLAY_VERSION_CODE must be a positive integer') unless code.match?(/\A[1-9]\d*\z/)
+    upload_to_play_store(
+      package_name: 'app.avocook.mobile',
+      json_key: ENV.fetch('GOOGLE_PLAY_JSON_KEY'),
+      metadata_path: File.join(ROOT, 'store/generated/android'),
+      track: ENV.fetch('PLAY_TRACK', 'internal'),
+      version_code: code.to_i,
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+  end
+end

@@ -106,9 +106,19 @@ Changes to native network settings require a new Android/iOS build. An over-the-
 
 ## 6 — Submit
 
+Store listing texts are kept in [`store/`](../store/README.md). Update the release notes, run `npm run store:prepare`, then copy the generated texts or upload them with the documented Fastlane commands. EAS submission alone does not upload these files.
+
 ```bash
 npx eas submit --platform ios
 npx eas submit --platform android
 ```
 
 > AvoCook is an independent client compatible with Nextcloud Cookbook. It must not be presented as an official Nextcloud application.
+
+## 5.0.0 validation (2026-10-24)
+
+- Compared `amelioration` with `main`, including current working changes. Release notes cover supplies, barcode lookup, separate planning, cooking, timers, journals, seasonal tools, the optional fridge assistant and interface changes.
+- 777 automated tests pass, including a 500-item inventory check; TypeScript and ESLint with zero warnings pass.
+- App and website translation keys, variables and release text pass checks in English, French, German, Spanish, Italian and Danish. Store texts validate for all six languages.
+- Production JavaScript exports succeed for iOS and Android. The signed iOS simulator build succeeds and launches as 5.0.0. No App Store, Google Play or website publication was performed.
+- Physical-device barcode scanning, notification delivery and voice commands still require device testing. A native Android build was not performed in this validation.

@@ -17,6 +17,19 @@ L'ho sviluppato per uso personale mentre imparavo a portare avanti un progetto R
 
 ---
 
+## Novità della versione 5.0.0
+
+Cinque schede: Ricette, La mia cucina, Pianifica, Comunità e Spesa. La mia cucina raccoglie scorte e idee; Pianifica si apre su Oggi e offre anche la settimana.
+
+- **Scorte ben organizzate** — Frigo, dispensa e congelatore con ricerca, quantità e date. Scansiona un codice a barre o inserisci un alimento. Nutri-Score e Green-Score di Open Food Facts quando disponibili; promemoria locali facoltativi.
+- **Uno spazio per pianificare** — Organizza Oggi e la settimana: ricette, pasti semplici, avanzi o uscite. Regola le porzioni, sposta i pasti e prepara la spesa. Restano disponibili menu riutilizzabili e preparazione di più ricette.
+- **Cucina e conserva le tue abitudini** — Segui i passaggi con timer e comandi vocali locali compatibili. Conserva note, preparazioni e pasti abituali nel diario privato e nella cronologia. I timer vengono ripristinati senza avvisi duplicati.
+- **Strumenti per ogni giorno** — Calendari stagionali con fonti per 11 paesi e limiti regionali, conversioni e sostituzioni secondo l’uso. Crea un ricettario PDF e salva ricette insieme ai dati privati della cucina.
+- **Un’idea con i tuoi ingredienti** — Inserisci ingredienti o analizza una foto, correggi la lista e genera una bozza modificabile. IA facoltativa con il tuo fornitore, la tua chiave API e un modello compatibile; possono esserci costi.
+- **Un’interfaccia più leggera** — Azioni di ricette e spesa compatte, alimenti raggruppati per posizione e dettagli su richiesta. Categorie più piccole e viste adatte alle dimensioni dello schermo e del testo.
+
+Inserisci la data sulla confezione. Schede e punteggi possono mancare e non costituiscono un’analisi completa del prodotto. La ricerca richiede Internet; scorte e pianificazione restano locali. Le notifiche dipendono dai permessi del dispositivo.
+
 ## Funzionalità
 
 ### Piattaforma Comunità
@@ -39,7 +52,7 @@ L'ho sviluppato per uso personale mentre imparavo a portare avanti un progetto R
 
 ### La mia cucina — pasti quotidiani, in locale
 
-Inizia in La mia cucina: Oggi, Settimana, I miei alimenti e Idee per i pasti. Gli strumenti occasionali sono sotto la chiave inglese.
+Cinque schede: Ricette, La mia cucina, Pianifica, Comunità e Spesa. La mia cucina raccoglie scorte e idee; Pianifica si apre su Oggi e offre anche la settimana.
 
 - **Organizza la settimana** — Aggiungi pranzi e cene, trascina ricette tra i giorni e adatta le porzioni. Controlla gli ingredienti raggruppati prima di aggiungerli alla spesa.
 - **Pasti senza ricetta** — Annota un pasto veloce, riutilizza un pasto abituale o pianifica avanzi e uscite. Solo i pasti con ingredienti contribuiscono alla spesa.

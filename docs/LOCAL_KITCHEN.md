@@ -1,10 +1,10 @@
 # Local kitchen features
 
-The planning, stock, matching and cooking tools run on the device. The optional fridge AI assistant contacts the provider configured by the user, only on explicit request. Source links open a browser only when requested.
+The planning, stock, matching and cooking tools run on the device. The optional fridge AI assistant contacts the provider configured by the user, only on explicit request. Barcode lookup contacts Open Food Facts on request. Source links open a browser only when requested.
 
 ## Everyday planning
 
-The My kitchen bottom tab sits between Recipes and Community. Navigation swipes follow the same order. Today is the default kitchen view. Four primary sections cover Today, Week, My food and Meal ideas; occasional tools live under the header wrench button. Choose a week and a day, then add lunch or dinner. A recipe detail also offers Add to meal plan.
+Five tabs: Recipes, My kitchen, Meal plan, Community and Shopping. My kitchen brings together supplies and meal ideas; Meal plan opens on Today and also covers the week. Optional tools are grouped under each tab’s wrench button. Choose a week and a day to add lunch or dinner. Recipe details link directly to Meal plan.
 
 A simple meal needs only a name to save; grocery lines and date/serving controls are optional. Today offers editable meal combinations even with an empty recipe library, and can reuse previously recorded simple meals. Stock with upcoming dates has direct idea, leftover planning and consumption actions, including undo.
 
@@ -71,3 +71,9 @@ Simulator visual checks on 19 October 2026 covered week navigation, returning to
 Run `npm run typecheck`, `npm run lint`, and `npm test` (integration tests bind localhost). Rebuild native iOS and Android after prebuild/pod installation: the optional kitchen module is registered in the existing local native package.
 
 A release still needs device testing of microphone consent/denial, unavailable offline languages, recognition with airplane mode enabled, background/locked-device notifications, Android reboot, accessibility text sizes, PDF export, backup round trips, and drag/drop with VoiceOver's tap alternatives. No claim of successful device permission/delivery testing should be inferred from passing unit tests or native compilation.
+
+## Food supplies in 5.0.0
+
+Fridge, pantry and freezer, with search, quantities and dates. Scan a barcode or enter food manually. Nutri-Score and Green-Score from Open Food Facts when available; optional local reminders. Enter the date printed on the pack yourself. Product records and scores may be missing and do not constitute a complete product analysis. Product lookup needs Internet; supplies and planning stay local. Notifications depend on device permissions.
+
+Foods are grouped by fridge, pantry and freezer, sorted by date, then by name. Search ignores case and accents. Each row opens details and actions; marking food as used supports undo. Barcode lookup only fills the name, quantity and available grades, never the date. Camera frames are processed on the device. The barcode and app language are sent to Open Food Facts; inventory and dates are not sent. Unknown products can be entered manually. Product metadata is preserved in full kitchen backups.

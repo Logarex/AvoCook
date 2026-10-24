@@ -13,7 +13,6 @@ import { radius, spacing } from "../theme/colors";
 
 type Group = { house: PantryHouse; lists: PantryList[] };
 
-// Embedded in the mode sheet: choosing a household is unnecessary for existing lists.
 export function PantryListPicker({ credentials, onDone, onBusyChange }: {
   credentials: NextcloudCredentials; onDone: () => void; onBusyChange: (busy: boolean) => void;
 }) {

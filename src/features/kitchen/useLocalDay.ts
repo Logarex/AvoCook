@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { AppState } from "react-native";
 import { localDate } from "./kitchen";
 
-/** Refresh after midnight or resuming the app, including local timezone changes. */
 export function useLocalDay() {
   const [day, setDay] = useState(localDate);
   useEffect(() => {

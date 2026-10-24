@@ -17,6 +17,19 @@ Ich habe es für den persönlichen Gebrauch entwickelt und dabei gelernt, ein vo
 
 ---
 
+## Neu in Version 5.0.0
+
+Fünf Tabs: Rezepte, Meine Küche, Wochenplan, Community und Einkauf. Meine Küche enthält Vorräte und Essensideen; der Wochenplan startet mit Heute und bietet die Wochenansicht.
+
+- **Gut sortierte Vorräte** — Kühlschrank, Schrank und Gefrierfach mit Suche, Mengen und Daten. Strichcode scannen oder Lebensmittel eingeben. Nutri-Score und Green-Score von Open Food Facts, soweit verfügbar; optionale lokale Erinnerungen.
+- **Ein eigener Essensplan** — Heute und die Woche planen: Rezepte, einfache Mahlzeiten, Reste oder auswärts essen. Portionen anpassen, Mahlzeiten verschieben und Einkäufe vorbereiten. Wiederverwendbare Menüs und die Vorbereitung mehrerer Rezepte bleiben verfügbar.
+- **Kochen und Gewohnheiten festhalten** — Schritte mit Timern und unterstützten lokalen Sprachbefehlen verfolgen. Notizen, Zubereitungen und gewohnte Mahlzeiten im privaten Tagebuch und Verlauf speichern. Timer werden ohne doppelte Meldungen wiederhergestellt.
+- **Werkzeuge für den Alltag** — Belegte Saisonkalender für 11 Länder mit regionalen Grenzen, Umrechnungen und anwendungsbezogene Alternativen. PDF-Kochbuch erstellen und Rezepte zusammen mit privaten Küchendaten sichern.
+- **Eine Idee aus Ihren Zutaten** — Zutaten eingeben oder ein Foto analysieren, Liste korrigieren und einen bearbeitbaren Entwurf erzeugen. Optionale KI mit Ihrem Anbieter, API-Schlüssel und einem passenden Modell; Kosten sind möglich.
+- **Eine leichtere Oberfläche** — Kompakte Rezept- und Einkaufsaktionen, nach Lagerort sortierte Lebensmittel und Details bei Bedarf. Kleinere Kategorieelemente und an Bildschirm- und Textgröße angepasste Ansichten.
+
+Das Datum auf der Packung selbst eingeben. Produktdaten und Bewertungen können fehlen und stellen keine vollständige Produktanalyse dar. Die Produktsuche benötigt Internet; Vorräte und Planung bleiben lokal. Benachrichtigungen hängen von Geräteberechtigungen ab.
+
 ## Funktionen
 
 ### Community-Plattform
@@ -39,7 +52,7 @@ Ich habe es für den persönlichen Gebrauch entwickelt und dabei gelernt, ein vo
 
 ### Meine Küche — Alltagsmahlzeiten lokal planen
 
-Starte in Meine Küche: Heute, Woche, Meine Vorräte und Essensideen. Weitere Werkzeuge findest du unter dem Schraubenschlüssel.
+Fünf Tabs: Rezepte, Meine Küche, Wochenplan, Community und Einkauf. Meine Küche enthält Vorräte und Essensideen; der Wochenplan startet mit Heute und bietet die Wochenansicht.
 
 - **Die Woche planen** — Mittag- und Abendessen eintragen, Rezepte zwischen Tagen verschieben und Portionen anpassen. Zusammengefasste Zutaten vor dem Einkauf prüfen.
 - **Mahlzeiten ohne Rezept** — Schnelles Essen notieren, übliche Mahlzeiten wiederverwenden oder Reste und Restaurantbesuche planen. Nur Mahlzeiten mit Zutaten ergänzen die Einkaufsliste.

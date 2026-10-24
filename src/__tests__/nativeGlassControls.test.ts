@@ -62,6 +62,7 @@ vi.mock("lucide-react-native", () => ({
   BookOpen: "Book",
   ArrowLeft: "Back",
   CalendarDays: "Calendar",
+  CookingPot: "CookingPot",
   Globe: "Globe",
   ShoppingCart: "Cart",
 }));
@@ -288,6 +289,7 @@ describe("native Liquid Glass controls", () => {
     ).toEqual([
       "recipes.title",
       "kitchen.title",
+      "kitchen.planningTitle",
       "community.title",
       "shoppingList.title",
     ]);
@@ -335,7 +337,7 @@ describe("native Liquid Glass controls", () => {
       nodes("Pressable").filter(
         (node) => node.props.accessibilityRole === "tab",
       ),
-    ).toHaveLength(4);
+    ).toHaveLength(5);
     const button = nodes("Pressable").find(
       (node) => node.props.accessibilityRole === "button",
     );

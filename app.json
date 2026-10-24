@@ -3,7 +3,7 @@
     "name": "AvoCook",
     "slug": "avocook",
     "scheme": "avocook",
-    "version": "4.3.1",
+    "version": "5.0.0",
     "locales": {
       "en": "./locales/en.json",
       "fr": "./locales/fr.json",
@@ -20,7 +20,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "2",
+      "buildNumber": "3",
       "bundleIdentifier": "org.epimac.avocook",
       "appleTeamId": "E5L7NC8M9T",
       "appStoreUrl": "https://apps.apple.com/fr/app/avocook/id6769012665",
@@ -38,7 +38,7 @@
         "NSLocalNetworkUsageDescription": "Allow local network access only to connect to a Nextcloud server hosted on your network.",
         "NSPhotoLibraryUsageDescription": "Allow access to photos to add an image to a recipe.",
         "NSPhotoLibraryAddUsageDescription": "Allow saving recipe images if needed.",
-        "NSCameraUsageDescription": "Allow camera access to scan recipes from photos.",
+        "NSCameraUsageDescription": "Allow camera access to scan recipes and food barcodes.",
         "NSCalendarsUsageDescription": "AvoCook requires calendar access because it shares the same system component as reminders, which are used for your grocery lists.",
         "NSCalendarsFullAccessUsageDescription": "AvoCook requires calendar access because it shares the same system component as reminders, which are used for your grocery lists.",
         "NSRemindersUsageDescription": "AvoCook uses your reminders to export and synchronize your grocery lists.",
@@ -138,7 +138,15 @@
       "./tools/plugins/withOptionalCamera",
       "./tools/plugins/withIosBuildNumber",
       "./tools/plugins/withProguardRules",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow camera access to scan recipes and food barcodes.",
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": true
+        }
+      ]
     ],
     "extra": {
       "eas": {

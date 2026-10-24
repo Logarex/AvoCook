@@ -17,6 +17,19 @@ Je l'ai développé pour mon usage personnel en apprenant à mener un projet Rea
 
 ---
 
+## Nouveautés de la version 5.0.0
+
+Cinq onglets : Recettes, Ma cuisine, Planning, Communauté et Courses. Ma cuisine rassemble les réserves et les idées ; Planning s’ouvre sur Aujourd’hui et donne accès à la semaine.
+
+- **Vos réserves, bien rangées** — Frigo, placard et congélateur, recherche, quantités et dates. Scannez un code-barres ou saisissez un aliment. Nutri-Score et Green-Score d’Open Food Facts lorsqu’ils sont disponibles ; rappels locaux facultatifs.
+- **Un planning à part entière** — Organisez Aujourd’hui et la semaine : recettes, repas simples, restes ou sorties. Ajustez les portions, déplacez les repas et préparez les courses. Menus réutilisables et préparation de plusieurs recettes restent accessibles.
+- **Cuisiner et garder ses habitudes** — Suivez les étapes avec les minuteurs et les commandes vocales locales compatibles. Retrouvez vos notes, préparations et repas habituels dans le carnet privé et l’historique. Les minuteurs sont restaurés sans alertes en double.
+- **Des outils pour le quotidien** — Calendriers de saison sourcés pour 11 pays, avec limites régionales, conversions et substitutions selon l’usage. Créez un livre PDF et sauvegardez les recettes avec les données privées de Ma cuisine.
+- **Une idée avec vos ingrédients** — Saisissez vos ingrédients ou analysez une photo, corrigez la liste puis générez un brouillon modifiable. IA facultative, avec votre fournisseur, votre clé API et un modèle compatible ; des frais peuvent s’appliquer.
+- **Une interface plus légère** — Actions de recettes et courses plus compactes, produits regroupés par rangement et détails à la demande. Catégories plus discrètes et présentation adaptée à la taille de l’écran et du texte.
+
+La date du paquet reste à saisir. Les fiches et scores peuvent manquer et ne constituent pas une analyse complète du produit. La recherche produit utilise Internet ; les réserves et le planning restent locaux. Les notifications dépendent des autorisations de l’appareil.
+
 ## Fonctionnalités
 
 ### Plateforme Communautaire
@@ -39,7 +52,7 @@ Je l'ai développé pour mon usage personnel en apprenant à mener un projet Rea
 
 ### Ma cuisine — les repas du quotidien, en local
 
-Commencez dans Ma cuisine : Aujourd’hui, Semaine, Mes aliments et Idées de repas. Les outils occasionnels sont sous la clé à molette.
+Cinq onglets : Recettes, Ma cuisine, Planning, Communauté et Courses. Ma cuisine rassemble les réserves et les idées ; Planning s’ouvre sur Aujourd’hui et donne accès à la semaine.
 
 - **Organiser la semaine** — Ajoutez les déjeuners et dîners, glissez les recettes entre les jours et ajustez les portions. Vérifiez les ingrédients regroupés avant de les ajouter aux courses.
 - **Des repas sans recette** — Notez un repas rapide, reprenez un repas habituel ou prévoyez des restes et une sortie. Seuls les repas avec des ingrédients alimentent les courses.

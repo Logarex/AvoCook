@@ -358,80 +358,73 @@ export function ShoppingListScreen({ navigation }: Props) {
               >
                 {t("shoppingList.title")}
               </AppText>
+
             </View>
-            {mode.kind === "pantry" || sync.linked || sharedList.active ? (
-              <ConnectionStatus
-                connected={
-                  mode.kind === "pantry"
-                    ? Boolean(pantry?.fresh)
-                    : sharedList.active ||
-                      (Platform.OS === "ios" && sync.linked)
-                }
-                label={
-                  mode.kind === "pantry"
-                    ? t(
-                        pantry?.fresh
-                          ? "pantry.upToDate"
-                          : "pantry.cachedStatus",
-                      )
-                    : sharedList.active ||
-                        (Platform.OS === "ios" && sync.linked)
-                      ? t("shoppingList.syncActiveInfo")
-                      : t("shoppingList.syncEnable")
-                }
-                loading={sync.syncing || pantry?.busy}
+            <View style={styles.modeControl}>
+              <ShoppingModeButton
+                compact
+                disabled={mutating}
+                onPress={() => setShowModes(true)}
+              />
+              {mode.kind === "pantry" || sync.linked || sharedList.active ? (
+                <ConnectionStatus
+                  compact
+                  connected={
+                    mode.kind === "pantry"
+                      ? Boolean(pantry?.fresh)
+                      : sharedList.active
+                        ? !sharedList.error
+                        : Platform.OS === "ios" && sync.linked
+                  }
+                  label={
+                    mode.kind === "pantry"
+                      ? t(
+                          pantry?.fresh
+                            ? "pantry.upToDate"
+                            : "pantry.cachedStatus",
+                        )
+                      : sharedList.active ||
+                          (Platform.OS === "ios" && sync.linked)
+                        ? t("shoppingList.syncActiveInfo")
+                        : t("shoppingList.syncEnable")
+                  }
+                  loading={sync.syncing || pantry?.busy}
+                />
+              ) : null}
+            </View>
+          </View>
+          <View style={styles.headerActions}>
+            {mode.kind === "pantry" ? (
+              <IconButton
+                icon={RefreshCw}
+                spinning={pantry?.busy}
+                label={t("pantry.refresh")}
+                disabled={switching || mutating || pantry?.busy}
+                onPress={() => void handleRefresh()}
               />
             ) : null}
+            {items.length ? (
+              <View style={styles.headerActions}>
+                <IconButton
+                  disabled={!items.length}
+                  icon={ShareIcon}
+                  label={t("shoppingList.shareList")}
+                  onPress={() => void handleShare()}
+                  style={styles.headerIcon}
+                />
+                <IconButton
+                  disabled={!items.length || !canDelete}
+                  icon={Trash2}
+                  label={t("common.delete")}
+                  onPress={handleDeleteOptions}
+                  tone="danger"
+                  style={styles.headerIcon}
+                />
+              </View>
+            ) : null}
           </View>
-          {items.length ? (
-            <View style={styles.headerActions}>
-              <IconButton
-                disabled={!items.length}
-                icon={ShareIcon}
-                label={t("shoppingList.shareList")}
-                onPress={() => void handleShare()}
-                style={styles.headerIcon}
-              />
-              <IconButton
-                disabled={!items.length || !canDelete}
-                icon={Trash2}
-                label={t("common.delete")}
-                onPress={handleDeleteOptions}
-                tone="danger"
-                style={styles.headerIcon}
-              />
-            </View>
-          ) : null}
         </View>
 
-        <View style={styles.modeRow}>
-          <View style={styles.modeControl}>
-            <ShoppingModeButton
-              compact
-              disabled={mutating}
-              onPress={() => setShowModes(true)}
-            />
-          </View>
-          {mode.kind === "pantry" ? (
-            <AppText
-              muted
-              variant="caption"
-              numberOfLines={1}
-              style={styles.activeListName}
-            >
-              {mode.selection.list.name}
-            </AppText>
-          ) : null}
-          {mode.kind === "pantry" ? (
-            <IconButton
-              icon={RefreshCw}
-              spinning={pantry?.busy}
-              label={t("pantry.refresh")}
-              disabled={switching || mutating || pantry?.busy}
-              onPress={() => void handleRefresh()}
-            />
-          ) : null}
-        </View>
         {mode.kind === "pantry" && pantry?.error ? (
           <View style={styles.feedback}>
             <AppText accessibilityRole="alert" style={{ color: colors.danger }}>
@@ -457,21 +450,29 @@ export function ShoppingListScreen({ navigation }: Props) {
           <TextField
             containerStyle={styles.addField}
             label={t("shoppingList.manualItemLabel")}
+            hideLabel
             onChangeText={setNewItem}
             onSubmitEditing={() => void handleAddItem()}
-            placeholder={t("shoppingList.itemPlaceholder")}
+            placeholder={t("shoppingList.manualItemLabel")}
             returnKeyType="done"
             value={newItem}
             editable={canAdd}
             autoCorrect={false}
-          />
-          <IconButton
-            disabled={!newItem.trim() || !canAdd}
-            icon={Plus}
-            label={t("shoppingList.addItem")}
-            onPress={() => void handleAddItem()}
-            tone="primary"
-            style={styles.addButton}
+            rightElement={
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t("shoppingList.addItem")}
+                accessibilityState={{ disabled: !newItem.trim() || !canAdd }}
+                disabled={!newItem.trim() || !canAdd}
+                onPress={() => void handleAddItem()}
+                style={({ pressed }) => [
+                  styles.addButton,
+                  { opacity: !newItem.trim() || !canAdd ? 0.35 : pressed ? 0.6 : 1 },
+                ]}
+              >
+                <Plus size={22} color={colors.primaryStrong} />
+              </Pressable>
+            }
           />
         </View>
 
@@ -855,19 +856,20 @@ function ShoppingListRow({
 const MemoizedShoppingListRow = React.memo(ShoppingListRow);
 
 const styles = StyleSheet.create({
-  modeRow: {
+  modeControl: {
+    alignSelf: "flex-start",
+    maxWidth: "100%",
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    gap: spacing.xs,
-    paddingHorizontal: spacing.md,
+    gap: spacing.sm,
   },
-  modeControl: { flexShrink: 1 },
-  activeListName: { flex: 1, minWidth: 0 },
-  feedback: { gap: spacing.xs, paddingHorizontal: spacing.md },
   addButton: {
-    marginTop: 25,
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
   },
+  feedback: { gap: spacing.xs, paddingHorizontal: spacing.md },
   addField: {
     flex: 1,
     minWidth: 0,
@@ -891,7 +893,7 @@ const styles = StyleSheet.create({
     width: 24,
   },
   header: {
-    alignItems: "center",
+    alignItems: "flex-start",
     flexDirection: "row",
     gap: spacing.sm,
     justifyContent: "space-between",
@@ -981,14 +983,18 @@ const styles = StyleSheet.create({
     width: StyleSheet.hairlineWidth,
   },
   title: {
-    flex: 1,
-    lineHeight: 36,
+    fontSize: 28,
+    lineHeight: 34,
   },
   titleBlock: {
+    gap: 0,
+    alignItems: "stretch",
     flex: 1,
     minWidth: 0,
   },
   titleRow: {
+    flexWrap: "wrap",
+    flexShrink: 1,
     alignItems: "center",
     flexDirection: "row",
     gap: spacing.xs,

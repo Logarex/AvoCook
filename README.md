@@ -19,6 +19,19 @@ I built it for personal use while learning to ship a complete React Native proje
 
 ---
 
+## What’s new in 5.0.0
+
+Five tabs: Recipes, My kitchen, Meal plan, Community and Shopping. My kitchen brings together supplies and meal ideas; Meal plan opens on Today and also covers the week.
+
+- **Your food, neatly organized** — Fridge, pantry and freezer, with search, quantities and dates. Scan a barcode or enter food manually. Nutri-Score and Green-Score from Open Food Facts when available; optional local reminders.
+- **A dedicated meal plan** — Organize Today and the week: recipes, simple meals, leftovers or eating out. Adjust servings, move meals and prepare groceries. Reusable menus and batch preparation remain available.
+- **Cook and keep your routines** — Follow steps with timers and supported local voice commands. Keep notes, preparations and usual meals in your private journal and history. Timers are restored without duplicate alerts.
+- **Tools for everyday cooking** — Sourced seasonal calendars for 11 countries with regional limits, conversions and context-specific substitutions. Create a PDF cookbook and back up recipes together with private My kitchen data.
+- **An idea from your ingredients** — Enter ingredients or analyze a photo, correct the list, then generate an editable draft. Optional AI uses your provider, API key and a compatible model; charges may apply.
+- **A lighter interface** — Compact recipe and shopping actions, food grouped by storage location and details on demand. Smaller category chips and layouts adapted to screen and text size.
+
+Enter the date printed on the pack yourself. Product records and scores may be missing and do not constitute a complete product analysis. Product lookup needs Internet; supplies and planning stay local. Notifications depend on device permissions.
+
 ## Features
 
 ### Community Platform
@@ -41,7 +54,7 @@ I built it for personal use while learning to ship a complete React Native proje
 
 ### My kitchen — everyday meals, locally
 
-Start in My kitchen: Today, Week, My food and Meal ideas. Occasional tools are under the wrench button.
+Five tabs: Recipes, My kitchen, Meal plan, Community and Shopping. My kitchen brings together supplies and meal ideas; Meal plan opens on Today and also covers the week.
 
 - **Plan your week** — Add lunch and dinner, drag recipes between days and adjust servings. Preview grouped ingredients before adding them to shopping.
 - **Meals without a recipe** — Note a quick meal, reuse a usual meal or plan leftovers and eating out. Only meals with ingredients contribute to shopping.

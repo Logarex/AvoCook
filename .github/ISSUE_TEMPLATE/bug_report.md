@@ -22,7 +22,7 @@ assignees: ''
 
 ## App version
 
-<!-- Visible in Settings → About. Example: 4.3.0 -->
+<!-- Visible in Settings → About. Example: 5.0.0 -->
 
 ## Platform
 

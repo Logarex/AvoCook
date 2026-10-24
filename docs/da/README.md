@@ -10,6 +10,19 @@ AvoCook er en gratis køkkenhjælper med åben kildekode til iOS og Android, med
 
 ---
 
+## Nyt i version 5.0.0
+
+Fem faner: Opskrifter, Mit køkken, Madplan, Fællesskab og Indkøb. Mit køkken samler forråd og madidéer; Madplan åbner på I dag og viser også ugen.
+
+- **Madvarer med orden på** — Køleskab, skab og fryser med søgning, mængder og datoer. Scan en stregkode eller indtast en madvare. Nutri-Score og Green-Score fra Open Food Facts, når de findes; valgfrie lokale påmindelser.
+- **En selvstændig madplan** — Planlæg I dag og ugen: opskrifter, enkle måltider, rester eller at spise ude. Tilpas portioner, flyt måltider og forbered indkøb. Genbrugelige menuer og tilberedning af flere opskrifter er stadig tilgængelige.
+- **Lav mad og gem dine vaner** — Følg trin med timere og understøttede lokale stemmekommandoer. Gem noter, tilberedninger og vanlige måltider i privat dagbog og historik. Timere gendannes uden dobbelte alarmer.
+- **Værktøjer til hverdagen** — Sæsonkalendere med kilder for 11 lande med regionale grænser, omregninger og erstatninger efter anvendelse. Lav en PDF-kogebog og sikkerhedskopiér opskrifter sammen med private køkkendata.
+- **En idé med dine ingredienser** — Indtast ingredienser eller analysér et foto, ret listen og generér et udkast, der kan redigeres. Valgfri AI med din udbyder, API-nøgle og en passende model; der kan være omkostninger.
+- **En lettere brugerflade** — Kompakte opskrifts- og indkøbshandlinger, madvarer grupperet efter opbevaring og detaljer efter behov. Mindre kategorier og visninger tilpasset skærm- og tekststørrelse.
+
+Indtast datoen på pakken selv. Varedata og vurderinger kan mangle og er ikke en fuld produktanalyse. Varesøgning kræver Internet; forråd og madplan forbliver lokale. Notifikationer afhænger af enhedens tilladelser.
+
 ## Funktioner
 
 ### Fællesskabsplatform
@@ -32,7 +45,7 @@ AvoCook er en gratis køkkenhjælper med åben kildekode til iOS og Android, med
 
 ### Mit køkken — hverdagens måltider, lokalt
 
-Start i Mit køkken: I dag, Uge, Mine madvarer og Måltidsidéer. Andre værktøjer findes under skruenøglen.
+Fem faner: Opskrifter, Mit køkken, Madplan, Fællesskab og Indkøb. Mit køkken samler forråd og madidéer; Madplan åbner på I dag og viser også ugen.
 
 - **Planlæg ugen** — Tilføj frokost og aftensmad, træk opskrifter mellem dage, og tilpas portioner. Gennemgå samlede ingredienser, før du tilføjer dem til indkøb.
 - **Måltider uden opskrift** — Notér et hurtigt måltid, gentag et sædvanligt måltid, eller planlæg rester og restaurantbesøg. Kun måltider med ingredienser bidrager til indkøb.

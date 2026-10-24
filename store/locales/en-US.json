@@ -1,0 +1,8 @@
+{
+  "name": "AvoCook",
+  "subtitle": "Your recipe notebook",
+  "promotionalText": "Keep your recipes close: import from the web, prepare shopping lists and set cooking timers. Use AvoCook offline, with optional Nextcloud sync.",
+  "shortDescription": "Recipes, shopping lists and cooking timers, even offline.",
+  "description": "Your recipe notebook, always close at hand.\n\nCreate and organise recipes, import them from compatible websites and adjust quantities to your servings. Prepare shopping lists and start timers while cooking. Export recipes as PDF and back up your notebook.\n\nYour local notebook works offline, with no account required. You can also discover recipes shared by the AvoCook community.\n\nAlready using Nextcloud Cookbook? Connect your server to sync recipes. AvoCook is an independent client compatible with Nextcloud Cookbook.\n\nWhat’s new in 5.0.0\nFive tabs: Recipes, My kitchen, Meal plan, Community and Shopping. My kitchen brings together supplies and meal ideas; Meal plan opens on Today and also covers the week.\nFridge, pantry and freezer, with search, quantities and dates. Scan a barcode or enter food manually. Nutri-Score and Green-Score from Open Food Facts when available; optional local reminders.\nOrganize Today and the week: recipes, simple meals, leftovers or eating out. Adjust servings, move meals and prepare groceries. Reusable menus and batch preparation remain available.\nEnter the date printed on the pack yourself. Product records and scores may be missing and do not constitute a complete product analysis. Product lookup needs Internet; supplies and planning stay local. Notifications depend on device permissions.",
+  "keywords": "recipes,cooking,notebook,shopping,timer,Nextcloud,Cookbook"
+}

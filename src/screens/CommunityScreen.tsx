@@ -409,7 +409,7 @@ export function CommunityScreen({ navigation }: Props) {
   return (
     <PageSwipeGesture
       onSwipeRight={() =>
-        navigation.navigate("Kitchen", { tabTransition: "slide_from_left" })
+        navigation.navigate("Planning", { section: "today", tabTransition: "slide_from_left" })
       }
       onSwipeLeft={() =>
         navigation.navigate("ShoppingList", {

@@ -41,10 +41,16 @@ export type RootStackParamList = {
   Kitchen:
     | {
         section?: KitchenSection;
+        ingredients?: string;
         recipeId?: string;
         tabTransition?: "slide_from_left" | "slide_from_right";
       }
     | undefined;
+  Planning: {
+    section?: "today" | "planner";
+    recipeId?: string;
+    tabTransition?: "slide_from_left" | "slide_from_right";
+  } | undefined;
   Cooking: { id: string };
   RecipeJournal: { id: string };
   FridgeRecipe: { ingredients?: string } | undefined;

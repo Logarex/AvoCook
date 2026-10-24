@@ -23,6 +23,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint -- --max-warnings=0
       - run: npm test
+      - run: npm run store:check
       - name: Prepare website assets
         run: node tools/scripts/build-site.mjs
       - name: Export iOS and Android production bundles
