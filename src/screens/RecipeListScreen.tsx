@@ -1,3 +1,4 @@
+import { useAdaptiveLayout } from "../hooks/useAdaptiveLayout";
 import { useKitchen } from "../features/kitchen/KitchenProvider";
 import { matchesDietPreference, matchesFoodPreferences } from "../features/kitchen/kitchen";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -86,7 +87,7 @@ export function RecipeListScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const { fontScale, width } = useWindowDimensions();
-  const columns = Math.min(width, 1120) >= 760 && fontScale < 1.5 ? 2 : 1;
+  const { columns } = useAdaptiveLayout();
   const { colors } = useAppTheme();
   const { watchLongAction } = useLongActionToast();
   const { credentials, getClient, isLocalMode } = useAuth();

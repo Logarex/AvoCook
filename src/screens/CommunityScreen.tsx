@@ -1,3 +1,4 @@
+import { useAdaptiveLayout } from "../hooks/useAdaptiveLayout";
 import { useFocusEffect } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
@@ -66,7 +67,7 @@ export function CommunityScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const { fontScale, width } = useWindowDimensions();
-  const columns = Math.min(width, 1120) >= 760 && fontScale < 1.5 ? 2 : 1;
+  const { columns } = useAdaptiveLayout();
   const { communityTranslationLanguage, setCommunityTranslationLanguage } =
     usePreferences();
   const targetLanguage =

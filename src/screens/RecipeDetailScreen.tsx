@@ -1,3 +1,4 @@
+import { useAdaptiveLayout } from "../hooks/useAdaptiveLayout";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { type ImageSource } from "expo-image";
 import { useKeepAwake } from "expo-keep-awake";
@@ -188,6 +189,7 @@ function RecipeDetailContent({
 }) {
   const { t, i18n } = useTranslation();
   const { colors } = useAppTheme();
+  const { sideBySide } = useAdaptiveLayout();
   const { watchLongAction } = useLongActionToast();
   const [shareAction, setShareAction] = useState<
     "print" | "pdf" | "file" | "source" | null
@@ -679,6 +681,7 @@ function RecipeDetailContent({
 
   return (
     <Screen
+      contentWidth={1120}
       header={
         <ScreenHeader
           onBack={() => navigation.goBack()}
@@ -771,6 +774,8 @@ function RecipeDetailContent({
         />
       ) : null}
 
+      <View style={{ flexDirection: sideBySide ? "row" : "column", gap: 16, alignItems: "stretch" }}>
+      <View style={{ flex: sideBySide ? 1 : undefined, minWidth: 0 }}>
       <IngredientSection
         checkedCount={checkedIngredientCount}
         checkedIndexes={checkedIngredientIndexes}
@@ -783,6 +788,8 @@ function RecipeDetailContent({
         onToggleItem={handleToggleIngredientCheck}
         title={t("recipes.ingredients")}
       />
+      </View>
+      <View style={{ flex: sideBySide ? 1 : undefined, minWidth: 0 }}>
       <InstructionSection
         checkedCount={checkedStepCount}
         checkedIndexes={checkedStepIndexes}
@@ -791,6 +798,8 @@ function RecipeDetailContent({
         onResetChecked={handleResetStepChecks}
         onToggleItem={handleToggleStepCheck}
       />
+      </View>
+      </View>
       <TimerSection
         presets={timerPresets}
         timers={timers}

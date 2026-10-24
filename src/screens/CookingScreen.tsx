@@ -1,3 +1,4 @@
+import { useAdaptiveLayout } from "../hooks/useAdaptiveLayout";
 import { cookingTimerScope } from "../features/kitchen/cookingTimerState";
 import { useCookingVoice } from "../features/kitchen/useCookingVoice";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -72,6 +73,7 @@ function CookingSteps({
   recipe: NonNullable<ReturnType<typeof useRecipes>["recipes"][number]>;
 }) {
   useKeepAwake();
+  const { sideBySide } = useAdaptiveLayout();
   const { t, i18n } = useTranslation();
   const kitchen = useKitchen();
   const [step, setStep] = useState(0);
@@ -164,6 +166,7 @@ function CookingSteps({
   };
   return (
     <Screen
+      contentWidth={1120}
       header={
         <ScreenHeader
           title={t("kitchen.cooking")}
@@ -193,6 +196,8 @@ function CookingSteps({
           total: recipe.recipeInstructions.length,
         })}
       </AppText>
+      <View style={[styles.workspace, sideBySide && styles.workspaceWide]}>
+      <View style={[styles.mainColumn, sideBySide && styles.columnFlex]}>
       <GlassPanel>
         <MarkdownText style={styles.step}>
           {recipe.recipeInstructions[safeStep]}
@@ -214,12 +219,14 @@ function CookingSteps({
           style={styles.flex}
         />
       </View>
-      <PrimaryButton
+      </View>
+      <View style={[styles.sideColumn, sideBySide && styles.columnFlex]}>
+      {!sideBySide && <PrimaryButton
         label={t("kitchen.ingredients")}
         variant="secondary"
         onPress={() => setShowIngredients(!showIngredients)}
-      />
-      {showIngredients && (
+      />}
+      {(sideBySide || showIngredients) && (
         <GlassPanel>
           {recipe.recipeIngredient.map((line, i) => (
             <MarkdownText key={i}>{`• ${line}`}</MarkdownText>
@@ -294,6 +301,8 @@ function CookingSteps({
           );
         }}
       />
+      </View>
+      </View>
       {safeStep === recipe.recipeInstructions.length - 1 && (
         <PrimaryButton
           label={t("kitchen.finish")}
@@ -307,6 +316,11 @@ function CookingSteps({
   );
 }
 const styles = StyleSheet.create({
+  workspace: { gap: 16 },
+  workspaceWide: { flexDirection: "row", alignItems: "flex-start" },
+  mainColumn: { minWidth: 0, gap: 16 },
+  sideColumn: { minWidth: 0, gap: 16 },
+  columnFlex: { flex: 1 },
   step: { fontSize: 28, lineHeight: 42 },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
   flex: { flexGrow: 1, flexBasis: 130 },
