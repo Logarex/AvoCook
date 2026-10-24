@@ -1,6 +1,7 @@
 import { useFocusEffect } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
+  Archive,
   Check,
   ChevronDown,
   ChevronUp,
@@ -13,6 +14,8 @@ import {
   X,
 } from "lucide-react-native";
 import React, {
+  lazy,
+  Suspense,
   useCallback,
   useEffect,
   useMemo,
@@ -57,6 +60,8 @@ import { PantryItemEditorModal } from "./PantryItemEditorModal";
 import { ShoppingListActionsModal } from "./ShoppingListActionsModal";
 import { ShoppingModeModal } from "./ShoppingModeModal";
 
+const KitchenShoppingTools = lazy(() => import("./KitchenShoppingTools").then((module) => ({ default: module.KitchenShoppingTools })));
+
 type Props = NativeStackScreenProps<RootStackParamList, "ShoppingList">;
 
 export function ShoppingListScreen({ navigation }: Props) {
@@ -83,6 +88,7 @@ export function ShoppingListScreen({ navigation }: Props) {
   } = useShoppingList();
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [showActionsMenu, setShowActionsMenu] = useState(false);
+  const [showKitchen, setShowKitchen] = useState<boolean | null>(null);
   const [showModes, setShowModes] = useState(false);
   const [pantryEditing, setPantryEditing] = useState<PantryItem | null>(null);
   const [mutating, setMutating] = useState(false);
@@ -116,14 +122,13 @@ export function ShoppingListScreen({ navigation }: Props) {
     try {
       await refreshCurrent();
     } catch {
-      /* The Pantry session exposes refresh errors with the cached list. */
     } finally {
       setRefreshing(false);
     }
   }, [refreshCurrent]);
   const typingRef = useRef(false);
   typingRef.current = Boolean(
-    newItem || pantryEditing || mutating || showModes || showActionsMenu,
+    newItem || pantryEditing || mutating || showModes || showActionsMenu || showKitchen,
   );
   useEffect(() => {
     setEditingItemId(null);
@@ -394,6 +399,7 @@ export function ShoppingListScreen({ navigation }: Props) {
             </View>
           </View>
           <View style={styles.headerActions}>
+            <IconButton icon={Archive} label={t("kitchen.shoppingKitchen")} onPress={() => setShowKitchen(true)} />
             {mode.kind === "pantry" ? (
               <IconButton
                 icon={RefreshCw}
@@ -581,6 +587,7 @@ export function ShoppingListScreen({ navigation }: Props) {
           </>
         )}
 
+        {showKitchen !== null && <Suspense fallback={<ActivityIndicator />}><KitchenShoppingTools visible={showKitchen} onClose={() => setShowKitchen(false)} onAdd={(product) => navigation.navigate("Kitchen", { section: "stock", product })} /></Suspense>}
         <ShoppingListActionsModal
           visible={showActionsMenu}
           onClose={() => setShowActionsMenu(false)}

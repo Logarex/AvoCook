@@ -41,6 +41,7 @@ export function AppSheet({
   onBack,
   onDismiss,
   busy = false,
+  preventDismiss = false,
   scroll = true,
   compact = false,
   children,
@@ -51,6 +52,7 @@ export function AppSheet({
   onBack?: () => void;
   onDismiss?: () => void;
   busy?: boolean;
+  preventDismiss?: boolean;
   scroll?: boolean;
   compact?: boolean;
   children: React.ReactNode;
@@ -111,7 +113,7 @@ export function AppSheet({
               ...(!compact ? [presentationDetents(["large"])] : []),
               presentationDragIndicator("visible"),
               presentationBackground(colors.background),
-              interactiveDismissDisabled(busy),
+              interactiveDismissDisabled(busy || preventDismiss),
             ]}
           >
             <RNHostView matchContents={compact ? { vertical: true } : false}>
@@ -144,7 +146,7 @@ export function AppSheet({
       transparent={!ios}
       presentationStyle={ios ? "pageSheet" : "overFullScreen"}
       animationType={reducedMotion ? "none" : "slide"}
-      allowSwipeDismissal={ios && !busy && !onBack}
+      allowSwipeDismissal={ios && !busy && !preventDismiss && !onBack}
       onRequestClose={() => {
         if (!busy) (onBack ?? onClose)();
       }}

@@ -7,7 +7,6 @@ export type PantrySelection = { house: PantryHouse; list: PantryList };
 export type PantryCache = { selection: PantrySelection; items: PantryItem[]; refreshedAt: string };
 
 export function pantryAccountKey(credentials: NextcloudCredentials) {
-  // Passwords never enter AsyncStorage. Scope caches and opt-in to the server AND account.
   return `pantry.v1.${encodeURIComponent(JSON.stringify([
     normalizeNextcloudUrl(credentials.serverUrl), credentials.userId || credentials.username
   ]))}`;

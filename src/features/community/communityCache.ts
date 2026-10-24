@@ -55,7 +55,6 @@ export function hydrateCommunityCache(): Promise<void> {
         if (!feeds.has(entry[0])) feeds.set(entry[0], feed);
       }
     } catch {
-      // Cache failures must not prevent a fresh download.
     }
   })();
   return hydration;
@@ -75,12 +74,11 @@ export function getCachedCommunityRecipe(id: string): CommunityRecipe | undefine
 function persist(): void {
   const raw = JSON.stringify([...feeds]);
   writes = writes.then(async () => {
-    try { await AsyncStorage.setItem(CACHE_KEY, raw); } catch { /* Keep the in-memory cache. */ }
+    try { await AsyncStorage.setItem(CACHE_KEY, raw); } catch {   }
   });
 }
 
 export function cacheCommunityFeed(scope: string, feed: CommunityFeed): void {
-  // Keep the previous complete pages and their cursor when the cache is full.
   if (feed.recipes.length > MAX_RECIPES) return;
   feeds.delete(scope);
   feeds.set(scope, feed);

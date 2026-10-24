@@ -1,6 +1,5 @@
 import MarkdownIt, { type Token } from "markdown-it";
 
-// One parser for every language, native display and print/export. Never execute HTML.
 const markdown = new MarkdownIt({ html: false, breaks: true, linkify: false });
 
 export function isSafeMarkdownLink(url: string): boolean {
@@ -8,7 +7,6 @@ export function isSafeMarkdownLink(url: string): boolean {
 }
 
 markdown.validateLink = isSafeMarkdownLink;
-// Images are explicit links: reading a synced recipe does not fetch third-party images.
 markdown.renderer.rules.image = (tokens, index) => {
   const token = tokens[index];
   const label = markdown.utils.escapeHtml(token.content || String(token.attrGet("src") || ""));
@@ -67,7 +65,6 @@ export function markdownToPlainText(value: string): string {
   return text(parseMarkdown(value)).replace(/\n{3,}/g, "\n\n").trim();
 }
 
-// Preserve block Markdown when pasting, while keeping the ordinary one-item-per-line shortcut.
 export function hasBlockMarkdown(value: string): boolean {
   const nodes = parseMarkdown(value);
   const formattedParagraphs = /\n\s*\n/.test(value) && nodes.some((node) =>
@@ -82,7 +79,6 @@ export function splitRecipeText(value: string): string[] {
 }
 
 export function trimMarkdownText(value: string): string {
-  // Leading spaces carry meaning in indented code blocks.
   return parseMarkdown(value).some((node) => node.type === "code_block")
     ? value.replace(/^(?:[ \t]*\r?\n)+/, "").trimEnd()
     : value.trim();

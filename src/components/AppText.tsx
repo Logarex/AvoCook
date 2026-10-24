@@ -36,13 +36,11 @@ export function AppText({
         : null,
     [markdown, children],
   );
-  // Android Fabric ignores minimumFontScale and can shrink text to 4px.
   const adjustsFontSizeToFit =
     Platform.OS !== "android" && (props.adjustsFontSizeToFit ?? false);
 
   return (
     <Text
-      // Recreate native text measurements after live Dynamic Type changes.
       key={fontScale}
       {...props}
       adjustsFontSizeToFit={adjustsFontSizeToFit}

@@ -1,3 +1,4 @@
+import type { FoodProduct } from "../features/kitchen/foodProducts";
 import type { Recipe } from "../features/recipes/types";
 
 export type SettingsSection =
@@ -42,12 +43,13 @@ export type RootStackParamList = {
     | {
         section?: KitchenSection;
         ingredients?: string;
+        product?: FoodProduct;
         recipeId?: string;
         tabTransition?: "slide_from_left" | "slide_from_right";
       }
     | undefined;
   Planning: {
-    section?: "today" | "planner";
+    section?: "today" | "planner" | "history";
     recipeId?: string;
     tabTransition?: "slide_from_left" | "slide_from_right";
   } | undefined;

@@ -39,7 +39,6 @@ export type RecipeLocalMeta = {
 export type Recipe = {
   "@type"?: "Recipe";
   id: string | null;
-  // Older Nextcloud versions use recipe_id.
   recipe_id?: number;
   name: string;
   description: string;

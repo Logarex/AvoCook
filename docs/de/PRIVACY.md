@@ -46,4 +46,4 @@ Diagnoseprotokolle bleiben lokal. Geheimnisse werden maskiert, persönliche Info
 
 Nutze [das GitHub-Repository](https://github.com/Logarex/AvoCook) oder die Kontaktfunktion der App.
 
-Die Strichcodesuche sendet Code und Sprache an Open Food Facts. Kamerabilder, Vorräte und Daten werden nicht übertragen. Verfügbare Produktnamen und Bewertungen werden lokal mit Quellenangabe unter ODbL gespeichert.
+Die Strichcodesuche sendet Code und Sprache an Open Food Facts. Kamerabilder, Vorräte und Daten werden nicht übertragen. Verfügbare Produktnamen, Mengen, Nährwerte und Bewertungen werden lokal mit Quellenangabe unter ODbL gespeichert.

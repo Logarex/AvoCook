@@ -286,7 +286,6 @@ export function CommunityScreen({ navigation }: Props) {
   ]);
 
   React.useEffect(() => {
-    // Search also scans recipes beyond the first page.
     if (searchQuery.trim()) void loadMore();
   }, [searchQuery, loadMore]);
 
@@ -328,7 +327,6 @@ export function CommunityScreen({ navigation }: Props) {
             ingredientMatch
           );
         });
-    // Keep page order while translations arrive and new pages are appended.
     return matches;
   }, [recipes, searchQuery]);
 

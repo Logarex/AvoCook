@@ -1,4 +1,5 @@
 import { APP_VERSION } from "../../version";
+import type { StockItem } from "./kitchen";
 
 export type FoodProduct = {
   barcode: string;
@@ -6,7 +7,9 @@ export type FoodProduct = {
   quantity: string;
   nutriScore?: string;
   greenScore?: string;
+  nutrients?: StockItem["nutrients"];
 };
+export const nutrientFields = { energy: "energy-kcal", fat: "fat", saturatedFat: "saturated-fat", carbohydrates: "carbohydrates", sugars: "sugars", fiber: "fiber", proteins: "proteins", salt: "salt" } as const;
 const productCache = new Map<string, { product: FoodProduct; until: number }>();
 const grade = (value: unknown): string | undefined =>
   typeof value === "string" && /^[a-e]$/i.test(value) ? value.toUpperCase() : undefined;
@@ -17,10 +20,16 @@ export function parseFoodProduct(barcode: string, data: unknown, language: strin
   const localized = p[`product_name_${language.split("-")[0]}`];
   const name = typeof localized === "string" && localized.trim() ? localized : p.product_name;
   if (typeof name !== "string" || !name.trim()) return null;
+  const raw = p.nutriments && typeof p.nutriments === "object" ? p.nutriments as Record<string, unknown> : {};
+  const nutrients = Object.fromEntries(Object.entries(nutrientFields).flatMap(([key, field]) => {
+    const value = raw[`${field}_100g`];
+    return typeof value === "number" && Number.isFinite(value) && value >= 0 ? [[key, value]] : [];
+  }));
   return {
     barcode, name: name.trim(), quantity: typeof p.quantity === "string" ? p.quantity : "",
     nutriScore: grade(p.nutrition_grades),
     greenScore: grade(p.environmental_score_grade ?? p.ecoscore_grade),
+    ...(Object.keys(nutrients).length ? { nutrients } : {}),
   };
 }
 export async function lookupFoodProduct(barcode: string, language: string, signal?: AbortSignal) {
@@ -29,7 +38,7 @@ export async function lookupFoodProduct(barcode: string, language: string, signa
   const cacheKey = `${lang}:${barcode}`;
   const cached = productCache.get(cacheKey);
   if (cached && cached.until > Date.now()) return cached.product;
-  const fields = `product_name,product_name_${lang},quantity,nutrition_grades,environmental_score_grade,ecoscore_grade`;
+  const fields = `product_name,product_name_${lang},quantity,nutrition_grades,environmental_score_grade,ecoscore_grade,nutriments`;
   const response = await fetch(`https://world.openfoodfacts.org/api/v2/product/${barcode}?fields=${fields}`, {
     signal, headers: { "User-Agent": `AvoCook/${APP_VERSION} (https://github.com/Logarex/AvoCook)` },
   });

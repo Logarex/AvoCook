@@ -86,6 +86,7 @@ vi.mock("react-native", async () => {
 vi.mock("lucide-react-native", () =>
   Object.fromEntries(
     [
+      "Archive",
       "Check",
       "Cloud",
       "Smartphone",

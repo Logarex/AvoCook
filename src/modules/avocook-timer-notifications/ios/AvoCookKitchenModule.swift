@@ -3,8 +3,6 @@ import Foundation
 import UserNotifications
 import Speech
 import AVFoundation
-
-// Optional capabilities: never fall back to network speech recognition.
 public class AvoCookKitchenModule: Module {
   private static weak var active: AvoCookKitchenModule?
   private static var pendingStockOpen = false

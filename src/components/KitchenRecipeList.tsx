@@ -4,7 +4,6 @@ import type { Recipe } from "../features/recipes/types";
 import { AppText } from "./AppText";
 import { PrimaryButton } from "./PrimaryButton";
 
-/** Bound initial native view creation even for very large recipe collections. */
 export function KitchenRecipeList({
   recipes,
   children,

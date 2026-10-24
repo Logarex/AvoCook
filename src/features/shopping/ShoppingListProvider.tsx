@@ -44,7 +44,6 @@ export function ShoppingListProvider({ children }: { children: React.ReactNode }
   const { credentials, hydrated } = useAuth();
   const accountKey = credentials ? pantryAccountKey(credentials) : null;
   const [controller, setController] = useState<ShoppingModeController | null>(null);
-  // Do not render a previous account's Pantry contents while effects are being replaced.
   const active = controller?.accountKey === accountKey ? controller : null;
   const state = useSyncExternalStore(active?.subscribe ?? emptySubscribe, active?.getSnapshot ?? emptySnapshot, emptySnapshot);
   const backendKey = `${accountKey ?? "local"}:${state.mode.kind === "pantry" ? `pantry-${state.mode.selection.house.id}-${state.mode.selection.list.id}` : state.mode.kind === "firebase" ? `firebase-${state.mode.code}` : "local"}`;
@@ -72,7 +71,6 @@ export function ShoppingListProvider({ children }: { children: React.ReactNode }
     importing.current.add(controller);
     const operation = (async () => {
       try {
-        // An offline Pantry cache must not overwrite newer Apple reminders.
         if (mode.kind === "pantry" && !controller.getSnapshot().pantry?.fresh) await controller.refreshItems();
         if (!current() || (mode.kind === "pantry" && !controller.getSnapshot().pantry?.fresh)) return;
         const baseline = controller.getSnapshot().items;

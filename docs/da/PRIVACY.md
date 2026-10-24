@@ -46,4 +46,4 @@ Diagnoselogfiler gemmes lokalt. Adgangskoder og nøgler skjules, men personlige 
 
 Brug [GitHub-projektet](https://github.com/Logarex/AvoCook) eller kontaktknappen i appen.
 
-Stregkodesøgning sender kode og sprog til Open Food Facts. Kamerabilleder, forråd og datoer sendes ikke. Tilgængelige varenavne og vurderinger gemmes lokalt med kildeangivelse under ODbL.
+Stregkodesøgning sender kode og sprog til Open Food Facts. Kamerabilleder, forråd og datoer sendes ikke. Tilgængelige varenavne, mængder, næringsindhold og vurderinger gemmes lokalt med kildeangivelse under ODbL.

@@ -567,7 +567,6 @@ export class CookbookClient {
                 resolvedAuthorization &&
                 !triedAuthorizations.has(resolvedAuthorization)
               ) {
-                // The Nextcloud login and WebDAV user ID can differ.
                 console.warn(
                   "sync",
                   "WebDAV auth rejected login; retrying with resolved user id",
@@ -732,7 +731,6 @@ function getSafeRemoteImageFilename(uri: string) {
   try {
     rawName = decodeURIComponent(rawName);
   } catch {
-    // A filename can contain a literal percent sign.
   }
   const safeName = rawName
     .replace(/[^a-z0-9._-]+/gi, "-")

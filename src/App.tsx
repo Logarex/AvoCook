@@ -26,7 +26,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AppLogo } from "./components/AppLogo";
 import "./i18n";
-// Initialize logging before components can issue requests.
 import { useTranslation } from "react-i18next";
 import packageInfo from "../package.json";
 import { AppText } from "./components/AppText";
@@ -261,7 +260,6 @@ function ShareIntentHandler() {
       return;
     }
 
-    // Allow the navigator to mount before handling a share.
     const timer = setTimeout(() => {
       try {
         if (shareIntent.type === "weburl" && shareIntent.webUrl) {
@@ -270,7 +268,6 @@ function ShareIntentHandler() {
             navigation.navigate("ImportRecipe", { url: rawUrl });
           }
         } else if (shareIntent.type === "text" && shareIntent.text) {
-          // Shared text may contain a page title before the URL.
           const rawText = shareIntent.text.trim();
           const urlMatch = rawText.match(/https?:\/\/[^\s]+/);
           if (urlMatch && urlMatch[0]) {

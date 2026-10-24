@@ -3,7 +3,7 @@ import { IconButton } from "../components/IconButton";
 import { DisclosureSection } from "../components/DisclosureSection";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { spacing } from "../theme/colors";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { Alert, Pressable, StyleSheet, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
@@ -19,6 +19,7 @@ import {
 } from "../features/kitchen/everyday";
 import {
   localDate,
+  mealRecipeId,
   normalizeFood,
   type Meal,
   type StockItem,
@@ -32,7 +33,6 @@ export function KitchenDailyScreen({
   onIdeas,
   onStock,
   onRecipe,
-  onFridge,
 }: {
   today?: string;
   onAdd: (slot: Meal["slot"], kind?: Meal["kind"]) => void;
@@ -40,7 +40,6 @@ export function KitchenDailyScreen({
   onIdeas: (ingredients?: string) => void;
   onStock: () => void;
   onRecipe: (id: string) => void;
-  onFridge: () => void;
 }) {
   const { t, i18n } = useTranslation();
   const kitchen = useKitchen();
@@ -51,8 +50,11 @@ export function KitchenDailyScreen({
   const recent = reusableMeals(kitchen.data.meals);
   const [used, setUsed] = useState<StockItem | null>(null);
   const [busy, setBusy] = useState(false);
+  const pending = useRef(false);
+  const pastDates = kitchen.data.stock.filter((item) => item.expires && item.expires < today).length;
   async function update(action: Parameters<typeof kitchen.update>[0]) {
-    if (busy) return false;
+    if (pending.current) return false;
+    pending.current = true;
     setBusy(true);
     try {
       await kitchen.update(action);
@@ -61,6 +63,7 @@ export function KitchenDailyScreen({
       Alert.alert(t("common.error"), t("kitchen.saveError"));
       return false;
     } finally {
+      pending.current = false;
       setBusy(false);
     }
   }
@@ -84,7 +87,6 @@ export function KitchenDailyScreen({
         <Archive size={24} color={colors.primaryStrong} />
         <View style={styles.heading}>
           <AppText variant="label">{t("kitchen.reserveAction")}</AppText>
-          <AppText muted variant="caption">{t("kitchen.reserveActionHelp")}</AppText>
         </View>
         <ArrowRight size={20} color={colors.primaryStrong} />
       </Pressable>
@@ -106,7 +108,7 @@ export function KitchenDailyScreen({
             .filter((meal) => meal.slot === slot)
             .map((meal) => {
               const recipe = recipes.find(
-                (recipe) => recipe.id === meal.recipeId,
+                (recipe) => recipe.id === mealRecipeId(meal),
               );
               const title =
                 meal.kind && meal.kind !== "recipe"
@@ -118,6 +120,7 @@ export function KitchenDailyScreen({
                     {meal.completed ? "✓ " : ""}
                     {markdownToPlainText(title ?? "")}
                   </AppText>
+                  {!!meal.notes && <AppText muted>{meal.notes}</AppText>}
                   <View style={styles.row}>
                     {recipe && (
                       <PrimaryButton
@@ -157,13 +160,14 @@ export function KitchenDailyScreen({
 
         </GlassPanel>
       ))}
+      {!!pastDates && <PrimaryButton compact variant="secondary" label={t("kitchen.checkDates", { count: pastDates })} onPress={onStock} />}
       <View style={styles.section}>
         <PrimaryButton
           compact
           label={t("kitchen.decideTonight")}
           onPress={() => onIdeas()}
         />
-        <PrimaryButton compact variant="ghost" label={t("kitchen.fridgeAction")} onPress={onFridge} />
+        <PrimaryButton compact variant="secondary" label={t("kitchen.simple")} onPress={() => onAdd("dinner", "simple")} />
       </View>
       {(urgent.length > 0 || used) && (
         <AppText variant="subtitle">{t("kitchen.useFirst")}</AppText>
@@ -200,22 +204,6 @@ export function KitchenDailyScreen({
                   if (saved) setUsed(item);
                 });
               }}
-            />
-            <PrimaryButton
-              compact
-              variant="secondary"
-              label={t("kitchen.planLeftover")}
-              onPress={() =>
-                onEdit({
-                  id: `${Date.now()}-leftover`,
-                  kind: "leftovers",
-                  date: today,
-                  slot: "dinner",
-                  title: item.name,
-                  recipeId: "",
-                  servings: 1,
-                })
-              }
             />
           </View>
         </GlassPanel>
@@ -298,7 +286,7 @@ export function KitchenDailyScreen({
   );
 }
 const styles = StyleSheet.create({
-  reserveEntry: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16, borderRadius: 16, minHeight: 76 },
+  reserveEntry: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 16, minHeight: 48 },
   section: { gap: spacing.xs, marginVertical: spacing.sm },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },
   heading: { flex: 1, minWidth: 0 },

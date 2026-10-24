@@ -38,6 +38,7 @@ export function StockProductLookup({ onProduct, initiallyOpen = false }: { onPro
     try {
       const product = await lookupFoodProduct(barcode, i18n.language, controller.signal);
       if (!alive.current) return;
+      if (controller.signal.aborted) throw new Error("productNetworkError");
       if (product) { onProduct(product); setOpen(false); }
       else setError("productNotFound");
     } catch {

@@ -35,7 +35,6 @@ export function KitchenBackupScreen() {
     try {
       await action();
     } catch (error) {
-      // Closing a system picker is not a storage failure.
       if (!/cancel|dismiss|NO_RECIPE_BACKUP_FILE/i.test(String(error)))
         Alert.alert(t("common.error"), t("kitchen.saveError"));
     } finally {

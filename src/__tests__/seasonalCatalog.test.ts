@@ -100,15 +100,15 @@ describe("sourced seasonal catalogs", () => {
     expect(ids("AU-SYD", 1)).toContain("peach");
     expect(ids("US-NY", 1)).not.toContain("peach");
     expect(ids("US-NY", 7)).toContain("peach");
-    expect(ids("CA-ON", 1)).not.toContain("strawberry"); // Exclude greenhouse-only row.
-    expect(ids("ES", 1)).toContain("tomato"); // Explicit commercial-availability basis.
+    expect(ids("CA-ON", 1)).not.toContain("strawberry");
+    expect(ids("ES", 1)).toContain("tomato");
     expect(
       foodsInSeason("BE-WAL", 1).find((food) => food.id === "apple")?.storage,
     ).toBe(true);
     expect(
       foodsInSeason("CH", 8).find((food) => food.id === "apple")?.storage,
     ).toBe(false);
-    expect(ids("DE", 12)).not.toContain("strawberry"); // Small supply is not the main-season selection.
+    expect(ids("DE", 12)).not.toContain("strawberry");
   });
   it.each([
     ["2 pommes de terre nouvelles", "potato"],
@@ -162,7 +162,7 @@ describe("sourced seasonal catalogs", () => {
       seasonalRecipes(recipes, "FR", 10, ["potato"]).map(
         (result) => result.recipe.id,
       ),
-    ).toEqual([]); // Not listed in the French selection.
+    ).toEqual([]);
     expect(
       seasonalRecipes(recipes, "CH", 10, ["potato"]).map(
         (result) => result.recipe.id,

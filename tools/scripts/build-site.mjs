@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 const project = new URL("../../", import.meta.url);
 const output = new URL("dist/site/", project);
 
-// Only this generated directory is replaced. Keep preview and Pages assets identical.
 await rm(output, { recursive: true, force: true });
 await mkdir(output, { recursive: true });
 await cp(new URL("site/", project), output, { recursive: true });

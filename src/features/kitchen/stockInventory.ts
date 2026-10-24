@@ -1,6 +1,12 @@
-import { normalizeFood, type StockItem } from "./kitchen";
+import { normalizeFood, parseIngredient, type StockItem } from "./kitchen";
 export const stockLocations = ["fridge", "cupboard", "freezer"] as const;
 export type StockFilter = StockItem["location"] | "all";
+export function stockDuplicates(items: StockItem[], item: Pick<StockItem, "name" | "barcode"> & { id?: string }) {
+  const key = parseIngredient(item.name).key;
+  return items.filter((other) => other.id !== item.id && (
+    item.barcode && other.barcode ? item.barcode === other.barcode : !!key && parseIngredient(other.name).key === key
+  ));
+}
 export function stockGroups(items: StockItem[], query: string, location: StockFilter, language: string) {
   const search = normalizeFood(query);
   const compareNames = new Intl.Collator(language).compare;

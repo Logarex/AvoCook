@@ -10,7 +10,6 @@ import {
 export function CookingTimerPersistence() {
   const timers = useTimerSnapshot();
   const kitchen = useKitchen();
-  // Running timers persist their deadline, not a disk write for every tick.
   const serialized = useMemo(
     () =>
       JSON.stringify(

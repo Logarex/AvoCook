@@ -140,7 +140,6 @@ describe("native Liquid Glass controls", () => {
     })) as Recipe[];
     const onSelect = vi.fn();
     await render(
-      // Render-function children are not ReactNode arguments to createElement.
       // eslint-disable-next-line react/no-children-prop
       React.createElement(KitchenRecipeList, {
         recipes,

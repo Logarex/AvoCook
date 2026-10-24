@@ -12,20 +12,20 @@ import { localDate, validDate } from "../features/kitchen/kitchen";
 
 const AndroidDatePicker = lazy(() => import("@expo/ui/community/datetime-picker"));
 
-export function StockExpiryField({ value, onChange }: { value: string; onChange: (date: string) => void }) {
+export function StockExpiryField({ value, onChange, label, allowClear = true }: { value: string; onChange: (date: string) => void; label?: string; allowClear?: boolean }) {
   const ui = useNativeControls();
   const { t, i18n } = useTranslation();
   const { isDark } = useAppTheme();
   const [open, setOpen] = useState(false);
   const [selection, setSelection] = useState(new Date());
   const androidPicker = Platform.OS === "android" && Boolean(requireOptionalNativeModule("ExpoUI"));
-  if (!ui && !androidPicker) return <TextField label={t("kitchen.expiry")} value={value} onChangeText={onChange} placeholder={localDate()} keyboardType="numbers-and-punctuation" autoCorrect={false} autoCapitalize="none" />;
+  if (!ui && !androidPicker) return <TextField label={label ?? t("kitchen.expiry")} value={value} onChangeText={onChange} placeholder={localDate()} keyboardType="numbers-and-punctuation" autoCorrect={false} autoCapitalize="none" />;
   const dateControl = (
       <View style={styles.row}>
         <PrimaryButton compact variant="secondary" icon={CalendarDays} style={styles.dateButton}
-          label={value && validDate(value) ? `${t("kitchen.expiryTitle")} · ${new Date(`${value}T12:00:00`).toLocaleDateString(i18n.language)}` : t("kitchen.addExpiry")}
+          label={value && validDate(value) ? `${label ?? t("kitchen.expiryTitle")} · ${new Date(`${value}T12:00:00`).toLocaleDateString(i18n.language)}` : (label ?? t("kitchen.addExpiry"))}
           onPress={() => { setSelection(value && validDate(value) ? new Date(`${value}T12:00:00`) : new Date()); setOpen(!open); }} />
-        {!!value && <IconButton icon={X} label={t("kitchen.remove")} onPress={() => { onChange(""); setOpen(false); }} />}
+        {allowClear && !!value && <IconButton icon={X} label={t("kitchen.remove")} onPress={() => { onChange(""); setOpen(false); }} />}
       </View>
   );
   if (androidPicker) return (

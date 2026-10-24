@@ -1,4 +1,3 @@
-/** Use the current app window, including Split View, rather than device identity. */
 export function getAdaptiveLayout(width: number, fontScale: number, horizontalInsets = 0) {
   const availableWidth = Math.max(0, Math.min(width - horizontalInsets, 1120) - 32);
   const scale = Math.max(1, fontScale);

@@ -76,7 +76,6 @@ describe("native HTTP support", () => {
       ignoreExistingNativeFiles: true
     });
 
-    // NSAllowsLocalNetworking would cause iOS to ignore NSAllowsArbitraryLoads.
     expect(compiled.ios?.infoPlist?.NSAppTransportSecurity).toEqual({
       NSAllowsArbitraryLoads: true
     });

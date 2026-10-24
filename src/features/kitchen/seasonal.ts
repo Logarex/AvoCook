@@ -16,8 +16,6 @@ export function foodsInSeason(areaId: string | undefined, month: number) {
       : [];
   });
 }
-// Match the longest known ingredient name first (e.g. pomme de terre before pomme).
-// Processed/shelf-stable ingredients do not imply buying fresh seasonal produce.
 function normalizeSeasonalTerm(value: string) {
   return normalizeFood(value)
     .replace(/[-‐‑–]/g, " ")

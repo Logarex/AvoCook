@@ -44,7 +44,7 @@ export type CommunityRecipe = {
   steps: string[];
   language: RecipeLanguage;
   authorName: string;
-  authorUid?: string; // Not shown publicly.
+  authorUid?: string;
   imageUrl?: string;
   sourceUrl?: string;
   prepTime?: string | null;
@@ -55,8 +55,8 @@ export type CommunityRecipe = {
   ratingCount: number;
   reportCount: number;
   approved: boolean;
-  createdAt: string; // ISO 8601.
-  userVote?: number; // 1-5, populated client-side.
+  createdAt: string;
+  userVote?: number;
 };
 
 export type FetchRecipesOptions = {
@@ -219,7 +219,7 @@ export async function fetchCommunityRecipes(
       throw fallbackErr;
     }
   }
-  
+
   const filteredDocs = snap.docs.filter((d) => {
     const data = d.data();
     if (data.approved === false) return false;

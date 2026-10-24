@@ -37,6 +37,7 @@ export function repeatMeal(
     date,
     slot,
     completed: false,
+    notes: undefined,
     ingredients: source.ingredients ? [...source.ingredients] : undefined,
   };
 }
@@ -55,7 +56,6 @@ export function urgentStock(
     .sort((a, b) => a.expires.localeCompare(b.expires));
 }
 
-/** Only exact food identities: owning an item never proves there is enough of it. */
 export function stockedShoppingIndices(
   lines: string[],
   stock: StockItem[],

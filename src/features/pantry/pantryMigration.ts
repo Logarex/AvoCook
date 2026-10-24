@@ -21,12 +21,10 @@ function parseJournal(raw: string | null, selection: PantrySelection): Journal {
     if (value?.houseId === selection.house.id && value.listId === selection.list.id && Array.isArray(value.entries) &&
       value.entries.every((entry) => typeof entry.sourceId === "string" && typeof entry.label === "string" && typeof entry.checked === "boolean" &&
         (entry.remoteId === undefined || Number.isSafeInteger(entry.remoteId)) && Array.isArray(entry.beforeIds) && entry.beforeIds.every(Number.isSafeInteger))) return value;
-  } catch { /* Corrupt journals must never authorize edits of unrelated items. */ }
+  } catch {   }
   return { houseId: selection.house.id, listId: selection.list.id, entries: [] };
 }
 
-// Additive migration. Keep the source authoritative until the caller commits its mode.
-// Persist intent before POST/toggle so accepted writes with lost responses can be reconciled.
 export async function migrateShoppingToPantry(
   client: PantryClient, selection: PantrySelection, source: ShoppingListItem[], storage: MigrationStorage, isActive: () => boolean = () => true
 ): Promise<PantryCache> {
@@ -56,7 +54,6 @@ export async function migrateShoppingToPantry(
       if (matched && entry.remoteId === undefined) { entry.remoteId = matched.id; await save(); }
     }
     if (!matched) {
-      // Match by state and multiplicity. Existing household articles keep their status/metadata.
       matched = items.find((item) => !consumed.has(item.id) && item.done === sourceItem.checked && shoppingLabelKey(pantryItemLabel(item)) === key);
       if (matched) { consumed.add(matched.id); continue; }
       if (!permissions.add || (sourceItem.checked && !permissions.check)) throw new PantryError("forbidden");
@@ -67,7 +64,6 @@ export async function migrateShoppingToPantry(
       assertActive();
       matched = await client.addItem(house.id, list.id, sourceItem.label, sourceItem.recipeName);
       entry.remoteId = matched.id;
-      // Record the accepted ID before attempting the completion write.
       await save();
       items = [...items, matched];
     }
@@ -79,7 +75,6 @@ export async function migrateShoppingToPantry(
     }
     consumed.add(matched.id);
   }
-  // Read back the authoritative order and any concurrent changes before committing.
   assertActive();
   items = await client.items(house.id, list.id);
   assertActive();

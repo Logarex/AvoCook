@@ -5,7 +5,6 @@ import { isGlassEffectAPIAvailable, isLiquidGlassAvailable } from "expo-glass-ef
 const ReducedTransparencyContext = createContext(true);
 
 export function GlassProvider({ children }: { children?: React.ReactNode }) {
-  // Keep surfaces opaque until accessibility settings load.
   const [reducedTransparency, setReducedTransparency] = useState(true);
 
   useEffect(() => {
@@ -24,7 +23,6 @@ export function GlassProvider({ children }: { children?: React.ReactNode }) {
         if (mounted && !preferenceChanged) setReducedTransparency(enabled);
       })
       .catch(() => {
-        // Keep the opaque, accessible fallback.
       });
     return () => {
       mounted = false;
@@ -46,7 +44,6 @@ export function useGlassSupport() {
     try {
       nativeGlass = isGlassEffectAPIAvailable() && isLiquidGlassAvailable();
     } catch {
-      // An older development binary can be missing the new native module.
     }
   }
   return { nativeGlass, reducedTransparency };

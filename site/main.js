@@ -937,7 +937,7 @@ function readPreference(key) {
 }
 
 function savePreference(key, value) {
-  try { localStorage.setItem(key, value); } catch { /* Rendering works without persistence. */ }
+  try { localStorage.setItem(key, value); } catch {   }
 }
 
 function detectLanguage() {
@@ -991,7 +991,6 @@ function applyLanguage(lang) {
       el.style.display = 'none';
       if (el.nextElementSibling) el.nextElementSibling.style.display = 'flex';
     };
-    // No Danish screenshots are bundled; use the existing English images.
     el.src = template.replace('{lang}', lang === 'da' ? 'en' : lang);
   });
 

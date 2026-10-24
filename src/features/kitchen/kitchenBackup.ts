@@ -41,7 +41,7 @@ export function remapKitchenBackup(
   const meals = data.meals.map((meal) =>
     !meal.kind || meal.kind === "recipe"
       ? { ...meal, recipeId: resolve(meal.recipeId) }
-      : meal,
+      : meal.linkedRecipeId ? { ...meal, linkedRecipeId: resolve(meal.linkedRecipeId) } : meal,
   );
   const menus = data.menus?.map((menu) => ({
     ...menu,

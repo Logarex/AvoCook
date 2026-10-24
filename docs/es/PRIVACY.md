@@ -46,4 +46,4 @@ Los registros de diagnóstico son locales. Las claves y contraseñas se ocultan,
 
 Usa [el repositorio de GitHub](https://github.com/Logarex/AvoCook) o el botón de contacto de la app.
 
-La búsqueda por código de barras envía el código y el idioma a Open Food Facts. No envía imágenes de cámara, alimentos guardados ni fechas. Los nombres y puntuaciones disponibles se guardan localmente con atribución bajo ODbL.
+La búsqueda por código de barras envía el código y el idioma a Open Food Facts. No envía imágenes de cámara, alimentos guardados ni fechas. Los nombres, cantidades, valores nutricionales y puntuaciones disponibles se guardan localmente con atribución bajo ODbL.

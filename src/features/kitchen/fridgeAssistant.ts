@@ -140,7 +140,6 @@ export function parseFridgeRecipe(text: string): Recipe {
     /^PT(?=\d)(?:\d{1,2}H)?(?:\d{1,3}M)?$/.test(value)
       ? value
       : null;
-  // Whitelist editable recipe fields: never load URLs, images or IDs supplied by a model.
   return {
     ...createEmptyRecipe(),
     name: data.name.trim(),

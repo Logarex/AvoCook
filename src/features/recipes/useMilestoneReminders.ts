@@ -14,7 +14,7 @@ function getNextBackupMilestone(lastAcknowledgedCount: number): number {
 function getNextReviewMilestone(lastRequestedCount: number): number {
   if (lastRequestedCount < 0) return 0;
   if (lastRequestedCount === 0) return 2;
-  
+
   let next = 2;
   while (next <= lastRequestedCount) {
     next *= 2;
@@ -32,7 +32,7 @@ export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean
       if (recipesCount > 0 && enableBackupReminders && isLocalMode) {
         const storedBackupStr = await AsyncStorage.getItem(LAST_BACKUP_REMINDER_COUNT_KEY);
         const lastBackupAckCount = storedBackupStr ? parseInt(storedBackupStr, 10) : 0;
-        
+
         const nextBackupMilestone = getNextBackupMilestone(lastBackupAckCount);
         if (recipesCount >= nextBackupMilestone && mounted) {
           setShowBackupReminder(true);
@@ -45,10 +45,9 @@ export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean
 
       const storedReviewStr = await AsyncStorage.getItem(LAST_STORE_REVIEW_COUNT_KEY);
       const lastReviewReqCount = storedReviewStr !== null ? parseInt(storedReviewStr, 10) : -1;
-      
+
       const nextReviewMilestone = getNextReviewMilestone(lastReviewReqCount);
       if (recipesCount >= nextReviewMilestone) {
-        // Wait for the screen to render before requesting a review.
         setTimeout(() => {
           if (mounted) {
             let currentMilestone = nextReviewMilestone;
@@ -83,7 +82,6 @@ export function useMilestoneReminders(recipesCount: number, isLocalMode: boolean
       if (await StoreReview.hasAction()) {
         await StoreReview.requestReview();
       }
-      // Count denied or failed requests to avoid repeating the prompt.
       await AsyncStorage.setItem(LAST_STORE_REVIEW_COUNT_KEY, milestone.toString());
     } catch {
     }

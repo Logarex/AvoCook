@@ -9,6 +9,8 @@ import { markdownToPlainText } from "../markdown/markdown";
 import { isoDurationToMinutes } from "../../utils/duration";
 
 export type Meal = {
+  linkedRecipeId?: string;
+  notes?: string;
   kind?: "recipe" | "simple" | "leftovers" | "out";
   title?: string;
   ingredients?: string[];
@@ -19,7 +21,9 @@ export type Meal = {
   recipeId: string;
   servings: number;
 };
+export const mealRecipeId = (meal: Meal) => !meal.kind || meal.kind === "recipe" ? meal.recipeId : meal.linkedRecipeId ?? "";
 export type StockItem = {
+  nutrients?: Partial<Record<"energy" | "fat" | "saturatedFat" | "carbohydrates" | "sugars" | "fiber" | "proteins" | "salt", number>>;
   barcode?: string;
   nutriScore?: string;
   greenScore?: string;
@@ -274,7 +278,6 @@ export function parseIngredient(line: string): Ingredient {
       unit = known.unit;
       name = unitMatch![2].replace(/^(?:de\s+|d['’]|of\s+)/i, "");
     }
-    // Unknown units and ranges stay opaque: do not guess their quantities.
     if (
       !known &&
       /^(?:cups?|tbsp|tsp|cuill[eè]res?|c\.|pinc[eé]es?|bo[iî]tes?|sachets?|oz|lbs?)\b/i.test(
@@ -537,6 +540,8 @@ export function parseKitchenData(value: unknown): KitchenData {
         (m.kind === undefined ||
           ["recipe", "simple", "leftovers", "out"].includes(m.kind)) &&
         (m.title === undefined || text(m.title)) &&
+        (m.notes === undefined || text(m.notes)) &&
+        (m.linkedRecipeId === undefined || text(m.linkedRecipeId)) &&
         (m.ingredients === undefined ||
           (Array.isArray(m.ingredients) && m.ingredients.every(text))) &&
         (m.completed === undefined || typeof m.completed === "boolean"),
@@ -552,6 +557,7 @@ export function parseKitchenData(value: unknown): KitchenData {
         (s.barcode === undefined || (text(s.barcode) && /^\d{8,14}$/.test(s.barcode))) &&
         (s.nutriScore === undefined || (text(s.nutriScore) && /^[A-E]$/.test(s.nutriScore))) &&
         (s.greenScore === undefined || (text(s.greenScore) && /^[A-E]$/.test(s.greenScore))) &&
+        (s.nutrients === undefined || (s.nutrients !== null && typeof s.nutrients === "object" && !Array.isArray(s.nutrients) && Object.entries(s.nutrients).every(([key, value]) => ["energy", "fat", "saturatedFat", "carbohydrates", "sugars", "fiber", "proteins", "salt"].includes(key) && typeof value === "number" && Number.isFinite(value) && value >= 0))) &&
         text(s.expires) &&
         (!s.expires || validDate(s.expires)),
     ) ||

@@ -7,7 +7,6 @@ const REMINDERS_LIST_ID_KEY = "shopping.reminders.listId.v1";
 const REMINDERS_ITEM_MAP_KEY = "shopping.reminders.itemMap.v1";
 const REMINDERS_LAST_ITEMS_KEY = "shopping.reminders.lastItems.v1";
 
-// AvoCook item ID -> reminder ID.
 type ItemMap = Record<string, string>;
 
 export function isRemindersAvailable(): boolean {
@@ -32,7 +31,7 @@ const AVOCOOK_LIST_NAME = "AvoCook";
 
 export async function findOrCreateAvoCookList(): Promise<string> {
   const storedId = await AsyncStorage.getItem(REMINDERS_LIST_ID_KEY);
-  
+
   let calendars: Calendar.Calendar[] = [];
   try {
     calendars = await Calendar.getCalendarsAsync(Calendar.EntityTypes.REMINDER);
@@ -56,7 +55,7 @@ export async function findOrCreateAvoCookList(): Promise<string> {
   }
 
   const modifiable = calendars.filter((c) => c.allowsModifications !== false);
-  let targetSource = 
+  let targetSource =
     modifiable.find((c) => c.source?.name === "iCloud" || c.source?.type === "caldav")?.source ??
     modifiable.find((c) => c.source?.isLocalAccount)?.source ??
     modifiable[0]?.source ??
@@ -86,7 +85,7 @@ export async function findOrCreateAvoCookList(): Promise<string> {
     return newId;
   } catch (e) {
     console.error("sync", "Failed to create new calendar list", e);
-    
+
     if (targetSource && !targetSource.isLocalAccount) {
        try {
           const localSource = calendars.find((c) => c.source?.isLocalAccount)?.source || { isLocalAccount: true, name: "AvoCook", type: "local" };
@@ -107,7 +106,7 @@ export async function findOrCreateAvoCookList(): Promise<string> {
           throw fallbackErr;
        }
     }
-    
+
     throw e;
   }
 }
@@ -139,7 +138,6 @@ export async function clearItemMap(): Promise<void> {
   await AsyncStorage.removeItem(REMINDERS_LAST_ITEMS_KEY);
 }
 
-// Link reminder IDs before the next push to avoid recreating them.
 export async function registerReminderMappings(
   mappings: { avocookId: string; reminderId: string }[],
   isCurrent: () => boolean = () => true
@@ -153,8 +151,6 @@ export async function registerReminderMappings(
   await saveItemMap(itemMap);
 }
 
-// A mode switch carries articles but Pantry assigns different IDs. Reuse their
-// reminders, including edits made in Apple Reminders while switching modes.
 export async function rebindReminderMappings(previous: ShoppingListItem[], next: ShoppingListItem[], isCurrent: () => boolean = () => true): Promise<void> {
   await _pushCompletion.catch(() => undefined);
   if (!isCurrent()) return;
@@ -174,12 +170,10 @@ export async function rebindReminderMappings(previous: ShoppingListItem[], next:
     const source = candidates.find((source) => source.checked === item.checked) ?? candidates[0];
     if (source) { map[item.id] = map[source.id]; used.add(map[source.id]); }
   }
-  // Keep old mappings until the next push removes only genuine orphaned reminders.
   if (isCurrent()) await saveItemMap(map);
 }
 
 async function fetchAllReminders(listId: string): Promise<Calendar.Reminder[]> {
-  // expo-calendar accepts null filters to include completed and undated reminders.
   return Calendar.getRemindersAsync(
     [listId],
     null,
@@ -191,7 +185,6 @@ async function fetchAllReminders(listId: string): Promise<Calendar.Reminder[]> {
   });
 }
 
-// Queue only the latest push to prevent duplicate reminder creation.
 
 let _pushRunning = false;
 let _queuedPush: { items: ShoppingListItem[]; listId: string; isCurrent: () => boolean } | null = null;
@@ -288,7 +281,6 @@ async function _executePush(items: ShoppingListItem[], listId: string, isCurrent
 
   const nextMappedReminderIds = new Set(Object.values(nextMap));
   if (!isCurrent()) {
-    // Record writes already accepted by EventKit, so a later mode can reuse them.
     await saveItemMap({ ...itemMap, ...nextMap });
     await AsyncStorage.setItem(REMINDERS_LAST_ITEMS_KEY, JSON.stringify(items));
     return;
@@ -312,7 +304,6 @@ async function _executePush(items: ShoppingListItem[], listId: string, isCurrent
   console.info("sync", "Push completed", { nextMapSize: Object.keys(nextMap).length });
 }
 
-// Concurrent focus and foreground pulls can create duplicate items.
 
 let _pullRunning = false;
 
@@ -355,7 +346,7 @@ async function _executePull(
   const itemMap = await loadItemMap();
   const reminders = await fetchAllReminders(listId);
   if (!isCurrent()) return { updatedItems: [], newReminderItems: [], deletedItemIds: [], hasChanges: false };
-  
+
   const nextMap: ItemMap = { ...itemMap };
   const knownReminderIds = new Set(Object.values(itemMap));
 

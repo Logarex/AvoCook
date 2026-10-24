@@ -58,8 +58,6 @@ export function createKitchenStore(storage: Storage, account: string) {
             ...loaded,
             shoppingGroupId: loaded.shoppingGroupId ?? newKitchenId(),
           };
-          // The public shopping namespace must survive a restart even when the
-          // user generates groceries before making another kitchen edit.
           if (!loaded.shoppingGroupId) {
             await storage.setItem(
               kitchenStorageKey(account),
@@ -82,7 +80,6 @@ export function createKitchenStore(storage: Storage, account: string) {
       serialize(async () => {
         if (!snapshot.ready) throw new Error("Kitchen storage unavailable");
         const data = parseKitchenData(change(snapshot.data));
-        // Commit before publishing. Failed writes leave the current data intact.
         await storage.setItem(kitchenStorageKey(account), JSON.stringify(data));
         publish({
           reminderError: snapshot.reminderError,

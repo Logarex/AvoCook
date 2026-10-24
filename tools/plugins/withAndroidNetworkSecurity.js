@@ -6,7 +6,6 @@ const {
   withDangerousMod
 } = require("@expo/config-plugins");
 
-// Nextcloud hosts are supplied by the user, so they cannot be listed at build time.
 const NETWORK_SECURITY_XML = `<?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
   <base-config cleartextTrafficPermitted="true">

@@ -3,7 +3,6 @@ export const EGG_SUBSTITUTION_SOURCE =
   "https://www.kingarthurbaking.com/blog/2023/02/03/bake-egg-free";
 export const BAKING_SUBSTITUTION_SOURCE =
   "https://www.chla.org/sites/default/files/atoms/files/CHLA-Baking-Substitution-Guide.pdf";
-// Advice only; callers must ask for the preparation context. Never rewrite a recipe.
 export function substitutionAmount(
   context: string,
   amount: number,

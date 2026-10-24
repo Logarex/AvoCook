@@ -11,7 +11,8 @@ import { useAppTheme } from "../theme/ThemeProvider";
 import { StockProductScores } from "./StockProductScores";
 const locationIcons = { fridge: Refrigerator, cupboard: Archive, freezer: Snowflake };
 
-export function StockInventoryList({ items, today, busy, onEdit, onUse, onIdeas, onLocationChange }: {
+export function StockInventoryList({ items, today, busy, onEdit, onUse, onIdeas, onLocationChange, readOnly = false }: {
+  readOnly?: boolean;
   items: StockItem[];
   today: string;
   busy: boolean;
@@ -84,11 +85,11 @@ export function StockInventoryList({ items, today, busy, onEdit, onUse, onIdeas,
                     {open && <View style={styles.details}>
                       {expired && <AppText muted variant="caption">{t("kitchen.datePassed")}</AppText>}
                       <StockProductScores item={item} />
-                      <View style={styles.actions}>
+                      {!readOnly && <View style={styles.actions}>
                         {!expired && <PrimaryButton compact icon={Utensils} variant="ghost" label={t("kitchen.findUse")} onPress={() => onIdeas(item)} />}
                         <PrimaryButton compact icon={Pencil} variant="ghost" label={t("kitchen.edit")} onPress={() => onEdit(item)} />
                         <PrimaryButton compact icon={Check} variant="ghost" disabled={busy} label={t(expired ? "kitchen.remove" : "kitchen.usedUp")} onPress={() => onUse(item)} />
-                      </View>
+                      </View>}
                     </View>}
                   </View>
                 );

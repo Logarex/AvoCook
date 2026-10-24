@@ -15,13 +15,12 @@ export function parseShoppingMode(raw: string | null, accountKey: string | null,
     if (mode.kind === "local") return mode;
     if (mode.kind === "firebase" && /^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/.test(mode.code)) return mode;
     if (mode.kind === "pantry" && mode.accountKey === accountKey && isPantryHouse(mode.selection?.house) && isPantryList(mode.selection?.list) && mode.selection.list.houseId === mode.selection.house.id) return mode;
-  } catch { /* A malformed selection must not enable any remote backend. */ }
+  } catch {   }
   return { kind: "local" };
 }
 function key(item: ShoppingListItem) {
   return `${item.label.normalize("NFC").replace(/\s+/g, " ").trim().toLowerCase()}\n${item.checked}`;
 }
-// Preserve destination entries and source multiplicity without overwriting household edits.
 export function mergeShoppingItemsForSwitch(source: ShoppingListItem[], destination: ShoppingListItem[]): ShoppingListItem[] {
   const result = normalizeShoppingListItems(destination);
   const available = new Map<string, number>();
@@ -30,7 +29,6 @@ export function mergeShoppingItemsForSwitch(source: ShoppingListItem[], destinat
     const itemKey = key(item);
     const count = available.get(itemKey) ?? 0;
     if (count > 0) { available.set(itemKey, count - 1); continue; }
-    // UUIDs normally differ; namespacing prevents an unrelated target ID collision.
     const id = result.some((current) => current.id === item.id) ? `switch-${item.id}-${result.length}` : item.id;
     result.push({ ...item, id });
   }

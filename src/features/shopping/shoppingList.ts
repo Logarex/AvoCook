@@ -189,7 +189,6 @@ function createDefaultId() {
   return `shopping-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
-/** Replace one generated group without changing manual items or identical checked rows. */
 export function replaceGeneratedShoppingItems(
   currentItems: ShoppingListItem[], ingredients: string[], source: ShoppingListSource & { recipeId: string }, options: AddOptions = {}
 ): ShoppingListAddResult {

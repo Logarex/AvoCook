@@ -86,7 +86,6 @@ describe("translations before release", () => {
     expect(Object.keys(locale).sort()).toEqual(Object.keys(reference).sort());
     for (const [key, value] of Object.entries(locale)) {
       expect(typeof value, `${language}:${key}`).toBe("string");
-      // Empty placeholders intentionally leave room for the user's own text.
       if (!["editor.ingredientPlaceholder", "editor.instructionPlaceholder"].includes(key)) {
         expect(value.trim(), `${language}:${key}`).not.toBe("");
       }

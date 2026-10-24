@@ -4,7 +4,7 @@ The planning, stock, matching and cooking tools run on the device. The optional 
 
 ## Everyday planning
 
-Five tabs: Recipes, My kitchen, Meal plan, Community and Shopping. My kitchen brings together supplies and meal ideas; Meal plan opens on Today and also covers the week. Optional tools are grouped under each tab’s wrench button. Choose a week and a day to add lunch or dinner. Recipe details link directly to Meal plan.
+Five tabs: Recipes, My kitchen, Meal plan, Community and Shopping. My kitchen brings together supplies and meal ideas; Meal plan opens on Today and also covers the week and meal history. Optional tools are grouped under each tab’s wrench button. Meal history is directly accessible in Planning. Choose a week and a day to add lunch or dinner. Recipe details link directly to Meal plan.
 
 A simple meal needs only a name to save; grocery lines and date/serving controls are optional. Today offers editable meal combinations even with an empty recipe library, and can reuse previously recorded simple meals. Stock with upcoming dates has direct idea, leftover planning and consumption actions, including undo.
 
@@ -28,7 +28,7 @@ Food profiles filter the personal recipe list and Tonight. Excluded words are ma
 
 ## Optional fridge AI assistant
 
-Today and Meal ideas offer a recipe draft from entered ingredients or a fridge/leftovers photo. It reuses the Assistant API key, provider and model. Without a key, the screen links to Assistant settings. Provider charges may apply; the local kitchen tools remain available without AI.
+The optional tools in Meal ideas offer a recipe draft from entered ingredients or a fridge/leftovers photo. It reuses the Assistant API key, provider and model. Without a key, the screen links to Assistant settings. Provider charges may apply; the local kitchen tools remain available without AI.
 
 Selecting a photo does not upload it. Analyze sends the chosen JPEG to the configured vision-capable model. Recognized food names become editable text; uncertain names stay separate. Users check this list before explicitly generating a recipe, with portions, target time and visible editable preferences. Stock is imported only on request, excluding past dates. Photo data is cleared from screen state after analysis and is not attached to the recipe or saved in My kitchen data.
 
@@ -77,3 +77,9 @@ A release still needs device testing of microphone consent/denial, unavailable o
 Fridge, pantry and freezer, with search, quantities and dates. Scan a barcode or enter food manually. Nutri-Score and Green-Score from Open Food Facts when available; optional local reminders. Enter the date printed on the pack yourself. Product records and scores may be missing and do not constitute a complete product analysis. Product lookup needs Internet; supplies and planning stay local. Notifications depend on device permissions.
 
 Foods are grouped by fridge, pantry and freezer, sorted by date, then by name. Search ignores case and accents. Each row opens details and actions; marking food as used supports undo. Barcode lookup only fills the name, quantity and available grades, never the date. Camera frames are processed on the device. The barcode and app language are sent to Open Food Facts; inventory and dates are not sent. Unknown products can be entered manually. Product metadata is preserved in full kitchen backups.
+
+## Everyday audit, 24 October 2026
+
+See [the detailed audit](KITCHEN_AUDIT.md). Inventory supports bulk name entry, duplicate-batch warnings, and Save and next. Shopping can inspect stock or look up a barcode and hand off an unsaved product draft to My kitchen. Product nutrition details are saved with available grades; missing data remains absent.
+
+Planning history supports a private note per meal, optional recipe links for simple meals, leftovers and outings, and repetition without copying old memories. Journal entry exposes the date and lunch/dinner directly. Search understands exact dates and meal names in all six app languages, with optional date and slot filters. Dates are day/month/year (or ISO); invalid dates never roll into another month. Every entry displays its year. Optional recipe links never change shopping generation. Future meals cannot be confirmed as eaten through editing, confirmation buttons or dragging an eaten meal.

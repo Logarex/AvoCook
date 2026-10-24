@@ -2,7 +2,6 @@ import { base64Encode } from "../../utils/base64";
 import { normalizeNextcloudUrl } from "../../utils/url";
 import type { NextcloudCredentials } from "../nextcloud/cookbookClient";
 
-// Nextcloud Pantry's public OCS API: https://github.com/chenasraf/nextcloud-pantry/blob/master/openapi.json
 export type PantryHouse = { id: number; name: string; isAdmin?: boolean; permissions?: Record<string, boolean> };
 export type PantryList = { id: number; houseId: number; name: string; canEdit?: boolean; sharedOnly?: boolean };
 export type PantryItem = {
@@ -99,7 +98,6 @@ export class PantryClient {
         },
         ...(body ? { body: JSON.stringify(body) } : {}),
         signal: controller.signal,
-        // Reject redirects on transports that support this fetch option.
         redirect: "error"
       });
       if (!response.ok) throw statusError(response.status);
@@ -115,7 +113,6 @@ export class PantryClient {
       }
       return data;
     } catch (error) {
-      // Do not expose server bodies, URLs, or credentials in logs/UI.
       if (error instanceof PantryError) throw error;
       throw new PantryError("network");
     } finally {
@@ -137,7 +134,6 @@ export class PantryClient {
         if (!seen.has(item.id)) { result.push(item); seen.add(item.id); added++; }
       }
       if (page.length < limit) return result;
-      // Fail rather than silently truncate if a server ignores pagination.
       if (!added) throw new PantryError("invalid");
     }
     throw new PantryError("invalid");
@@ -168,7 +164,6 @@ export class PantryClient {
   async addItem(houseId: number, listId: number, name: string, description?: string) {
     return this.itemResult(await this.request(`${this.listPath(houseId, listId)}/items`, "POST", {
       name: name.trim(), ...(description ? { description } : {}),
-      // Shopping ingredients must not inherit a recurring schedule from the list.
       rrule: "", repeatFromCompletion: false, deleteOnDone: false
     }), listId);
   }
@@ -187,7 +182,6 @@ export class PantryClient {
     return this.itemResult(await this.request(`${this.listPath(houseId, listId)}/items/${pathId(itemId)}`, "PATCH", { name: name.trim() }), listId, itemId);
   }
   async toggleItem(houseId: number, listId: number, itemId: number) {
-    // The dedicated endpoint also handles Pantry's recurrence and delete-on-done rules.
     return this.itemResult(await this.request(`${this.listPath(houseId, listId)}/items/${pathId(itemId)}/toggle`, "POST"), listId, itemId);
   }
   async deleteItem(houseId: number, listId: number, itemId: number) {

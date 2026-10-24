@@ -30,3 +30,13 @@ it("limits large inventories while keeping every food searchable and its actions
   await act(async () => screen.root.findAll((node) => String(node.type) === "Button" && node.props.label === "kitchen.usedUp")[0].props.onPress());
   expect(onUse).toHaveBeenCalledExactlyOnceWith(items[499]);
 });
+
+it("keeps shopping inventory inspection read-only while revealing product information", async () => {
+  const item: StockItem = { id: "milk", name: "Lait", quantity: "1 l", expires: "2026-10-26", location: "fridge", barcode: "12345678" };
+  const onUse = vi.fn();
+  await act(async () => { screen = create(React.createElement(StockInventoryList, { items: [item], today: "2026-10-24", busy: false, readOnly: true, onUse, onEdit: vi.fn(), onIdeas: vi.fn(), onLocationChange: vi.fn() })); });
+  await act(async () => rows()[0].props.onPress());
+  expect(screen.root.findByType("Scores" as never).props.item).toEqual(item);
+  expect(screen.root.findAll((node) => String(node.type) === "Button")).toHaveLength(0);
+  expect(onUse).not.toHaveBeenCalled();
+});

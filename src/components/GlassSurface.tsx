@@ -30,7 +30,6 @@ export function GlassSurface({
     </GlassLayerContext.Provider>
   );
 
-  // Avoid stacking native glass layers.
   if (insideGlass) {
     return (
       <View {...props} style={[style, { backgroundColor: tintColor ?? "transparent" }]}>
@@ -89,7 +88,6 @@ export function GlassSurface({
 }
 
 const styles = StyleSheet.create({
-  // Backgrounds and borders would cover the native glass effect.
   native: { backgroundColor: "transparent", borderWidth: 0 },
   blur: { overflow: "hidden" },
   fallback: { borderWidth: StyleSheet.hairlineWidth }

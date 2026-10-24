@@ -365,7 +365,6 @@ export type LlmRequestSettings = {
   model: string;
 };
 
-/** Shared transport; keeps the user's provider/model and never retries a paid request. */
 export async function requestLlmContent(
   prompt: string,
   settings: LlmRequestSettings,
