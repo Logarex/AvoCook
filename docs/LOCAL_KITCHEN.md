@@ -8,7 +8,7 @@ Five tabs: Recipes, My kitchen, Meal plan, Community and Shopping. My kitchen br
 
 A simple meal needs only a name to save; grocery lines and date/serving controls are optional. Today offers editable meal combinations even with an empty recipe library, and can reuse previously recorded simple meals. Stock with upcoming dates has direct idea, leftover planning and consumption actions, including undo.
 
-The daily date refreshes at local midnight and when the app returns to the foreground; it does not poll in the background. Explicit ingredient searches only show recipes using at least one entered ingredient. Stock consumption can also be undone from the food list. The new Today screen, one-field meal editor and ingredient search were checked in the iOS simulator; draft test entries were closed without saving.
+The daily date refreshes at local midnight and when the app returns to the foreground; it does not poll in the background. Explicit ingredient searches only show recipes using at least one entered ingredient. Stock consumption can also be undone from the food list.
 
 A meal can be a recipe, a simple meal with optional grocery lines for the whole meal, leftovers, or eating out. Leftovers and eating out never add ingredients to shopping. Mark meals as eaten to include them in history; unconfirmed plans are not treated as meals actually eaten.
 
@@ -35,8 +35,6 @@ Selecting a photo does not upload it. Analyze sends the chosen JPEG to the confi
 Generation sends the confirmed text and constraints, then displays a draft. Edit and save opens the existing recipe editor; saving is explicit and follows the normal recipe storage/sync settings. Neither groceries nor stock is modified automatically. Model output cannot supply recipe IDs, images or source URLs. Ingredient quantities, cooking guidance and dietary compatibility still need user review; image recognition cannot verify freshness or allergens.
 
 Requests have a 60-second limit, cancellation, no automatic paid retries and no provider fallback. Changing account or assistant configuration cancels pending work; late responses are ignored. Provider failures preserve input and show translated recovery guidance. The full photo is preserved by disabling square cropping; JPEG payloads above approximately 4.5 MB are rejected before upload. Image requests use the existing provider adapters; see [OpenAI image input documentation](https://developers.openai.com/api/docs/guides/images-vision).
-
-Automated tests mock providers and cover all six app languages, provider request formats, rejected keys, quotas, malformed responses, timeout/cancellation, photo review, draft handoff and explicit saving. The iOS simulator check covered entry and the no-key setup state. No live paid provider request or real-device camera test was performed.
 
 ## Cooking, stock and notes
 
@@ -66,8 +64,6 @@ The monthly challenge interface was removed to keep the community focused on fin
 
 ## Development validation
 
-Simulator visual checks on 19 October 2026 covered week navigation, returning to the current week, meal and recipe selection sheets, scrolling, and live Dynamic Type changes from the default setting to an accessibility size. Week controls use a separate date heading; days keep a minimum readable width with horizontal scrolling when necessary. Scrollable screen content keeps its intrinsic height, and text recalculates native measurements when the system font scale changes. The simulator text setting was restored after these checks.
-
 Run `npm run typecheck`, `npm run lint`, and `npm test` (integration tests bind localhost). Rebuild native iOS and Android after prebuild/pod installation: the optional kitchen module is registered in the existing local native package.
 
 A release still needs device testing of microphone consent/denial, unavailable offline languages, recognition with airplane mode enabled, background/locked-device notifications, Android reboot, accessibility text sizes, PDF export, backup round trips, and drag/drop with VoiceOver's tap alternatives. No claim of successful device permission/delivery testing should be inferred from passing unit tests or native compilation.
@@ -78,8 +74,8 @@ Fridge, pantry and freezer, with search, quantities and dates. Scan a barcode or
 
 Foods are grouped by fridge, pantry and freezer, sorted by date, then by name. Search ignores case and accents. Each row opens details and actions; marking food as used supports undo. Barcode lookup only fills the name, quantity and available grades, never the date. Camera frames are processed on the device. The barcode and app language are sent to Open Food Facts; inventory and dates are not sent. Unknown products can be entered manually. Product metadata is preserved in full kitchen backups.
 
-## Everyday audit, 24 October 2026
+Inventory supports bulk name entry, duplicate-batch warnings, and Save and next. Shopping can inspect stock or look up a barcode and hand off an unsaved product draft to My kitchen. Product nutrition details are saved with available grades; missing data remains absent.
 
-See [the detailed audit](KITCHEN_AUDIT.md). Inventory supports bulk name entry, duplicate-batch warnings, and Save and next. Shopping can inspect stock or look up a barcode and hand off an unsaved product draft to My kitchen. Product nutrition details are saved with available grades; missing data remains absent.
+## Meal history
 
 Planning history supports a private note per meal, optional recipe links for simple meals, leftovers and outings, and repetition without copying old memories. Journal entry exposes the date and lunch/dinner directly. Search understands exact dates and meal names in all six app languages, with optional date and slot filters. Dates are day/month/year (or ISO); invalid dates never roll into another month. Every entry displays its year. Optional recipe links never change shopping generation. Future meals cannot be confirmed as eaten through editing, confirmation buttons or dragging an eaten meal.

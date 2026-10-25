@@ -2,7 +2,16 @@ import { StyleSheet } from "react-native";
 import { radius, spacing } from "../../theme/colors";
 
 export const styles = StyleSheet.create({
+  intro: { gap: spacing.md },
+  introWide: { flexDirection: "row", alignItems: "flex-start", gap: spacing.lg },
+  introImage: { minWidth: 0, gap: spacing.md },
+  introImageWide: { flex: 0.9 },
+  introCopy: { minWidth: 0, gap: spacing.md },
+  introCopyWide: { flex: 1.3 },
+  introMeta: { gap: spacing.md },
+  introMetaWide: { flexDirection: "row", alignItems: "center", gap: spacing.lg },
   heroImage: {
+    width: "100%",
     alignItems: "center",
     aspectRatio: 1.5,
     maxHeight: 360,

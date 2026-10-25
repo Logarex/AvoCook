@@ -29,10 +29,8 @@ import "./i18n";
 import { useTranslation } from "react-i18next";
 import packageInfo from "../package.json";
 import { AppText } from "./components/AppText";
-import {
-  BottomNavigation,
-  type BottomNavigationTab,
-} from "./components/BottomNavigation";
+import type { BottomNavigationTab } from "./components/BottomNavigation";
+import { AdaptiveNavigationLayout } from "./components/AdaptiveNavigationLayout";
 import { LongActionToastProvider } from "./components/LongActionToast";
 import { useReducedMotion } from "./features/accessibility/useReducedMotion";
 import { AuthProvider, useAuth } from "./features/auth/AuthProvider";
@@ -164,7 +162,17 @@ function RootNavigator() {
         {isAuthenticated ? <ShareIntentHandler /> : null}
         {isAuthenticated ? <KitchenNotificationHandler /> : null}
         {isAuthenticated ? <RemindersOnboardingPrompt /> : null}
-        <View style={styles.flex}>
+        <AdaptiveNavigationLayout
+          current={currentTab}
+          onNavigate={(tab) => {
+            if (tab === currentTab) return;
+            if (tab === "recipes") navigationRef.navigate("Recipes");
+            else if (tab === "kitchen") navigationRef.navigate("Kitchen");
+            else if (tab === "planning") navigationRef.navigate("Planning", { section: "today" });
+            else if (tab === "community") navigationRef.navigate("Community");
+            else navigationRef.navigate("ShoppingList");
+          }}
+        >
           <Stack.Navigator
             initialRouteName={initialRoute}
             screenOptions={({ route }) => ({
@@ -201,21 +209,7 @@ function RootNavigator() {
 
             <Stack.Screen name="Privacy" component={PrivacyScreen} />
           </Stack.Navigator>
-          {currentTab ? (
-            <BottomNavigation
-              current={currentTab}
-              onNavigate={(tab) => {
-                if (tab === currentTab) return;
-                if (tab === "recipes") navigationRef.navigate("Recipes");
-                else if (tab === "kitchen") navigationRef.navigate("Kitchen");
-                else if (tab === "planning") navigationRef.navigate("Planning", { section: "today" });
-                else if (tab === "community")
-                  navigationRef.navigate("Community");
-                else navigationRef.navigate("ShoppingList");
-              }}
-            />
-          ) : null}
-        </View>
+        </AdaptiveNavigationLayout>
       </NavigationContainer>
     </>
   );

@@ -7,6 +7,6 @@
   "NSPhotoLibraryAddUsageDescription": "Allow saving recipe images if needed.",
   "NSLocalNetworkUsageDescription": "Allow local network access only to connect to a Nextcloud server hosted on your network.",
   "NSCameraUsageDescription": "Allow camera access to scan recipes and food barcodes.",
-  "NSMicrophoneUsageDescription": "Use the microphone for optional on-device cooking commands.",
+  "NSMicrophoneUsageDescription": "AvoCook uses the microphone so you can move between recipe steps and start timers with optional voice commands. Audio is processed on your device.",
   "NSSpeechRecognitionUsageDescription": "Recognize cooking commands on this device. Audio is not sent to a server."
 }

@@ -65,7 +65,11 @@ class AvoCookKitchenModule : Module() {
             override fun onError(error: Int) {
               if (session != current) return
               stopVoice()
-              sendEvent("voiceError", emptyMap<String, String>())
+              if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
+                sendEvent("voiceResult", mapOf("text" to ""))
+              } else {
+                sendEvent("voiceError", emptyMap<String, String>())
+              }
             }
             override fun onResults(results: Bundle?) {
               if (session != current) return

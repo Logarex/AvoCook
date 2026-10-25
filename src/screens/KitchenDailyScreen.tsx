@@ -25,6 +25,7 @@ import {
   type StockItem,
 } from "../features/kitchen/kitchen";
 import { markdownToPlainText } from "../features/markdown/markdown";
+import { useAdaptiveLayout } from "../hooks/useAdaptiveLayout";
 
 export function KitchenDailyScreen({
   today = localDate(),
@@ -45,6 +46,7 @@ export function KitchenDailyScreen({
   const kitchen = useKitchen();
   const { colors } = useAppTheme();
   const { recipes } = useRecipes();
+  const { columns } = useAdaptiveLayout();
   const meals = kitchen.data.meals.filter((meal) => meal.date === today);
   const urgent = urgentStock(kitchen.data.stock, today);
   const recent = reusableMeals(kitchen.data.meals);
@@ -98,68 +100,70 @@ export function KitchenDailyScreen({
           month: "long",
         })}
       </AppText>
-      {(["lunch", "dinner"] as const).map((slot) => (
-        <GlassPanel key={slot} style={styles.panel}>
-          <View style={styles.sectionHeader}>
-            <AppText muted variant="label" style={styles.heading}>{t(`kitchen.${slot}`)}</AppText>
-            <IconButton icon={Plus} label={`${t("kitchen.addMeal")} · ${t(`kitchen.${slot}`)}`} onPress={() => onAdd(slot, recipes.length ? "recipe" : "simple")} tone="primary" />
-          </View>
-          {meals
-            .filter((meal) => meal.slot === slot)
-            .map((meal) => {
-              const recipe = recipes.find(
-                (recipe) => recipe.id === mealRecipeId(meal),
-              );
-              const title =
-                meal.kind && meal.kind !== "recipe"
-                  ? meal.title
-                  : (recipe?.name ?? t("kitchen.unavailableRecipe"));
-              return (
-                <View key={meal.id} style={styles.panel}>
-                  <AppText variant="subtitle">
-                    {meal.completed ? "✓ " : ""}
-                    {markdownToPlainText(title ?? "")}
-                  </AppText>
-                  {!!meal.notes && <AppText muted>{meal.notes}</AppText>}
-                  <View style={styles.row}>
-                    {recipe && (
-                      <PrimaryButton
-                        compact
-                        label={t("kitchen.cooking")}
-                        onPress={() => recipe.id && onRecipe(recipe.id)}
-                      />
-                    )}
-                    <IconButton icon={Pencil} label={t("kitchen.edit")} onPress={() => onEdit(meal)} />
-                    <IconButton
-                      icon={Check}
-                      tone={meal.completed ? "primary" : "default"}
-                      disabled={busy}
-                      label={t(
-                        meal.completed
-                          ? "kitchen.undoCooked"
-                          : "kitchen.markDone",
+      <View testID="daily-meal-slots" style={[styles.mealSlots, { flexDirection: columns > 1 ? "row" : "column" }]}>
+        {(["lunch", "dinner"] as const).map((slot) => (
+          <GlassPanel key={slot} style={[styles.panel, columns > 1 && styles.mealColumn]}>
+            <View style={styles.sectionHeader}>
+              <AppText muted variant="label" style={styles.heading}>{t(`kitchen.${slot}`)}</AppText>
+              <IconButton icon={Plus} label={`${t("kitchen.addMeal")} · ${t(`kitchen.${slot}`)}`} onPress={() => onAdd(slot, recipes.length ? "recipe" : "simple")} tone="primary" />
+            </View>
+            {meals
+              .filter((meal) => meal.slot === slot)
+              .map((meal) => {
+                const recipe = recipes.find(
+                  (recipe) => recipe.id === mealRecipeId(meal),
+                );
+                const title =
+                  meal.kind && meal.kind !== "recipe"
+                    ? meal.title
+                    : (recipe?.name ?? t("kitchen.unavailableRecipe"));
+                return (
+                  <View key={meal.id} style={styles.panel}>
+                    <AppText variant="subtitle">
+                      {meal.completed ? "✓ " : ""}
+                      {markdownToPlainText(title ?? "")}
+                    </AppText>
+                    {!!meal.notes && <AppText muted>{meal.notes}</AppText>}
+                    <View style={styles.row}>
+                      {recipe && (
+                        <PrimaryButton
+                          compact
+                          label={t("kitchen.cooking")}
+                          onPress={() => recipe.id && onRecipe(recipe.id)}
+                        />
                       )}
-                      onPress={() => {
-                        void update((data) => ({
-                          ...data,
-                          meals: data.meals.map((entry) =>
-                            entry.id === meal.id
-                              ? { ...entry, completed: !entry.completed }
-                              : entry,
-                          ),
-                        }));
-                      }}
-                    />
+                      <IconButton icon={Pencil} label={t("kitchen.edit")} onPress={() => onEdit(meal)} />
+                      <IconButton
+                        icon={Check}
+                        tone={meal.completed ? "primary" : "default"}
+                        disabled={busy}
+                        label={t(
+                          meal.completed
+                            ? "kitchen.undoCooked"
+                            : "kitchen.markDone",
+                        )}
+                        onPress={() => {
+                          void update((data) => ({
+                            ...data,
+                            meals: data.meals.map((entry) =>
+                              entry.id === meal.id
+                                ? { ...entry, completed: !entry.completed }
+                                : entry,
+                            ),
+                          }));
+                        }}
+                      />
+                    </View>
                   </View>
-                </View>
-              );
-            })}
-          {!meals.some((meal) => meal.slot === slot) && (
-            <AppText muted>{t("kitchen.notDecided")}</AppText>
-          )}
+                );
+              })}
+            {!meals.some((meal) => meal.slot === slot) && (
+              <AppText muted>{t("kitchen.notDecided")}</AppText>
+            )}
 
-        </GlassPanel>
-      ))}
+          </GlassPanel>
+        ))}
+      </View>
       {!!pastDates && <PrimaryButton compact variant="secondary" label={t("kitchen.checkDates", { count: pastDates })} onPress={onStock} />}
       <View style={styles.section}>
         <PrimaryButton
@@ -286,6 +290,8 @@ export function KitchenDailyScreen({
   );
 }
 const styles = StyleSheet.create({
+  mealSlots: { gap: spacing.md, alignItems: "stretch" },
+  mealColumn: { flex: 1, minWidth: 0 },
   reserveEntry: { flexDirection: "row", alignItems: "center", gap: 12, padding: 12, borderRadius: 16, minHeight: 48 },
   section: { gap: spacing.xs, marginVertical: spacing.sm },
   sectionHeader: { flexDirection: "row", alignItems: "center", gap: spacing.sm },

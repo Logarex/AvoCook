@@ -682,6 +682,15 @@ function RecipeDetailContent({
     },
   ];
 
+  const servingsControl = showServings ? (
+    <ServingsControl
+      baseServings={baseServings}
+      selectedServings={selectedServings}
+      compact={sideBySide}
+      onChange={(nextServings) => void handleServingsChange(nextServings)}
+    />
+  ) : null;
+
   return (
     <Screen
       contentWidth={1120}
@@ -711,90 +720,98 @@ function RecipeDetailContent({
         disabled={shareAction !== null}
       />
 
-      <View style={[styles.heroImage, { backgroundColor: colors.chip }]}>
-        <RecipeImage
-          key={`${source?.uri}-${fallbackImageUri}`}
-          fallbackSource={
-            fallbackImageUri
-              ? {
-                  uri: fallbackImageUri,
-                  headers: imageClient?.getImageHeaders(fallbackImageUri),
-                }
-              : null
-          }
-          accessibilityLabel={recipe.name}
-          accessibilityRole="image"
-          source={source}
-          style={styles.image}
-          contentFit="cover"
-        >
-          <AppText
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-            variant="title"
-            style={{ color: colors.primary }}
-          >
-            {markdownToPlainText(recipe.name).slice(0, 1).toUpperCase()}
-          </AppText>
-        </RecipeImage>
-      </View>
-
-      <View style={styles.titleBlock}>
-        <MarkdownText variant="title">{recipe.name}</MarkdownText>
-        {recipe.description ? (
-          <MarkdownText muted>{recipe.description}</MarkdownText>
-        ) : null}
-      </View>
-
-      <View style={styles.recipeActions}>
-        <PrimaryButton
-          icon={Play}
-          label={t("kitchen.cooking")}
-          compact
-          style={styles.cookingButton}
-          disabled={!recipe.recipeInstructions.length}
-          onPress={() => navigation.navigate("Cooking", { id: recipeId })}
-        />
-        <IconButton
-          icon={CalendarPlus}
-          label={t("kitchen.planRecipe")}
-          tone="primary"
-          onPress={() => navigation.navigate("Planning", { section: "planner", recipeId })}
-        />
-        <IconButton
-          icon={BookOpen}
-          label={t("kitchen.journal")}
-          tone="primary"
-          onPress={() => navigation.navigate("RecipeJournal", { id: recipeId })}
-        />
-      </View>
-
-      {recipe.recipeCategory ? (
-        <View style={styles.pills}>
-          <Pill label={getRecipeCategoryLabel(recipe.recipeCategory, t)} />
+      <View style={[styles.intro, sideBySide && styles.introWide]}>
+        <View style={[styles.introImage, sideBySide && styles.introImageWide]}>
+          <View style={[styles.heroImage, { backgroundColor: colors.chip }]}>
+            <RecipeImage
+              key={`${source?.uri}-${fallbackImageUri}`}
+              fallbackSource={
+                fallbackImageUri
+                  ? {
+                      uri: fallbackImageUri,
+                      headers: imageClient?.getImageHeaders(fallbackImageUri),
+                    }
+                  : null
+              }
+              accessibilityLabel={recipe.name}
+              accessibilityRole="image"
+              source={source}
+              style={styles.image}
+              contentFit="cover"
+            >
+              <AppText
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+                variant="title"
+                style={{ color: colors.primary }}
+              >
+                {markdownToPlainText(recipe.name).slice(0, 1).toUpperCase()}
+              </AppText>
+            </RecipeImage>
+          </View>
         </View>
-      ) : null}
 
-      {metricItems.length ? (
-        <View style={styles.metrics}>
-          {metricItems.map((item) => (
-            <Metric
-              key={item.id}
-              icon={item.icon}
-              label={item.label}
-              value={item.value}
+        <View style={[styles.introCopy, sideBySide && styles.introCopyWide]}>
+          <View style={styles.titleBlock}>
+            <MarkdownText variant="title">{recipe.name}</MarkdownText>
+            {recipe.description ? (
+              <MarkdownText muted>{recipe.description}</MarkdownText>
+            ) : null}
+          </View>
+
+          <View style={styles.recipeActions}>
+            <PrimaryButton
+              icon={Play}
+              label={t("kitchen.cooking")}
+              compact
+              style={styles.cookingButton}
+              disabled={!recipe.recipeInstructions.length}
+              onPress={() => navigation.navigate("Cooking", { id: recipeId })}
             />
-          ))}
+            <IconButton
+              icon={CalendarPlus}
+              label={t("kitchen.planRecipe")}
+              tone="primary"
+              onPress={() => navigation.navigate("Planning", { section: "planner", recipeId })}
+            />
+            <IconButton
+              icon={BookOpen}
+              label={t("kitchen.journal")}
+              tone="primary"
+              onPress={() => navigation.navigate("RecipeJournal", { id: recipeId })}
+            />
+          </View>
+
+          {recipe.recipeCategory ? (
+            <View style={styles.pills}>
+              <Pill label={getRecipeCategoryLabel(recipe.recipeCategory, t)} />
+            </View>
+          ) : null}
+
+        </View>
+      </View>
+
+      {metricItems.length || (sideBySide && showServings) ? (
+        <View style={[styles.introMeta, sideBySide && styles.introMetaWide]}>
+          {sideBySide && showServings ? (
+            <View style={[styles.introImage, styles.introImageWide]}>{servingsControl}</View>
+          ) : null}
+          {metricItems.length ? (
+            <View style={[styles.metrics, sideBySide && styles.introCopyWide]}>
+              {metricItems.map((item) => (
+                <Metric
+                  key={item.id}
+                  icon={item.icon}
+                  label={item.label}
+                  value={item.value}
+                />
+              ))}
+            </View>
+          ) : sideBySide && showServings ? <View style={styles.introCopyWide} /> : null}
         </View>
       ) : null}
 
-      {showServings ? (
-        <ServingsControl
-          baseServings={baseServings}
-          selectedServings={selectedServings}
-          onChange={(nextServings) => void handleServingsChange(nextServings)}
-        />
-      ) : null}
+      {!sideBySide ? servingsControl : null}
 
       <View style={{ flexDirection: sideBySide ? "row" : "column", gap: 16, alignItems: "stretch" }}>
       <View style={{ flex: sideBySide ? 1 : undefined, minWidth: 0 }}>

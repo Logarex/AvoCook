@@ -38,7 +38,6 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { AppText } from "../components/AppText";
 import { ConnectionStatus } from "../components/ConnectionStatus";
 import { EmptyState } from "../components/EmptyState";
@@ -55,7 +54,7 @@ import { useShoppingList } from "../features/shopping/ShoppingListProvider";
 import type { RootStackParamList } from "../navigation/types";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
-import { getTabBarContentInset } from "../utils/safeArea";
+import { useNavigationContentInset } from "../hooks/useNavigationContentInset";
 import { PantryItemEditorModal } from "./PantryItemEditorModal";
 import { ShoppingListActionsModal } from "./ShoppingListActionsModal";
 import { ShoppingModeModal } from "./ShoppingModeModal";
@@ -66,8 +65,8 @@ type Props = NativeStackScreenProps<RootStackParamList, "ShoppingList">;
 
 export function ShoppingListScreen({ navigation }: Props) {
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const { fontScale, width } = useWindowDimensions();
+  const navigationContentInset = useNavigationContentInset(fontScale);
   const { colors } = useAppTheme();
   const {
     addItem,
@@ -553,10 +552,7 @@ export function ShoppingListScreen({ navigation }: Props) {
                 contentContainerStyle={[
                   styles.listContent,
                   {
-                    paddingBottom: getTabBarContentInset(
-                      insets.bottom,
-                      fontScale,
-                    ),
+                    paddingBottom: navigationContentInset,
                   },
                 ]}
                 initialNumToRender={15}

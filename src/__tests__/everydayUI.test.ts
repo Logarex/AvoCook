@@ -13,13 +13,16 @@ const mocks = vi.hoisted(() => ({
   data: {} as KitchenData,
   update: vi.fn(),
   alert: vi.fn(),
+  width: 390,
 }));
 vi.mock("react-native", () => ({
   View: "View",
   Pressable: "Pressable",
   Alert: { alert: mocks.alert },
   StyleSheet: { create: (styles: unknown) => styles },
+  useWindowDimensions: () => ({ width: mocks.width, fontScale: 1 }),
 }));
+vi.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ left: 0, right: 0, bottom: 0, top: 0 }) }));
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({ t: (key: string) => key, i18n: { language: "fr" } }),
 }));
@@ -49,6 +52,7 @@ beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   vi.clearAllMocks();
   mocks.data = emptyKitchen();
+  mocks.width = 390;
   mocks.update.mockImplementation(
     async (update: (data: KitchenData) => KitchenData) => {
       mocks.data = update(mocks.data);
@@ -70,6 +74,17 @@ function buttons(label: string) {
   );
 }
 describe("daily kitchen workflows", () => {
+  it("shows lunch and dinner side by side on a wide window and stacks them when folded", async () => {
+    mocks.width = 890;
+    await render();
+    const slots = () => screen.root.findByProps({ testID: "daily-meal-slots" });
+    expect(slots().props.style).toContainEqual({ flexDirection: "row" });
+    mocks.width = 390;
+    await act(async () => screen.update(React.createElement(KitchenDailyScreen, actions)));
+    expect(slots().props.style).toContainEqual({ flexDirection: "column" });
+    await act(async () => buttons("kitchen.addMeal · kitchen.dinner")[0].props.onPress());
+    expect(actions.onAdd).toHaveBeenCalledExactlyOnceWith("dinner", "simple");
+  });
   it("lets a new user note lunch without needing any saved recipe", async () => {
     await render();
     await act(async () => buttons("kitchen.addMeal · kitchen.lunch")[0].props.onPress());

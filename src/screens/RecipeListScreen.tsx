@@ -24,10 +24,9 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { markdownToPlainText } from "../features/markdown/markdown";
 import { spacing } from "../theme/colors";
-import { getTabBarContentInset } from "../utils/safeArea";
+import { useNavigationContentInset } from "../hooks/useNavigationContentInset";
 import { AddRecipeModal } from "./recipeList/AddRecipeModal";
 import { CategoryChip } from "./recipeList/CategoryChip";
 import { CategoryEditorModal } from "./recipeList/CategoryEditorModal";
@@ -85,8 +84,8 @@ type CategoryOption = {
 export function RecipeListScreen({ navigation }: Props) {
   const kitchen = useKitchen();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const { fontScale, width } = useWindowDimensions();
+  const navigationContentInset = useNavigationContentInset(fontScale);
   const { columns } = useAdaptiveLayout();
   const { colors } = useAppTheme();
   const { watchLongAction } = useLongActionToast();
@@ -742,10 +741,7 @@ export function RecipeListScreen({ navigation }: Props) {
               contentContainerStyle={[
                 styles.listContent,
                 {
-                  paddingBottom: getTabBarContentInset(
-                    insets.bottom,
-                    fontScale,
-                  ),
+                  paddingBottom: navigationContentInset,
                 },
                 { paddingRight: spacing.md },
               ]}

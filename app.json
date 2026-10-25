@@ -43,14 +43,16 @@
         "NSCalendarsFullAccessUsageDescription": "AvoCook requires calendar access because it shares the same system component as reminders, which are used for your grocery lists.",
         "NSRemindersUsageDescription": "AvoCook uses your reminders to export and synchronize your grocery lists.",
         "NSRemindersFullAccessUsageDescription": "AvoCook uses your reminders to export and synchronize your grocery lists.",
-        "NSMicrophoneUsageDescription": "Use the microphone for optional on-device cooking commands.",
+        "NSMicrophoneUsageDescription": "AvoCook uses the microphone so you can move between recipe steps and start timers with optional voice commands. Audio is processed on your device.",
         "NSSpeechRecognitionUsageDescription": "Recognize optional cooking commands on this device. Audio is not sent to a server."
       }
     },
     "android": {
       "package": "app.avocook.mobile",
       "playStoreUrl": "https://play.google.com/store/apps/details?id=app.avocook.mobile",
-      "permissions": [],
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
       "blockedPermissions": [
         "android.permission.SYSTEM_ALERT_WINDOW",
         "android.permission.READ_EXTERNAL_STORAGE",
@@ -128,7 +130,7 @@
         {
           "photosPermission": "Allow access to photos to add an image to a recipe.",
           "cameraPermission": "Allow camera access to scan recipes from photos.",
-          "microphonePermission": false
+          "microphonePermission": "AvoCook uses the microphone so you can move between recipe steps and start timers with optional voice commands. Audio is processed on your device."
         }
       ],
       "expo-share-intent",

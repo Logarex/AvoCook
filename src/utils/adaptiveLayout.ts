@@ -6,3 +6,10 @@ export function getAdaptiveLayout(width: number, fontScale: number, horizontalIn
     sideBySide: availableWidth >= 720 * scale,
   };
 }
+
+export function getNavigationLayout(width: number, fontScale: number, leftInset = 0, rightInset = 0, visible = true) {
+  const scale = Math.max(1, fontScale);
+  const navigationRail = visible && width - leftInset - rightInset >= 760 * scale;
+  const railWidth = navigationRail ? 112 * scale + Math.max(0, leftInset) : 0;
+  return { navigationRail, railWidth, contentWidth: Math.max(0, width - railWidth) };
+}

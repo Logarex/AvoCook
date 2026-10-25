@@ -14,8 +14,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { getTabBarContentInset } from "../utils/safeArea";
+import { useNavigationContentInset } from "../hooks/useNavigationContentInset";
 
 import { AppText } from "../components/AppText";
 import { IconButton } from "../components/IconButton";
@@ -64,9 +63,9 @@ const RAW_LANGUAGES = COMMUNITY_LANGUAGES.map((option) => ({
 
 export function CommunityScreen({ navigation }: Props) {
   const { i18n, t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const { fontScale, width } = useWindowDimensions();
+  const navigationContentInset = useNavigationContentInset(fontScale);
   const { columns } = useAdaptiveLayout();
   const { communityTranslationLanguage, setCommunityTranslationLanguage } =
     usePreferences();
@@ -511,7 +510,7 @@ export function CommunityScreen({ navigation }: Props) {
             contentContainerStyle={[
               styles.listContent,
               {
-                paddingBottom: getTabBarContentInset(insets.bottom, fontScale),
+                paddingBottom: navigationContentInset,
               },
             ]}
             initialNumToRender={10}

@@ -7,6 +7,6 @@
   "NSPhotoLibraryAddUsageDescription": "Tillad at gemme opskriftsbilleder om nødvendigt.",
   "NSLocalNetworkUsageDescription": "Tillad kun lokal netværksadgang for at oprette forbindelse til en Nextcloud-server hostet på dit netværk.",
   "NSCameraUsageDescription": "Tillad kameraadgang for at scanne opskrifter og stregkoder på madvarer.",
-  "NSMicrophoneUsageDescription": "Brug mikrofonen til valgfrie lokale madlavningskommandoer.",
+  "NSMicrophoneUsageDescription": "AvoCook bruger mikrofonen, så du kan skifte mellem opskriftstrin og starte timere med valgfrie stemmekommandoer. Lyd behandles på din enhed.",
   "NSSpeechRecognitionUsageDescription": "Genkend madlavningskommandoer på denne enhed. Lyd sendes ikke til en server."
 }

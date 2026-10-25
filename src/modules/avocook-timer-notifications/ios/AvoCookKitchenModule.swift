@@ -31,19 +31,20 @@ public class AvoCookKitchenModule: Module {
       return recognizer.isAvailable && recognizer.supportsOnDeviceRecognition
     }
     AsyncFunction("startVoice") { (language: String, promise: Promise) in
+      let requestedSession = self.session
       SFSpeechRecognizer.requestAuthorization { status in
         guard status == .authorized else { promise.resolve(false); return }
         AVAudioSession.sharedInstance().requestRecordPermission { granted in
           DispatchQueue.main.async {
-            guard granted else { promise.resolve(false); return }
+            guard granted, self.session == requestedSession else { promise.resolve(false); return }
             self.startVoice(language: language, promise: promise)
           }
         }
       }
-    }
+    }.runOnQueue(.main)
     AsyncFunction("stopVoice") {
-      DispatchQueue.main.async { self.stopVoice() }
-    }
+      self.stopVoice()
+    }.runOnQueue(.main)
     AsyncFunction("requestReminderPermission") { (promise: Promise) in
       UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound]) { granted, error in
         if let error { promise.reject("ERR_REMINDER_PERMISSION", error.localizedDescription) }
@@ -84,9 +85,14 @@ public class AvoCookKitchenModule: Module {
             let text = result.bestTranscription.formattedString
             self.stopVoice()
             self.sendEvent("voiceResult", ["text": text])
-          } else if error != nil {
+          } else if let error {
             self.stopVoice()
-            self.sendEvent("voiceError", [:])
+            let speechError = error as NSError
+            if speechError.domain == "kAFAssistantErrorDomain" && speechError.code == 1110 {
+              self.sendEvent("voiceResult", ["text": ""])
+            } else {
+              self.sendEvent("voiceError", [:])
+            }
           }
         }
       }

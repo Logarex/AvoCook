@@ -15,6 +15,7 @@ import {
 import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { getScreenBottomPadding } from "../utils/safeArea";
+import { useContentViewport } from "../hooks/contentViewport";
 
 type ScreenProps = {
   children: React.ReactNode;
@@ -37,6 +38,7 @@ export function Screen({
 }: ScreenProps) {
   const { colors } = useAppTheme();
   const insets = useSafeAreaInsets();
+  const { navigationRail } = useContentViewport();
   const content = (
     <View
       style={[
@@ -52,7 +54,7 @@ export function Screen({
   );
   return (
     <SafeAreaView
-      edges={["top", "left", "right"]}
+      edges={navigationRail ? ["top", "right"] : ["top", "left", "right"]}
       style={[
         styles.safeArea,
         { backgroundColor: backgroundColor ?? colors.background },

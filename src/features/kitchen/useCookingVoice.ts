@@ -17,6 +17,7 @@ export function useCookingVoice(
     let mounted = true;
     const native = getKitchenNative();
     wanted.current = false;
+    setAvailable(false);
     setListening(false);
     setFailed(false);
     void native
@@ -44,6 +45,10 @@ export function useCookingVoice(
       const revision = generation.current;
       void startLocalVoice(language)
         .then((started) => {
+          if (!mounted || generation.current !== revision) {
+            void native?.stopVoice().catch(() => undefined);
+            return;
+          }
           if (mounted && generation.current === revision && !started) {
             stop();
             setFailed(true);
@@ -63,7 +68,8 @@ export function useCookingVoice(
       }
     });
     const appState = AppState.addEventListener("change", (state) => {
-      if (state !== "active") stop();
+      // Permission dialogs make iOS inactive without backgrounding the app.
+      if (state === "background") stop();
     });
     return () => {
       mounted = false;

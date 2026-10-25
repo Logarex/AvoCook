@@ -7,7 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
-import { Platform, Pressable, StyleSheet, View } from "react-native";
+import { Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -21,6 +21,7 @@ export type BottomNavigationTab = "recipes" | "kitchen" | "planning" | "communit
 type BottomNavigationProps = {
   current: BottomNavigationTab;
   onNavigate: (tab: BottomNavigationTab) => void;
+  rail?: boolean;
 };
 
 const tabs: { id: BottomNavigationTab; icon: LucideIcon; labelKey: string }[] =
@@ -35,13 +36,15 @@ const tabs: { id: BottomNavigationTab; icon: LucideIcon; labelKey: string }[] =
 export function BottomNavigation({
   current,
   onNavigate,
+  rail = false,
 }: BottomNavigationProps) {
   const { t } = useTranslation();
   const { colors, isDark } = useAppTheme();
   const insets = useSafeAreaInsets();
   const nativeUI = useNativeGlassControls();
 
-  if (nativeUI && NativeTabBar) {
+  // The embedded native bar cannot expand into iOS 27's vertical tab layout.
+  if (nativeUI && NativeTabBar && !rail && !(Platform.OS === "ios" && Number(Platform.Version) >= 27)) {
     const symbols = {
       recipes: "book.closed",
       kitchen: "frying.pan",
@@ -69,12 +72,26 @@ export function BottomNavigation({
     );
   }
 
+  if (rail) {
+    return (
+      <View style={[styles.rail, { paddingTop: Math.max(insets.top, spacing.md), paddingBottom: Math.max(insets.bottom, spacing.md), paddingLeft: Math.max(insets.left, 0) + spacing.xs }]}>
+        <GlassSurface style={[styles.railSurface, { borderColor: colors.border }]}>
+          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.railContent}>
+            {tabs.map((tab) => (
+              <BottomNavigationItem key={tab.id} active={current === tab.id} icon={tab.icon} label={t(tab.labelKey)} rail onPress={() => { if (tab.id !== current) onNavigate(tab.id); }} />
+            ))}
+          </ScrollView>
+        </GlassSurface>
+      </View>
+    );
+  }
+
   return (
     <View
       pointerEvents="box-none"
       style={[
         styles.wrap,
-        { bottom: getBottomNavigationPadding(insets.bottom) },
+        { bottom: getBottomNavigationPadding(insets.bottom), left: Math.max(insets.left, 0) + spacing.md, right: Math.max(insets.right, 0) + spacing.md },
         Platform.OS === "android" && styles.androidWrap,
       ]}
     >
@@ -94,7 +111,7 @@ export function BottomNavigation({
             active={current === tab.id}
             icon={tab.icon}
             label={t(tab.labelKey)}
-            onPress={() => onNavigate(tab.id)}
+            onPress={() => { if (tab.id !== current) onNavigate(tab.id); }}
           />
         ))}
       </GlassSurface>
@@ -107,11 +124,13 @@ function BottomNavigationItem({
   icon: Icon,
   label,
   onPress,
+  rail = false,
 }: {
   active: boolean;
   icon: LucideIcon;
   label: string;
   onPress: () => void;
+  rail?: boolean;
 }) {
   const { colors } = useAppTheme();
   const foreground = active ? colors.primaryStrong : colors.textMuted;
@@ -124,6 +143,7 @@ function BottomNavigationItem({
       onPress={onPress}
       style={({ pressed }) => [
         styles.item,
+        rail && styles.railItem,
         {
           backgroundColor: active ? colors.chip : "transparent",
           opacity: pressed ? 0.7 : 1,
@@ -133,9 +153,12 @@ function BottomNavigationItem({
       <Icon color={foreground} size={23} strokeWidth={active ? 2.3 : 1.8} />
       <AppText
         numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
         variant="caption"
         style={[
           styles.label,
+          rail && styles.railLabel,
           { color: foreground },
           Platform.OS === "android" && { fontSize: 12, lineHeight: 16 },
         ]}
@@ -147,6 +170,11 @@ function BottomNavigationItem({
 }
 
 const styles = StyleSheet.create({
+  rail: { flex: 1, paddingRight: spacing.xs },
+  railSurface: { flex: 1, borderRadius: 28, padding: spacing.xxs },
+  railContent: { flexGrow: 1, justifyContent: "center", gap: spacing.xs },
+  railItem: { flex: 0, minHeight: 68, paddingVertical: spacing.sm, paddingHorizontal: spacing.xxs, borderRadius: 22 },
+  railLabel: { textAlign: "center", fontSize: 11, lineHeight: 15 },
   androidWrap: { left: 0, right: 0, bottom: 0 },
   androidBar: {
     borderRadius: 0,
@@ -190,7 +218,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     minHeight: 56,
     minWidth: 0,
-    paddingHorizontal: spacing.xs,
+    paddingHorizontal: spacing.xxs,
     paddingVertical: spacing.xxs,
   },
   label: {

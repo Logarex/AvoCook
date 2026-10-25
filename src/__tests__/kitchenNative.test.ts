@@ -35,6 +35,13 @@ beforeEach(() => {
   mocks.native.replaceStockReminders.mockResolvedValue(true);
 });
 describe("optional on-device kitchen capabilities", () => {
+  it.each(["ios", "android"])("starts local recognition with the requested language on %s", async (platform) => {
+    mocks.platform = platform;
+    const { startLocalVoice } = await import("../features/kitchen/kitchenNative");
+    expect(await startLocalVoice("fr-FR")).toBe(true);
+    expect(mocks.native.startVoice).toHaveBeenCalledWith("fr-FR");
+    expect(mocks.permission).toHaveBeenCalledTimes(platform === "android" ? 1 : 0);
+  });
   it("keeps unsupported devices usable and never starts speech when offline recognition is unavailable", async () => {
     const { startLocalVoice, replaceStockReminders } = await import(
       "../features/kitchen/kitchenNative"

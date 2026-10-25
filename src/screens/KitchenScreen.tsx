@@ -52,8 +52,7 @@ import { GlassPanel } from "../components/GlassPanel";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { ScreenHeader } from "../components/ScreenHeader";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { getTabBarContentInset } from "../utils/safeArea";
+import { useNavigationContentInset } from "../hooks/useNavigationContentInset";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { TextField } from "../components/TextField";
 import { markdownToPlainText } from "../features/markdown/markdown";
@@ -107,8 +106,8 @@ function KitchenContent({ navigation, route }: Props) {
   const extraTabs: Tab[] = planning ? ["menus", "batch"] : ["seasonal", "converter", "substitutions", "book", "profiles", "backup"];
   const kitchen = useKitchen();
   const { colors } = useAppTheme();
-  const insets = useSafeAreaInsets();
   const { fontScale } = useWindowDimensions();
+  const navigationContentInset = useNavigationContentInset(fontScale);
   const [calendarWidth, setCalendarWidth] = useState(0);
   const [selectedDay, setSelectedDay] = useState(localDate());
   const { recipes, loading: recipesLoading } = useRecipes();
@@ -481,7 +480,7 @@ function KitchenContent({ navigation, route }: Props) {
         }
       >
         <Screen
-          contentStyle={{ gap: 20, paddingBottom: getTabBarContentInset(insets.bottom) }}
+          contentStyle={{ gap: 20, paddingBottom: navigationContentInset }}
           header={
             <ScreenHeader
               title={t(planning ? "kitchen.planningTitle" : "kitchen.title")}

@@ -180,6 +180,16 @@ describe("local reminders and voice commands", () => {
     "supports the next command in each language: %s",
     (text) => expect(cookingCommand(text)).toBe("next"),
   );
+  it.each([
+    ["précédent", "ingrédients", "minuteur", "arrêter l’écoute"],
+    ["previous", "ingredients", "timer", "stop listening"],
+    ["zurück", "Zutaten", "Timer", "Zuhören beenden"],
+    ["anterior", "ingredientes", "temporizador", "dejar de escuchar"],
+    ["indietro", "ingredienti", "timer", "interrompi ascolto"],
+    ["forrige", "ingredienser", "timer", "stop med at lytte"],
+  ])("recognises every advertised command: %s, %s, %s, %s", (...phrases) => {
+    expect(phrases.map(cookingCommand)).toEqual(["previous", "ingredients", "timer", "stop"]);
+  });
   it("ignores ambiguous speech and recognises only complete commands", () => {
     expect(cookingCommand("ne passe pas au suivant")).toBeNull();
     expect(cookingCommand("previous step, please")).toBeNull();
