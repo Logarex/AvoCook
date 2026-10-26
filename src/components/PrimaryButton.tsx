@@ -77,10 +77,11 @@ export function PrimaryButton({
   );
 
   const plain = variant === "ghost" || variant === "danger-secondary";
-  if (nativeUI && !plain && !disabled && !compact) {
+  if (nativeUI && !plain && !disabled) {
     return (
       <NativeGlassButton
         ui={nativeUI}
+        fitContent={compact}
         label={label}
         onPress={onPress}
         disabled={disabled}

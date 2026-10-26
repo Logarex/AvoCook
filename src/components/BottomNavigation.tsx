@@ -43,8 +43,8 @@ export function BottomNavigation({
   const insets = useSafeAreaInsets();
   const nativeUI = useNativeGlassControls();
 
-  // The embedded native bar cannot expand into iOS 27's vertical tab layout.
-  if (nativeUI && NativeTabBar && !rail && !(Platform.OS === "ios" && Number(Platform.Version) >= 27)) {
+  // Keep system Liquid Glass interactions on every supported iOS version.
+  if (nativeUI && NativeTabBar && !rail) {
     const symbols = {
       recipes: "book.closed",
       kitchen: "frying.pan",
@@ -75,7 +75,7 @@ export function BottomNavigation({
   if (rail) {
     return (
       <View style={[styles.rail, { paddingTop: Math.max(insets.top, spacing.md), paddingBottom: Math.max(insets.bottom, spacing.md), paddingLeft: Math.max(insets.left, 0) + spacing.xs }]}>
-        <GlassSurface style={[styles.railSurface, { borderColor: colors.border }]}>
+        <GlassSurface interactive style={[styles.railSurface, { borderColor: colors.border }]}>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.railContent}>
             {tabs.map((tab) => (
               <BottomNavigationItem key={tab.id} active={current === tab.id} icon={tab.icon} label={t(tab.labelKey)} rail onPress={() => { if (tab.id !== current) onNavigate(tab.id); }} />

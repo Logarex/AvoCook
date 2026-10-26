@@ -9,7 +9,7 @@ import { getNavigationLayout } from "../utils/adaptiveLayout";
 import type { BottomNavigationTab } from "../components/BottomNavigation";
 
 const mocks = vi.hoisted(() => ({
-  width: 466, fontScale: 1, version: 27.1, mounts: 0,
+  width: 466, fontScale: 1, version: 27.1, mounts: 0, native: true,
   insets: { top: 0, bottom: 0, left: 0, right: 88 },
 }));
 vi.mock("react-native", () => ({
@@ -23,7 +23,7 @@ vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key: string) => k
 vi.mock("lucide-react-native", () => ({ BookOpen: "Book", CookingPot: "Pot", CalendarDays: "Calendar", Globe: "Globe", ShoppingCart: "Cart" }));
 vi.mock("../components/AppText", () => ({ AppText: "Text" }));
 vi.mock("../components/GlassSurface", () => ({ GlassSurface: "Glass" }));
-vi.mock("../components/NativeGlassControls", () => ({ NativeTabBar: "NativeTabs", useNativeGlassControls: () => ({}) }));
+vi.mock("../components/NativeGlassControls", () => ({ NativeTabBar: "NativeTabs", useNativeGlassControls: () => mocks.native ? {} : null }));
 vi.mock("../theme/ThemeProvider", () => ({ useAppTheme: () => ({ colors: {}, isDark: false }) }));
 
 function Probe() {
@@ -43,7 +43,7 @@ const probe = () => screen.root.findByType("Probe" as never).props;
 const tabs = () => screen.root.findAll((item) => item.props.accessibilityRole === "tab");
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
-  mocks.width = 466; mocks.fontScale = 1; mocks.version = 27.1; mocks.mounts = 0;
+  mocks.native = true; mocks.width = 466; mocks.fontScale = 1; mocks.version = 27.1; mocks.mounts = 0;
   mocks.insets = { top: 0, bottom: 0, left: 0, right: 88 };
   onNavigate = vi.fn();
 });
@@ -53,7 +53,7 @@ it("preserves the current screen state and all five destinations when folding an
   await act(async () => { screen = create(node()); });
   await act(async () => probe().increment());
   expect(probe().layout.columns).toBe(1);
-  expect(screen.root.findAllByType("NativeTabs" as never)).toHaveLength(0);
+  expect(screen.root.findAllByType("NativeTabs" as never)).toHaveLength(1);
   const compactBottom = probe().bottom;
   mocks.width = 890;
   await act(async () => screen.update(node()));
@@ -68,11 +68,11 @@ it("preserves the current screen state and all five destinations when folding an
   expect(probe().layout.columns).toBe(1);
   expect(probe().count).toBe(1);
   expect(mocks.mounts).toBe(1);
-  expect(tabs().filter((tab) => tab.props.accessibilityState.selected)).toHaveLength(1);
-  expect(tabs()[2].props.accessibilityState.selected).toBe(true);
+  expect(screen.root.findByType("NativeTabs" as never).props.selected).toBe("planning");
 });
 
-it("keeps a compact bar clear of asymmetric camera insets", async () => {
+it("keeps a fallback compact bar clear of asymmetric camera insets", async () => {
+  mocks.native = false;
   await act(async () => { screen = create(node()); });
   const wrapper = screen.root.findAllByType("View" as never).find((item) => item.props.pointerEvents === "box-none")!;
   expect(wrapper.props.style).toContainEqual(expect.objectContaining({ left: 16, right: 104 }));
@@ -80,8 +80,8 @@ it("keeps a compact bar clear of asymmetric camera insets", async () => {
   expect(onNavigate).not.toHaveBeenCalled();
 });
 
-it("uses the existing native bar on compact older iOS versions", async () => {
-  mocks.version = 26.5;
+it.each([26.5, 27.1])("keeps the native bar on iOS %s", async (version) => {
+  mocks.version = version;
   await act(async () => { screen = create(node()); });
   expect(screen.root.findAllByType("NativeTabs" as never)).toHaveLength(1);
 });

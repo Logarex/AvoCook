@@ -126,11 +126,12 @@ describe("native Liquid Glass controls", () => {
     await act(async () => nodes("NativeButton")[0].props.onPress());
     expect(onBack).toHaveBeenCalledOnce();
   });
-  it("outlines compact secondary actions even when the glass surface is transparent", async () => {
+  it("uses native glass for compact secondary actions", async () => {
     await render(React.createElement(PrimaryButton, {
       label: "Change meal options", compact: true, variant: "secondary", onPress: vi.fn(),
     }));
-    expect(nodes("Pressable")[0].props.style({ pressed: false })).toContainEqual({ borderColor: "green", borderWidth: 1 });
+    expect(nodes("NativeButton")[0].props.modifiers).toContainEqual({ type: "buttonStyle", value: "glass" });
+    expect(nodes("Host")[0].props.matchContents).toBe(true);
   });
 
   it("keeps a large kitchen collection responsive while allowing access to later recipes", async () => {
@@ -152,25 +153,24 @@ describe("native Liquid Glass controls", () => {
           }),
       }),
     );
-    expect(nodes("Pressable")).toHaveLength(13);
+    expect(nodes("NativeButton")).toHaveLength(13);
     expect(
-      nodes("Pressable").some(
-        (node) => node.props.accessibilityLabel === "Recipe 12",
+      nodes("NativeButton").some(
+        (node) => node.props.modifiers.some((modifier: { value: unknown }) => modifier.value === "Recipe 12"),
       ),
     ).toBe(false);
     await act(async () =>
-      nodes("Pressable")
-        .find((node) => node.props.accessibilityLabel === "kitchen.showMore")!
+      nodes("NativeButton")
+        .find((node) => node.props.modifiers.some((modifier: { value: unknown }) => modifier.value === "kitchen.showMore"))!
         .props.onPress(),
     );
-    expect(nodes("Pressable")).toHaveLength(25);
+    expect(nodes("NativeButton")).toHaveLength(25);
     await act(async () =>
-      nodes("Pressable")
-        .find((node) => node.props.accessibilityLabel === "Recipe 23")!
+      nodes("NativeButton")
+        .find((node) => node.props.modifiers.some((modifier: { value: unknown }) => modifier.value === "Recipe 23"))!
         .props.onPress(),
     );
     expect(onSelect).toHaveBeenCalledWith("23");
-    expect(nodes("NativeButton")).toHaveLength(0);
   });
   it("keeps compact controls measurable in wrapped rows when native glass is enabled", async () => {
     const onPress = vi.fn();
@@ -181,9 +181,9 @@ describe("native Liquid Glass controls", () => {
         compact: true,
       }),
     );
-    expect(nodes("NativeButton")).toHaveLength(0);
-    const button = nodes("Pressable")[0];
-    expect(button.props.accessibilityLabel).toBe("Meal plan");
+    const button = nodes("NativeButton")[0];
+    expect(nodes("Host")[0].props.matchContents).toBe(true);
+    expect(button.props.modifiers).toContainEqual({ type: "accessibilityLabel", value: "Meal plan" });
     await act(async () => button.props.onPress());
     expect(onPress).toHaveBeenCalledOnce();
   });
