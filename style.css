@@ -149,7 +149,7 @@ nav.scrolled {
   object-fit: contain;
   display: block;
 }
-/* Logo filenames refer to the background theme, not the logo color. */
+
 .nav-logo-img.logo-dark  { display: block; }
 .nav-logo-img.logo-light { display: none; }
 [data-theme="light"] .nav-logo-img.logo-dark  { display: none; }
@@ -197,7 +197,7 @@ nav.scrolled {
 .nav-download-wrap {
   position: relative;
 }
-/* Bridge the gap to prevent hover loss */
+
 .nav-download-wrap::after {
   content: '';
   position: absolute;
@@ -429,15 +429,15 @@ nav.scrolled {
   box-shadow: 0 40px 80px rgba(16,32,29,0.15), 0 0 0 1px rgba(0,0,0,0.05);
 }
 .phone-front {
-  left: 50%; 
+  left: 50%;
   transform: translateX(-65%) translateY(20px);
   z-index: 2;
   animation: floatFront 6s ease-in-out infinite;
 }
 .phone-back {
-  left: 50%; 
+  left: 50%;
   transform: translateX(-15%) translateY(-20px) scale(0.85);
-  z-index: 1; 
+  z-index: 1;
   opacity: 0.65;
   filter: blur(1.5px);
   animation: floatBack 7s ease-in-out infinite 1s;
@@ -880,3 +880,7 @@ footer {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .fade-up { opacity: 1; transform: none; }
 }
+
+.feature-group { margin-top: 2.5rem; }
+.feature-group-title { font-size: clamp(1.25rem, 2vw, 1.65rem); margin: 0 0 1rem; }
+.feature-group .features-grid { margin-top: 0; }
