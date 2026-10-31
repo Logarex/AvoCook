@@ -257,7 +257,6 @@ async function _executePush(items: ShoppingListItem[], listId: string, isCurrent
       title: item.label,
       completed: item.checked,
       calendarId: listId,
-      notes: item.recipeName ? `📖 ${item.recipeName}` : undefined,
     };
 
     if (matchedReminder && matchedReminder.id) {
@@ -266,7 +265,10 @@ async function _executePush(items: ShoppingListItem[], listId: string, isCurrent
       );
       nextMap[item.id] = matchedReminder.id;
     } else {
-      const newId = await Calendar.createReminderAsync(listId, reminderDetails).catch(
+      const newId = await Calendar.createReminderAsync(listId, {
+        ...reminderDetails,
+        notes: item.recipeName ? `📖 ${item.recipeName}` : undefined,
+      }).catch(
         (e) => {
           console.warn("sync", `Failed to create reminder for ${item.label}`, e);
           return null;

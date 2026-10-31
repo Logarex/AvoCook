@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { isRemindersAvailable, pullItemsFromReminders, pushItemsToReminders, rebindReminderMappings, registerReminderMappings, requestRemindersPermission } from "../features/shopping/remindersSync";
 import type { ShoppingListItem } from "../features/shopping/shoppingList";
 const mocks = vi.hoisted(() => ({
-  platform: { OS: "ios" }, storage: new Map<string, string>(), reminders: [] as { id: string; title: string; completed: boolean }[],
+  platform: { OS: "ios" }, storage: new Map<string, string>(), reminders: [] as { id: string; title: string; completed: boolean; notes?: string }[],
   fetch: vi.fn(), create: vi.fn(), update: vi.fn(), remove: vi.fn(), permission: vi.fn()
 }));
 vi.mock("react-native", () => ({ Platform: mocks.platform }));
@@ -26,6 +26,22 @@ beforeEach(() => {
 });
 afterEach(() => { vi.restoreAllMocks(); });
 describe("Apple reminder transport and backend ID changes", () => {
+  it.each([undefined, "Soup"])("preserves native notes on repeated sync with recipe %s", async (recipeName) => {
+    const original = { ...item("a"), recipeName };
+    await pushItemsToReminders([original], "apple-list");
+    expect(mocks.reminders[0].notes).toBe(recipeName ? `📖 ${recipeName}` : undefined);
+    mocks.reminders[0].notes = "My note\nBuy organic 🥑";
+    await pushItemsToReminders([{ ...original, label: "Oat milk", checked: true }], "apple-list");
+    await pushItemsToReminders([original], "apple-list");
+    expect(mocks.reminders[0].notes).toBe("My note\nBuy organic 🥑");
+    for (const [, details] of mocks.update.mock.calls) expect(details).not.toHaveProperty("notes");
+  });
+  it("preserves notes when matching an existing reminder by name", async () => {
+    mocks.reminders = [{ id: "external", title: "Milk", completed: false, notes: "Keep this" }];
+    await pushItemsToReminders([{ ...item("a"), recipeName: "Soup" }], "apple-list");
+    expect(mocks.reminders[0].notes).toBe("Keep this");
+    expect(mocks.create).not.toHaveBeenCalled();
+  });
   it("is gated to Apple platforms", async () => {
     mocks.platform.OS = "android";
     expect(isRemindersAvailable()).toBe(false); expect(await requestRemindersPermission()).toBe("denied"); expect(mocks.permission).not.toHaveBeenCalled();
