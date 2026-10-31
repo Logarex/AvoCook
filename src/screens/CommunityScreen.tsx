@@ -466,24 +466,6 @@ export function CommunityScreen({ navigation }: Props) {
           />
         </View>
 
-        <View style={styles.sourceFilter}>
-          <AppText muted variant="caption">
-            {t("ui.sourceLanguage")}
-          </AppText>
-          <LanguagePicker
-            variant="compact"
-            value={selectedLanguage}
-            label={t("ui.sourceLanguage")}
-            options={sortedLanguages.map((language) => ({
-              value: language.id,
-              nativeName:
-                language.id === "all" ? t("ui.allLanguages") : language.label,
-              shortLabel: language.code,
-            }))}
-            onChange={setSelectedLanguage}
-          />
-        </View>
-
         {loadFailed ? (
           <Pressable
             onPress={() => void loadData(true)}

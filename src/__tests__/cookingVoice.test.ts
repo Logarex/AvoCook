@@ -96,3 +96,11 @@ it("reports fatal recognition errors and allows another activation", async () =>
   expect(voice.listening).toBe(true);
   expect(voice.failed).toBe(false);
 });
+
+it("ignores unknown transcripts and can process a recognized command after restarting", async () => {
+  await act(async () => voice.toggle());
+  await act(async () => mocks.listeners.voiceResult({ text: "étape" }));
+  expect(mocks.command).not.toHaveBeenCalled();
+  await act(async () => mocks.listeners.voiceResult({ text: "Étape suivante." }));
+  expect(mocks.command).toHaveBeenCalledExactlyOnceWith("next");
+});

@@ -261,6 +261,27 @@ async function downloadTempPrintImage(
   }
 }
 
+// Printing on iOS cannot resolve local file URLs or authenticated image URLs
+// from HTML. Embed the image bytes and clean up any temporary download.
+export async function getRecipePrintImageDataUri(recipe: Recipe, client: CookbookClient | null) {
+  if (hasRecipeImageRemovalIntent(recipe)) return "";
+  const image = await getPrintImageUri(recipe, client);
+  if (!image.uri) return "";
+  try {
+    const base64 = await new File(image.uri).base64();
+    if (!base64) return "";
+    const extension = getImageExtension(image.uri);
+    return `data:image/${extension === "jpg" ? "jpeg" : extension};base64,${base64}`;
+  } catch (error) {
+    console.warn("Could not embed recipe book image", error);
+    return "";
+  } finally {
+    if (image.isTemp) {
+      try { new File(image.uri).delete(); } catch { /* Already cleaned up. */ }
+    }
+  }
+}
+
 async function createRecipePrintDocument(
   recipe: Recipe,
   labels: RecipePrintLabels,

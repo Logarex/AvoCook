@@ -3,7 +3,8 @@ import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { StockInventoryList } from "../screens/StockInventoryList";
 import type { StockItem } from "../features/kitchen/kitchen";
-vi.mock("react-native", () => ({ View: "View", ScrollView: "ScrollView", Pressable: "Pressable", StyleSheet: { create: (styles: unknown) => styles, hairlineWidth: 1 } }));
+const confirm = vi.hoisted(() => vi.fn());
+vi.mock("react-native", () => ({ Alert: { alert: confirm }, View: "View", ScrollView: "ScrollView", Pressable: "Pressable", StyleSheet: { create: (styles: unknown) => styles, hairlineWidth: 1 } }));
 vi.mock("lucide-react-native", () => Object.fromEntries(["Archive", "Check", "ChevronDown", "Pencil", "Refrigerator", "Snowflake", "Utensils"].map((name) => [name, name])));
 vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: "en" } }) }));
 vi.mock("../theme/ThemeProvider", () => ({ useAppTheme: () => ({ colors: {} }) }));
@@ -28,6 +29,8 @@ it("limits large inventories while keeping every food searchable and its actions
   expect(rows()[0].props.accessibilityLabel).toContain("Food 499");
   await act(async () => rows()[0].props.onPress());
   await act(async () => screen.root.findAll((node) => String(node.type) === "Button" && node.props.label === "kitchen.usedUp")[0].props.onPress());
+  expect(onUse).not.toHaveBeenCalled();
+  await act(async () => confirm.mock.calls.at(-1)![2][1].onPress());
   expect(onUse).toHaveBeenCalledExactlyOnceWith(items[499]);
 });
 

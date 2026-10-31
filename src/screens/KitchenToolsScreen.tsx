@@ -5,7 +5,8 @@ import {
   BAKING_SUBSTITUTION_SOURCE,
 } from "../features/kitchen/substitutions";
 import React, { useState } from "react";
-import { Alert, Linking, StyleSheet, View } from "react-native";
+import { Alert, Linking, Pressable, StyleSheet, View } from "react-native";
+import { Check } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
@@ -17,9 +18,11 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { TextField } from "../components/TextField";
 import { useKitchen } from "../features/kitchen/KitchenProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
+import { useAuth } from "../features/auth/AuthProvider";
+import { useAppTheme } from "../theme/ThemeProvider";
 import { markdownToPlainText } from "../features/markdown/markdown";
 import { KitchenSeasonalSection } from "./KitchenSeasonalSection";
-import { createRecipeBookHtml } from "../features/kitchen/recipeBook";
+import { createIllustratedRecipeBookHtml } from "../features/kitchen/recipeBookExport";
 
 type Props = {
   section: "seasonal" | "substitutions" | "book" | "profiles";
@@ -29,6 +32,8 @@ export function KitchenToolsScreen({ section, openRecipe }: Props) {
   const { t } = useTranslation();
   const kitchen = useKitchen();
   const { recipes } = useRecipes();
+  const { getClient } = useAuth();
+  const { colors } = useAppTheme();
   const [context, setContext] = useState("muffins");
   const [eggs, setEggs] = useState("1");
   const [selected, setSelected] = useState<string[]>([]);
@@ -185,6 +190,42 @@ export function KitchenToolsScreen({ section, openRecipe }: Props) {
             variant="secondary"
             onPress={() => setPicking(true)}
           />
+          <PrimaryButton
+            label={t("kitchen.exportBook")}
+            disabled={busy || !selected.length || !title.trim()}
+            onPress={() => {
+              void run(async () => {
+                const chosen = selected.flatMap(
+                  (id) => recipes.find((recipe) => recipe.id === id) ?? [],
+                );
+                if (!chosen.length) return;
+                const html = await createIllustratedRecipeBookHtml(chosen, {
+                  title,
+                  contents: t("kitchen.bookContents"),
+                  recipes: t("recipes.title"),
+                  prepTime: t("recipes.prepTime"),
+                  cookTime: t("recipes.cookTime"),
+                  ingredients: t("recipes.ingredients"),
+                  instructions: t("recipes.instructions"),
+                  servings: t("kitchen.servings"),
+                }, getClient());
+                const printOptions = {
+                  html,
+                  width: 595,
+                  height: 842,
+                  margins: { top: 62, bottom: 68, left: 62, right: 62 },
+                };
+                if (await Sharing.isAvailableAsync()) {
+                  const result = await Print.printToFileAsync(printOptions);
+                  await Sharing.shareAsync(result.uri, {
+                    mimeType: "application/pdf",
+                    UTI: "com.adobe.pdf",
+                    dialogTitle: title,
+                  });
+                } else await Print.printAsync(printOptions);
+              });
+            }}
+          />
           {selected
             .flatMap((id) => recipes.find((recipe) => recipe.id === id) ?? [])
             .map((recipe) => (
@@ -201,36 +242,17 @@ export function KitchenToolsScreen({ section, openRecipe }: Props) {
                 />
               </GlassPanel>
             ))}
-          <PrimaryButton
-            label={t("kitchen.exportBook")}
-            disabled={busy || !selected.length || !title.trim()}
-            onPress={() => {
-              void run(async () => {
-                const chosen = selected.flatMap(
-                  (id) => recipes.find((recipe) => recipe.id === id) ?? [],
-                );
-                if (!chosen.length) return;
-                const html = createRecipeBookHtml(chosen, {
-                  title,
-                  ingredients: t("recipes.ingredients"),
-                  instructions: t("recipes.instructions"),
-                  servings: t("kitchen.servings"),
-                });
-                if (await Sharing.isAvailableAsync()) {
-                  const result = await Print.printToFileAsync({ html });
-                  await Sharing.shareAsync(result.uri, {
-                    mimeType: "application/pdf",
-                    UTI: "com.adobe.pdf",
-                    dialogTitle: title,
-                  });
-                } else await Print.printAsync({ html });
-              });
-            }}
-          />
           <AppSheet
             visible={picking}
             title={t("kitchen.chooseRecipes")}
             onClose={() => setPicking(false)}
+            headerAction={
+              <PrimaryButton
+                compact
+                label={t("kitchen.done")}
+                onPress={() => setPicking(false)}
+              />
+            }
           >
             <View style={styles.panel}>
               <TextField
@@ -247,12 +269,18 @@ export function KitchenToolsScreen({ section, openRecipe }: Props) {
                 )}
               >
                 {(recipe) => (
-                  <PrimaryButton
-                    compact
-                    numberOfLines={0}
+                  <Pressable
                     key={recipe.id}
-                    label={`${selected.includes(recipe.id!) ? "✓ " : ""}${markdownToPlainText(recipe.name)}`}
-                    variant="secondary"
+                    accessibilityRole="checkbox"
+                    accessibilityLabel={markdownToPlainText(recipe.name)}
+                    accessibilityState={{
+                      checked: selected.includes(recipe.id!),
+                      disabled: selected.length >= 50 && !selected.includes(recipe.id!),
+                    }}
+                    style={({ pressed }) => [styles.recipeButton, {
+                      backgroundColor: pressed || selected.includes(recipe.id!) ? colors.chip : colors.backgroundElevated,
+                      borderColor: selected.includes(recipe.id!) ? colors.primary : colors.border,
+                    }]}
                     disabled={
                       selected.length >= 50 && !selected.includes(recipe.id!)
                     }
@@ -264,7 +292,12 @@ export function KitchenToolsScreen({ section, openRecipe }: Props) {
                             : [...current, recipe.id!],
                         );
                     }}
-                  />
+                  >
+                    <View style={[styles.recipeCheck, { borderColor: colors.primary }]}>
+                      {selected.includes(recipe.id!) ? <Check size={17} color={colors.primaryStrong} /> : null}
+                    </View>
+                    <AppText style={styles.recipeName}>{markdownToPlainText(recipe.name)}</AppText>
+                  </Pressable>
                 )}
               </KitchenRecipeList>
               <PrimaryButton
@@ -278,4 +311,9 @@ export function KitchenToolsScreen({ section, openRecipe }: Props) {
     </View>
   );
 }
-const styles = StyleSheet.create({ panel: { gap: 16 } });
+const styles = StyleSheet.create({
+  panel: { gap: 16 },
+  recipeButton: { width: "100%", minWidth: 0, flexDirection: "row", alignItems: "center", gap: 12, padding: 14, borderWidth: 1, borderRadius: 16, minHeight: 56 },
+  recipeCheck: { width: 24, height: 24, borderWidth: 1.5, borderRadius: 7, alignItems: "center", justifyContent: "center", flexShrink: 0 },
+  recipeName: { flex: 1, minWidth: 0 },
+});

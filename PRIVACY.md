@@ -47,3 +47,9 @@ Diagnostic logs are stored locally. Secrets are masked, but a report may still c
 For questions, use [the GitHub repository](https://github.com/Logarex/AvoCook) or the contact button in the app.
 
 Optional barcode lookup sends only the scanned or entered barcode and app language to Open Food Facts, which also receives normal network information such as your IP address. Camera frames stay on the device. Your inventory, storage locations and expiry dates are not sent. Product names and scores from Open Food Facts are stored locally with source attribution under ODbL; missing scores are left blank.
+
+## Shopping-list push notifications
+
+When notifications are enabled for a Firebase shared shopping list, AvoCook registers a device push token with a Cloudflare Workers relay. Shopping lists remain in Firebase. The relay checks the caller's Firebase identity and list access, reads list changes, and stores technical item identifiers, list versions, notification language, installation identifiers and push tokens in Cloudflare D1. It does not retain product names. A server task checks for missed changes once per minute using a read-only Google service account. No Nextcloud credentials are sent to this relay.
+
+The relay sends generic list-change notifications through Expo Push Service and Apple Push Notification service or Firebase Cloud Messaging, including when the app is closed. Product names are not included in push messages. Turning off shopping notifications or leaving the shared list removes the registration when the device next connects. Registrations expire after 90 days without refresh; delivery records are removed after two days. Local stock reminders and cooking timers are scheduled on the device.

@@ -44,6 +44,7 @@ export function AppSheet({
   preventDismiss = false,
   scroll = true,
   compact = false,
+  headerAction,
   children,
 }: {
   visible: boolean;
@@ -55,6 +56,7 @@ export function AppSheet({
   preventDismiss?: boolean;
   scroll?: boolean;
   compact?: boolean;
+  headerAction?: React.ReactNode;
   children: React.ReactNode;
 }) {
   const { colors, isDark } = useAppTheme();
@@ -82,12 +84,12 @@ export function AppSheet({
       >
         {title}
       </AppText>
-      <IconButton
+      {headerAction ?? <IconButton
         icon={X}
         label={t("common.close")}
         disabled={busy}
         onPress={close}
-      />
+      />}
     </View>
   );
   if (ui) {

@@ -49,7 +49,8 @@ export type RootStackParamList = {
       }
     | undefined;
   Planning: {
-    section?: "today" | "planner" | "history";
+    section?: "today" | "planner" | "tonight" | "history";
+    ingredients?: string;
     recipeId?: string;
     tabTransition?: "slide_from_left" | "slide_from_right";
   } | undefined;

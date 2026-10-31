@@ -763,7 +763,7 @@ function RecipeDetailContent({
             <PrimaryButton
               icon={Play}
               label={t("kitchen.cooking")}
-              compact
+              fillAvailableSpace
               style={styles.cookingButton}
               disabled={!recipe.recipeInstructions.length}
               onPress={() => navigation.navigate("Cooking", { id: recipeId })}

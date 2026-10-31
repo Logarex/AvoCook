@@ -77,6 +77,7 @@ export const styles = StyleSheet.create({
   },
   cookingButton: {
     flex: 1,
+    minWidth: 0,
     minHeight: 44,
   },
   ingredientRow: {

@@ -47,7 +47,7 @@ import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { AppSheet } from "../components/AppSheet";
 import { IconButton } from "../components/IconButton";
-import { ArrowLeft, ArrowRight, Check, Wrench, Pencil, ScanBarcode } from "lucide-react-native";
+import { ArrowLeft, ArrowRight, Pencil, ScanBarcode } from "lucide-react-native";
 import { GlassPanel } from "../components/GlassPanel";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
@@ -62,6 +62,7 @@ import {
   matchesDietPreference,
   surpriseRecipe,
   convertKitchen,
+  isMealCompleted,
   localDate,
   mealIngredients,
   mealRecipeId,
@@ -102,8 +103,8 @@ export function KitchenScreen(props: Props) {
 function KitchenContent({ navigation, route }: Props) {
   const { t, i18n } = useTranslation();
   const planning = route.name === "Planning";
-  const mainTabs: Tab[] = planning ? ["today", "planner", "history"] : ["stock", "tonight"];
-  const extraTabs: Tab[] = planning ? ["menus", "batch"] : ["seasonal", "converter", "substitutions", "book", "profiles", "backup"];
+  const mainTabs: Tab[] = planning ? ["today", "planner", "history"] : ["stock"];
+  const extraTabs: Tab[] = planning ? [] : ["seasonal", "converter", "substitutions", "book", "profiles", "backup"];
   const kitchen = useKitchen();
   const { colors } = useAppTheme();
   const { fontScale } = useWindowDimensions();
@@ -135,10 +136,13 @@ function KitchenContent({ navigation, route }: Props) {
   const [tab, setTab] = useState<Tab>(route.params?.section ?? (planning ? "today" : "stock"));
   useEffect(() => {
     if (route.params?.section) {
-      setTab(route.params.section);
+      if (!planning && route.params.section === "tonight") {
+        navigation.navigate("Planning", { section: "tonight", ingredients: route.params.ingredients });
+        setTab("stock");
+      } else setTab(route.params.section);
       navigation.setParams({ section: undefined });
     }
-  }, [route.params?.section, navigation]);
+  }, [route.params?.section, route.params?.ingredients, navigation, planning]);
   const [week, setWeek] = useState(localDate());
   const incomingIngredients = route.params && "ingredients" in route.params ? route.params.ingredients : undefined;
   const [availableInput, setAvailableInput] = useState<string>(incomingIngredients ?? "");
@@ -160,6 +164,14 @@ function KitchenContent({ navigation, route }: Props) {
   const [toolsOpen, setToolsOpen] = useState(false);
   const [freeIngredients, setFreeIngredients] = useState("");
   const [servings, setServings] = useState("1");
+  const mealBaseline = useRef<{ id: string; value: string } | null>(null);
+  const mealSnapshot = JSON.stringify({ meal, servings, ingredients: freeIngredients });
+  useEffect(() => {
+    mealBaseline.current = meal ? { id: meal.id, value: mealSnapshot } : null;
+    // Capture only when opening a different meal; subsequent edits belong to the draft.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [meal?.id]);
+  const mealDirty = Boolean(meal && mealBaseline.current?.id === meal.id && mealBaseline.current.value !== mealSnapshot);
   const [picker, setPicker] = useState(false);
   const [recipeQuery, setRecipeQuery] = useState("");
   const [stockLocation, setStockLocation] = useState<StockItem["location"]>("fridge");
@@ -288,8 +300,8 @@ function KitchenContent({ navigation, route }: Props) {
     [tab, candidates, kitchen.data.stock, availableInput, today],
   );
   const history = useMemo(
-    () => tab === "history" ? kitchenHistory(kitchen.data, recipes) : [],
-    [tab, kitchen.data, recipes],
+    () => tab === "history" ? kitchenHistory(kitchen.data, recipes, today) : [],
+    [tab, kitchen.data, recipes, today],
   );
   const duplicates = stock ? stockDuplicates(kitchen.data.stock, stock) : [];
   const dateLabel = (date: string) =>
@@ -335,7 +347,8 @@ function KitchenContent({ navigation, route }: Props) {
         y <= rect.y + rect.height,
     );
     if (!target) return;
-    if ("mealId" in source && target.date > today && kitchen.data.meals.find((item) => item.id === source.mealId)?.completed) {
+    const movingMeal = "mealId" in source ? kitchen.data.meals.find((item) => item.id === source.mealId) : undefined;
+    if (target.date > today && movingMeal?.completed && movingMeal.date >= today) {
       Alert.alert(t("kitchen.futureEaten"));
       return;
     }
@@ -346,7 +359,7 @@ function KitchenContent({ navigation, route }: Props) {
           return {
             ...data,
             meals: data.meals.map((meal) =>
-              meal.id === source.mealId ? { ...meal, date: target.date } : meal,
+              meal.id === source.mealId ? { ...meal, date: target.date, completed: target.date < today ? true : meal.date < today ? false : meal.completed } : meal,
             ),
           };
         const recipe = recipes.find((recipe) => recipe.id === source.recipeId);
@@ -359,6 +372,7 @@ function KitchenContent({ navigation, route }: Props) {
                   id: newKitchenId(),
                   recipeId: source.recipeId,
                   date: target.date,
+                  completed: target.date < today,
                   slot: "dinner",
                   servings: recipe.recipeYield || 1,
                 },
@@ -379,8 +393,9 @@ function KitchenContent({ navigation, route }: Props) {
             : current,
       );
     } else if (meal) {
-      setMeal({ ...meal, ...(!meal.kind || meal.kind === "recipe" ? { recipeId: recipe.id } : { linkedRecipeId: recipe.id }) });
-      if (!meal.kind || meal.kind === "recipe") setServings(String(recipe.recipeYield || 1));
+      const planRecipe = !meal.kind || meal.kind === "recipe" || (meal.kind === "simple" && !meal.completed && tab !== "history");
+      setMeal({ ...meal, completed: isMealCompleted(meal, today), title: meal.title?.trim() || markdownToPlainText(recipe.name), ...(planRecipe ? { kind: "recipe", recipeId: recipe.id, linkedRecipeId: undefined } : { linkedRecipeId: recipe.id }) });
+      if (planRecipe) setServings(String(recipe.recipeYield || 1));
       setPicker(false);
     }
   };
@@ -485,25 +500,25 @@ function KitchenContent({ navigation, route }: Props) {
             <ScreenHeader
               title={t(planning ? "kitchen.planningTitle" : "kitchen.title")}
               actions={
-                <IconButton
-                  icon={Wrench}
-                  label={t("kitchen.tools")}
-                  onPress={() => setToolsOpen(true)}
-                />
+                !planning ? <PrimaryButton compact variant="secondary" label={t("kitchen.discover")} onPress={() => setToolsOpen(true)} /> : null
               }
             />
           }
         >
-          <SegmentedControl
+          {planning && <SegmentedControl
+            variant="native"
             options={mainTabs.map((value) => ({
               value,
               label: t(`kitchen.nav_${value}`),
             }))}
             value={mainTabs.includes(tab) ? tab : ""}
             onChange={(value) => setTab(value as Tab)}
-          />
+          />}
           {!mainTabs.includes(tab) && (
-            <AppText variant="subtitle">{t(`kitchen.${tab}`)}</AppText>
+            <View style={styles.panel}>
+              {planning && <PrimaryButton compact variant="ghost" fillAvailableSpace numberOfLines={0} label={t("kitchen.backToToday")} onPress={() => setTab("today")} />}
+              <AppText variant="subtitle">{t(`kitchen.${tab}`)}</AppText>
+            </View>
           )}
           {!kitchen.ready || (recipesLoading && tab !== "stock") ? (
             <>
@@ -525,8 +540,10 @@ function KitchenContent({ navigation, route }: Props) {
                   today={today}
                   onAdd={(slot, kind) => openMeal(today, slot, kind)}
                   onEdit={editMeal}
+                  onRecord={() => { openMeal(today, "dinner", "simple"); setMeal((current) => current ? { ...current, completed: true } : current); }}
                   onIdeas={(ingredients) => {
-                    navigation.navigate("Kitchen", { section: "tonight", ingredients: ingredients ?? "" });
+                    setAvailableInput(ingredients ?? "");
+                    setTab("tonight");
                   }}
                   onStock={() => navigation.navigate("Kitchen", { section: "stock" })}
                   onRecipe={(id) => navigation.navigate("Cooking", { id })}
@@ -579,7 +596,7 @@ function KitchenContent({ navigation, route }: Props) {
                           key={date}
                           accessibilityRole="button"
                           accessibilityState={{ selected: date === activeDay }}
-                          accessibilityLabel={dateLabel(date)}
+                          accessibilityLabel={`${dateLabel(date)} · ${t("kitchen.mealCount", { count: planned.filter((meal) => meal.date === date).length })}`}
                           onPress={() => setSelectedDay(date)}
                           style={[
                             styles.day,
@@ -611,13 +628,114 @@ function KitchenContent({ navigation, route }: Props) {
                             {new Date(`${date}T12:00:00`).getDate()}
                           </AppText>
                           <AppText variant="caption" muted>
-                            {planned.filter((meal) => meal.date === date)
-                              .length || "—"}
+                            {planned.some((meal) => meal.date === date) ? "•" : "—"}
                           </AppText>
                         </Pressable>
                       ))}
                     </ScrollView>
                   </View>
+
+                  {[activeDay].map((date) => (
+                    <GlassPanel key={date} style={styles.panel}>
+                      <AppText variant="subtitle">{dateLabel(date)}</AppText>
+                      {(["lunch", "dinner"] as const).map((slot) => (
+                        <View key={slot} style={styles.panel}>
+                          <AppText variant="label">
+                            {t(`kitchen.${slot}`)}
+                          </AppText>
+                          {planned
+                            .filter(
+                              (item) =>
+                                item.date === date && item.slot === slot,
+                            )
+                            .map((item) => {
+                              const recipe = recipes.find(
+                                (recipe) => recipe.id === mealRecipeId(item),
+                              );
+                              const title =
+                                item.kind && item.kind !== "recipe"
+                                  ? item.title || t(`kitchen.${item.kind}`)
+                                  : recipe
+                                    ? markdownToPlainText(item.title?.trim() || recipe.name)
+                                    : t("kitchen.unavailableRecipe");
+                              return (
+                                <View key={item.id} style={styles.panel}>
+                                  <KitchenDraggable
+                                    drag={drag}
+                                    onStart={() => startDrag(title)}
+                                    onDrop={(x, y) =>
+                                      dropMeal(x, y, { mealId: item.id })
+                                    }
+                                  >
+                                    <Pressable
+                                      accessibilityRole="button"
+                                      accessibilityLabel={`${t("kitchen.moveEdit")}: ${title}`}
+                                      onPress={() => {
+                                        editMeal(item);
+                                      }}
+                                      style={{ paddingVertical: 8 }}
+                                    >
+                                      <AppText>
+                                        {isMealCompleted(item, today) ? "✓ " : ""}
+                                        {title}
+                                        {recipe ? ` · ${item.servings} ${t("kitchen.servings")}` : ""}
+                                      </AppText>
+                                    </Pressable>
+                                  </KitchenDraggable>
+                                  {recipe && item.title?.trim() && item.title.trim() !== markdownToPlainText(recipe.name) && (
+                                      <AppText muted variant="caption">
+                                        {markdownToPlainText(recipe.name)}
+                                      </AppText>
+                                    )}
+                                  <View style={styles.wrap}>
+                                    <PrimaryButton compact variant="ghost" label={t("kitchen.edit")} onPress={() => editMeal(item)} />
+                                    {recipe &&
+                                      button("open", () =>
+                                        navigation.navigate("RecipeDetail", {
+                                          id: recipe.id!,
+                                        }),
+                                      )}
+                                    {item.date === today && <PrimaryButton compact variant="secondary" label={t(item.completed ? "kitchen.undoCooked" : "kitchen.markDone")}
+                                      disabled={busy || (item.date > today && !item.completed)}
+                                      onPress={() => { void run(() => kitchen.update((data) => ({ ...data, meals: data.meals.map((entry) => entry.id === item.id ? { ...entry, completed: !entry.completed } : entry) }))); }} />}
+                                  </View>
+                                </View>
+                              );
+                            })}
+                          <PrimaryButton
+                            fillAvailableSpace
+                            numberOfLines={0}
+                            label={t("kitchen.planSlot", { slot: t(`kitchen.${slot}`).toLocaleLowerCase(i18n.language) })}
+                            variant="secondary"
+                            disabled={busy}
+                            onPress={() => openMeal(date, slot)}
+                          />
+                        </View>
+                      ))}
+                    </GlassPanel>
+                  ))}
+                  {planned.some(
+                    (meal) =>
+                      (!meal.kind || meal.kind === "recipe") &&
+                      !recipes.some((recipe) => recipe.id === meal.recipeId),
+                  ) && <AppText>{t("kitchen.missingRecipes")}</AppText>}
+                  <AppText muted variant="caption">{t(weekShopping.length ? "kitchen.planningShoppingHelp" : "kitchen.shoppingEmpty")}</AppText>
+                  <PrimaryButton fillAvailableSpace numberOfLines={0}
+                    label={t("kitchen.weekShopping")}
+                    disabled={
+                      busy ||
+                      (!weekShopping.length &&
+                        !shopping.items.some(
+                          (item) =>
+                            item.recipeId ===
+                            `kitchen-week:${kitchen.data.shoppingGroupId}:${dates[0]}`,
+                        ))
+                    }
+                    onPress={() => {
+                      setPreviewWeek(dates[0]);
+                      setPreview(weekShopping);
+                    }}
+                  />
                   <DisclosureSection title={t("kitchen.quickRecipe")}>
                   {!!dragQuery.trim() && (
                     <AppText variant="caption" muted>
@@ -667,103 +785,17 @@ function KitchenContent({ navigation, route }: Props) {
                         </KitchenDraggable>
                       ))}
                   </DisclosureSection>
-                  {[activeDay].map((date) => (
-                    <GlassPanel key={date} style={styles.panel}>
-                      <AppText variant="subtitle">{dateLabel(date)}</AppText>
-                      {(["lunch", "dinner"] as const).map((slot) => (
-                        <View key={slot} style={styles.panel}>
-                          <AppText variant="label">
-                            {t(`kitchen.${slot}`)}
-                          </AppText>
-                          {planned
-                            .filter(
-                              (item) =>
-                                item.date === date && item.slot === slot,
-                            )
-                            .map((item) => {
-                              const recipe = recipes.find(
-                                (recipe) => recipe.id === mealRecipeId(item),
-                              );
-                              const title =
-                                item.kind && item.kind !== "recipe"
-                                  ? item.title || t(`kitchen.${item.kind}`)
-                                  : recipe
-                                    ? markdownToPlainText(recipe.name)
-                                    : t("kitchen.unavailableRecipe");
-                              return (
-                                <View key={item.id} style={styles.panel}>
-                                  <KitchenDraggable
-                                    drag={drag}
-                                    onStart={() => startDrag(title)}
-                                    onDrop={(x, y) =>
-                                      dropMeal(x, y, { mealId: item.id })
-                                    }
-                                  >
-                                    <Pressable
-                                      accessibilityRole="button"
-                                      accessibilityLabel={`${t("kitchen.moveEdit")}: ${title}`}
-                                      onPress={() => {
-                                        editMeal(item);
-                                      }}
-                                      style={{ paddingVertical: 8 }}
-                                    >
-                                      <AppText>
-                                        {item.completed ? "✓ " : ""}
-                                        {title} · {item.servings}{" "}
-                                        {t("kitchen.servings")} ⠿
-                                      </AppText>
-                                    </Pressable>
-                                  </KitchenDraggable>
-                                  {(!item.kind || item.kind === "recipe") &&
-                                    !!item.title && (
-                                      <AppText muted variant="caption">
-                                        {item.title}
-                                      </AppText>
-                                    )}
-                                  <View style={styles.wrap}>
-                                    {recipe &&
-                                      button("open", () =>
-                                        navigation.navigate("RecipeDetail", {
-                                          id: recipe.id!,
-                                        }),
-                                      )}
-                                    <IconButton icon={Check} tone={item.completed ? "primary" : "default"} label={t(item.completed ? "kitchen.undoCooked" : "kitchen.markDone")}
-                                      disabled={busy || (item.date > today && !item.completed)}
-                                      onPress={() => { void run(() => kitchen.update((data) => ({ ...data, meals: data.meals.map((entry) => entry.id === item.id ? { ...entry, completed: !entry.completed } : entry) }))); }} />
-                                  </View>
-                                </View>
-                              );
-                            })}
-                          {button("addMeal", () => openMeal(date, slot))}
-                        </View>
-                      ))}
-                    </GlassPanel>
-                  ))}
-                  {planned.some(
-                    (meal) =>
-                      (!meal.kind || meal.kind === "recipe") &&
-                      !recipes.some((recipe) => recipe.id === meal.recipeId),
-                  ) && <AppText>{t("kitchen.missingRecipes")}</AppText>}
-                  <PrimaryButton
-                    label={t("kitchen.weekShopping")}
-                    disabled={
-                      busy ||
-                      (!weekShopping.length &&
-                        !shopping.items.some(
-                          (item) =>
-                            item.recipeId ===
-                            `kitchen-week:${kitchen.data.shoppingGroupId}:${dates[0]}`,
-                        ))
-                    }
-                    onPress={() => {
-                      setPreviewWeek(dates[0]);
-                      setPreview(weekShopping);
-                    }}
-                  />
                 </>
               )}
               {tab === "stock" && (
                 <>
+                  <View style={[styles.reminderCompact, { backgroundColor: colors.backgroundElevated, borderColor: colors.border }]}>
+                    <View style={{ flex: 1, minWidth: 0 }}>
+                      <AppText variant="label">{t("kitchen.stockReminders")}</AppText>
+                      <AppText muted variant="caption">{t("kitchen.reminderSchedule")}</AppText>
+                    </View>
+                    <Switch accessibilityLabel={t("kitchen.stockReminders")} accessibilityHint={t("kitchen.reminderShort")} value={Boolean(kitchen.data.remindersEnabled)} disabled={busy} onValueChange={toggleStockReminders} trackColor={{ true: colors.primary }} />
+                  </View>
                   <View style={[styles.stockActions, { backgroundColor: colors.backgroundElevated, borderColor: colors.border }]}>
                     <Pressable accessibilityRole="button" accessibilityLabel={t("kitchen.scanProduct")}
                       style={({ pressed }) => [styles.stockAction, { backgroundColor: pressed ? colors.chip : "transparent" }]}
@@ -790,7 +822,7 @@ function KitchenContent({ navigation, route }: Props) {
                     items={kitchen.data.stock} today={today} busy={busy}
                     onLocationChange={setStockLocation}
                     onEdit={(item) => { setScanStock(false); setStock(item); }}
-                    onIdeas={(item) => { setAvailableInput(item.name); setTab("tonight"); }}
+                    onIdeas={(item) => navigation.navigate("Planning", { section: "tonight", ingredients: item.name })}
                     onUse={(item) => {
                       void run(async () => {
                         await kitchen.update((data) => ({ ...data, stock: data.stock.filter((entry) => entry.id !== item.id) }));
@@ -799,11 +831,14 @@ function KitchenContent({ navigation, route }: Props) {
                     }}
                   />
                   {usedStock && (
-                    <PrimaryButton
-                      compact
-                      variant="secondary"
+                    <View style={[styles.undoStock, { backgroundColor: colors.chip }]}>
+                      <AppText accessibilityLiveRegion="polite" variant="caption" style={{ flex: 1, minWidth: 0 }}>{t("kitchen.stockRemoved", { name: usedStock.name })}</AppText>
+                      <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={t("kitchen.undoUsed", { name: usedStock.name })}
+                      hitSlop={6}
+                      style={styles.undoAction}
                       disabled={busy}
-                      label={t("kitchen.undoUsed", { name: usedStock.name })}
                       onPress={() => {
                         void run(async () => {
                           await kitchen.update((data) => ({
@@ -817,20 +852,22 @@ function KitchenContent({ navigation, route }: Props) {
                           setUsedStock(null);
                         });
                       }}
-                    />
-                  )}
-                  <DisclosureSection title={t("kitchen.stockReminders")}>
-                    <View style={styles.reminderSetting}>
-                      <AppText style={{ flex: 1 }}>{t("kitchen.stockReminders")}</AppText>
-                      <Switch accessibilityLabel={t("kitchen.stockReminders")} value={Boolean(kitchen.data.remindersEnabled)} disabled={busy} onValueChange={toggleStockReminders} trackColor={{ true: colors.primary }} />
+                    >
+                      <AppText variant="label" style={{ color: colors.primaryStrong }}>{t("common.cancel")}</AppText>
+                      </Pressable>
                     </View>
-                    <AppText muted variant="caption">{t("kitchen.reminderShort")}</AppText>
-                  </DisclosureSection>
+                  )}
                   {kitchen.reminderError && <AppText accessibilityRole="alert">{t("kitchen.reminderSyncError")}</AppText>}
                 </>
               )}
               {tab === "tonight" && (
                 <>
+                  <AppText muted variant="caption">{t("kitchen.ideasHelp")}</AppText>
+                  {!recipes.length && <GlassPanel style={styles.panel}>
+                    <AppText variant="subtitle">{t("kitchen.noRecipeIdeas")}</AppText>
+                    <PrimaryButton fillAvailableSpace numberOfLines={0} label={t("kitchen.fridgeAction")} onPress={() => navigation.navigate("FridgeRecipe", { ingredients: availableInput })} />
+                    <PrimaryButton fillAvailableSpace numberOfLines={0} variant="secondary" label={t("kitchen.planWithoutRecipe")} onPress={() => openMeal(today, "dinner", "simple")} />
+                  </GlassPanel>}
                   <TextField
                     label={t("kitchen.availableTonight")}
                     placeholder={t("kitchen.availableExample")}
@@ -838,8 +875,7 @@ function KitchenContent({ navigation, route }: Props) {
                     onChangeText={setAvailableInput}
                   />
 
-                  <PrimaryButton
-                    compact
+                  <PrimaryButton fillAvailableSpace numberOfLines={0}
                     variant="secondary"
                     label={t(
                       showFilters
@@ -878,7 +914,7 @@ function KitchenContent({ navigation, route }: Props) {
                       </View>
                     </>
                   )}
-                  <PrimaryButton
+                  <PrimaryButton fillAvailableSpace numberOfLines={0} variant="secondary"
                     label={t("kitchen.surprise")}
                     disabled={!suggestions.length}
                     onPress={() => {
@@ -890,7 +926,7 @@ function KitchenContent({ navigation, route }: Props) {
                       }
                     }}
                   />
-                  {!suggestions.length && (
+                  {!!recipes.length && !suggestions.length && (
                     <AppText muted>{t("kitchen.noResults")}</AppText>
                   )}
                   {suggestions
@@ -918,23 +954,15 @@ function KitchenContent({ navigation, route }: Props) {
                             })}
                           </AppText>
                         )}
-                        <View style={styles.wrap}>
-                          {button(
-                            "open",
-                            () =>
-                              recipe.id &&
-                              navigation.navigate("RecipeDetail", {
-                                id: recipe.id,
-                              }),
-                          )}
-                          {button("chooseMeal", () => {
+                        <View style={styles.panel}>
+                          <PrimaryButton fillAvailableSpace numberOfLines={0} label={t("kitchen.chooseMeal")} onPress={() => {
                             editMeal({ id: newKitchenId(), kind: "recipe", recipeId: recipe.id!, date: today, slot: "dinner", servings: recipe.recipeYield || 1 });
-                          })}
-                          {!!missing.length &&
-                            button("addMissing", () => {
-                              setPreviewWeek(null);
-                              setPreview(missing);
-                            })}
+                          }} />
+                          <PrimaryButton fillAvailableSpace numberOfLines={0} variant="secondary" label={t("kitchen.open")} onPress={() => recipe.id && navigation.navigate("RecipeDetail", { id: recipe.id })} />
+                          {!!missing.length && <PrimaryButton fillAvailableSpace numberOfLines={0} variant="secondary" label={t("kitchen.addMissing")} onPress={() => {
+                            setPreviewWeek(null);
+                            setPreview(missing);
+                          }} />}
                         </View>
                       </GlassPanel>
                     ))}
@@ -1166,12 +1194,13 @@ function KitchenContent({ navigation, route }: Props) {
           </AppSheet>
           <AppSheet
             visible={meal !== null || picker}
-            title={t(picker ? "kitchen.chooseRecipes" : "kitchen.addMeal")}
+            title={t(picker ? (meal ? "kitchen.chooseRecipe" : "kitchen.chooseRecipes") : meal && kitchen.data.meals.some((item) => item.id === meal.id) ? "kitchen.edit" : tab === "history" || meal?.completed ? "kitchen.recordMeal" : "kitchen.addMeal")}
             busy={busy}
-            preventDismiss={Boolean(meal && (meal.notes ?? "") !== (kitchen.data.meals.find((item) => item.id === meal.id)?.notes ?? ""))}
+            onBack={picker && meal ? () => setPicker(false) : undefined}
+            preventDismiss={mealDirty}
             onClose={() => {
               if (picker) setPicker(false);
-              else if (meal && (meal.notes ?? "") !== (kitchen.data.meals.find((item) => item.id === meal.id)?.notes ?? "")) {
+              else if (mealDirty) {
                 Alert.alert(t("kitchen.unsaved"), t("kitchen.unsavedBody"), [
                   { text: t("common.cancel"), style: "cancel" },
                   { text: t("kitchen.discard"), style: "destructive", onPress: () => setMeal(null) },
@@ -1181,16 +1210,21 @@ function KitchenContent({ navigation, route }: Props) {
           >
             {meal && !picker && <KitchenMealEditor key={meal.id} meal={meal} onChange={setMeal} recipes={recipes}
               servings={servings} onServings={setServings} ingredients={freeIngredients} onIngredients={setFreeIngredients}
-              history={tab === "history"} today={today} busy={busy}
+              history={tab === "history" || isMealCompleted(meal, today)} today={today} busy={busy}
               onChooseRecipe={() => { setRecipeQuery(""); setPicker(true); }}
               onDelete={kitchen.data.meals.some((item) => item.id === meal.id) ? () => {
-                void run(async () => { await kitchen.update((data) => ({ ...data, meals: data.meals.filter((item) => item.id !== meal.id) })); setMeal(null); });
+                Alert.alert(t("kitchen.deleteMealTitle"), t("kitchen.deleteMealBody"), [
+                  { text: t("common.cancel"), style: "cancel" },
+                  { text: t("kitchen.remove"), style: "destructive", onPress: () => {
+                    void run(async () => { await kitchen.update((data) => ({ ...data, meals: data.meals.filter((item) => item.id !== meal.id) })); setMeal(null); });
+                  } },
+                ]);
               } : undefined}
               onSave={() => {
                 void run(async () => {
                   await kitchen.update((data) => ({ ...data, meals: [
                     ...data.meals.filter((item) => item.id !== meal.id),
-                    { ...meal, servings: Number(servings), ingredients: meal.kind === "simple" ? freeIngredients.split("\n").map((line) => line.trim()).filter(Boolean) : undefined },
+                    { ...meal, completed: isMealCompleted(meal, today), title: meal.title?.trim() || recipes.find((recipe) => recipe.id === meal.linkedRecipeId)?.name, servings: Number(servings), ingredients: meal.kind === "simple" ? freeIngredients.split("\n").map((line) => line.trim()).filter(Boolean) : undefined },
                   ] }));
                   setMeal(null);
                 });
@@ -1203,8 +1237,8 @@ function KitchenContent({ navigation, route }: Props) {
                   value={recipeQuery}
                   onChangeText={setRecipeQuery}
                 />
-                {!recipes.length && (
-                  <AppText muted>{t("kitchen.noResults")}</AppText>
+                {!recipes.some((recipe) => markdownToPlainText(recipe.name).toLocaleLowerCase().includes(recipeQuery.toLocaleLowerCase())) && (
+                  <AppText muted accessibilityLiveRegion="polite">{t("kitchen.noResults")}</AppText>
                 )}
                 <KitchenRecipeList
                   key={recipeQuery}
@@ -1215,22 +1249,19 @@ function KitchenContent({ navigation, route }: Props) {
                   )}
                 >
                   {(recipe) => (
-                    <PrimaryButton
-                      compact
-                      numberOfLines={0}
+                    <Pressable
                       key={recipe.id}
-                      label={`${tab === "batch" && batch.includes(recipe.id!) ? "✓ " : ""}${markdownToPlainText(recipe.name)}`}
-                      variant="secondary"
-                      disabled={
-                        tab === "batch" &&
-                        batch.length >= 5 &&
-                        !batch.includes(recipe.id!)
-                      }
+                      accessibilityRole="button"
+                      accessibilityLabel={markdownToPlainText(recipe.name)}
+                      style={({ pressed }) => ({ width: "100%", minWidth: 0, padding: 14, borderRadius: 14, borderWidth: 1, borderColor: colors.border, backgroundColor: pressed ? colors.chip : colors.backgroundElevated })}
+                      disabled={tab === "batch" && batch.length >= 5 && !batch.includes(recipe.id!)}
                       onPress={() => selectRecipe(recipe)}
-                    />
+                    >
+                      <AppText style={{ minWidth: 0, flexShrink: 1 }}>{`${tab === "batch" && batch.includes(recipe.id!) ? "✓ " : ""}${markdownToPlainText(recipe.name)}`}</AppText>
+                    </Pressable>
                   )}
                 </KitchenRecipeList>
-                {button("done", () => setPicker(false))}
+                {!meal && <PrimaryButton fillAvailableSpace numberOfLines={0} label={t("kitchen.done")} onPress={() => setPicker(false)} />}
               </View>
             )}
           </AppSheet>
@@ -1293,7 +1324,7 @@ function KitchenContent({ navigation, route }: Props) {
               <AppText muted>{t("kitchen.checkShopping")}</AppText>
               {!!inStockIndices.length && (
                 <>
-                  <PrimaryButton
+                  <PrimaryButton fillAvailableSpace numberOfLines={0}
                     compact
                     variant="secondary"
                     label={t("kitchen.skipStocked")}
@@ -1345,7 +1376,7 @@ function KitchenContent({ navigation, route }: Props) {
               {previewWeek && shopping.mode.kind === "local" && (
                 <>
                   <AppText muted>{t("kitchen.refreshWeekHelp")}</AppText>
-                  <PrimaryButton
+                  <PrimaryButton fillAvailableSpace numberOfLines={0}
                     label={t("kitchen.refreshWeekShopping")}
                     disabled={busy || shopping.loading || shopping.switching}
                     onPress={() => {
@@ -1365,7 +1396,7 @@ function KitchenContent({ navigation, route }: Props) {
                 </>
               )}
               {(!previewWeek || shopping.mode.kind !== "local") && (
-                <PrimaryButton
+                <PrimaryButton fillAvailableSpace numberOfLines={0}
                   label={t("kitchen.addToShopping")}
                   disabled={
                     busy ||
@@ -1424,6 +1455,9 @@ const styles = StyleSheet.create({
   stockAction: { flex: 1, minWidth: 0, minHeight: 56, paddingVertical: 12, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   stockActionLabel: { flexShrink: 1, fontSize: 16 },
   stockActionDivider: { width: StyleSheet.hairlineWidth, height: 24 },
+  reminderCompact: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 12, paddingVertical: 8, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14 },
+  undoStock: { flexDirection: "row", alignItems: "center", gap: 12, paddingLeft: 12, paddingRight: 4, borderRadius: 12 },
+  undoAction: { minHeight: 44, justifyContent: "center", paddingHorizontal: 12 },
   reminderSetting: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 44 },
   toolRow: {
     flexDirection: "row",

@@ -24,7 +24,7 @@ vi.mock("react-native", () => ({
 }));
 vi.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ left: 0, right: 0, bottom: 0, top: 0 }) }));
 vi.mock("react-i18next", () => ({
-  useTranslation: () => ({ t: (key: string) => key, i18n: { language: "fr" } }),
+  useTranslation: () => ({ t: (key: string, options?: { slot?: string }) => options?.slot ? `${key} · ${options.slot}` : key, i18n: { language: "fr" } }),
 }));
 vi.mock("lucide-react-native", () => ({ Archive: "Archive", ArrowRight: "ArrowRight", Check: "Check", Pencil: "Pencil", Plus: "Plus", ChevronDown: "ChevronDown" }));
 vi.mock("../components/IconButton", () => ({ IconButton: "Button" }));
@@ -82,31 +82,39 @@ describe("daily kitchen workflows", () => {
     mocks.width = 390;
     await act(async () => screen.update(React.createElement(KitchenDailyScreen, actions)));
     expect(slots().props.style).toContainEqual({ flexDirection: "column" });
-    await act(async () => buttons("kitchen.addMeal · kitchen.dinner")[0].props.onPress());
+    await act(async () => buttons("kitchen.planSlot · kitchen.dinner")[0].props.onPress());
     expect(actions.onAdd).toHaveBeenCalledExactlyOnceWith("dinner", "simple");
+  });
+  it("keeps meal actions available when folding and removes the reserves shortcut from Planning", async () => {
+    await render();
+    for (const [width, direction] of [[320, "column"], [890, "row"], [390, "column"]] as const) {
+      mocks.width = width;
+      await act(async () => screen.update(React.createElement(KitchenDailyScreen, actions)));
+      expect(screen.root.findByProps({ testID: "daily-meal-actions" }).props.style)
+        .toContainEqual({ flexDirection: direction });
+      for (const label of ["kitchen.decideTonight"]) {
+        expect(buttons(label)[0].props.fillAvailableSpace).toBe(true);
+        expect(buttons(label)[0].props.numberOfLines).toBe(0);
+      }
+      expect(screen.root.findAll((node) => node.props.accessibilityLabel === "kitchen.reserveAction"))
+        .toHaveLength(0);
+    }
+    await act(async () => buttons("kitchen.decideTonight")[0].props.onPress());
+    expect(actions.onIdeas).toHaveBeenCalledExactlyOnceWith();
+    expect(buttons("kitchen.simple")).toHaveLength(0);
   });
   it("lets a new user note lunch without needing any saved recipe", async () => {
     await render();
-    await act(async () => buttons("kitchen.addMeal · kitchen.lunch")[0].props.onPress());
+    await act(async () => buttons("kitchen.planSlot · kitchen.lunch")[0].props.onPress());
     expect(actions.onAdd).toHaveBeenCalledWith("lunch", "simple");
     expect(mocks.update).not.toHaveBeenCalled();
     expect(buttons("kitchen.chooseMeal")).toHaveLength(0);
   });
-  it("previews a meal idea with editable shopping lines before saving anything", async () => {
+  it("keeps the daily page focused on planned meals without the generic meal ideas section", async () => {
     await render();
-    const disclosure = screen.root.findAll(
-      (node) => String(node.type) === "Pressable" && node.props.accessibilityState?.expanded === false,
-    ).find((node) => node.findAll((child) => String(child.type) === "Text" && child.props.children === "kitchen.withoutRecipe").length > 0)!;
-    await act(async () => disclosure.props.onPress());
-    await act(async () => buttons("kitchen.chooseMeal")[0].props.onPress());
-    expect(actions.onEdit).toHaveBeenCalledWith(
-      expect.objectContaining({
-        kind: "simple",
-        date: localDate(),
-        ingredients: ["kitchen.basic_eggs", "kitchen.basic_cheese"],
-      }),
-    );
-    expect(mocks.update).not.toHaveBeenCalled();
+    expect(JSON.stringify(screen.toJSON())).not.toContain("kitchen.withoutRecipe");
+    expect(buttons("kitchen.chooseMeal")).toHaveLength(0);
+    expect(buttons("kitchen.decideTonight")).toHaveLength(1);
   });
   it("uses urgent food as the search input and offers undo after consuming it", async () => {
     const item = {

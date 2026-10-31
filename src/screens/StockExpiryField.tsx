@@ -22,7 +22,7 @@ export function StockExpiryField({ value, onChange, label, allowClear = true }: 
   if (!ui && !androidPicker) return <TextField label={label ?? t("kitchen.expiry")} value={value} onChangeText={onChange} placeholder={localDate()} keyboardType="numbers-and-punctuation" autoCorrect={false} autoCapitalize="none" />;
   const dateControl = (
       <View style={styles.row}>
-        <PrimaryButton compact variant="secondary" icon={CalendarDays} style={styles.dateButton}
+        <PrimaryButton fillAvailableSpace numberOfLines={0} variant="secondary" icon={CalendarDays} style={styles.dateButton}
           label={value && validDate(value) ? `${label ?? t("kitchen.expiryTitle")} · ${new Date(`${value}T12:00:00`).toLocaleDateString(i18n.language)}` : (label ?? t("kitchen.addExpiry"))}
           onPress={() => { setSelection(value && validDate(value) ? new Date(`${value}T12:00:00`) : new Date()); setOpen(!open); }} />
         {allowClear && !!value && <IconButton icon={X} label={t("kitchen.remove")} onPress={() => { onChange(""); setOpen(false); }} />}
@@ -49,10 +49,10 @@ export function StockExpiryField({ value, onChange, label, allowClear = true }: 
           <Host colorScheme={isDark ? "dark" : "light"} style={styles.calendar} ignoreSafeArea="all">
             <DatePicker selection={selection} onDateChange={setSelection} displayedComponents={["date"]} modifiers={[datePickerStyle("graphical"), environment("locale", i18n.language)]} />
           </Host>
-          <PrimaryButton compact label={t("kitchen.done")} onPress={() => { onChange(localDate(selection)); setOpen(false); }} />
+          <PrimaryButton fillAvailableSpace numberOfLines={0} label={t("kitchen.done")} onPress={() => { onChange(localDate(selection)); setOpen(false); }} />
         </>
       )}
     </View>
   );
 }
-const styles = StyleSheet.create({ content: { gap: 8 }, row: { flexDirection: "row", alignItems: "center", gap: 8 }, dateButton: { flex: 1 }, calendar: { height: 360, width: "100%" } });
+const styles = StyleSheet.create({ content: { gap: 8 }, row: { flexDirection: "row", alignItems: "center", gap: 8 }, dateButton: { flex: 1, minWidth: 0 }, calendar: { height: 360, width: "100%" } });

@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
   native: [] as { id: string; title: string; completed: boolean }[], nextId: 10,
   fetch: vi.fn(), create: vi.fn(), update: vi.fn(), remove: vi.fn(), firebasePush: vi.fn()
 }));
-vi.mock("react-native", () => ({ Platform: { OS: "ios" }, Alert: { alert: vi.fn() }, Linking: { openSettings: vi.fn() } }));
+vi.mock("react-native", () => ({ AppState: { addEventListener: () => ({ remove: vi.fn() }) }, Platform: { OS: "ios" }, Alert: { alert: vi.fn() }, Linking: { openSettings: vi.fn() } }));
 vi.mock("expo-calendar/legacy", () => ({ getRemindersAsync: mocks.fetch, createReminderAsync: mocks.create, updateReminderAsync: mocks.update, deleteReminderAsync: mocks.remove }));
 vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock("../i18n", () => ({ default: { t: (key: string) => key } }));
@@ -20,7 +20,7 @@ vi.mock("../features/auth/AuthProvider", () => ({ useAuth: () => ({ credentials,
 vi.mock("../features/preferences/PreferencesProvider", () => ({ usePreferences: () => ({ enableShoppingNotifications: false }) }));
 vi.mock("../features/shopping/shoppingStore", () => ({ loadShoppingListItems: async () => mocks.local, saveShoppingListItems: async (items: ShoppingListItem[]) => { mocks.local = items; }, createShoppingListItemId: () => `new-${mocks.nextId++}` }));
 vi.mock("../features/shopping/sharedListClient", () => ({ createSharedList: async () => "AVQC42", joinSharedListWithItems: vi.fn(), schedulePush: mocks.firebasePush, subscribeToSharedList: () => () => {}, cancelPush: vi.fn(), leaveSharedList: async () => {}, flushSharedListPush: async () => {}, getDeviceId: async () => "device" }));
-vi.mock("../features/timers/timerNotifications", () => ({ scheduleTimerNotification: vi.fn() }));
+vi.mock("../features/shopping/shoppingPushNotifications", () => ({ useShoppingPushNotifications: vi.fn() }));
 const credentials = { serverUrl: "https://cloud.example", username: "alice", appPassword: "test-only" };
 const house = { id: 1, name: "Home", isAdmin: true }; const list = { id: 2, houseId: 1, name: "Groceries" };
 let screen: ReactTestRenderer;

@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   schedule: vi.fn(),
   cancel: vi.fn(async () => {}),
   vibrate: vi.fn(),
+  appState: { currentState: "active", addEventListener: vi.fn(() => ({ remove: vi.fn() })) },
   stop: null as
     | null
     | ((event: {
@@ -20,7 +21,7 @@ const mocks = vi.hoisted(() => ({
         notificationId: string;
       }) => void),
 }));
-vi.mock("react-native", () => ({ Vibration: { vibrate: mocks.vibrate } }));
+vi.mock("react-native", () => ({ Vibration: { vibrate: mocks.vibrate }, AppState: mocks.appState }));
 vi.mock("../features/timers/timerNotifications", () => ({
   scheduleTimerNotification: mocks.schedule,
   cancelTimerNotification: mocks.cancel,
@@ -68,6 +69,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-10-14T12:00:00Z"));
   vi.clearAllMocks();
+  mocks.appState.currentState = "active";
   mocks.schedule.mockResolvedValue({
     state: "ready",
     notificationId: "alarm-1",
@@ -80,6 +82,17 @@ afterEach(async () => {
 });
 
 describe("recipe timers", () => {
+  it("does not vibrate late when a suspended app wakes after the deadline", async () => {
+    await render();
+    await act(async () => { await timers.toggleTimer("cook", options); });
+    // Simulate JS suspension: time advances without processing interval callbacks.
+    vi.setSystemTime(new Date("2026-10-14T12:05:00Z"));
+    await act(async () => { vi.advanceTimersByTime(1000); });
+    expect(timers.timers.cook.running).toBe(false);
+    expect(timers.timers.cook.remainingSeconds).toBe(0);
+    expect(mocks.vibrate).not.toHaveBeenCalled();
+  });
+
   it("counts down and finishes once at the deadline", async () => {
     await render();
     await act(async () => {

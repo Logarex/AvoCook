@@ -27,7 +27,8 @@ export function KitchenHistorySection({ entries, onAdd, onEdit, onRepeat, onReci
   const [limit, setLimit] = useState(20);
   const results = useMemo(() => filterKitchenHistory(entries, query, date, slot), [entries, query, date, slot]);
   return <>
-    <PrimaryButton label={t("kitchen.recordMeal")} onPress={onAdd} />
+    <AppText muted>{t("kitchen.historyHelp")}</AppText>
+    <PrimaryButton fillAvailableSpace numberOfLines={0} label={t("kitchen.recordMeal")} onPress={onAdd} />
     {!!entries.length && <View style={{ gap: 12 }}>
       <TextField hideLabel label={t("kitchen.searchHistory")} placeholder={t("kitchen.historySearchExample")} value={query} onChangeText={(value) => { setQuery(value); setLimit(20); }} />
       <DisclosureSection title={t("kitchen.showFilters")}>

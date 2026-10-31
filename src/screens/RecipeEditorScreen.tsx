@@ -303,32 +303,31 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   }
 
   async function handleChoosePhoto() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      mediaTypes: ["images"],
-      quality: 0.86,
-    });
-
-    if (result.canceled || !result.assets[0]?.uri) {
-      return;
-    }
-
-    const localUri = result.assets[0].uri;
     setUploadingPhoto(true);
     setError(null);
     try {
+      // The system picker grants access to the selected photo without requiring
+      // broad library access (which may be denied or blocked on Android).
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        mediaTypes: ["images"],
+        quality: 0.86,
+      });
+
+      if (result.canceled || !result.assets[0]?.uri) {
+        return;
+      }
+
+      // Picker files live in a temporary cache. Keep a durable copy for offline
+      // display, including when the recipe image is uploaded to Nextcloud.
+      const localUri = await persistRecipeImage(result.assets[0].uri);
       if (client) {
         const remotePath = await client.uploadRecipeImage(localUri);
         setPhotoUrl(remotePath);
         setPhotoLocalUri(localUri);
       } else {
-        setPhotoUrl(await persistRecipeImage(localUri));
+        setPhotoUrl(localUri);
         setPhotoLocalUri("");
       }
     } catch (caught) {
@@ -405,7 +404,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
               setPhotoLocalUri("");
             }}
             style={styles.rowItem}
-            variant="ghost"
+            variant="danger-secondary"
           />
         ) : null}
       </View>

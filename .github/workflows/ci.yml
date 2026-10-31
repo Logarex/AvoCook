@@ -20,9 +20,11 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm ci --prefix notification-relay
       - run: npm run typecheck
       - run: npm run lint -- --max-warnings=0
       - run: npm test
+      - run: npm test --prefix notification-relay
       - run: npm run store:check
       - name: Prepare website assets
         run: node tools/scripts/build-site.mjs

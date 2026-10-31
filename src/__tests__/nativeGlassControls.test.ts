@@ -62,7 +62,7 @@ vi.mock("lucide-react-native", () => ({
   BookOpen: "Book",
   ArrowLeft: "Back",
   CalendarDays: "Calendar",
-  CookingPot: "CookingPot",
+  Refrigerator: "CookingPot",
   Globe: "Globe",
   ShoppingCart: "Cart",
 }));
@@ -203,6 +203,24 @@ describe("native Liquid Glass controls", () => {
       type: "accessibilityLabel",
       value: "Save",
     });
+    await act(async () => button.props.onPress());
+    expect(onPress).toHaveBeenCalledOnce();
+  });
+
+  it("keeps the cooking action flexible and its label visible beside fixed-width icons", async () => {
+    const onPress = vi.fn();
+    await render(React.createElement(PrimaryButton, {
+      label: "Mode cuisine",
+      icon: BookOpen,
+      fillAvailableSpace: true,
+      style: { flex: 1, minWidth: 0 },
+      onPress,
+    }));
+    expect(nodes("Host")).toHaveLength(0);
+    expect(nodes("Glass")).toHaveLength(1);
+    expect(nodes("Text")[0].props.children).toBe("Mode cuisine");
+    const button = nodes("Pressable")[0];
+    expect(button.props.style({ pressed: false })).toContainEqual({ flex: 1, minWidth: 0 });
     await act(async () => button.props.onPress());
     expect(onPress).toHaveBeenCalledOnce();
   });

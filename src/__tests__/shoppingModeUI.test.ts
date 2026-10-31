@@ -6,6 +6,7 @@ import en from "../i18n/locales/en";
 import { ShoppingListScreen } from "../screens/ShoppingListScreen";
 import { ShoppingModeModal } from "../screens/ShoppingModeModal";
 const mocks = vi.hoisted(() => ({
+  dismissKeyboard: vi.fn(),
   credentials: {
     serverUrl: "https://cloud.example",
     username: "alice",
@@ -34,6 +35,7 @@ vi.mock("react-native", async () => {
     Pressable: "Pressable",
     Modal: "Modal",
     KeyboardAvoidingView: "KeyboardView",
+    Keyboard: { dismiss: mocks.dismissKeyboard },
     ScrollView: "ScrollView",
     Switch: "Switch",
     TextInput: "TextInput",
@@ -339,6 +341,66 @@ describe("one shopping screen and one configuration sheet", () => {
       host(en.translation.shoppingList.sharedCreateBtn).props.onPress();
     });
     expect(mocks.createShare).toHaveBeenCalledOnce();
+  });
+  it("joins with a pasted code and a single press, while the keyboard is open", async () => {
+    const joinList = vi.fn(async () => true);
+    mocks.state.sharedList = { ...(mocks.state.sharedList as object), joinList };
+    await sheet();
+    await act(async () => { radio("AvoCook sharing").props.onPress(); });
+    const input = () => host(en.translation.shoppingList.sharedCodeLabel);
+    const join = () => host(en.translation.shoppingList.sharedJoinBtn);
+    expect(join().props.disabled).toBe(true);
+    await act(async () => { input().props.onChangeText(" ab c234 "); });
+    expect(input().props.value).toBe("ABC234");
+    expect(join().props.disabled).toBe(false);
+    await act(async () => { join().props.onPress(); });
+    expect(joinList).toHaveBeenCalledExactlyOnceWith("ABC234");
+    expect(mocks.dismissKeyboard).toHaveBeenCalledOnce();
+    expect(input().props.value).toBe("");
+  });
+  it("accepts keyboard submission without starting a second concurrent join", async () => {
+    let finish!: (success: boolean) => void;
+    const joinList = vi.fn(() => new Promise<boolean>((resolve) => { finish = resolve; }));
+    mocks.state.sharedList = { ...(mocks.state.sharedList as object), joinList };
+    await sheet();
+    await act(async () => { radio("AvoCook sharing").props.onPress(); });
+    const input = () => host(en.translation.shoppingList.sharedCodeLabel);
+    await act(async () => { input().props.onChangeText("ABC234"); });
+    await act(async () => {
+      input().props.onSubmitEditing();
+      host(en.translation.shoppingList.sharedJoinBtn).props.onPress();
+    });
+    expect(joinList).toHaveBeenCalledOnce();
+    expect(input().props.editable).toBe(false);
+    await act(async () => { finish(true); });
+    expect(input().props.editable).toBe(true);
+  });
+  it("keeps a rejected code editable and shows the failure so joining can be retried", async () => {
+    const joinList = vi.fn(async () => false);
+    mocks.state.sharedList = { ...(mocks.state.sharedList as object), joinList };
+    await sheet();
+    await act(async () => { radio("AvoCook sharing").props.onPress(); });
+    const input = () => host(en.translation.shoppingList.sharedCodeLabel);
+    await act(async () => { input().props.onChangeText("ABC234"); });
+    await act(async () => { input().props.onSubmitEditing(); });
+    expect(input().props.value).toBe("ABC234");
+    expect(input().props.editable).toBe(true);
+    expect(screen.root.findAll((node) => node.props.accessibilityRole === "alert")
+      .some((node) => node.props.children === en.translation.shoppingList.sharedNotFoundError)).toBe(true);
+    await act(async () => { input().props.onChangeText("DEF567"); });
+    expect(host(en.translation.shoppingList.sharedJoinBtn).props.disabled).toBe(false);
+    expect(screen.root.findAll((node) => node.props.accessibilityRole === "alert")).toHaveLength(0);
+  });
+  it("does not submit an incomplete invitation with the keyboard", async () => {
+    const joinList = vi.fn();
+    mocks.state.sharedList = { ...(mocks.state.sharedList as object), joinList };
+    await sheet();
+    await act(async () => { radio("AvoCook sharing").props.onPress(); });
+    const input = () => host(en.translation.shoppingList.sharedCodeLabel);
+    await act(async () => { input().props.onChangeText("ABC"); });
+    await act(async () => { input().props.onSubmitEditing(); });
+    expect(joinList).not.toHaveBeenCalled();
+    expect(host(en.translation.shoppingList.sharedJoinBtn).props.disabled).toBe(true);
   });
   it("keeps Pantry choices in that modal; hardware Back returns to modes, then closes", async () => {
     const close = await sheet();

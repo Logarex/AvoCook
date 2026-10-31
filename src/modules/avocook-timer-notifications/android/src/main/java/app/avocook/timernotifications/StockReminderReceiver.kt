@@ -33,7 +33,20 @@ class StockReminderReceiver : BroadcastReceiver() {
       }, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
     )
     @Synchronized fun replace(context: Context, json: String) {
-      val entries = JSONArray(json)
+      val requested = JSONArray(json)
+      val preferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+      val old = JSONArray(preferences.getString("entries", "[]"))
+      val entries = JSONArray()
+      for (index in 0 until requested.length()) {
+        val entry = requested.getJSONObject(index)
+        val id = entry.getString("id")
+        if (preferences.getBoolean("delivered:$id", false)) continue
+        val previous = (0 until old.length()).map { old.getJSONObject(it) }.find { it.getString("id") == id }
+        if (previous != null && parseDate(previous.getString("date")) < parseDate(entry.getString("date"))) {
+          entry.put("date", previous.getString("date"))
+        }
+        entries.put(entry)
+      }
       require(entries.length() <= 20)
       if (entries.length() > 0) {
         require(Build.VERSION.SDK_INT < 33 || context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
@@ -43,13 +56,11 @@ class StockReminderReceiver : BroadcastReceiver() {
         val entry = entries.getJSONObject(index)
         require(entry.getString("id").isNotEmpty())
         entry.getString("title"); entry.getString("body")
-        require(parseDate(entry.getString("date")) > System.currentTimeMillis())
+        parseDate(entry.getString("date"))
       }
-      val preferences = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
-      val old = JSONArray(preferences.getString("entries", "[]"))
       val alarms = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
       for (index in 0 until old.length()) alarms.cancel(pending(context, old.getJSONObject(index)))
-      check(preferences.edit().putString("entries", json).commit())
+      check(preferences.edit().putString("entries", entries.toString()).commit())
       schedule(context, entries)
     }
     private fun schedule(context: Context, entries: JSONArray) {
@@ -57,7 +68,13 @@ class StockReminderReceiver : BroadcastReceiver() {
       for (index in 0 until entries.length()) {
         val entry = entries.getJSONObject(index)
         val time = parseDate(entry.getString("date"))
-        if (time > System.currentTimeMillis()) alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, time, pending(context, entry))
+        val triggerAt = time.coerceAtLeast(System.currentTimeMillis() + 1000)
+        if (Build.VERSION.SDK_INT < 31 || alarms.canScheduleExactAlarms()) {
+          try { alarms.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending(context, entry)) }
+          catch (_: SecurityException) { alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending(context, entry)) }
+        } else {
+          alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pending(context, entry))
+        }
       }
     }
   }
@@ -71,15 +88,16 @@ class StockReminderReceiver : BroadcastReceiver() {
     val entry = (0 until entries.length()).map { entries.getJSONObject(it) }.find { it.getString("id") == id } ?: return
     val remaining = JSONArray()
     for (index in 0 until entries.length()) if (entries.getJSONObject(index).getString("id") != id) remaining.put(entries.getJSONObject(index))
-    preferences.edit().putString("entries", remaining.toString()).apply()
     if (Build.VERSION.SDK_INT >= 33 && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
     val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     if (Build.VERSION.SDK_INT >= 26) manager.createNotificationChannel(NotificationChannel(CHANNEL, "AvoCook", NotificationManager.IMPORTANCE_DEFAULT))
+    if (!manager.areNotificationsEnabled() || (Build.VERSION.SDK_INT >= 26 && manager.getNotificationChannel(CHANNEL)?.importance == NotificationManager.IMPORTANCE_NONE)) return
     val launch = context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply { putExtra("avocook.stockReminder", true) }
     val contentIntent = launch?.let { PendingIntent.getActivity(context, 0, it, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE) }
     val builder = if (Build.VERSION.SDK_INT >= 26) Notification.Builder(context, CHANNEL) else Notification.Builder(context)
     manager.notify("stock:$id", 0, builder.setSmallIcon(R.drawable.avocook_timer_notification)
       .setContentTitle(entry.getString("title")).setContentText(entry.getString("body"))
       .setStyle(Notification.BigTextStyle().bigText(entry.getString("body"))).setContentIntent(contentIntent).setAutoCancel(true).build())
+    preferences.edit().putString("entries", remaining.toString()).putBoolean("delivered:$id", true).apply()
   }
 }

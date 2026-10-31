@@ -91,7 +91,7 @@ npx eas build --platform all --profile production
 ### iOS
 
 - The app is configured for iPhone and iPad (`supportsTablet: true`).
-- It does not use remote push notifications, location services, or Bluetooth.
+- Optional shared-shopping-list notifications use remote push through Expo and the free relay described in [NOTIFICATIONS.md](NOTIFICATIONS.md). Location services and Bluetooth are not used.
 - Local network permission is only used to connect to a Nextcloud server on the same network, or for the Expo client during development.
 - HTTP support uses `NSAllowsArbitraryLoads` because Nextcloud addresses are chosen by the user, including custom hostnames. Explain this during App Store review: AvoCook must connect to user-managed Nextcloud servers that may only support HTTP; HTTPS remains the default and the app warns about unencrypted connections.
 

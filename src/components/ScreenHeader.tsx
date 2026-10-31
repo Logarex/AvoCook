@@ -1,5 +1,5 @@
 import { ArrowLeft } from "lucide-react-native";
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { spacing } from "../theme/colors";
@@ -16,12 +16,13 @@ export function ScreenHeader({
   actions?: React.ReactNode;
 }) {
   const { t } = useTranslation();
+  const [actionWidth, setActionWidth] = useState(44);
   return (
     <View style={styles.header}>
       {onBack ? (
         <IconButton icon={ArrowLeft} label={t("common.back")} onPress={onBack} />
       ) : (
-        <View style={styles.backPlaceholder} />
+        <View style={[styles.backPlaceholder, { width: actionWidth }]} />
       )}
       {title ? (
         <AppText
@@ -35,7 +36,7 @@ export function ScreenHeader({
       ) : (
         <View style={styles.title} />
       )}
-      <View style={styles.actions}>{actions}</View>
+      <View style={styles.actions} onLayout={(event) => setActionWidth(Math.max(44, event.nativeEvent.layout.width))}>{actions}</View>
     </View>
   );
 }

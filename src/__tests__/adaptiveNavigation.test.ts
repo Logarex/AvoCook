@@ -20,7 +20,7 @@ vi.mock("react-native", () => ({
 }));
 vi.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => mocks.insets }));
 vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
-vi.mock("lucide-react-native", () => ({ BookOpen: "Book", CookingPot: "Pot", CalendarDays: "Calendar", Globe: "Globe", ShoppingCart: "Cart" }));
+vi.mock("lucide-react-native", () => ({ BookOpen: "Book", Refrigerator: "Pot", CalendarDays: "Calendar", Globe: "Globe", ShoppingCart: "Cart" }));
 vi.mock("../components/AppText", () => ({ AppText: "Text" }));
 vi.mock("../components/GlassSurface", () => ({ GlassSurface: "Glass" }));
 vi.mock("../components/NativeGlassControls", () => ({ NativeTabBar: "NativeTabs", useNativeGlassControls: () => mocks.native ? {} : null }));

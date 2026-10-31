@@ -148,12 +148,14 @@
           "recordAudioAndroid": false,
           "barcodeScannerEnabled": true
         }
-      ]
+      ],
+      "expo-notifications"
     ],
     "extra": {
       "eas": {
         "projectId": "71346d2a-c2f5-4f0e-a01e-544bfc1f66ca"
-      }
+      },
+      "shoppingPushRelayUrl": "https://avocook-notifications.77dj74wmzc.workers.dev"
     },
     "owner": "logarex"
   }

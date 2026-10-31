@@ -325,8 +325,9 @@ function SeasonalForm({ openRecipe }: { openRecipe: (id: string) => void }) {
           >
             {(recipe) => (
               <PrimaryButton
-                compact
+                fillAvailableSpace
                 key={recipe.id}
+                style={styles.recipeButton}
                 numberOfLines={0}
                 variant="secondary"
                 label={`${markdownToPlainText(recipe.name)} · ${matches
@@ -394,6 +395,7 @@ function SeasonalForm({ openRecipe }: { openRecipe: (id: string) => void }) {
   );
 }
 const styles = StyleSheet.create({
+  recipeButton: { alignSelf: "stretch", minWidth: 0, maxWidth: "100%" },
   panel: { gap: 8 },
   filters: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   food: {

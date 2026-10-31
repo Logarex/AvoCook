@@ -1,6 +1,8 @@
 /* eslint-disable import/first */
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+const printImages = vi.hoisted(() => ({ existing: new Set<string>(), base64: vi.fn(), download: vi.fn(), remove: vi.fn() }));
+
 const { copyFile } = vi.hoisted(() => ({
   copyFile: vi.fn(async () => {})
 }));
@@ -20,17 +22,17 @@ vi.mock("expo-file-system", () => ({
   },
   File: class {
     uri: string;
-    exists = false;
+    get exists() { return printImages.existing.has(this.uri); }
     constructor(...parts: { uri?: string; toString?: () => string }[]) {
       this.uri = parts
         .map((part) => (typeof part === "string" ? part : part.uri ?? String(part)))
         .join("/");
     }
-    static downloadFileAsync = vi.fn();
-    base64 = vi.fn(async () => "");
+    static downloadFileAsync = printImages.download;
+    base64 = printImages.base64;
     copy = copyFile;
     create = vi.fn();
-    delete = vi.fn();
+    delete = printImages.remove;
     text = vi.fn(async () => "");
     write = vi.fn();
   },
@@ -52,6 +54,7 @@ vi.mock("expo-sharing", () => ({
 
 import {
   createRecipePrintHtml,
+  getRecipePrintImageDataUri,
   createRecipeShareBackup,
   shareRecipePdf,
   type RecipePrintLabels
@@ -208,5 +211,45 @@ describe("recipe print and share content", () => {
         timers: [{ id: "timer-1", label: "Repos", minutes: 5 }]
       }
     });
+  });
+});
+
+
+describe("recipe book image embedding", () => {
+  beforeEach(() => {
+    printImages.existing.clear();
+    printImages.base64.mockReset().mockResolvedValue("cGhvdG8=");
+    printImages.download.mockReset();
+    printImages.remove.mockClear();
+  });
+  it("embeds an offline cached photo without downloading or deleting the original", async () => {
+    const uri = "file:///documents/cached.png";
+    printImages.existing.add(uri);
+    const recipe = normalizeRecipe({ name: "Soup", localMeta: { cachedImage: uri } });
+    expect(await getRecipePrintImageDataUri(recipe, null)).toBe("data:image/png;base64,cGhvdG8=");
+    expect(printImages.download).not.toHaveBeenCalled();
+    expect(printImages.remove).not.toHaveBeenCalled();
+  });
+  it("downloads Nextcloud photos with the account's headers, embeds bytes and deletes the temporary file", async () => {
+    const client = {
+      getRecipeImageUrl: vi.fn(() => "https://cloud.example/recipe/42/image"),
+      getImageHeaders: vi.fn(() => ({ Authorization: "Basic test" })),
+    };
+    printImages.download.mockResolvedValue({ uri: "file:///cache/download.jpg" });
+    const recipe = normalizeRecipe({ id: "42", name: "Soup" });
+    expect(await getRecipePrintImageDataUri(recipe, client as never)).toBe("data:image/jpeg;base64,cGhvdG8=");
+    expect(printImages.download).toHaveBeenCalledWith("https://cloud.example/recipe/42/image", expect.anything(), { headers: { Authorization: "Basic test" }, idempotent: true });
+    expect(printImages.remove).toHaveBeenCalledOnce();
+  });
+  it("omits unreadable photos and still cleans up temporary downloads", async () => {
+    printImages.download.mockResolvedValue({ uri: "file:///cache/download.jpg" });
+    printImages.base64.mockRejectedValue(new Error("Unreadable photo"));
+    expect(await getRecipePrintImageDataUri(normalizeRecipe({ name: "Soup", image: "https://images.example/soup.jpg" }), null)).toBe("");
+    expect(printImages.remove).toHaveBeenCalledOnce();
+  });
+  it("respects intentionally removed photos", async () => {
+    expect(await getRecipePrintImageDataUri(normalizeRecipe({ name: "Soup", localMeta: { imageRemoved: true, cachedImage: "file:///old.jpg" } }), null)).toBe("");
+    expect(printImages.base64).not.toHaveBeenCalled();
+    expect(printImages.download).not.toHaveBeenCalled();
   });
 });

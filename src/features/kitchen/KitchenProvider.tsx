@@ -1,3 +1,4 @@
+import { AppState } from "react-native";
 import { useTranslation } from "react-i18next";
 import { replaceStockReminders } from "./kitchenNative";
 import { stockReminderPlan } from "./stockReminders";
@@ -8,6 +9,7 @@ import React, {
   useEffect,
   useMemo,
   useSyncExternalStore,
+  useState,
 } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { createKitchenStore } from "./kitchenStore";
@@ -37,6 +39,13 @@ export function KitchenProvider({ children }: { children: React.ReactNode }) {
 function StockReminderSync() {
   const { data, ready, account, setReminderError } = useKitchen();
   const { t } = useTranslation();
+  const [resume, setResume] = useState(0);
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") setResume((value) => value + 1);
+    });
+    return () => subscription.remove();
+  }, []);
   useEffect(() => {
     if (account === "loading" || (!ready && account !== "signed-out")) return;
     const plan =
@@ -62,7 +71,7 @@ function StockReminderSync() {
     return () => {
       current = false;
     };
-  }, [data.stock, data.remindersEnabled, ready, account, t, setReminderError]);
+  }, [data.stock, data.remindersEnabled, ready, account, t, setReminderError, resume]);
   return null;
 }
 export function useKitchen() {

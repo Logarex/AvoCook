@@ -142,7 +142,7 @@ describe("seasonal catalog and menus", () => {
 });
 
 describe("local reminders and voice commands", () => {
-  it("groups reminders two calendar days ahead at 9am, excluding past reminder dates", () => {
+  it("groups J-2 reminders and catches up near-expiry products without notifying expired products", () => {
     const plan = stockReminderPlan(
       [
         stock("milk", "2026-10-22"),
@@ -155,13 +155,24 @@ describe("local reminders and voice commands", () => {
       "Title",
       (names) => names,
     );
-    expect(plan).toHaveLength(1);
-    expect(plan[0]).toMatchObject({
+    expect(plan).toHaveLength(2);
+    expect(plan[0]).toMatchObject({ id: "2026-10-17", body: "near" });
+    expect(new Date(plan[0].date).getHours()).toBe(9);
+    expect(new Date(plan[0].date).getDate()).toBe(19);
+    expect(plan[1]).toMatchObject({
       id: "2026-10-20",
       title: "Title",
       body: "milk, eggs",
     });
     expect(new Date(plan[0].date).getHours()).toBe(9);
+  });
+  it("catches up a product expiring today and keeps its reminder identity stable", () => {
+    const now = new Date("2026-10-18T23:59:30");
+    const first = stockReminderPlan([stock("milk", "2026-10-18")], now, "Title", (names) => names);
+    const later = stockReminderPlan([stock("milk", "2026-10-18")], new Date("2026-10-18T23:59:45"), "Title", (names) => names);
+    expect(new Date(first[0].date).getTime() - now.getTime()).toBe(60000);
+    expect(first[0].id).toBe("2026-10-16");
+    expect(later[0].id).toBe(first[0].id);
   });
   it("limits scheduled reminders without touching timer IDs", () => {
     const items = Array.from({ length: 28 }, (_, index) =>
@@ -262,7 +273,7 @@ describe("private backups, books and community challenges", () => {
 });
 
 describe("history and bounded substitution advice", () => {
-  it("includes simple meals, leftovers and outings only after they are marked as eaten", async () => {
+  it("includes meals from today only after they are marked as eaten", async () => {
     const { kitchenHistory } = await import("../features/kitchen/history");
     const data = {
       ...emptyKitchen(),
@@ -272,7 +283,7 @@ describe("history and bounded substitution advice", () => {
         meal("leftovers", { title: "Soup", completed: false }),
       ],
     };
-    expect(kitchenHistory(data, []).map((entry) => entry.meal?.title)).toEqual([
+    expect(kitchenHistory(data, [], "2026-10-18").map((entry) => entry.meal?.title)).toEqual([
       "Quick pasta",
       "Restaurant",
     ]);

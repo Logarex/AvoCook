@@ -7,6 +7,8 @@ import {
 } from "../features/community/communityClient";
 import { cancelPush, createSharedList, fetchSharedList, leaveSharedList, schedulePush, joinSharedListWithItems, flushSharedListPush } from "../features/shopping/sharedListClient";
 
+const notification = vi.hoisted(() => vi.fn(async () => {}));
+vi.mock("../features/shopping/shoppingPushClient", () => ({ notifySharedListChanged: notification }));
 const transaction = vi.hoisted(() => ({ get: vi.fn(), set: vi.fn(), update: vi.fn(), delete: vi.fn() }));
 vi.mock("firebase/firestore", async () => ({
   Timestamp: (await vi.importActual<typeof import("firebase/firestore")>("firebase/firestore")).Timestamp,
@@ -177,6 +179,7 @@ describe("Shared shopping lists", () => {
   it("does not join a missing list or increment membership on failure", async () => {
     transaction.get.mockResolvedValue({ exists: () => false });
     await expect(joinSharedListWithItems("AAAAAA", [])).rejects.toThrow("List not found");
+    expect(notification).not.toHaveBeenCalled();
     expect(transaction.update).not.toHaveBeenCalled();
   });
   it("flushes queued edits before switching and cancels the old debounce", async () => {
@@ -186,6 +189,7 @@ describe("Shared shopping lists", () => {
     await flushSharedListPush("AAAAAA", items);
     await vi.advanceTimersByTimeAsync(1000);
     expect(firestore.updateDoc).toHaveBeenCalledOnce();
+    expect(notification).toHaveBeenCalledWith("AAAAAA");
     const sent = vi.mocked(firestore.updateDoc).mock.calls[0][1] as unknown as { items: unknown[] };
     expect(JSON.stringify(sent.items)).not.toContain("undefined");
     expect(Object.values(sent.items[0] as object).every((value) => value !== undefined)).toBe(true);

@@ -31,7 +31,7 @@ describe("everyday kitchen data integrity", () => {
     expect(repeated).toMatchObject({ linkedRecipeId: "recipe", completed: false, notes: undefined });
     expect(repeated.id).not.toBe(meal.id);
     expect(meal.notes).toContain("enfants");
-    expect(kitchenHistory({ ...emptyKitchen(), meals: [meal, repeated] }, [recipe])).toHaveLength(1);
+    expect(kitchenHistory({ ...emptyKitchen(), meals: [meal, repeated] }, [recipe], "2026-10-24")).toHaveLength(1);
     expect(() => parseKitchenData({ ...emptyKitchen(), meals: [{ ...meal, notes: 123 }] })).toThrow();
   });
   it("signals exact product duplicates across locations and dates without mutating or merging batches", () => {
@@ -53,4 +53,26 @@ describe("everyday kitchen data integrity", () => {
     expect(() => parseKitchenData({ ...data, stock: [{ ...data.stock[0], nutrients: { salt: -1 } }] })).toThrow();
     expect(() => parseKitchenData({ ...data, stock: [{ ...data.stock[0], nutrients: { arbitrary: 1 } }] })).toThrow();
   });
+});
+
+
+it("enables expiry reminders by default while preserving an explicit opt-out", () => {
+  expect(emptyKitchen().remindersEnabled).toBe(true);
+  expect(parseKitchenData({ ...emptyKitchen(), remindersEnabled: undefined }).remindersEnabled).toBe(true);
+  expect(parseKitchenData({ ...emptyKitchen(), remindersEnabled: false }).remindersEnabled).toBe(false);
+});
+
+it("automatically includes past meals at the next local day, without changing their date or duplicating journal entries", () => {
+  const data = { ...emptyKitchen(), meals: [
+    { ...meal, id: "past", date: "2026-10-23", completed: false },
+    { ...meal, id: "today", kind: "recipe" as const, recipeId: "recipe", date: "2026-10-24", completed: false },
+    { ...meal, id: "future", date: "2026-10-25", completed: false },
+  ] };
+  expect(kitchenHistory(data, [recipe], "2026-10-24").map((entry) => entry.meal?.id)).toEqual(["past"]);
+  data.journals = { recipe: { rating: 0, notes: "", changes: "", difficulty: "", cost: "", cooked: ["2026-10-24"] } };
+  const nextDay = kitchenHistory(data, [recipe], "2026-10-25");
+  expect(nextDay.map((entry) => entry.meal?.id)).toEqual(["today", "past"]);
+  expect(nextDay.every((entry) => entry.meal?.completed)).toBe(true);
+  expect(nextDay[0].meal?.date).toBe("2026-10-24");
+  expect(data.meals.every((entry) => !entry.completed)).toBe(true);
 });

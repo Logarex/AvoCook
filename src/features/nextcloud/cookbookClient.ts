@@ -463,7 +463,16 @@ export class CookbookClient {
         );
       }
 
-      if (response.headers.get("content-type")?.includes("text/html") || /^\s*<(?:!doctype html|html)\b/i.test(body)) {
+      // Nextcloud/proxies can label empty WebDAV creation/deletion responses
+      // as text/html. Those are successful writes, not redirected login pages.
+      const emptyWriteResponse =
+        ["PUT", "MKCOL", "DELETE"].includes(options.method ?? "GET") &&
+        [201, 204].includes(response.status) &&
+        !body.trim();
+      if (!emptyWriteResponse && (
+        response.headers.get("content-type")?.toLowerCase().includes("text/html") ||
+        /^\s*<(?:!doctype html|html)\b/i.test(body)
+      )) {
         throw new CookbookApiError("Nextcloud returned a web page instead of a WebDAV response", response.status);
       }
       return body;

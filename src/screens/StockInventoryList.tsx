@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { Archive, Check, ChevronDown, Pencil, Refrigerator, Snowflake, Utensils } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
@@ -86,9 +86,9 @@ export function StockInventoryList({ items, today, busy, onEdit, onUse, onIdeas,
                       {expired && <AppText muted variant="caption">{t("kitchen.datePassed")}</AppText>}
                       <StockProductScores item={item} />
                       {!readOnly && <View style={styles.actions}>
-                        {!expired && <PrimaryButton compact icon={Utensils} variant="ghost" label={t("kitchen.findUse")} onPress={() => onIdeas(item)} />}
-                        <PrimaryButton compact icon={Pencil} variant="ghost" label={t("kitchen.edit")} onPress={() => onEdit(item)} />
-                        <PrimaryButton compact icon={Check} variant="ghost" disabled={busy} label={t(expired ? "kitchen.remove" : "kitchen.usedUp")} onPress={() => onUse(item)} />
+                        <View style={styles.actionRow}>{!expired && <PrimaryButton fillAvailableSpace numberOfLines={0} style={styles.actionButton} icon={Utensils} variant="ghost" label={t("kitchen.findUse")} onPress={() => onIdeas(item)} />}
+                        <PrimaryButton fillAvailableSpace numberOfLines={0} style={styles.actionButton} icon={Pencil} variant="ghost" label={t("kitchen.edit")} onPress={() => onEdit(item)} /></View>
+                        <PrimaryButton fillAvailableSpace numberOfLines={0} icon={Check} variant="ghost" disabled={busy} label={t(expired ? "kitchen.remove" : "kitchen.usedUp")} onPress={() => Alert.alert(item.name, t("kitchen.useStockConfirm"), [{ text: t("common.cancel"), style: "cancel" }, { text: t(expired ? "kitchen.remove" : "kitchen.usedUp"), onPress: () => onUse(item) }])} />
                       </View>}
                     </View>}
                   </View>
@@ -108,5 +108,5 @@ const styles = StyleSheet.create({
   group: { gap: 10 }, groupHeading: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 4 }, flex: { flex: 1 },
   list: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
   product: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16, minHeight: 76 }, productCopy: { flex: 1, minWidth: 0, gap: 4 },
-  details: { paddingHorizontal: 12, paddingBottom: 12, gap: 8 }, actions: { flexDirection: "row", flexWrap: "wrap", gap: 4 },
+  details: { paddingHorizontal: 12, paddingBottom: 12, gap: 8 }, actions: { gap: 10 }, actionRow: { flexDirection: "row", gap: 10 }, actionButton: { flex: 1, minWidth: 0 },
 });

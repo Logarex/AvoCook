@@ -8,7 +8,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { Vibration } from "react-native";
+import { AppState, Vibration } from "react-native";
 import {
   addTimerStopListener,
   cancelTimerNotification,
@@ -261,13 +261,18 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    void getTimerNotificationState().then((status) => {
+    const refresh = () => getTimerNotificationState().then((status) => {
       if (mounted) {
         setNotificationStatus(status);
       }
     });
+    void refresh();
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state === "active") void refresh();
+    });
 
     return () => {
+      subscription.remove();
       mounted = false;
     };
   }, []);
@@ -343,7 +348,9 @@ export function TimersProvider({ children }: { children: React.ReactNode }) {
               timer.remainingSeconds > 0 &&
               remainingSeconds === 0
             ) {
-              Vibration.vibrate([0, 500, 250, 500]);
+              if (AppState.currentState === "active" && Date.now() - (timer.endsAt ?? Date.now()) < 2000) {
+                Vibration.vibrate([0, 500, 250, 500]);
+              }
             }
 
             nextRecipeTimers[timerId] = {

@@ -1,3 +1,4 @@
+import { AppState } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { useAuth } from "../auth/AuthProvider";
@@ -9,13 +10,12 @@ import { registerReminderMappings } from "./remindersSync";
 import { useRemindersSync, type UseRemindersSyncReturn } from "./useRemindersSync";
 import { ShoppingModeController, type ShoppingModeState } from "./shoppingModeController";
 import { SHOPPING_MODE_KEY, LEGACY_SHARED_CODE_KEY, type ShoppingMode } from "./shoppingModes";
-import { createSharedList, joinSharedListWithItems, schedulePush, subscribeToSharedList, cancelPush, leaveSharedList, flushSharedListPush, getDeviceId } from "./sharedListClient";
+import { createSharedList, joinSharedListWithItems, schedulePush, subscribeToSharedList, cancelPush, leaveSharedList, flushSharedListPush } from "./sharedListClient";
 import type { ShoppingListAddResult, ShoppingListItem, ShoppingListSource } from "./shoppingList";
-import { scheduleTimerNotification } from "../timers/timerNotifications";
-import i18n from "../../i18n";
+import { useShoppingPushNotifications } from "./shoppingPushNotifications";
 
 export type SharedListState = {
-  active: boolean; code: string | null; syncing: boolean; error: string | null; participantCount: number | null;
+  active: boolean; code: string | null; syncing: boolean; error: string | null; notificationStatus?: "unknown" | "ready" | "denied" | "unavailable" | "disabled"; participantCount: number | null;
   createList: () => Promise<string>; joinList: (code: string) => Promise<boolean>; leaveList: () => Promise<void>;
 };
 type ShoppingListContextValue = {
@@ -55,8 +55,16 @@ export function ShoppingListProvider({ children }: { children: React.ReactNode }
   const renderedMode = useRef(state.mode);
   renderedMode.current = state.mode;
   const { enableShoppingNotifications } = usePreferences();
-  const notificationsRef = useRef(enableShoppingNotifications);
-  notificationsRef.current = enableShoppingNotifications;
+  const notificationStatus = useShoppingPushNotifications(state.mode.kind === "firebase" ? state.mode.code : null, enableShoppingNotifications && !state.loading && !state.switching);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", (state) => {
+      if (state !== "active") void flushSharedListPush().catch((error: unknown) => {
+        console.warn("[ShoppingList] Could not flush pending changes", error);
+      });
+    });
+    return () => subscription.remove();
+  }, []);
 
   const refresh = useCallback(function refreshController(controller: ShoppingModeController): Promise<void> {
     const mode = controller.getSnapshot().mode;
@@ -110,20 +118,6 @@ export function ShoppingListProvider({ children }: { children: React.ReactNode }
         const revision = next.getRevision();
         void syncRef.current.pushToSystem(items, () => next.isCurrent() && next.getRevision() === revision && !next.getSnapshot().switching);
       } },
-      onSharedUpdate: (previous, payload) => {
-        void (async () => {
-          const id = await getDeviceId();
-          if (!next.isCurrent() || next.getSnapshot().mode.kind !== "firebase" || next.getSnapshot().switching) return;
-          if (!notificationsRef.current || !previous.length || !payload.lastUpdatedBy || payload.lastUpdatedBy === id) return;
-          const prevIds = new Set(previous.map((item) => item.id));
-          const newIds = new Set(payload.items.map((item) => item.id));
-          const added = payload.items.filter((item) => !prevIds.has(item.id)).length;
-          const removed = previous.filter((item) => !newIds.has(item.id)).length;
-          if (!added && !removed) return;
-          const key = added && removed ? "notificationAddedAndRemoved" : removed ? "notificationRemoved" : "notificationAdded";
-          await scheduleTimerNotification({ title: i18n.t("shoppingList.notificationTitle"), body: i18n.t(`shoppingList.${key}`, { added, removed, count: added || removed }), recipeId: "shopping", timerId: `shopping_${Date.now()}`, seconds: 1 });
-        })().catch(() => undefined);
-      }
     });
     setController(next);
     void next.load().catch(() => undefined);
@@ -155,12 +149,13 @@ export function ShoppingListProvider({ children }: { children: React.ReactNode }
     ...operations,
     sharedList: {
       active: state.mode.kind === "firebase", code: state.mode.kind === "firebase" ? state.mode.code : null,
+      notificationStatus,
       syncing: state.switching || state.sharedSyncing, error: state.sharedError, participantCount: state.participantCount,
       createList: () => requireController().switchToFirebase(),
       joinList: async (code) => { try { await requireController().switchToFirebase(code); return true; } catch { return false; } },
       leaveList: () => requireController().switchToLocal()
     }
-  }), [state, sync, requireController, operations]);
+  }), [state, sync, requireController, operations, notificationStatus]);
   return <ShoppingListContext.Provider value={value}>{children}</ShoppingListContext.Provider>;
 }
 export function useShoppingList() {

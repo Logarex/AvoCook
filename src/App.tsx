@@ -1,3 +1,4 @@
+import * as Notifications from "expo-notifications";
 import { CookingTimerPersistence } from "./features/kitchen/CookingTimerPersistence";
 import { getKitchenNative } from "./features/kitchen/kitchenNative";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -218,6 +219,24 @@ function RootNavigator() {
 function KitchenNotificationHandler() {
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { mode, loading } = useShoppingList();
+  const sharedCode = mode.kind === "firebase" ? mode.code : null;
+  useEffect(() => {
+    if (loading) return;
+    let mounted = true;
+    const handled = new Set<string>();
+    const open = (response: Notifications.NotificationResponse | null) => {
+      if (!mounted || !response || response.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) return;
+      const { identifier, content } = response.notification.request;
+      if (content.data?.kind !== "shopping" || content.data?.code !== sharedCode || handled.has(identifier)) return;
+      handled.add(identifier);
+      navigation.navigate("ShoppingList");
+      void Notifications.clearLastNotificationResponseAsync().catch(() => undefined);
+    };
+    void Notifications.getLastNotificationResponseAsync().then(open).catch(() => undefined);
+    const subscription = Notifications.addNotificationResponseReceivedListener(open);
+    return () => { mounted = false; subscription.remove(); };
+  }, [navigation, sharedCode, loading]);
   useEffect(() => {
     let mounted = true;
     const native = getKitchenNative();

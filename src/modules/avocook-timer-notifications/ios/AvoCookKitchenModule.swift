@@ -13,6 +13,7 @@ public class AvoCookKitchenModule: Module {
   private var engine: AVAudioEngine?
   private var task: SFSpeechRecognitionTask?
   private var request: SFSpeechAudioBufferRecognitionRequest?
+  private var pendingTranscript: DispatchWorkItem?
   private var listening = false
   private var session = 0
 
@@ -72,7 +73,7 @@ public class AvoCookKitchenModule: Module {
       guard format.sampleRate > 0 && format.channelCount > 0 else { stopVoice(); promise.resolve(false); return }
       let request = SFSpeechAudioBufferRecognitionRequest()
       request.requiresOnDeviceRecognition = true
-      request.shouldReportPartialResults = false
+      request.shouldReportPartialResults = true
       self.engine = engine
       self.request = request
       input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in request.append(buffer) }
@@ -81,10 +82,17 @@ public class AvoCookKitchenModule: Module {
       task = recognizer.recognitionTask(with: request) { result, error in
         DispatchQueue.main.async {
           guard self.listening && self.session == session else { return }
-          if let result, result.isFinal {
+          if let result {
+            self.pendingTranscript?.cancel()
             let text = result.bestTranscription.formattedString
-            self.stopVoice()
-            self.sendEvent("voiceResult", ["text": text])
+            let deliver = DispatchWorkItem { [weak self] in
+              guard let self, self.listening, self.session == session else { return }
+              self.stopVoice()
+              self.sendEvent("voiceResult", ["text": text])
+            }
+            self.pendingTranscript = deliver
+            if result.isFinal { deliver.perform() }
+            else { DispatchQueue.main.asyncAfter(deadline: .now() + 0.8, execute: deliver) }
           } else if let error {
             self.stopVoice()
             let speechError = error as NSError
@@ -106,6 +114,8 @@ public class AvoCookKitchenModule: Module {
   }
 
   private func stopVoice() {
+    pendingTranscript?.cancel()
+    pendingTranscript = nil
     session += 1
     listening = false
     engine?.stop()
@@ -143,11 +153,30 @@ public class AvoCookKitchenModule: Module {
         promise.reject("ERR_REMINDERS", "Notifications are disabled"); return
       }
       center.getPendingNotificationRequests { pending in
+      let defaults = UserDefaults.standard
+      let saved = defaults.dictionary(forKey: "avocook.stock.schedule") as? [String: Double] ?? [:]
+      let pendingIDs = Set(pending.map(\.identifier))
+      var delivered = Set(defaults.stringArray(forKey: "avocook.stock.delivered") ?? [])
+      for (id, deadline) in saved where deadline <= Date().timeIntervalSince1970 && !pendingIDs.contains(id) {
+        delivered.insert(id)
+      }
+      defaults.set(Array(delivered), forKey: "avocook.stock.delivered")
+      requests = requests.filter { !delivered.contains($0.identifier) }.map { request in
+        guard let previous = pending.first(where: { $0.identifier == request.identifier }),
+          let previousDate = (previous.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate(),
+          let nextDate = (request.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate(), previousDate < nextDate else { return request }
+        return UNNotificationRequest(identifier: request.identifier, content: request.content, trigger: previous.trigger)
+      }
       let otherCount = pending.filter { !$0.identifier.hasPrefix("avocook-stock:") }.count
       guard requests.count + otherCount <= 64 else {
         promise.reject("ERR_REMINDERS", "Notification capacity exceeded"); return
       }
       center.removePendingNotificationRequests(withIdentifiers: pending.map(\.identifier).filter { $0.hasPrefix("avocook-stock:") })
+      let schedule = Dictionary(uniqueKeysWithValues: requests.compactMap { request -> (String, Double)? in
+        guard let date = (request.trigger as? UNCalendarNotificationTrigger)?.nextTriggerDate() else { return nil }
+        return (request.identifier, date.timeIntervalSince1970)
+      })
+      defaults.set(schedule, forKey: "avocook.stock.schedule")
       let group = DispatchGroup()
       let lock = NSLock()
       var failed = false

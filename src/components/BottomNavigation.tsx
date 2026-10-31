@@ -1,6 +1,6 @@
 import {
   BookOpen,
-  CookingPot,
+  Refrigerator,
   CalendarDays,
   Globe,
   ShoppingCart,
@@ -27,7 +27,7 @@ type BottomNavigationProps = {
 const tabs: { id: BottomNavigationTab; icon: LucideIcon; labelKey: string }[] =
   [
     { id: "recipes", icon: BookOpen, labelKey: "recipes.title" },
-    { id: "kitchen", icon: CookingPot, labelKey: "kitchen.title" },
+    { id: "kitchen", icon: Refrigerator, labelKey: "kitchen.title" },
     { id: "planning", icon: CalendarDays, labelKey: "kitchen.planningTitle" },
     { id: "community", icon: Globe, labelKey: "community.title" },
     { id: "shoppingList", icon: ShoppingCart, labelKey: "shoppingList.title" },
@@ -47,7 +47,7 @@ export function BottomNavigation({
   if (nativeUI && NativeTabBar && !rail) {
     const symbols = {
       recipes: "book.closed",
-      kitchen: "frying.pan",
+      kitchen: "refrigerator",
       planning: "calendar",
       community: "globe",
       shoppingList: "cart",

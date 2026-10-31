@@ -39,20 +39,8 @@ function withAndroidSplitsAndOptimizations(config) {
       }
     }
 
-    if (!buildGradle.includes("configurations.all")) {
-      const dependenciesMatch = buildGradle.match(/dependencies\s*\{/);
-      if (dependenciesMatch) {
-        const insertPos = dependenciesMatch.index;
-        buildGradle =
-          buildGradle.slice(0, insertPos) +
-          `configurations.all {
-    exclude group: "com.google.firebase"
-}
-
-` +
-          buildGradle.slice(insertPos);
-      }
-    }
+    // Firebase Messaging is required for remote shopping-list notifications.
+    buildGradle = buildGradle.replace(/configurations\.all\s*\{\s*exclude group: "com\.google\.firebase"\s*\}\s*/g, "");
 
     nextConfig.modResults.contents = buildGradle;
     return nextConfig;

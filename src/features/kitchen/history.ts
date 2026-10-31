@@ -1,5 +1,5 @@
 import type { Recipe } from "../recipes/types";
-import { mealRecipeId, normalizeFood, validDate, type KitchenData, type Meal } from "./kitchen";
+import { isMealCompleted, localDate, mealRecipeId, normalizeFood, validDate, type KitchenData, type Meal } from "./kitchen";
 export type KitchenHistoryEntry = {
   id: string;
   date: string;
@@ -39,8 +39,9 @@ export function filterKitchenHistory(entries: KitchenHistoryEntry[], query: stri
 export function kitchenHistory(
   data: KitchenData,
   recipes: Recipe[],
+  today = localDate(),
 ): KitchenHistoryEntry[] {
-  const completed = data.meals.filter((meal) => meal.completed);
+  const completed = data.meals.filter((meal) => isMealCompleted(meal, today)).map((meal) => meal.completed ? meal : { ...meal, completed: true });
   const entries: KitchenHistoryEntry[] = completed.map((meal) => ({
     id: `meal:${meal.id}`,
     date: meal.date,

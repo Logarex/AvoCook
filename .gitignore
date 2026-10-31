@@ -51,3 +51,12 @@ Temporary Items
 /fastlane/report.xml
 /fastlane/Preview.html
 /fastlane/vendor/
+
+# Firebase Android configuration supplied by the release environment
+/google-services.json
+
+# Cloudflare local runtime state and server-only service-account keys
+/notification-relay/.wrangler/
+/notification-relay/service-account*.json
+.dev.vars
+.dev.vars.*

@@ -21,6 +21,10 @@ export type Meal = {
   recipeId: string;
   servings: number;
 };
+/** Past local calendar days are automatically considered eaten. */
+export function isMealCompleted(meal: Meal, today = localDate()): boolean {
+  return Boolean(meal.completed) || (validDate(meal.date) && meal.date < today);
+}
 export const mealRecipeId = (meal: Meal) => !meal.kind || meal.kind === "recipe" ? meal.recipeId : meal.linkedRecipeId ?? "";
 export type StockItem = {
   nutrients?: Partial<Record<"energy" | "fat" | "saturatedFat" | "carbohydrates" | "sugars" | "fiber" | "proteins" | "salt", number>>;
@@ -63,6 +67,7 @@ export const emptyKitchen = (): KitchenData => ({
   meals: [],
   stock: [],
   journals: {},
+  remindersEnabled: true,
 });
 export const emptyJournal = (): Journal => ({
   rating: 0,
@@ -608,9 +613,7 @@ export function parseKitchenData(value: unknown): KitchenData {
     ...(raw.dietaryPreference !== undefined
       ? { dietaryPreference: raw.dietaryPreference }
       : {}),
-    ...(raw.remindersEnabled !== undefined
-      ? { remindersEnabled: raw.remindersEnabled }
-      : {}),
+    remindersEnabled: raw.remindersEnabled ?? true,
     ...(raw.menus ? { menus: raw.menus } : {}),
     ...(raw.country ? { country: raw.country } : {}),
     ...(raw.excludedWords !== undefined

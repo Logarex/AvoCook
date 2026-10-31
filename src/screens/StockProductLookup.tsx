@@ -52,7 +52,7 @@ export function StockProductLookup({ onProduct, initiallyOpen = false }: { onPro
   return (
     <View style={styles.content}>
       <PrimaryButton
-        compact icon={ScanBarcode} variant="secondary"
+        fillAvailableSpace numberOfLines={0} icon={ScanBarcode} variant="secondary"
         label={t("kitchen.scanProduct")} disabled={busy}
         onPress={() => {
           setOpen(!open); setError("");

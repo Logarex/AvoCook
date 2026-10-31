@@ -1,0 +1,17 @@
+name = "avocook-notifications"
+main = "worker.js"
+compatibility_date = "2026-10-30"
+workers_dev = true
+
+[vars]
+FIREBASE_PROJECT_ID = "avocook-5eb31"
+FIREBASE_WEB_API_KEY = "AIzaSyC4oE9zYpcXeZjEL8qtvrzAD6oEjFca6G0"
+
+# One free Cron Trigger; no Cloud Scheduler or paid Firebase Functions.
+[triggers]
+crons = ["* * * * *"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "avocook-notifications"
+database_id = "719169ae-ce88-48c8-b8fe-2d934b7a0935"
