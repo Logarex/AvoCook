@@ -95,7 +95,7 @@ describe("optional Pantry session", () => {
       remote.push(created); return created;
     }).mockImplementationOnce(async (_house, _list, name) => {
       remote.push({ ...item, id: 5, name, quantity: null });
-      throw new PantryError("network"); // server accepted POST; connection dropped before response
+      throw new PantryError("network");
     });
     expect(await session.transfer(items)).toBe(false);
     expect(session.getSnapshot()).toMatchObject({ transfer: { added: 1, skipped: 0 }, fresh: false });

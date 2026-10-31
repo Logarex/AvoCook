@@ -1,3 +1,4 @@
+import { useAdaptiveLayout } from "../hooks/useAdaptiveLayout";
 import { useFocusEffect } from "@react-navigation/native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Image } from "expo-image";
@@ -13,8 +14,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { getTabBarContentInset } from "../utils/safeArea";
+import { useNavigationContentInset } from "../hooks/useNavigationContentInset";
 
 import { AppText } from "../components/AppText";
 import { IconButton } from "../components/IconButton";
@@ -63,10 +63,10 @@ const RAW_LANGUAGES = COMMUNITY_LANGUAGES.map((option) => ({
 
 export function CommunityScreen({ navigation }: Props) {
   const { i18n, t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const { colors } = useAppTheme();
   const { fontScale, width } = useWindowDimensions();
-  const columns = Math.min(width, 1120) >= 760 && fontScale < 1.5 ? 2 : 1;
+  const navigationContentInset = useNavigationContentInset(fontScale);
+  const { columns } = useAdaptiveLayout();
   const { communityTranslationLanguage, setCommunityTranslationLanguage } =
     usePreferences();
   const targetLanguage =
@@ -285,7 +285,6 @@ export function CommunityScreen({ navigation }: Props) {
   ]);
 
   React.useEffect(() => {
-    // Search also scans recipes beyond the first page.
     if (searchQuery.trim()) void loadMore();
   }, [searchQuery, loadMore]);
 
@@ -327,7 +326,6 @@ export function CommunityScreen({ navigation }: Props) {
             ingredientMatch
           );
         });
-    // Keep page order while translations arrive and new pages are appended.
     return matches;
   }, [recipes, searchQuery]);
 
@@ -408,7 +406,7 @@ export function CommunityScreen({ navigation }: Props) {
   return (
     <PageSwipeGesture
       onSwipeRight={() =>
-        navigation.navigate("Recipes", { tabTransition: "slide_from_left" })
+        navigation.navigate("Planning", { section: "today", tabTransition: "slide_from_left" })
       }
       onSwipeLeft={() =>
         navigation.navigate("ShoppingList", {
@@ -468,24 +466,6 @@ export function CommunityScreen({ navigation }: Props) {
           />
         </View>
 
-        <View style={styles.sourceFilter}>
-          <AppText muted variant="caption">
-            {t("ui.sourceLanguage")}
-          </AppText>
-          <LanguagePicker
-            variant="compact"
-            value={selectedLanguage}
-            label={t("ui.sourceLanguage")}
-            options={sortedLanguages.map((language) => ({
-              value: language.id,
-              nativeName:
-                language.id === "all" ? t("ui.allLanguages") : language.label,
-              shortLabel: language.code,
-            }))}
-            onChange={setSelectedLanguage}
-          />
-        </View>
-
         {loadFailed ? (
           <Pressable
             onPress={() => void loadData(true)}
@@ -512,7 +492,7 @@ export function CommunityScreen({ navigation }: Props) {
             contentContainerStyle={[
               styles.listContent,
               {
-                paddingBottom: getTabBarContentInset(insets.bottom, fontScale),
+                paddingBottom: navigationContentInset,
               },
             ]}
             initialNumToRender={10}

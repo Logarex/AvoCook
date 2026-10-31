@@ -1,6 +1,14 @@
 # Privatliv og data
 
-Opdateret: 14. oktober 2026. AvoCook indeholder ikke reklamer eller analyseværktøjer. Nogle funktioner bruger de netværkstjenester, der er beskrevet her.
+Opdateret: 31. oktober 2026. AvoCook indeholder ikke reklamer eller analyseværktøjer. Nogle funktioner bruger de netværkstjenester, der er beskrevet her.
+
+## Mit køkken, stemme og lokale påmindelser
+
+Madplaner, lager, datoer, personlige vurderinger, noter, kostmærker, menuer og historik gemmes lokalt og adskilt efter opskriftskonto. Private noter offentliggøres ikke og indgår ikke i PDF-kogebøger. Den fulde køkkensikkerhedskopi indeholder disse oplysninger og opskrifter; den normale opskriftssikkerhedskopi indeholder ikke køkkendata.
+
+Valgfrie madlavningskommandoer kræver tilladelser til mikrofon og talegenkendelse. Der bruges kun understøttet lokal genkendelse uden netværksalternativ. AvoCook gemmer hverken lyd eller transskriptioner. Lytning stopper, når madlavningstilstanden lukkes, eller appen går i baggrunden.
+
+Valgfrie lagerpåmindelser planlægges på enheden. Varenavne kan vises på låseskærmen efter systemindstillingerne. Genererede ingredienser bruger den valgte indkøbstilstand, herunder aktiveret deling eller synkronisering med Apple-påmindelser.
 
 ## Opskrifter, Nextcloud og sikkerhedskopier
 
@@ -24,6 +32,8 @@ Valgfri AI-import og opskriftsgenerering sender det valgte billede eller den ind
 
 Automatisk oversættelse af fællesskabsopskrifter sender teksten til Google Translate og ved fejl til MyMemory. Din AI-API-nøgle bruges ikke. Hentede opskrifter og vellykkede oversættelser gemmes til læsning offline. Udbyderne behandler anmodninger efter deres egne vilkår og privatlivspolitikker.
 
+Den valgfrie køleskabsassistent sender kun et foto, når du vælger Analysér, og kun de bekræftede ingredienser og synlige ønsker, når du vælger Generér. Fotoet vedhæftes ikke opskriften og gemmes ikke i dataene for Mit køkken. At gemme det redigerbare opskriftsudkast er en separat handling og følger dine normale lager- og synkroniseringsindstillinger. Din udbyder kan opkræve betaling for disse anmodninger.
+
 ## Apple Påmindelser, opdateringer og diagnostik
 
 Hvis du aktiverer indkøbssynkronisering, læser og skriver den i Apple Påmindelser. Apple kan synkronisere varerne via din konto, også i delte iCloud-lister, afhængigt af dine indstillinger.
@@ -31,6 +41,16 @@ Hvis du aktiverer indkøbssynkronisering, læser og skriver den i Apple Påminde
 Android-installationer via APK tjekker GitHub for nye versioner. Installationer fra en appbutik opdateres via butikken. Åbning af opskrifts-, support- eller udbyderlinks kontakter den valgte destination.
 
 Diagnoselogfiler gemmes lokalt. Adgangskoder og nøgler skjules, men personlige oplysninger kan stadig indgå. Gennemgå rapporter, før du kopierer eller deler dem. De sendes ikke automatisk.
+
+## Stregkodesøgning
+
+Stregkodesøgning sender kode og sprog til Open Food Facts. Kamerabilleder, forråd og datoer sendes ikke. Tilgængelige varenavne, mængder, næringsindhold og vurderinger gemmes lokalt med kildeangivelse under ODbL.
+
+## Beskeder om delte indkøbslister
+
+Ved aktiverede beskeder modtager en Cloudflare Workers-relætjeneste enhedens pushtoken og kontrollerer Firebase-identitet og listeadgang. Listerne bliver i Firebase. Cloudflare D1 gemmer tekniske vare-id’er, listeversioner, sprog, installations-id’er og pushtokens, men ikke varenavne. En serveropgave søger efter oversete ændringer med en Google-tjenestekonto med læseadgang. Nextcloud-loginoplysninger sendes ikke.
+
+Generelle beskeder sendes gennem Expo Push og Apple eller Google, også når appen er lukket, uden varenavne. Deaktivering eller udmeldelse af listen fjerner registreringen ved næste forbindelse. Registreringer udløber efter 90 dage uden fornyelse, og leveringsposter slettes efter to dage. Timere og udløbspåmindelser planlægges på enheden.
 
 ## Kontakt
 

@@ -8,7 +8,6 @@ import { MarkdownText } from "../../components/MarkdownText";
 import { AppText } from "../../components/AppText";
 import { GlassPanel } from "../../components/GlassPanel";
 import { IconButton } from "../../components/IconButton";
-import { PrimaryButton } from "../../components/PrimaryButton";
 import { useAppTheme } from "../../theme/ThemeProvider";
 import { styles } from "./recipeDetailStyles";
 
@@ -52,7 +51,7 @@ export function IngredientSection({
           ) : null}
         </View>
         <View style={styles.ingredientHeaderActions}>
-          <PrimaryButton
+          <IconButton
             icon={Copy}
             label={t(
               checkedCount > 0
@@ -66,10 +65,9 @@ export function IngredientSection({
                   : items;
               void Clipboard.setStringAsync(toCopy.map(markdownToPlainText).join("\n"));
             }}
-            style={styles.ingredientHeaderButton}
-            variant="ghost"
+            tone="primary"
           />
-          <PrimaryButton
+          <IconButton
             icon={ShoppingCart}
             label={t(
               checkedCount > 0
@@ -77,8 +75,7 @@ export function IngredientSection({
                 : "shoppingList.addFromRecipe",
             )}
             onPress={onAddAll}
-            style={styles.ingredientHeaderButton}
-            variant="ghost"
+            tone="primary"
           />
         </View>
       </View>

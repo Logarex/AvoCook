@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, View, Share as RNShare } from "react-native";
+import { Keyboard, StyleSheet, View, Share as RNShare } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Users, Share2, LogOut, Check, Sparkles } from "lucide-react-native";
 import { AppText } from "../components/AppText";
@@ -15,6 +15,7 @@ export function ShoppingListShareContent({ onBusyChange }: { onBusyChange: (busy
   const { sharedList } = useShoppingList();
 
   const [inputCode, setInputCode] = useState("");
+  const canJoin = inputCode.length === 6;
   const pending = useRef(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -34,11 +35,12 @@ export function ShoppingListShareContent({ onBusyChange }: { onBusyChange: (busy
   };
 
   const handleJoin = async () => {
-    if (pending.current || sharedList.syncing || !inputCode.trim()) return;
+    if (pending.current || sharedList.syncing || !canJoin) return;
     pending.current = true; setLoading(true);
+    Keyboard.dismiss();
     setErrorMsg(null);
     try {
-      const success = await sharedList.joinList(inputCode);
+      const success = await sharedList.joinList(inputCode.trim());
       if (!success) {
         setErrorMsg(t("shoppingList.sharedNotFoundError"));
       } else {
@@ -118,7 +120,7 @@ export function ShoppingListShareContent({ onBusyChange }: { onBusyChange: (busy
               </AppText>
 
               {errorMsg ? (
-                <AppText style={[styles.errorText, { color: colors.danger }]}>
+                <AppText accessibilityRole="alert" style={[styles.errorText, { color: colors.danger }]}>
                   {errorMsg}
                 </AppText>
               ) : null}
@@ -127,12 +129,15 @@ export function ShoppingListShareContent({ onBusyChange }: { onBusyChange: (busy
                 <TextField
                   label=""
                   autoCapitalize="characters"
-                  maxLength={6}
+                  autoCorrect={false}
+                  editable={!loading && !sharedList.syncing}
+                  returnKeyType="done"
+                  onSubmitEditing={() => void handleJoin()}
                   accessibilityLabel={t("shoppingList.sharedCodeLabel")}
                   placeholder={t("shoppingList.sharedCodePlaceholder")}
                   value={inputCode}
                   onChangeText={(text) => {
-                    setInputCode(text.toUpperCase());
+                    setInputCode(text.replace(/\s/g, "").toUpperCase().slice(0, 6));
                     setErrorMsg(null);
                   }}
                   containerStyle={styles.inputFlex}
@@ -140,7 +145,8 @@ export function ShoppingListShareContent({ onBusyChange }: { onBusyChange: (busy
                 <PrimaryButton
                   label={t("shoppingList.sharedJoinBtn")}
                   onPress={() => void handleJoin()}
-                  disabled={loading || sharedList.syncing || !inputCode.trim()}
+                  disabled={loading || sharedList.syncing || !canJoin}
+                  fillAvailableSpace
                 />
               </View>
 
@@ -202,12 +208,12 @@ const styles = StyleSheet.create({
     lineHeight: 20
   },
   joinBox: {
-    flexDirection: "row",
     gap: spacing.sm,
-    alignItems: "center"
+    alignItems: "stretch"
   },
   inputFlex: {
-    flex: 1
+    minWidth: 0,
+    width: "100%"
   },
   divider: {
     alignItems: "center",

@@ -3,10 +3,25 @@
   <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
   <uses-permission android:name="android.permission.VIBRATE" />
 
+  <uses-permission android:name="android.permission.RECORD_AUDIO" />
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+  <queries><intent><action android:name="android.speech.RecognitionService" /></intent></queries>
   <application>
+    <receiver android:name=".StockReminderReceiver" android:enabled="true" android:exported="false">
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+        <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+      </intent-filter>
+    </receiver>
     <receiver
       android:name=".TimerAlarmReceiver"
       android:enabled="true"
-      android:exported="false" />
+      android:exported="false">
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+        <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+        <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+      </intent-filter>
+    </receiver>
   </application>
 </manifest>

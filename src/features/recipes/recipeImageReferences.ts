@@ -71,7 +71,6 @@ export function normalizeCookbookImageEndpointReference(value: string) {
     const isRelative = value.startsWith("/");
     const url = new URL(value, "https://avocook.local");
     const size = url.searchParams.get("size");
-    // Cookbook may append "d" to image-size values, e.g. "fulld".
     if (size && !["full", "thumb", "thumb16"].includes(size)) {
       url.searchParams.set("size", normalizeCookbookImageSize(size));
     }

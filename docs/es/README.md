@@ -1,84 +1,86 @@
 # AvoCook
 
-AvoCook es un cuaderno de recetas móvil — funciona completamente sin conexión, en tu dispositivo, sin necesidad de cuenta. Si ya tienes un servidor Nextcloud, puedes conectarlo de forma opcional para sincronizar tus recetas entre dispositivos.
+[English](../../README.md) · [Français](../fr/README.md) · [Deutsch](../de/README.md) · [Español](README.md) · [Italiano](../it/README.md) · [Dansk](../da/README.md)
 
-Lo desarrollé para uso personal mientras aprendía a llevar un proyecto React Native completo de principio a fin.
+AvoCook es una aplicación gratuita y de código abierto para iOS y Android. La desarrollo mientras estudio para guardar mis recetas, planificar comidas y facilitarme un poco la cocina de cada día.
 
-[App Store](https://apps.apple.com/app/avocook/id6769012665) · [Google Play](https://play.google.com/store/apps/details?id=app.avocook.mobile) · [APK Android](https://github.com/Logarex/AvoCook/releases/latest) · [![Descargas APK](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
+[App Store](https://apps.apple.com/app/avocook/id6769012665) · [Google Play](https://play.google.com/store/apps/details?id=app.avocook.mobile) · [APK](https://github.com/Logarex/AvoCook/releases/latest)
 
-<div align="center">
-  <img src="../../assets/screenshots/es/login.png" width="280" alt="Inicio de sesión AvoCook" />
-  <img src="../../assets/screenshots/es/recipe.png" width="280" alt="Detalle de la receta" />
-</div>
+## Usar AvoCook
 
-## Funcionalidades
+### Todas tus recetas en un sitio
 
-### Plataforma de la Comunidad
+Escribe recetas, añade fotos y categorías y ajusta las cantidades a las raciones. Los ingredientes y pasos admiten Markdown opcional. Pega un enlace o compártelo desde el navegador para importar una receta y comprueba el resultado antes de guardar. También puedes imprimir o compartir una receta individual.
 
-- Descubre, califica e importa recetas de la comunidad AvoCook;
-- Las recetas de la comunidad se muestran automáticamente en el idioma de la aplicación, tanto en la lista como en los detalles;
-- Consulta la receta original en cualquier momento o importa la versión traducida a tu recetario;
-- Comparte tus mejores comidas configurando un perfil de la comunidad;
-- Plataforma segura y moderada con detección de spam integrada.
+### Controla tus alimentos
 
-### Recetas
+Organiza la nevera, la despensa y el congelador con cantidades y fechas. Añade alimentos por código de barras, consulta las puntuaciones disponibles de Open Food Facts y activa avisos de caducidad.
 
-- Crear y editar recetas localmente, sin cuenta;
-- Organizar recetas por categoría;
-- Ajustar las cantidades según el número de raciones;
-- Añadir una o varias fotos a cada receta;
-- Exportar una receta en PDF o imprimirla directamente;
-- Compartir una receta con otra aplicación.
+Introduce la fecha del envase. La búsqueda por código de barras necesita Internet; pueden faltar fichas y puntuaciones. Los alimentos y el plan siguen disponibles sin conexión.
 
-### Markdown opcional
+### Planifica hoy y la semana
 
-Todos los campos de texto de las recetas admiten Markdown, en cualquier idioma: nombre, descripción, categoría, palabras clave, nombre de la fuente, ingredientes, instrucciones, utensilios y valores nutricionales. El texto sin formato sigue siendo la opción predeterminada; no hace falta conocer Markdown.
+Añade recetas, comidas sencillas, sobras o salidas. Ajusta raciones, mueve comidas entre días y elige ingredientes para la lista de la compra. Guarda menús y consulta las comidas anteriores en el historial.
 
-Utiliza `**negrita**`, `*cursiva*`, títulos, listas, citas, código, tablas o `[un enlace](https://example.com)`. El formato aparece al leer recetas, en los PDF y al imprimir. Las imágenes Markdown aparecen como enlaces. Los números (raciones y duraciones) y los campos URL conservan su formato habitual.
+### Cocina paso a paso
 
-Cada ingrediente e instrucción conserva su Markdown, incluidos párrafos y listas anidadas. Pegar líneas de texto simple sigue creando elementos separados; pegar un bloque Markdown lo mantiene unido.
+Sigue recetas con temporizadores que se recuperan al volver. Los dispositivos compatibles ofrecen comandos de voz locales. Guarda notas en un diario privado y prepara varias recetas juntas.
 
-### Importación
+### Ideas para cada día
 
-- Importar una receta desde una URL — funciona en cualquier sitio que exponga datos `schema.org/Recipe` (Marmiton, 750g, BBC Good Food y muchos más);
-- Recibir una URL compartida desde un navegador u otra app para importar una receta con un toque;
-- Escanear una receta desde una foto, o generar una receta a partir de la foto de un plato con IA (requiere una clave API compatible con OpenAI).
+Busca recetas con tus ingredientes, consulta productos de temporada en 11 calendarios regionales o usa conversiones y sustituciones de repostería. Guarda recetas y datos privados de tu cocina en una misma copia de seguridad.
 
-### Lista de la compra
+Hay calendarios para Francia metropolitana, Valonia, Suiza, Alemania, España, Italia, Reino Unido, Dinamarca, Ontario, el estado de Nueva York y Sídney. La cobertura y el significado de disponibilidad dependen de cada fuente.
 
-- Comparte listas de compras con un código de 6 caracteres, un contador de participantes y avisos locales mientras AvoCook está en ejecución;
-- Copiar los ingredientes al portapapeles con un toque;
-- Exportar una lista de la compra a Recordatorios de iOS para aprovechar el sistema de compartir de Apple y la integración con Siri.
+### Asistente de nevera opcional
 
-### Temporizadores
+Escribe ingredientes o empieza con una foto de la nevera, revisa la lista y pide un borrador de receta editable. Requiere tu proveedor, clave API y un modelo compatible; puede haber cargos.
 
-- Iniciar uno o varios temporizadores de cocina directamente desde una receta;
-- Los temporizadores lanzan una notificación local incluso cuando la app está en segundo plano.
+### Tu recetario ilustrado
 
-### Datos y sincronización
+Elige recetas y un título para crear un libro PDF con portada, índice, fotos, ingredientes y pasos. Se incluyen las imágenes de tu biblioteca local y de Nextcloud cuando están disponibles.
 
-- Hacer una copia de seguridad de todas las recetas en un archivo JSON y restaurarlas;
-- **Opcional**: conectar un servidor Nextcloud Cookbook para sincronizar recetas entre dispositivos. Los datos van directamente entre la app y tu servidor, sin pasar por ningún servicio de terceros.
+Las notas del diario privado no se incluyen en el libro. El PDF se crea en el dispositivo; puede ser necesario descargar imágenes de Nextcloud.
 
-> Las recetas locales se quedan en el dispositivo salvo que las sincronices, compartas o exportes. La comunidad usa Firebase con una sesión anónima al iniciar. Consulta [Privacidad y datos](PRIVACY.md).
+### La compra, a solas o en compañía
 
----
+Usa una lista local, invita a otras personas a una lista AvoCook con un código de seis caracteres o conecta una lista del hogar de Nextcloud Pantry. Elige qué ingredientes añadir desde las recetas y el plan. En iOS, Recordatorios puede sincronizarse con el modo activo. Las listas compartidas AvoCook ofrecen notificaciones cuando otros participantes añaden o eliminan productos.
+
+### Recetas de la comunidad
+
+Descubre, valora e importa recetas de otros usuarios. Puedes leerlas traducidas o consultar el original. Un perfil de comunidad permite publicar tus propias recetas. Las recetas cargadas y las traducciones completadas permanecen en la caché del dispositivo.
+
+### En móviles y tabletas
+
+Las cinco pestañas son Recetas, Mi cocina, Plan, Comunidad y Compra. Las pantallas grandes pueden usar navegación lateral y vistas en columnas, teniendo en cuenta el tamaño del texto. Los iPhone compatibles usan controles Liquid Glass nativos.
+
+### Tus datos y conexiones
+
+Las recetas funcionan localmente sin crear una cuenta. Conecta Nextcloud Cookbook para sincronizarlas con tu servidor. El plan, los alimentos y las notas privadas se guardan en el dispositivo, separados por cuenta de recetas; Cookbook no los sincroniza. Exporta solo las recetas o crea una copia completa con las fotos disponibles y los datos privados de tu cocina.
+
+La comunidad y las listas compartidas usan Firebase, con una sesión anónima al iniciar. Los enlaces web, la búsqueda de productos y el asistente opcional usan sus respectivos servicios. La voz utiliza un motor local compatible, sin recurrir a la nube.
 
 ## Idiomas disponibles
 
-Francés · Inglés · Alemán · Español · Italiano · Danés
+Español · Inglés · Francés · Alemán · Italiano · Danés
 
----
+## Guías
+
+- [Guía de cocina](GUIDE.md)
+- [Tus datos y conexiones](PRIVACY.md)
+- [Documentación técnica](../LOCAL_KITCHEN.md) · [Nextcloud Pantry](../NEXTCLOUD_PANTRY.md) · [Seasonal catalog](../SEASONAL_CATALOG.md)
 
 ## Configuración de desarrollo
 
-El proyecto utiliza Expo SDK 57, React Native 0.86 y TypeScript. Se requiere Node.js 22.13 o posterior. Las compilaciones locales de iOS utilizan Xcode 27 y Device Hub; la versión mínima de iOS compatible es 16.4.
+El proyecto utiliza Expo SDK 57, React Native 0.86 y TypeScript. Se requiere Node.js >=22.13 y <27. Las compilaciones locales de iOS utilizan Xcode 27 y Device Hub; la versión mínima de iOS compatible es 16.4.
 
 ```bash
-npm install
+npm ci
 npm run ios      # Simulador iOS
 npm run android  # Emulador Android
 ```
+
+Tras cambiar dependencias nativas, ejecuta `npx expo prebuild --clean` y recompila. La voz local y los recordatorios de alimentos requieren los módulos nativos locales; Expo Go no basta.
 
 En el primer inicio se compila una build de desarrollo con módulos nativos. Después, la app se abre directamente.
 
@@ -103,6 +105,8 @@ src/
 ├── screens/                             # Pantallas (lista, detalle, editor, ajustes…)
 ├── components/                          # Componentes de UI reutilizables
 ├── features/
+│   ├── kitchen/                         # Mi cocina — comidas diarias, en local
+│   ├── community/                       # Firebase
 │   ├── recipes/                         # Almacenamiento local (SQLite), lógica recetas, backup
 │   ├── nextcloud/                       # Cliente HTTP para Nextcloud Cookbook
 │   ├── import/                          # Importación por URL y foto
@@ -149,6 +153,19 @@ Las pull requests son bienvenidas. Consulta [CONTRIBUTING.md](../../.github/CONT
 Si AvoCook te resulta útil, puedes ayudar a cubrir los costes:
 
 **[→ Donar vía Revolut](https://revolut.me/logarex)** · **[→ Donar vía PayPal](https://paypal.me/logarex31)**
+
+---
+
+## Sitio web
+
+La web está en `site/`, con textos en seis idiomas en `site/main.js`. El comando siguiente prepara los mismos archivos que GitHub Pages, incluidas las capturas. Se publica en `gh-pages` al enviar cambios a `main` o mediante el workflow manual Deploy site; enviar solo esta rama no publica la web.
+
+```bash
+node tools/scripts/build-site.mjs
+python3 -m http.server 8765 --bind 127.0.0.1 --directory dist/site
+```
+
+[http://127.0.0.1:8765/](http://127.0.0.1:8765/)
 
 ---
 

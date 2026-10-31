@@ -1,112 +1,34 @@
-# Lista di controllo per il rilascio
+# Preparare una pubblicazione
 
-Una lista da seguire prima di pubblicare una nuova versione. Segui ogni passo in ordine.
+## Preparare la versione
 
----
+Mantieni allineati app.json, package.json, package-lock.json e store/release.json. Controlla numero di build iOS e codice versione Android. Aggiorna le novità nelle sei lingue; le descrizioni permanenti presentano l’app senza annunci di versione.
 
-## 1 — Preparare
+## Controlli automatici
 
-- [ ] Aggiornare il numero di versione in [`app.json`](../../app.json) e [`package.json`](../../package.json).
-- [ ] Aggiornare il numero di build (`buildNumber`) in `app.json` per iOS se necessario.
-- [ ] Rileggere [`PRIVACY.md`](../../PRIVACY.md) e verificare se una nuova funzione di rete o di archiviazione deve essere documentata.
-- [ ] Verificare che le icone e gli asset dello splash screen siano corretti e si visualizzino bene sia in modalità chiara che scura.
-
----
-
-## 2 — Verifiche locali
-
-```bash
-npm run typecheck   # Nessun errore TypeScript
-npm test            # Tutti i test passano
-npm run lint        # Nessun avviso ESLint
+```sh
+npm ci
+npm ci --prefix notification-relay
+npm run typecheck
+npm run lint -- --max-warnings=0
+npm test
+npm test --prefix notification-relay
+npm run store:check
+node tools/scripts/build-site.mjs
+npx expo export --platform ios --platform android --output-dir dist/app
 ```
 
-Testare una specifica importazione da URL:
+## Prove sui dispositivi
 
-```bash
-npm run import:check -- <url>
-```
+Prova ricette locali offline, importazione web, Nextcloud Cookbook e immagini, le tre modalità di spesa, Promemoria Apple, notifiche con destinatario bloccato, codici a barre, scadenze, permessi vocali, ripristino timer, foto PDF e ripristino backup. Controlla schermi piccoli, tablet, testo grande ed entrambi i temi.
 
-Provare almeno Marmiton, 750g o BBC Good Food.
+## Compilare e inviare
 
----
+Ricompila dopo cambiamenti a dipendenze native o autorizzazioni. I testi degli store si preparano separatamente dai binari. Segui la guida degli store per i metadati e controlla destinazione e versione prima dell’invio.
 
-## 3 — Test manuali
-
-Da eseguire su un dispositivo reale, non solo su un simulatore.
-
-**Modalità locale (senza account)**
-- [ ] Creare una ricetta da zero.
-- [ ] Modificarla, aggiungere una foto, regolare il numero di porzioni.
-- [ ] Eliminarla.
-- [ ] Ripetere i tre passaggi con il dispositivo in modalità aereo.
-
-**Importazione**
-- [ ] Importare una ricetta da un URL (almeno un sito francese + uno inglese).
-- [ ] Condividere un URL da un browser ad AvoCook.
-- [ ] Scansionare o generare una ricetta da una foto se è configurata una chiave API.
-
-**Sincronizzazione Nextcloud**
-- [ ] Connettersi a un'istanza Nextcloud con una password per l'app.
-- [ ] Connettersi a un'istanza HTTP su una rete locale fidata (indirizzo IP e nome host, con porta/sottopercorso), verificare l'avviso, poi sincronizzare le ricette e caricare/visualizzare un'immagine su Android e iOS.
-- [ ] Creare una ricetta in AvoCook e verificare che appaia in Nextcloud Cookbook.
-- [ ] Modificare una ricetta in Nextcloud Cookbook e verificare la sincronizzazione in AvoCook.
-
-**Timer**
-- [ ] Avviare un timer e mettere l'app in background — la notifica deve scattare puntuale.
-- [ ] Avviare più timer contemporaneamente.
-
-**Lista della spesa**
-- [ ] Copiare gli ingredienti negli appunti.
-- [ ] Esportare una lista della spesa in Promemoria iOS (solo iOS).
-
-**Backup**
-- [ ] Esportare un backup in un file JSON.
-- [ ] Reimportarlo e verificare che le ricette vengano ripristinate correttamente.
-
-**Interfaccia**
-- [ ] Controllare la modalità chiara e quella scura.
-- [ ] Controllare almeno il francese e l'inglese; verificare rapidamente tedesco, spagnolo e italiano.
-- [ ] Controllare su iPhone e iPad (o un Android piccolo + tablet).
-
----
-
-## 4 — Build EAS
-
-```bash
-# Anteprima (per test interni)
-npx eas build --platform ios --profile preview
-npx eas build --platform android --profile preview
-
-# Produzione
+```sh
+npm run store:prepare
 npx eas build --platform all --profile production
 ```
 
----
-
-## 5 — Note per piattaforma
-
-### iOS
-
-- L'app è configurata per iPhone e iPad (`supportsTablet: true`).
-- Non usa notifiche push remote, servizi di localizzazione né Bluetooth.
-- Il permesso di rete locale viene usato solo per connettersi a un server Nextcloud sulla stessa rete, o per il client Expo durante lo sviluppo.
-- HTTP usa `NSAllowsArbitraryLoads` perché gli utenti scelgono i propri indirizzi Nextcloud, inclusi nomi host personalizzati. Da spiegare durante la revisione dell'App Store: AvoCook deve connettersi a server Nextcloud gestiti dagli utenti che possono supportare solo HTTP; HTTPS resta l'opzione predefinita e l'app avvisa quando la connessione non è cifrata.
-
-Le modifiche alle impostazioni di rete native richiedono una nuova compilazione Android/iOS. Un aggiornamento JavaScript da solo non può abilitare HTTP su un'installazione esistente.
-
-### Android
-
-- La configurazione principale di Android si trova in `app.json` (package, permessi, icona adattiva).
-- L'APK pubblicato nelle release GitHub è `avocook.apk`.
-
----
-
-## 6 — Invio
-
-```bash
-npx eas submit --platform ios
-npx eas submit --platform android
-```
-
-> AvoCook è un client indipendente compatibile con Nextcloud Cookbook. Non deve essere presentato come un'applicazione ufficiale di Nextcloud.
+[Store / Fastlane](../../store/README.md) · [Privacy](PRIVACY.md) · [Notifications](../../docs/NOTIFICATIONS.md)

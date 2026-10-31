@@ -13,7 +13,6 @@ import { radius, spacing } from "../theme/colors";
 
 type Group = { house: PantryHouse; lists: PantryList[] };
 
-// Embedded in the mode sheet: choosing a household is unnecessary for existing lists.
 export function PantryListPicker({ credentials, onDone, onBusyChange }: {
   credentials: NextcloudCredentials; onDone: () => void; onBusyChange: (busy: boolean) => void;
 }) {
@@ -78,7 +77,6 @@ export function PantryListPicker({ credentials, onDone, onBusyChange }: {
     try {
       const list = await api.createList(target.house.id, draft.trim());
       if (!current()) return;
-      // Keep an accepted creation selectable if copying the courses fails afterwards.
       setGroups((previous) => previous.map((group) => group.house.id === target.house.id ? { ...group, lists: [...group.lists, list] } : group));
       setCreating(false); setDraft("");
       await switchToPantry({ house: target.house, list });

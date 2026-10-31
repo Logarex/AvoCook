@@ -1,6 +1,14 @@
 # Privacidad y datos
 
-Actualizado: 14 de octubre de 2026. AvoCook no incluye publicidad ni herramientas de análisis. Algunas funciones usan los servicios de red descritos a continuación.
+Actualizado: 31 de octubre de 2026. AvoCook no incluye publicidad ni herramientas de análisis. Algunas funciones usan los servicios de red descritos a continuación.
+
+## Mi cocina, voz y avisos locales
+
+Planes, existencias, fechas, notas personales, etiquetas alimentarias, menús e historial se guardan localmente y separados por cuenta de recetas. Las notas privadas no se publican ni se incluyen en libros PDF. La copia completa de Mi cocina incluye estos datos y recetas; la copia habitual de recetas no incluye datos de Mi cocina.
+
+Los comandos de cocina opcionales solicitan permisos de micrófono y reconocimiento de voz. Solo se usa un reconocedor local compatible, sin alternativa en red. AvoCook no guarda audio ni transcripciones. La escucha se detiene al salir del modo cocina o pasar a segundo plano.
+
+Los avisos de existencias opcionales se programan en el dispositivo. Los nombres de productos pueden mostrarse en la pantalla bloqueada según los ajustes. Los ingredientes generados usan el modo de compra elegido, incluido el uso compartido o la sincronización con Recordatorios de Apple activados.
 
 ## Recetas, Nextcloud y copias de seguridad
 
@@ -24,6 +32,8 @@ La importación y generación con IA son opcionales y envían la foto selecciona
 
 La traducción automática de recetas de la comunidad envía su texto a Google Translate y, si falla, a MyMemory. No usa tu clave API de IA. Las recetas cargadas y las traducciones se guardan para leerlas sin conexión. Los proveedores procesan las solicitudes según sus propias condiciones y políticas de privacidad.
 
+El asistente opcional del frigorífico envía una foto solo al elegir Analizar y los ingredientes confirmados y las preferencias visibles solo al elegir Generar. AvoCook no adjunta la foto a la receta ni la guarda en los datos de Mi cocina. Guardar el borrador editable es una acción separada que sigue los ajustes habituales de almacenamiento y sincronización. Tu proveedor puede cobrar estas solicitudes.
+
 ## Recordatorios de Apple, actualizaciones y diagnóstico
 
 Si la activas, la sincronización de compras lee y escribe en Recordatorios. Apple puede sincronizar los productos a través de tu cuenta, incluidas listas compartidas de iCloud, según tus ajustes.
@@ -31,6 +41,16 @@ Si la activas, la sincronización de compras lee y escribe en Recordatorios. App
 Las instalaciones Android mediante APK consultan las versiones en GitHub. Las instalaciones de una tienda reciben sus actualizaciones por esa tienda. Abrir enlaces de recetas, ayuda o proveedores contacta con el destino elegido.
 
 Los registros de diagnóstico son locales. Las claves y contraseñas se ocultan, pero pueden quedar datos personales. Revisa los informes antes de copiarlos o compartirlos. No se envían automáticamente.
+
+## Búsqueda por código de barras
+
+La búsqueda por código de barras envía el código y el idioma a Open Food Facts. No envía imágenes de cámara, alimentos guardados ni fechas. Los nombres, cantidades, valores nutricionales y puntuaciones disponibles se guardan localmente con atribución bajo ODbL.
+
+## Avisos de listas compartidas
+
+Al activar avisos de una lista AvoCook, un relé Cloudflare Workers recibe el token push del dispositivo y comprueba la identidad Firebase y el acceso a la lista. Las listas permanecen en Firebase. Cloudflare D1 guarda identificadores técnicos de artículos, versiones, idioma, identificadores de instalación y tokens push, sin nombres de productos. Una tarea busca cambios pendientes con una cuenta de servicio Google de solo lectura. No se envían credenciales Nextcloud.
+
+Los mensajes genéricos pasan por Expo Push y Apple o Google, incluso con la app cerrada, sin nombres de productos. Desactivar los avisos o salir de la lista elimina el registro en la siguiente conexión. Los registros caducan tras 90 días sin renovación y los envíos se borran tras dos días. Los temporizadores y avisos de caducidad se programan en el dispositivo.
 
 ## Contacto
 

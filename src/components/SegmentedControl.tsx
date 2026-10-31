@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, useWindowDimensions } from "react-native";
+import { Pressable, StyleSheet, useWindowDimensions, View } from "react-native";
 import { selectionFeedback } from "../features/accessibility/haptics";
 import { radius, spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -13,6 +13,7 @@ type SegmentedOption<T extends string> = {
 
 type SegmentedControlProps<T extends string> = {
   options: SegmentedOption<T>[];
+  variant?: "native" | "buttons";
   value: T;
   onChange: (value: T) => void;
 };
@@ -21,12 +22,13 @@ export function SegmentedControl<T extends string>({
   options,
   value,
   onChange,
+  variant = "native",
 }: SegmentedControlProps<T>) {
   const { colors } = useAppTheme();
   const { isDark } = useAppTheme();
   const { fontScale } = useWindowDimensions();
   const nativeUI = useNativeControls();
-  if (nativeUI && fontScale <= 1.3) {
+  if (variant === "native" && nativeUI && fontScale <= 1.3) {
     const { Host, Picker, Text } = nativeUI.views;
     const { pickerStyle, tag, tint } = nativeUI.modifiers;
     return (
@@ -57,8 +59,9 @@ export function SegmentedControl<T extends string>({
       </Host>
     );
   }
+  const Container = variant === "buttons" ? View : GlassSurface;
   return (
-    <GlassSurface style={styles.container}>
+    <Container style={variant === "buttons" ? styles.buttons : styles.container}>
       {options.map((option) => {
         const selected = option.value === value;
         return (
@@ -75,8 +78,9 @@ export function SegmentedControl<T extends string>({
             }}
             style={({ pressed }) => [
               styles.option,
+              variant === "buttons" && { flex: options.length > 3 ? undefined : 1, flexBasis: options.length > 3 ? "47%" : undefined, flexGrow: 1, minWidth: 0, borderRadius: 14, borderWidth: 1, borderColor: selected ? colors.primary : colors.border },
               {
-                backgroundColor: selected ? colors.chip : "transparent",
+                backgroundColor: variant === "buttons" ? (selected ? colors.primary : colors.backgroundElevated) : (selected ? colors.chip : "transparent"),
                 opacity: pressed ? 0.7 : 1,
               },
             ]}
@@ -86,7 +90,7 @@ export function SegmentedControl<T extends string>({
               variant="label"
               style={[
                 styles.optionLabel,
-                { color: selected ? colors.primaryStrong : colors.text },
+                { color: selected ? (variant === "buttons" ? colors.textInverted : colors.primaryStrong) : colors.text },
               ]}
             >
               {option.label}
@@ -94,11 +98,12 @@ export function SegmentedControl<T extends string>({
           </Pressable>
         );
       })}
-    </GlassSurface>
+    </Container>
   );
 }
 
 const styles = StyleSheet.create({
+  buttons: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   native: { height: 48, alignSelf: "stretch" },
   container: {
     borderRadius: radius.pill,

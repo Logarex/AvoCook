@@ -3,6 +3,7 @@ package app.avocook.timernotifications
 import android.Manifest
 import android.content.Context
 import android.os.Build
+import android.os.Bundle
 import android.util.Log
 import expo.modules.interfaces.permissions.PermissionsResponseListener
 import expo.modules.interfaces.permissions.PermissionsStatus
@@ -17,6 +18,10 @@ class AvoCookTimerNotificationsModule : Module() {
     private const val TAG = "AvoCookTimers"
   }
 
+  private var observing = false
+  private val pendingStops = mutableListOf<Bundle>()
+  private var permissionPromise: Promise? = null
+
   private val context: Context
     get() = appContext.reactContext ?: throw Exceptions.ReactContextLost()
 
@@ -25,12 +30,28 @@ class AvoCookTimerNotificationsModule : Module() {
 
     Events("timerStop")
 
-    OnCreate {
+    OnStartObserving {
+      observing = true
       emitStopEventFromCurrentIntent()
+      pendingStops.forEach { sendEvent("timerStop", it) }
+      pendingStops.clear()
+    }
+    OnStopObserving { observing = false }
+
+    OnActivityEntersForeground {
+      permissionPromise?.let { promise ->
+        permissionPromise = null
+        promise.resolve(TimerNotificationScheduler.getState(context))
+      }
+    }
+
+    OnDestroy {
+      permissionPromise?.resolve("unavailable")
+      permissionPromise = null
     }
 
     OnNewIntent { intent ->
-      stopEventFromIntent(intent)?.let { sendEvent("timerStop", it) }
+      stopEventFromIntent(intent)?.let { if (observing) sendEvent("timerStop", it) else pendingStops.add(it) }
     }
 
     AsyncFunction("configureTimerNotifications") { stopActionTitle: String, channelName: String ->
@@ -73,15 +94,13 @@ class AvoCookTimerNotificationsModule : Module() {
 
   private fun requestPermission(promise: Promise) {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-      TimerNotificationScheduler.requestExactAlarmSettingsIfNeeded(context)
-      promise.resolve(TimerNotificationScheduler.getState(context))
+      finishPermissionRequest(promise)
       return
     }
 
     val permissions = appContext.permissions ?: run {
       Log.w(TAG, "Expo permissions service is unavailable.")
-      TimerNotificationScheduler.requestExactAlarmSettingsIfNeeded(context)
-      promise.resolve(TimerNotificationScheduler.getState(context))
+      finishPermissionRequest(promise)
       return
     }
 
@@ -93,15 +112,23 @@ class AvoCookTimerNotificationsModule : Module() {
           return@PermissionsResponseListener
         }
 
-        TimerNotificationScheduler.requestExactAlarmSettingsIfNeeded(context)
-        promise.resolve(TimerNotificationScheduler.getState(context))
+        finishPermissionRequest(promise)
       },
       Manifest.permission.POST_NOTIFICATIONS
     )
   }
 
+  private fun finishPermissionRequest(promise: Promise) {
+    if (permissionPromise != null) { promise.resolve("denied"); return }
+    permissionPromise = promise
+    if (!TimerNotificationScheduler.requestExactAlarmSettingsIfNeeded(context)) {
+      permissionPromise = null
+      promise.resolve(TimerNotificationScheduler.getState(context))
+    }
+  }
+
   private fun emitStopEventFromCurrentIntent() {
     val intent = appContext.currentActivity?.intent
-    stopEventFromIntent(intent)?.let { sendEvent("timerStop", it) }
+    stopEventFromIntent(intent)?.let { if (observing) sendEvent("timerStop", it) else pendingStops.add(it) }
   }
 }

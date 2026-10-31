@@ -20,10 +20,12 @@ type PrimaryButtonProps = {
   label: string;
   onPress: () => void;
   icon?: LucideIcon;
-  variant?: "primary" | "secondary" | "ghost" | "danger" | "danger-secondary";
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "danger-secondary" | "link";
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   numberOfLines?: number;
+  compact?: boolean;
+  fillAvailableSpace?: boolean;
 };
 
 export function PrimaryButton({
@@ -34,6 +36,8 @@ export function PrimaryButton({
   disabled = false,
   style,
   numberOfLines = 2,
+  compact = false,
+  fillAvailableSpace = false,
 }: PrimaryButtonProps) {
   const { colors } = useAppTheme();
   const reducedMotion = useReducedMotion();
@@ -50,9 +54,7 @@ export function PrimaryButton({
       ? colors.textInverted
       : variant === "danger-secondary"
         ? colors.danger
-        : variant === "secondary"
-          ? colors.primaryStrong
-          : colors.text;
+        : colors.primaryStrong;
 
   const content = (
     <View
@@ -74,11 +76,14 @@ export function PrimaryButton({
     </View>
   );
 
-  const plain = variant === "ghost" || variant === "danger-secondary";
-  if (nativeUI && !plain && !disabled) {
+  const plain = variant === "ghost" || variant === "danger-secondary" || variant === "link";
+  // SwiftUI's intrinsic measurement does not expand reliably inside flex rows.
+  // Keep the native glass surface, with React Native owning the flexible layout.
+  if (nativeUI && !plain && !disabled && !fillAvailableSpace) {
     return (
       <NativeGlassButton
         ui={nativeUI}
+        fitContent={compact}
         label={label}
         onPress={onPress}
         disabled={disabled}
@@ -101,11 +106,25 @@ export function PrimaryButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        disabled && !plain
+        compact && { flexShrink: 1 },
+        variant === "link" && { minHeight: 44, paddingHorizontal: 4, paddingVertical: 4 },
+        plain && variant !== "link" && {
+          backgroundColor:
+            pressed || variant === "danger-secondary"
+              ? colors.backgroundElevated
+              : colors.chip,
+          borderColor:
+            variant === "danger-secondary" ? colors.danger : colors.primary,
+          borderWidth: 1,
+        },
+        !plain && !disabled && variant === "secondary"
+          ? { borderColor: colors.primary, borderWidth: 1 }
+          : undefined,
+        disabled
           ? {
-              backgroundColor: colors.background,
-              borderColor: colors.border,
-              borderWidth: StyleSheet.hairlineWidth,
+              backgroundColor: colors.backgroundElevated,
+              borderColor: colors.textMuted,
+              borderWidth: 1,
             }
           : undefined,
         {

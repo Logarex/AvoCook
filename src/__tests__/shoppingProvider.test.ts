@@ -3,6 +3,7 @@ import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ShoppingListProvider, useShoppingList } from "../features/shopping/ShoppingListProvider";
 import { PantryClient } from "../features/pantry/pantryClient";
+vi.mock("react-native", () => ({ AppState: { addEventListener: () => ({ remove: vi.fn() }) } }));
 const mocks = vi.hoisted(() => ({
   auth: { credentials: { serverUrl: "https://cloud.example", username: "alice", appPassword: "test-only" }, hydrated: true },
   storage: new Map<string, string>(), local: [] as unknown[], push: vi.fn(), subscribe: vi.fn(() => vi.fn()), reminders: vi.fn(async () => {}), pull: vi.fn(async () => null as import("../features/shopping/remindersSync").PullResult | null), mappings: vi.fn(async () => {}), enabled: [] as boolean[]
@@ -20,7 +21,7 @@ vi.mock("../features/shopping/useRemindersSync", () => ({ useRemindersSync: (ena
 } }));
 vi.mock("../features/shopping/remindersSync", () => ({ registerReminderMappings: mocks.mappings }));
 vi.mock("../features/shopping/sharedListClient", () => ({ createSharedList: vi.fn(async () => "AVQC42"), joinSharedListWithItems: vi.fn(), schedulePush: mocks.push, subscribeToSharedList: mocks.subscribe, cancelPush: vi.fn(), leaveSharedList: vi.fn(async () => {}), flushSharedListPush: vi.fn(async () => {}), getDeviceId: vi.fn() }));
-vi.mock("../features/timers/timerNotifications", () => ({ scheduleTimerNotification: vi.fn() }));
+vi.mock("../features/shopping/shoppingPushNotifications", () => ({ useShoppingPushNotifications: vi.fn() }));
 vi.mock("../i18n", () => ({ default: { t: (key: string) => key } }));
 let screen: ReactTestRenderer;
 let current!: ReturnType<typeof useShoppingList>;

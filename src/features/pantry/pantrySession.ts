@@ -39,14 +39,11 @@ export function pantryPermissions(selection: PantrySelection | null) {
     const { house, list } = selection;
     if (house.isAdmin) return true;
     if (list.sharedOnly && !list.canEdit) return false;
-    // Older Pantry releases do not expose granular permissions.
     return house.permissions ? house.permissions[capability] === true : list.canEdit !== false;
   };
   return { add: allowed("canAddItems"), check: allowed("canCheckItems"), edit: allowed("canEditLists"), delete: allowed("canDeleteItems") };
 }
 
-// Owns one account's view. Requests are serialized, never replayed automatically.
-// No changes are made to the local shopping list or its existing sync providers.
 export class PantrySession {
   private state: PantryState = {
     ready: false, busy: false, view: "welcome", houses: [], house: null, lists: [],
@@ -90,7 +87,6 @@ export class PantrySession {
       await this.storage.save({ selection: this.state.selection, items: this.state.items, refreshedAt: this.state.refreshedAt });
       this.patch({ cacheWarning: false });
     } catch {
-      // A successful server edit stays successful even when device storage is full.
       this.patch({ cacheWarning: true });
     }
   }
@@ -135,7 +131,6 @@ export class PantrySession {
     if (!house || !name.trim()) return;
     const list = await this.client.createList(house.id, name);
     if (this.disposed) return;
-    // Keep the newly created list selectable if the following read fails.
     this.patch({ lists: [...this.state.lists, list] });
     await this.fetchSelection({ house, list });
     this.patch({ view: "items" });
@@ -148,7 +143,6 @@ export class PantrySession {
     this.patch({ error: null, view: this.state.view === "lists" ? "houses" : this.state.selection ? "items" : "welcome" });
   }
   disconnect = () => this.run(async () => {
-    // A disconnect removes only AvoCook's link/cache; never delete Pantry content.
     await this.storage.clear();
     this.patch({ selection: null, items: [], refreshedAt: null, fresh: false, view: "welcome", cacheWarning: false });
   });
@@ -203,7 +197,6 @@ export class PantrySession {
   });
   transfer = (localItems: ShoppingListItem[]) => this.run(async () => {
     const selection = this.writableSelection("add");
-    // Read before sending, including on retry after a partial/ambiguous POST failure.
     await this.fetchSelection(selection);
     const { house, list } = this.writableSelection("add");
     const existing = new Set(this.state.items.filter((item) => !item.done).map((item) => labelKey(pantryItemLabel(item))));

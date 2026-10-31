@@ -1,6 +1,14 @@
 # Privacy e dati
 
-Aggiornamento: 14 ottobre 2026. AvoCook non contiene pubblicità né strumenti di analisi. Alcune funzioni usano i servizi di rete descritti qui sotto.
+Aggiornamento: 31 ottobre 2026. AvoCook non contiene pubblicità né strumenti di analisi. Alcune funzioni usano i servizi di rete descritti qui sotto.
+
+## La mia cucina, voce e promemoria locali
+
+Piani pasti, scorte, date, voti, note personali, etichette alimentari, menu e cronologia sono salvati localmente e separati per account di ricette. Le note private non sono pubblicate né incluse nei libri PDF. Il backup completo della cucina include questi dati e le ricette; il normale backup delle ricette non include i dati della cucina.
+
+I comandi di cucina facoltativi richiedono permessi per microfono e riconoscimento vocale. Si usa solo un riconoscitore locale supportato, senza alternativa di rete. AvoCook non salva audio né trascrizioni. L’ascolto termina uscendo dalla modalità cucina o passando in background.
+
+I promemoria delle scorte facoltativi sono programmati sul dispositivo. I nomi dei prodotti possono apparire sullo schermo bloccato secondo le impostazioni. Gli ingredienti generati usano la modalità spesa scelta, inclusa la condivisione o la sincronizzazione con Promemoria Apple attivate.
 
 ## Ricette, Nextcloud e backup
 
@@ -24,6 +32,8 @@ L’importazione e la generazione con IA sono facoltative e inviano la foto sele
 
 La traduzione automatica delle ricette della community invia il testo a Google Translate e, in caso di errore, a MyMemory. Non usa la tua chiave API IA. Le ricette caricate e le traduzioni riuscite vengono salvate per la lettura offline. I fornitori elaborano le richieste secondo le proprie condizioni e informative sulla privacy.
 
+L’assistente frigo facoltativo invia una foto solo scegliendo Analizza, poi gli ingredienti confermati e le preferenze visibili solo scegliendo Genera. La foto non viene allegata alla ricetta né salvata nei dati di La mia cucina. Salvare la bozza modificabile è un’azione separata che segue le normali impostazioni di archiviazione e sincronizzazione. Il tuo fornitore può addebitare queste richieste.
+
 ## Promemoria Apple, aggiornamenti e diagnostica
 
 Se attivata, la sincronizzazione della spesa legge e scrive in Promemoria. Apple può sincronizzare gli articoli tramite il tuo account, comprese le liste iCloud condivise, secondo le impostazioni.
@@ -31,6 +41,16 @@ Se attivata, la sincronizzazione della spesa legge e scrive in Promemoria. Apple
 Le installazioni Android tramite APK cercano le versioni su GitHub. Quelle da uno store ricevono gli aggiornamenti dallo store. Aprire un link di ricetta, assistenza o fornitore contatta la relativa destinazione.
 
 I registri diagnostici restano locali. I dati di accesso vengono mascherati, ma possono rimanere informazioni personali. Controlla i rapporti prima di copiarli o condividerli. Non vengono inviati automaticamente.
+
+## Ricerca tramite codice a barre
+
+La ricerca per codice a barre invia codice e lingua a Open Food Facts. Immagini della fotocamera, scorte e date non vengono trasmesse. Nomi, quantità, valori nutrizionali e punteggi disponibili sono salvati localmente con attribuzione sotto ODbL.
+
+## Notifiche delle liste condivise
+
+Attivando le notifiche di una lista AvoCook, un relè Cloudflare Workers riceve il token push del dispositivo e verifica identità Firebase e accesso alla lista. Le liste restano in Firebase. Cloudflare D1 conserva identificatori tecnici degli articoli, versioni, lingua, identificatori di installazione e token push, senza nomi dei prodotti. Un processo cerca modifiche non segnalate con un account di servizio Google in sola lettura. Non vengono inviate credenziali Nextcloud.
+
+I messaggi generici passano tramite Expo Push e Apple o Google, anche con l’app chiusa, senza nomi dei prodotti. Disattivare le notifiche o lasciare la lista rimuove la registrazione alla connessione successiva. Le registrazioni scadono dopo 90 giorni senza rinnovo; i dati degli invii vengono eliminati dopo due giorni. Timer e promemoria di scadenza sono programmati sul dispositivo.
 
 ## Contatti
 

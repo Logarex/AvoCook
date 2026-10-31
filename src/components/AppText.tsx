@@ -6,6 +6,7 @@ import {
   Text,
   TextProps,
   TextStyle,
+  useWindowDimensions,
 } from "react-native";
 import { parseMarkdown } from "../features/markdown/markdown";
 import { useAppTheme } from "../theme/ThemeProvider";
@@ -27,6 +28,7 @@ export function AppText({
   ...props
 }: AppTextProps) {
   const { colors } = useAppTheme();
+  const { fontScale } = useWindowDimensions();
   const nodes = React.useMemo(
     () =>
       markdown && typeof children === "string"
@@ -34,12 +36,12 @@ export function AppText({
         : null,
     [markdown, children],
   );
-  // Android Fabric ignores minimumFontScale and can shrink text to 4px.
   const adjustsFontSizeToFit =
     Platform.OS !== "android" && (props.adjustsFontSizeToFit ?? false);
 
   return (
     <Text
+      key={fontScale}
       {...props}
       adjustsFontSizeToFit={adjustsFontSizeToFit}
       minimumFontScale={props.minimumFontScale ?? 0.85}

@@ -1,5 +1,5 @@
 import { ArrowLeft } from "lucide-react-native";
-import React from "react";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { StyleSheet, View } from "react-native";
 import { spacing } from "../theme/colors";
@@ -12,13 +12,18 @@ export function ScreenHeader({
   actions,
 }: {
   title?: string;
-  onBack: () => void;
+  onBack?: () => void;
   actions?: React.ReactNode;
 }) {
   const { t } = useTranslation();
+  const [actionWidth, setActionWidth] = useState(44);
   return (
     <View style={styles.header}>
-      <IconButton icon={ArrowLeft} label={t("common.back")} onPress={onBack} />
+      {onBack ? (
+        <IconButton icon={ArrowLeft} label={t("common.back")} onPress={onBack} />
+      ) : (
+        <View style={[styles.backPlaceholder, { width: actionWidth }]} />
+      )}
       {title ? (
         <AppText
           accessibilityRole="header"
@@ -31,7 +36,7 @@ export function ScreenHeader({
       ) : (
         <View style={styles.title} />
       )}
-      <View style={styles.actions}>{actions}</View>
+      <View style={styles.actions} onLayout={(event) => setActionWidth(Math.max(44, event.nativeEvent.layout.width))}>{actions}</View>
     </View>
   );
 }
@@ -45,6 +50,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
+  backPlaceholder: { width: 44 },
   title: {
     flex: 1,
     minWidth: 0,

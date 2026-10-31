@@ -12,6 +12,7 @@ const mocks = vi.hoisted(() => ({
   recipe: null as CommunityRecipe | null,
 }));
 vi.mock("react-native", () => ({
+  useWindowDimensions: () => ({ width: 390, height: 844, fontScale: 1, scale: 3 }),
   View: "View",
   Text: "Text",
   ScrollView: "ScrollView",

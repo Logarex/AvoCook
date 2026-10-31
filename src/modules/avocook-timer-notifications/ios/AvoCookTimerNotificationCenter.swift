@@ -1,4 +1,5 @@
 import ExpoModulesCore
+import ExpoNotifications
 import Foundation
 import UserNotifications
 
@@ -10,6 +11,8 @@ public final class AvoCookTimerNotificationCenter: NSObject, UNUserNotificationC
   public static let shared = AvoCookTimerNotificationCenter()
 
   weak var module: AvoCookTimerNotificationsModule?
+  private weak var previousDelegate: UNUserNotificationCenterDelegate?
+  var observing = false
   private var pendingStopEvents: [[String: Any?]] = []
 
   private override init() {
@@ -17,11 +20,11 @@ public final class AvoCookTimerNotificationCenter: NSObject, UNUserNotificationC
   }
 
   func installDelegate() {
+    let manager = NotificationCenterManager.shared
     let center = UNUserNotificationCenter.current()
-    if center.delegate == nil || center.delegate === self {
+    if center.delegate !== self {
+      previousDelegate = center.delegate ?? manager
       center.delegate = self
-    } else {
-      NSLog("[AvoCook] UNUserNotificationCenter already has a delegate; timer notifications may not emit stop events.")
     }
   }
 
@@ -40,11 +43,16 @@ public final class AvoCookTimerNotificationCenter: NSObject, UNUserNotificationC
       options: []
     )
 
-    UNUserNotificationCenter.current().setNotificationCategories([category])
+    let center = UNUserNotificationCenter.current()
+    center.getNotificationCategories { categories in
+      var merged = categories.filter { $0.identifier != timerCategoryIdentifier }
+      merged.insert(category)
+      center.setNotificationCategories(merged)
+    }
   }
 
   func emitPendingStopEvents() {
-    guard let module else {
+    guard observing, let module else {
       return
     }
 
@@ -57,8 +65,11 @@ public final class AvoCookTimerNotificationCenter: NSObject, UNUserNotificationC
     willPresent notification: UNNotification,
     withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
   ) {
-    guard notification.request.identifier.hasPrefix(timerNotificationPrefix) else {
-      completionHandler([])
+    guard notification.request.identifier.hasPrefix(timerNotificationPrefix) || notification.request.identifier.hasPrefix("avocook-stock:") else {
+      if let delegate = previousDelegate,
+        delegate.responds(to: #selector(userNotificationCenter(_:willPresent:withCompletionHandler:))) {
+        delegate.userNotificationCenter?(center, willPresent: notification, withCompletionHandler: completionHandler)
+      } else { completionHandler([]) }
       return
     }
 
@@ -74,7 +85,20 @@ public final class AvoCookTimerNotificationCenter: NSObject, UNUserNotificationC
     didReceive response: UNNotificationResponse,
     withCompletionHandler completionHandler: @escaping () -> Void
   ) {
+    if !response.notification.request.identifier.hasPrefix(timerNotificationPrefix) &&
+       !response.notification.request.identifier.hasPrefix("avocook-stock:") {
+      if let delegate = previousDelegate,
+        delegate.responds(to: #selector(userNotificationCenter(_:didReceive:withCompletionHandler:))) {
+        delegate.userNotificationCenter?(center, didReceive: response, withCompletionHandler: completionHandler)
+      } else { completionHandler() }
+      return
+    }
     defer { completionHandler() }
+
+    if response.notification.request.identifier.hasPrefix("avocook-stock:") {
+      AvoCookKitchenModule.openStockReminder()
+      return
+    }
 
     guard response.actionIdentifier == stopActionIdentifier else {
       return
@@ -94,7 +118,7 @@ public final class AvoCookTimerNotificationCenter: NSObject, UNUserNotificationC
       "timerId": timerId
     ]
 
-    if let module {
+    if observing, let module {
       module.sendEvent("timerStop", event)
     } else {
       pendingStopEvents.append(event)

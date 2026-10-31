@@ -1,3 +1,6 @@
+import { useAdaptiveLayout } from "../hooks/useAdaptiveLayout";
+import { useKitchen } from "../features/kitchen/KitchenProvider";
+import { matchesDietPreference, matchesFoodPreferences } from "../features/kitchen/kitchen";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import {
   AlertTriangle,
@@ -21,10 +24,9 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { markdownToPlainText } from "../features/markdown/markdown";
 import { spacing } from "../theme/colors";
-import { getTabBarContentInset } from "../utils/safeArea";
+import { useNavigationContentInset } from "../hooks/useNavigationContentInset";
 import { AddRecipeModal } from "./recipeList/AddRecipeModal";
 import { CategoryChip } from "./recipeList/CategoryChip";
 import { CategoryEditorModal } from "./recipeList/CategoryEditorModal";
@@ -80,10 +82,11 @@ type CategoryOption = {
 };
 
 export function RecipeListScreen({ navigation }: Props) {
+  const kitchen = useKitchen();
   const { t } = useTranslation();
-  const insets = useSafeAreaInsets();
   const { fontScale, width } = useWindowDimensions();
-  const columns = Math.min(width, 1120) >= 760 && fontScale < 1.5 ? 2 : 1;
+  const navigationContentInset = useNavigationContentInset(fontScale);
+  const { columns } = useAdaptiveLayout();
   const { colors } = useAppTheme();
   const { watchLongAction } = useLongActionToast();
   const { credentials, getClient, isLocalMode } = useAuth();
@@ -211,6 +214,7 @@ export function RecipeListScreen({ navigation }: Props) {
   const filteredRecipes = useMemo(() => {
     const normalizedQuery = normalizeSearchText(query);
     const matchingRecipes = recipes.filter((recipe) => {
+      if (!matchesDietPreference(recipe.id, kitchen.data) || !matchesFoodPreferences(recipe, kitchen.data.excludedWords)) return false;
       const recipeCategory = recipe.recipeCategory.trim();
       const matchesCategory =
         category === null ||
@@ -241,7 +245,7 @@ export function RecipeListScreen({ navigation }: Props) {
         )
       );
     });
-  }, [category, query, recipes]);
+  }, [category, query, recipes, kitchen.data]);
 
   const alphabet = useMemo(() => {
     const letters = new Set<string>();
@@ -468,7 +472,7 @@ export function RecipeListScreen({ navigation }: Props) {
   return (
     <PageSwipeGesture
       onSwipeLeft={() =>
-        navigation.navigate("Community", { tabTransition: "slide_from_right" })
+        navigation.navigate("Kitchen", { tabTransition: "slide_from_right" })
       }
     >
       <Screen
@@ -529,6 +533,7 @@ export function RecipeListScreen({ navigation }: Props) {
           </View>
         </View>
 
+        {(!!kitchen.data.excludedWords || !!kitchen.data.dietaryPreference) && <PrimaryButton label={t("kitchen.profileActive")} variant="ghost" onPress={() => navigation.navigate("Kitchen", { section: "profiles" })} />}
         <View style={styles.searchRow}>
           <SearchField
             onChangeText={setQuery}
@@ -576,7 +581,7 @@ export function RecipeListScreen({ navigation }: Props) {
           showsHorizontalScrollIndicator={false}
           style={[
             styles.categoryScroller,
-            { height: Math.max(52, 22 * fontScale + 16) },
+            { height: Math.max(44, 22 * fontScale + 12) },
           ]}
           contentContainerStyle={styles.categoryList}
         >
@@ -736,10 +741,7 @@ export function RecipeListScreen({ navigation }: Props) {
               contentContainerStyle={[
                 styles.listContent,
                 {
-                  paddingBottom: getTabBarContentInset(
-                    insets.bottom,
-                    fontScale,
-                  ),
+                  paddingBottom: navigationContentInset,
                 },
                 { paddingRight: spacing.md },
               ]}

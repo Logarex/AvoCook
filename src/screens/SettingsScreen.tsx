@@ -146,11 +146,9 @@ export function SettingsScreen({ navigation, route }: Props) {
     setLocalImageFolder(nextcloudImageFolder);
   }, [nextcloudImageFolder]);
 
-  // Reserve pseudonyms created before uniqueness checks were introduced.
   React.useEffect(() => {
     if (section !== "account" || !communityPseudonym) return;
     void reservePseudonym(communityPseudonym).catch(() => {
-      // Validate reservation errors again when saving.
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -520,7 +518,6 @@ export function SettingsScreen({ navigation, route }: Props) {
 
   return (
     <Screen
-      showScrollTop={false}
       contentWidth={640}
       header={
         <ScreenHeader

@@ -6,11 +6,11 @@ AvoCook has one active shopping list, with one backend at a time:
 - **AvoCook sharing**: the existing Firebase sharing system and six-character invitation code.
 - **Nextcloud Pantry**: a household list on the connected Nextcloud server. Pantry replaces the list displayed in the Shopping tab; additions from recipes and list edits go directly there. Firebase sharing does not receive Pantry updates. On Apple devices, the optional Apple Reminders sync works with all three modes.
 
-Open **Shopping → Shopping list mode**, or the same control in Settings. The mode button has the same appearance and action in all modes; the Pantry list name sits beside it. The separate people shortcut has been removed: AvoCook sharing is configured by choosing that mode, and Apple Reminders controls are available directly in the common mode menu. Existing Firebase connections are restored when upgrading. An old standalone Pantry cache does not silently activate Pantry.
+Open **Shopping → Shopping list mode**, or the same control in Settings. The mode button has the same appearance and action in all modes; the Pantry list name sits beside it. AvoCook sharing is configured by choosing that mode, and Apple Reminders controls are available directly in the common mode menu. Existing Firebase connections are restored when upgrading. An old standalone Pantry cache does not silently activate Pantry.
 
 ## Switching modes
 
-All modes use the same Shopping screen, rows, item input and navigation. Choose a mode in a single sheet; Pantry lists load immediately, grouped by household, and selecting a list carries the current courses over. Creating a list is optional; the household choice is only shown when creating a list in an account with multiple households. Back returns to the mode choices inside the same sheet; closing cancels configuration. No Pantry screen is added to the navigation stack.
+All modes use the same Shopping screen, rows, item input and navigation. Choose a mode in a single sheet; Pantry lists load immediately, grouped by household, and selecting a list carries the current courses over. Creating a list is optional; the household choice is only shown when creating a list in an account with multiple households. Back returns to the mode choices inside the same sheet; closing cancels configuration. Pantry uses the same Shopping screen.
 
 All current items are carried over, **including checked items**. Destination articles are preserved. Matching uses normalized label (including quantity), checked state and multiplicity, so intentional repeated entries are retained. Pantry descriptions receive recipe names. Moving back to local or into a Firebase share carries the active Pantry list, with quantities included in the labels.
 

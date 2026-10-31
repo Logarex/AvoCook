@@ -554,7 +554,6 @@ async function updateRecipeFromSource(
           recipe.id
         );
       } catch {
-        // Retry cleanup later; the source refresh already succeeded.
       }
     }
   }
@@ -1095,7 +1094,6 @@ async function reindexRecipes(client: CookbookClient) {
   try {
     await client.reindex();
   } catch {
-    // The recipe is already saved remotely; reindex refreshes its visibility.
   }
 }
 
@@ -1480,7 +1478,6 @@ async function deleteRemovedRecipeImagesFromNextcloud(
   try {
     await client.deleteCookbookRecipeImages(recipe.name);
   } catch {
-    // Remove recipe-folder images left behind by some Cookbook servers.
   }
 
   await reindexRecipes(client);

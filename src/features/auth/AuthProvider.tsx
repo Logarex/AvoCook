@@ -40,7 +40,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     async function loadAuth() {
-      // SecureStore can return null briefly after Android boot or unlock.
       const tryLoadCredentials = async (attempt: number): Promise<string | null> => {
         const stored = await SecureStore.getItemAsync(CREDENTIALS_KEY);
         if (stored === null && attempt < 2) {

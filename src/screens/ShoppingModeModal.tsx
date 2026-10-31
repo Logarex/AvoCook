@@ -23,7 +23,6 @@ export function ShoppingModeModal({
   initialStep = "modes",
 }: Props) {
   const { credentials } = useAuth();
-  // A dismissed sheet and a changed account always start with a fresh navigation state.
   return visible ? (
     <ModeSheet
       key={credentials ? pantryAccountKey(credentials) : "local"}

@@ -1,5 +1,5 @@
 import {
-  addIngredientsToShoppingList, clearCheckedShoppingListItems, moveShoppingListItem,
+  replaceGeneratedShoppingItems, addIngredientsToShoppingList, clearCheckedShoppingListItems, moveShoppingListItem,
   removeShoppingListItem, setShoppingListItemChecked, updateShoppingListItemLabel,
   type ShoppingListItem, type ShoppingListSource, type ShoppingListAddResult
 } from "./shoppingList";
@@ -48,8 +48,6 @@ export type ShoppingModeDependencies = {
   onSharedUpdate?: (previous: ShoppingListItem[], payload: Payload) => void;
 };
 
-// One persisted authority and one active transport. The source remains recoverable
-// until the destination data and mode have both been written successfully.
 export class ShoppingModeController {
   readonly accountKey: string | null;
   private state: ShoppingModeState = { mode: { kind: "local" }, items: [], loading: true, switching: false, sharedSyncing: false, sharedError: null, participantCount: null, pantry: null };
@@ -149,25 +147,22 @@ export class ShoppingModeController {
   }
   private async commit(mode: ShoppingMode, items: ShoppingListItem[], cache?: PantryCache) {
     this.assertActive();
-    // Never overwrite the old local list with another account's Pantry cache on logout.
     if (cache) await this.dependencies.pantryStorage.save(cache);
     this.assertActive();
     if (mode.kind !== "pantry") await this.dependencies.saveItems(items);
     this.assertActive();
-    await this.dependencies.saveMode(mode); // the single authoritative commit point
+    await this.dependencies.saveMode(mode);
     this.assertActive();
     this.stopFirebase(); this.stopPantry();
     this.patch({ mode, items, pantry: null, sharedSyncing: false, sharedError: null, participantCount: null, switching: false });
     if (mode.kind === "pantry") this.startPantry(cache);
     else if (mode.kind === "firebase") this.startFirebase(mode.code);
-    // Legacy keys cannot reactivate an old Firebase connection after a restart.
     await this.dependencies.clearLegacyCode().catch(() => undefined);
   }
   private async transition(prepare: (source: ShoppingListItem[]) => Promise<{ mode: ShoppingMode; items: ShoppingListItem[]; cache?: PantryCache }>) {
     if (this.state.loading || this.state.switching || this.queued) throw new Error("Shopping list busy");
     const oldMode = this.state.mode;
     this.patch({ switching: true, sharedError: null });
-    // Invalidate already queued snapshot callbacks before the first await.
     this.stopFirebase();
     let previousLocal: ShoppingListItem[] | null = null;
     let previousPantry: PantryCache | null = null;
@@ -185,8 +180,6 @@ export class ShoppingModeController {
         if (pantry.selection && pantry.refreshedAt) this.patch({ pantry, items: pantryShoppingItems({ selection: pantry.selection, items: pantry.items, refreshedAt: pantry.refreshedAt }) });
       }
       if (oldMode.kind === "firebase") {
-        // The current list is already saved on-device. Leaving an offline share
-        // must still allow local mode, just as before; carry these items forward.
         await this.dependencies.firebase.flush(oldMode.code, this.state.items).catch(() => { flushFailed = true; });
       }
       const source = this.state.items.map((item) => ({ ...item }));
@@ -249,7 +242,6 @@ export class ShoppingModeController {
       this.dependencies.onLocalItems?.(items);
       this.dependencies.onItems?.(items);
     }
-    // skipSync suppresses the echo to Apple, never the active shared backend.
     if (this.state.mode.kind === "firebase") {
       const generation = this.generation;
       this.dependencies.firebase.push(this.state.mode.code, items, () => { if (generation === this.generation) this.patch({ sharedError: "sync" }); });
@@ -266,8 +258,6 @@ export class ShoppingModeController {
         if (this.state.mode.kind === "pantry") {
           const item = this.pantryItem(current.id);
           const quantity = item.quantity?.trim();
-          // The reminder title includes quantity. Preserve the separate quantity
-          // when its prefix is unchanged; never prepend it twice after a rename.
           const retainsQuantity = quantity && incoming.label.startsWith(`${quantity} `);
           await this.requirePantry(this.session!.updateItem(item, {
             name: retainsQuantity ? incoming.label.slice(quantity.length + 1).trim() : incoming.label.trim(),
@@ -276,7 +266,6 @@ export class ShoppingModeController {
         } else await this.persist(updateShoppingListItemLabel(this.state.items, current.id, incoming.label), true);
       }
       if (permissions.check && incoming.checked !== before.checked && current.checked === before.checked) {
-        // Pantry's completion endpoint may repeat or delete the article.
         if (this.state.mode.kind === "pantry") await this.requirePantry(this.session!.toggleItem(this.pantryItem(current.id)));
         else await this.persist(setShoppingListItemChecked(this.state.items, current.id, incoming.checked), true);
       }
@@ -333,6 +322,12 @@ export class ShoppingModeController {
       added.push(...this.state.items.filter((item) => !before.has(item.id)));
     }
     return { added, items: this.state.items };
+  });
+  replaceGeneratedIngredients = (ingredients: string[], source: ShoppingListSource & { recipeId: string }): Promise<ShoppingListAddResult> => this.enqueue(async () => {
+    if (this.state.mode.kind !== "local") throw new Error("Generated list replacement requires local shopping mode");
+    const result = replaceGeneratedShoppingItems(this.state.items, ingredients, source, { createId: this.dependencies.createId });
+    await this.persist(result.items);
+    return result;
   });
   toggleItem = (id: string, options?: { skipSync?: boolean }) => this.enqueue(async () => {
     if (this.state.mode.kind === "pantry") return this.requirePantry(this.session!.toggleItem(this.pantryItem(id)));

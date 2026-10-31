@@ -1,6 +1,14 @@
 # Privacy and data
 
-Updated: 14 October 2026. AvoCook has no advertising or analytics tools. Some features use network services as described below.
+Updated: 31 October 2026. AvoCook has no advertising or analytics tools. Some features use network services as described below.
+
+## My kitchen, voice and local reminders
+
+Meal plans, stock, dates, personal ratings, notes, dietary labels, menus and cooking history are stored locally, separately for each recipe account. These private notes are excluded from community publishing and PDF cookbooks. The complete My kitchen backup includes this information and recipes; the usual recipe backup does not include My kitchen data.
+
+Optional cooking commands request microphone and speech permissions. Recognition runs only on a supported on-device recognizer; there is no network fallback. Audio and transcripts are not saved by AvoCook. Listening stops when the cooking screen closes or the app enters the background.
+
+Optional stock reminders are scheduled on the device. Product names may appear on the lock screen according to system settings. Generated ingredients use your selected shopping mode, including any sharing or Apple Reminders sync you enabled.
 
 ## Recipes, Nextcloud and backups
 
@@ -24,6 +32,8 @@ Optional AI scanning and generation send the selected photo or entered text to t
 
 Automatic community translation sends recipe text to Google Translate, with MyMemory as a fallback. It does not use your configured AI API key. Previously loaded community recipes and successful translations are cached on the device for offline reading. These providers process requests under their own terms and privacy policies.
 
+The optional fridge assistant sends a photo only when you choose Analyze, then sends the confirmed ingredient text and visible constraints only when you choose Generate. The photo is not attached to the recipe or saved in My kitchen data. Saving the editable recipe draft is a separate action and follows your normal storage and sync settings. Your configured provider may charge for these requests.
+
 ## Apple Reminders, updates and diagnostics
 
 If enabled, shopping sync reads and writes Apple Reminders. Apple may sync those items through your account, including shared iCloud lists, according to your settings.
@@ -31,6 +41,16 @@ If enabled, shopping sync reads and writes Apple Reminders. Apple may sync those
 Sideloaded Android installations check GitHub for releases. Store installations use their app store for updates. Opening a source, support or provider link contacts that destination.
 
 Diagnostic logs are stored locally. Secrets are masked, but a report may still contain personal details. Review reports before copying or sharing them; they are not sent automatically.
+
+## Barcode lookup
+
+Optional barcode lookup sends only the scanned or entered barcode and app language to Open Food Facts, which also receives normal network information such as your IP address. Camera frames stay on the device. Your inventory, storage locations and expiry dates are not sent. Product names and scores from Open Food Facts are stored locally with source attribution under ODbL; missing scores are left blank.
+
+## Shopping-list push notifications
+
+When notifications are enabled for a Firebase shared shopping list, AvoCook registers a device push token with a Cloudflare Workers relay. Shopping lists remain in Firebase. The relay checks the caller's Firebase identity and list access, reads list changes, and stores technical item identifiers, list versions, notification language, installation identifiers and push tokens in Cloudflare D1. It does not retain product names. A server task checks for missed changes once per minute using a read-only Google service account. No Nextcloud credentials are sent to this relay.
+
+The relay sends generic list-change notifications through Expo Push Service and Apple Push Notification service or Firebase Cloud Messaging, including when the app is closed. Product names are not included in push messages. Turning off shopping notifications or leaving the shared list removes the registration when the device next connects. Registrations expire after 90 days without refresh; delivery records are removed after two days. Local stock reminders and cooking timers are scheduled on the device.
 
 ## Contact
 

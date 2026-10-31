@@ -9,14 +9,11 @@ const PENDING_TRANSLATIONS = new Map<string, Promise<TranslationResult>>();
 const MAX_CACHE_ENTRIES = 500;
 const STORAGE_KEY = "community.translations.v1";
 const GOOGLE_MAX_BYTES = 1500;
-// MyMemory accepts at most 500 UTF-8 bytes per query.
 const MYMEMORY_MAX_BYTES = 450;
 const REQUEST_TIMEOUT_MS = 10000;
 const MAX_CONCURRENT_REQUESTS = 4;
 const DELIMITER = "\n---\n";
 const PROVIDER_ERROR = /MYMEMORY WARNING|QUERY LENGTH LIMIT|QUOTA EXCEEDED|INVALID KEY|RESPONSE STATUS 4|TOO MANY REQUESTS/i;
-// Some providers insert spaces inside or between the bytes of a UTF-8 escape.
-// Require a sequence of bytes to distinguish it from "40% de crème".
 const SPACED_URI_SEQUENCE = /%(?:[ \t\u00a0]*[0-9a-f]){2}(?:[ \t\u00a0]*%(?:[ \t\u00a0]*[0-9a-f]){2})+/i;
 const INCOMPLETE_URI_ESCAPE = /%\s*[a-f]\s*(?:%|$)/i;
 let cacheGeneration = 0;
@@ -41,7 +38,6 @@ export function hydrateTranslationCache(): Promise<void> {
         if (!TEXT_CACHE.has(entry[0])) TEXT_CACHE.set(entry[0], cleanTranslatedText(entry[1]));
       }
     } catch {
-      // Translations remain available without persistent storage.
     }
   })();
   return hydration;
@@ -53,7 +49,7 @@ function schedulePersist(): void {
     persistTimer = undefined;
     const raw = JSON.stringify([...TEXT_CACHE]);
     writes = writes.then(async () => {
-      try { await AsyncStorage.setItem(STORAGE_KEY, raw); } catch { /* Keep the memory cache. */ }
+      try { await AsyncStorage.setItem(STORAGE_KEY, raw); } catch {   }
     });
   }, 500);
 }
@@ -66,7 +62,7 @@ export function clearTranslationCache(): void {
   persistTimer = undefined;
   hydration = Promise.resolve();
   writes = writes.then(async () => {
-    try { await AsyncStorage.removeItem(STORAGE_KEY); } catch { /* Cache cleanup is best effort. */ }
+    try { await AsyncStorage.removeItem(STORAGE_KEY); } catch {   }
   });
 }
 
@@ -81,7 +77,6 @@ export function hasCorruptedText(item: string | CommunityRecipe): boolean {
 export function cleanTranslatedText(raw: string): string {
   if (!raw || PROVIDER_ERROR.test(raw)) return "";
   let text = raw;
-  // A percentage such as "40% de crème" is not a URI escape.
   text = text.replace(/%\s+2\s*0|%2\s+0/g, "%20");
   for (let i = 0; i < 3; i++) {
     const normalized = text.replace(new RegExp(SPACED_URI_SEQUENCE.source, "gi"), (match) => match.replace(/\s/g, ""));
@@ -213,7 +208,6 @@ function cacheKey(text: string, from: string, to: string): string {
 }
 
 function remember(text: string, from: string, to: string, result: TranslationResult, generation: number): void {
-  // Keep unchanged text retryable when a provider returns the source.
   if (generation !== cacheGeneration || !result.success || result.text === text) return;
   const key = cacheKey(text, from, to);
   TEXT_CACHE.delete(key);
@@ -321,7 +315,6 @@ export async function translateBatch(items: string[], fromLang: string, toLang: 
     .map((result) => result.text);
 }
 
-// Previews retain the source language for filtering.
 export function getCachedCommunityRecipePreviews(recipes: CommunityRecipe[], targetLang: string): CommunityRecipe[] {
   const target = resolveCommunityLanguage(targetLang);
   return recipes.map((recipe) => {

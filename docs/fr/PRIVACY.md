@@ -1,6 +1,14 @@
 # Confidentialité et données
 
-Mise à jour : 14 octobre 2026. AvoCook ne contient ni publicité ni outil d’analyse. Certaines fonctions utilisent les services réseau décrits ci-dessous.
+Mise à jour : 31 octobre 2026. AvoCook ne contient ni publicité ni outil d’analyse. Certaines fonctions utilisent les services réseau décrits ci-dessous.
+
+## Ma cuisine, voix et rappels locaux
+
+Planning, stocks, dates, notes personnelles, indications alimentaires, menus et historique sont conservés localement, séparément pour chaque compte de recettes. Les notes privées sont exclues des publications communautaires et des livres PDF. La sauvegarde complète de Ma cuisine contient ces informations et les recettes ; la sauvegarde habituelle des recettes ne contient pas les données de Ma cuisine.
+
+Les commandes vocales facultatives demandent les autorisations de microphone et de reconnaissance vocale. La reconnaissance utilise uniquement un moteur local compatible, sans relais réseau. AvoCook ne conserve ni son ni transcription. L’écoute cesse en quittant le mode cuisine ou lorsque l’app passe en arrière-plan.
+
+Les rappels de stocks facultatifs sont programmés sur l’appareil. Les noms des produits peuvent apparaître sur l’écran verrouillé selon les réglages système. Les ingrédients générés utilisent le mode de courses choisi, y compris le partage ou la synchronisation avec Rappels Apple activés.
 
 ## Recettes, Nextcloud et sauvegardes
 
@@ -24,6 +32,8 @@ L’analyse et la génération par IA, facultatives, transmettent la photo séle
 
 La traduction automatique des recettes communautaires transmet leur texte à Google Translate, puis à MyMemory en cas d’échec. Elle n’utilise pas votre clé API d’IA. Les recettes déjà chargées et les traductions réussies sont conservées sur l’appareil pour une lecture hors ligne. Ces fournisseurs traitent les requêtes selon leurs propres conditions et politiques de confidentialité.
 
+L’assistant frigo facultatif transmet une photo uniquement avec l’action Analyser, puis les ingrédients confirmés et les contraintes visibles uniquement avec l’action Générer. La photo n’est pas jointe à la recette ni enregistrée dans les données de Ma cuisine. Enregistrer le brouillon modifiable est une action distincte, suivant vos réglages habituels de stockage et de synchronisation. Votre fournisseur peut facturer ces requêtes.
+
 ## Rappels Apple, mises à jour et diagnostic
 
 Si vous l’activez, la synchronisation des courses lit et écrit dans Rappels. Apple peut synchroniser ces articles via votre compte, notamment les listes iCloud partagées, selon vos réglages.
@@ -31,6 +41,16 @@ Si vous l’activez, la synchronisation des courses lit et écrit dans Rappels. 
 Les installations Android par APK recherchent les versions sur GitHub. Les installations issues d’une boutique utilisent cette boutique pour les mises à jour. Ouvrir un lien de recette, d’assistance ou de fournisseur contacte le site concerné.
 
 Les journaux de diagnostic sont locaux. Les secrets sont masqués, mais des informations personnelles peuvent rester dans un rapport. Vérifiez-le avant de le copier ou de le partager. Aucun rapport n’est envoyé automatiquement.
+
+## Recherche par code-barres
+
+La recherche facultative par code-barres transmet uniquement le code scanné ou saisi et la langue de l’application à Open Food Facts, qui reçoit aussi les informations réseau habituelles comme votre adresse IP. Les images de la caméra restent sur l’appareil. Votre réserve, les lieux de rangement et les dates de péremption ne sont pas transmis. Les noms, quantités, valeurs nutritionnelles et scores provenant d’Open Food Facts sont conservés localement avec attribution sous ODbL ; les scores absents restent vides.
+
+## Notifications de courses partagées
+
+Si vous activez les notifications d’une liste partagée AvoCook, un relais Cloudflare Workers reçoit le jeton push du téléphone et vérifie votre identité Firebase et votre accès à la liste. Les listes restent dans Firebase. Cloudflare D1 conserve les identifiants techniques des éléments, versions de liste, langue, identifiants d’installation et jetons push ; les noms des produits ne sont pas conservés. Une tâche serveur recherche les changements manqués avec un compte Google en lecture seule. Aucun identifiant Nextcloud n’est transmis.
+
+Les messages génériques passent par Expo Push puis Apple ou Google, même lorsque l’application est fermée, sans noms de produits. Désactiver les notifications ou quitter la liste supprime l’inscription lors de la prochaine connexion. Les inscriptions expirent après 90 jours sans renouvellement et les envois sont supprimés après deux jours. Les minuteurs et rappels de péremption sont programmés sur l’appareil.
 
 ## Contact
 

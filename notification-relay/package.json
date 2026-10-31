@@ -1,0 +1,11 @@
+{
+  "name": "avocook-notification-relay",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test *.test.js",
+    "deploy": "wrangler deploy",
+    "check": "wrangler deploy --dry-run"
+  },
+  "devDependencies": { "wrangler": "^4.0.0" }
+}

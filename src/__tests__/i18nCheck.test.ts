@@ -42,6 +42,13 @@ describe("translations before release", () => {
     const lockfile = readJson("../../package-lock.json");
     expect(lockfile.version).toBe(APP_VERSION);
     expect(lockfile.packages[""].version).toBe(APP_VERSION);
+    const release = readJson("../../store/release.json");
+    expect(release.version).toBe(APP_VERSION);
+    for (const note of Object.values(release.notes)) {
+      expect(typeof note).toBe("string");
+      expect(String(note).trim().length).toBeGreaterThan(0);
+      expect([...String(note)].length).toBeLessThanOrEqual(500);
+    }
     expect(readFileSync(new URL("../../site/index.html", import.meta.url), "utf8"))
       .toContain(`class="hero-badge-pill">v${APP_VERSION}</span>`);
   });
@@ -79,7 +86,6 @@ describe("translations before release", () => {
     expect(Object.keys(locale).sort()).toEqual(Object.keys(reference).sort());
     for (const [key, value] of Object.entries(locale)) {
       expect(typeof value, `${language}:${key}`).toBe("string");
-      // Empty placeholders intentionally leave room for the user's own text.
       if (!["editor.ingredientPlaceholder", "editor.instructionPlaceholder"].includes(key)) {
         expect(value.trim(), `${language}:${key}`).not.toBe("");
       }

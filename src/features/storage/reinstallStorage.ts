@@ -48,7 +48,6 @@ async function writeSecure(key: string, value: string | null) {
   }
 }
 
-// Commit the manifest last so an interrupted write leaves the previous value readable.
 export const reinstallStorage = {
   getItem(key: string): Promise<string | null> {
     return serialize(async () => {

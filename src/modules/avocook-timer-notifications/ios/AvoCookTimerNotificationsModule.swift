@@ -14,6 +14,12 @@ public class AvoCookTimerNotificationsModule: Module {
       AvoCookTimerNotificationCenter.shared.emitPendingStopEvents()
     }
 
+    OnStartObserving {
+      AvoCookTimerNotificationCenter.shared.observing = true
+      AvoCookTimerNotificationCenter.shared.emitPendingStopEvents()
+    }
+    OnStopObserving { AvoCookTimerNotificationCenter.shared.observing = false }
+
     OnDestroy {
       if AvoCookTimerNotificationCenter.shared.module === self {
         AvoCookTimerNotificationCenter.shared.module = nil
@@ -51,7 +57,7 @@ public class AvoCookTimerNotificationsModule: Module {
         seconds: Double,
         promise: Promise
       ) in
-      let notificationId = "timer:\(recipeId):\(timerId):\(Int(Date().timeIntervalSince1970 * 1000))"
+      let notificationId = "timer:\(recipeId):\(timerId):\(UUID().uuidString)"
       let content = UNMutableNotificationContent()
       content.title = title
       content.body = body

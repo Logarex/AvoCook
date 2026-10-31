@@ -16,7 +16,6 @@ import {
 import { reinstallStorage } from "../storage/reinstallStorage";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 
-// Firebase client keys are public; Firestore rules control access.
 
 const firebaseConfig = {
   apiKey: "AIzaSyC4oE9zYpcXeZjEL8qtvrzAD6oEjFca6G0",

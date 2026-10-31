@@ -296,6 +296,49 @@ describe("CookbookClient", () => {
     }
   );
 
+  it.each([201, 204])(
+    "accepts an empty HTTP %s photo upload response with a default HTML content type",
+    async (status) => {
+      const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        new Response(null, { status, headers: { "Content-Type": "text/html; charset=UTF-8" } })
+      );
+      const client = new CookbookClient({
+        serverUrl: "https://cloud.example.com",
+        username: "user",
+        userId: "user",
+        appPassword: "secret"
+      });
+
+      await expect(client.uploadRecipeImage("file:///documents/photo.jpg"))
+        .resolves.toBe("/AvoCook Images/photo.jpg");
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock.mock.calls[0][1]?.method).toBe("PUT");
+    }
+  );
+
+  it("accepts an empty HTML-labelled MKCOL response before retrying a photo upload", async () => {
+    const fetchMock = vi.spyOn(globalThis, "fetch")
+      .mockResolvedValueOnce(new Response(null, { status: 409 }))
+      .mockResolvedValueOnce(new Response(null, { status: 201, headers: { "Content-Type": "text/html" } }))
+      .mockResolvedValueOnce(new Response(null, { status: 204, headers: { "Content-Type": "text/html" } }));
+    const client = new CookbookClient({
+      serverUrl: "https://cloud.example.com", username: "user", userId: "user", appPassword: "secret"
+    });
+    await expect(client.uploadRecipeImage("file:///documents/photo.jpg"))
+      .resolves.toBe("/AvoCook Images/photo.jpg");
+    expect(fetchMock.mock.calls.map(([, options]) => options?.method)).toEqual(["PUT", "MKCOL", "PUT"]);
+  });
+
+  it.each([200, 201])("rejects a real HTML page during photo upload even with HTTP %s", async (status) => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("<html>Log in</html>", { status, headers: { "Content-Type": "text/html" } })
+    );
+    const client = new CookbookClient({
+      serverUrl: "https://cloud.example.com", username: "user", userId: "user", appPassword: "secret"
+    });
+    await expect(client.uploadRecipeImage("file:///documents/photo.jpg")).rejects.toThrow("web page");
+  });
+
   it("falls back to explicit MKCOL when WebDAV auto directory creation is unavailable", async () => {
     const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(
       async (_url, options) => {

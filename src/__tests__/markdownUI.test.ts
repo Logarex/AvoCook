@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   platform: "ios",
 }));
 vi.mock("react-native", () => ({
+  useWindowDimensions: () => ({ width: 390, height: 844, fontScale: 1, scale: 3 }),
   View: "View",
   Text: "Text",
   Pressable: "Pressable",
@@ -267,13 +268,13 @@ describe("native Markdown display", () => {
     expect(toggle).toHaveBeenCalledWith(0);
     await act(async () =>
       screen.root
-        .findAll((node) => String(node.type) === "IconButton")[0]
+        .findAll((node) => String(node.type) === "IconButton" && node.props.label === "shoppingList.addIngredientFromRecipe")[0]
         .props.onPress(),
     );
     expect(add).toHaveBeenCalledWith("**200 g** flour");
     await act(async () =>
       screen.root
-        .findAll((node) => String(node.type) === "Button")[0]
+        .findAll((node) => String(node.type) === "IconButton" && node.props.label === "recipes.copyRemainingIngredients")[0]
         .props.onPress(),
     );
     expect(mocks.copy).toHaveBeenCalledWith("200 g flour");

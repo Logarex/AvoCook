@@ -18,7 +18,7 @@ export const styles = StyleSheet.create({
   },
   categoryScroller: {
     flexGrow: 0,
-    height: 48,
+    height: 44,
     overflow: "visible",
   },
   categoryBadge: {
@@ -34,8 +34,9 @@ export const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: "row",
     gap: spacing.xs,
-    minHeight: 48,
+    minHeight: 36,
     paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xxs,
   },
   categoryGrid: {
     gap: spacing.xs,

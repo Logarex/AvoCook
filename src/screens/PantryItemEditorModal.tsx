@@ -90,7 +90,6 @@ function Editor({ item, onClose }: { item: PantryItem; onClose: () => void }) {
     setSaving(true);
     setError(false);
     const patch: PantryItemPatch = {};
-    // A narrow patch preserves images, prices, custom fields, stores and labels.
     if (name.trim() !== item.name) patch.name = name.trim();
     if (quantity !== (item.quantity ?? "")) patch.quantity = quantity;
     if (description !== (item.description ?? ""))

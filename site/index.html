@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="google-site-verification" content="izWzGXhDnx7EpDNv4Ukhqb1RfsnM7edrULn4o4oZB8A" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="AvoCook — votre carnet de recettes mobile. Fonctionne hors ligne, synchronisation Nextcloud optionnelle. iOS et Android." />
-  <meta property="og:title" content="AvoCook — Carnet de recettes mobile" />
-  <meta property="og:description" content="Un carnet de recettes complet qui fonctionne hors ligne. Synchronisation Nextcloud optionnelle." />
+  <meta name="description" content="Application de cuisine gratuite et open source pour iOS et Android : recettes, repas simples, planning, stocks du frigo, produits de saison et courses." />
+  <meta property="og:title" content="AvoCook — La cuisine au quotidien, avec ou sans recette" />
+  <meta property="og:description" content="Application de cuisine gratuite et open source pour iOS et Android : recettes, repas simples, planning, stocks du frigo, produits de saison et courses." />
   <meta property="og:type" content="website" />
   <meta name="theme-color" content="#10201D" />
-  <title>AvoCook — Carnet de recettes mobile</title>
+  <title>AvoCook — La cuisine au quotidien, avec ou sans recette</title>
   <link rel="icon" type="image/png" href="logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -28,14 +28,14 @@
       </a>
       <div class="nav-actions">
         <div class="lang-selector" id="lang-selector" role="group" aria-label="Language">
-          <button class="lang-btn" data-lang="fr">FR</button>
-          <button class="lang-btn" data-lang="en">EN</button>
-          <button class="lang-btn" data-lang="de">DE</button>
-          <button class="lang-btn" data-lang="es">ES</button>
-          <button class="lang-btn" data-lang="it">IT</button>
-          <button class="lang-btn" data-lang="da">DA</button>
+          <button class="lang-btn" type="button" data-lang="fr" lang="fr" aria-label="Français">FR</button>
+          <button class="lang-btn" type="button" data-lang="en" lang="en" aria-label="English">EN</button>
+          <button class="lang-btn" type="button" data-lang="de" lang="de" aria-label="Deutsch">DE</button>
+          <button class="lang-btn" type="button" data-lang="es" lang="es" aria-label="Español">ES</button>
+          <button class="lang-btn" type="button" data-lang="it" lang="it" aria-label="Italiano">IT</button>
+          <button class="lang-btn" type="button" data-lang="da" lang="da" aria-label="Dansk">DA</button>
         </div>
-        <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#9681;</button>
+        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">&#9681;</button>
         <div class="nav-download-wrap">
           <button class="nav-cta" aria-haspopup="true" aria-expanded="false" id="nav-download-btn">
             <span data-i18n="nav_download">Télécharger</span>
@@ -79,24 +79,20 @@
     <div class="hero-inner">
       <div class="hero-content">
         <div class="hero-eyebrow">
-          <span class="hero-badge-pill">v4.3.1</span>
+          <span class="hero-badge-pill">v5.0.0</span>
           <span class="hero-eyebrow-sep">·</span>
           <span style="font-size:13px; color: var(--text-muted);">iOS · Android</span>
           <span class="hero-eyebrow-sep">·</span>
           <span style="font-size:13px; color: var(--text-muted);">GPL-3.0</span>
         </div>
 
-        <h1 class="hero-title" data-i18n-html="hero_title">
-          Votre carnet de recettes,<br><em>toujours avec vous</em>
-        </h1>
+        <h1 class="hero-title" data-i18n-html="hero_title">Votre cuisine au quotidien,<br><em>avec ou sans recette</em></h1>
 
-        <p class="hero-subtitle" data-i18n="hero_subtitle">
-          Fonctionne entièrement hors ligne, sans compte. Synchronisation Nextcloud disponible si vous le souhaitez.
-        </p>
+        <p class="hero-subtitle" data-i18n="hero_subtitle">Gardez vos recettes, prévoyez des repas simples, utilisez ce qu’il reste au frigo et préparez vos courses. Gratuit et open source sur iOS et Android.</p>
 
         <div class="hero-local-note">
           <span class="check-badge">✓</span>
-          <span data-i18n="hero_note">Mode local — aucun compte requis. Vos données restent sur l'appareil.</span>
+          <span data-i18n="hero_note">Recettes, planning et stocks fonctionnent hors ligne, sans créer de compte.</span>
         </div>
 
         <div class="hero-ctas" id="download">
@@ -118,12 +114,12 @@
             <span class="hero-stat-label" data-i18n="stat_languages">langues</span>
           </div>
           <div class="hero-stat">
-            <span class="hero-stat-value">+700</span>
-            <span class="hero-stat-label" data-i18n="stat_downloads">téléchargements</span>
+            <span class="hero-stat-value">0</span>
+            <span class="hero-stat-label" data-i18n="stat_ads">publicité dans l’app</span>
           </div>
           <div class="hero-stat">
-            <span class="hero-stat-value">100%</span>
-            <span class="hero-stat-label" data-i18n="stat_offline">hors ligne</span>
+            <span class="hero-stat-value">2</span>
+            <span class="hero-stat-label" data-i18n="stat_platforms">plateformes</span>
           </div>
         </div>
       </div>
@@ -131,21 +127,21 @@
       <div class="hero-phones" aria-hidden="true">
         <div class="phone-mockup phone-back">
           <div class="phone-screen">
-            <img src="screenshots/en/recipe.png" data-i18n-img="screenshots/{lang}/recipe.png" alt="Recipe detail screen"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+            <img src="screenshots/en/recipe.png" data-i18n-img="screenshots/{lang}/recipe.png" data-i18n-alt="ph_detail" alt="Recipe detail screen"
+                  />
             <div class="phone-placeholder" style="display:none">
               <span class="phone-placeholder-icon">—</span>
-              <span data-i18n="screenshot_placeholder">Capture à venir</span>
+              <span data-i18n="screenshot_placeholder">Capture indisponible</span>
             </div>
           </div>
         </div>
         <div class="phone-mockup phone-front">
           <div class="phone-screen">
-            <img src="screenshots/en/login.png" data-i18n-img="screenshots/{lang}/login.png" alt="Login screen"
-                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+            <img src="screenshots/en/login.png" data-i18n-img="screenshots/{lang}/login.png" data-i18n-alt="ph_home" alt="Login screen"
+                  />
             <div class="phone-placeholder" style="display:none">
               <span class="phone-placeholder-icon">—</span>
-              <span data-i18n="screenshot_placeholder">Capture à venir</span>
+              <span data-i18n="screenshot_placeholder">Capture indisponible</span>
             </div>
           </div>
         </div>
@@ -158,121 +154,164 @@
   <div class="container">
     <div class="features-header fade-up">
       <span class="section-label" data-i18n="features_label">Fonctionnalités</span>
-      <h2 class="section-title" data-i18n="features_title">Tout ce dont vous avez besoin</h2>
-      <p class="section-subtitle" data-i18n="features_subtitle">Un carnet de recettes complet, sans superflu.</p>
+      <h2 class="section-title" data-i18n="features_title">De « on mange quoi ? » à la liste de courses</h2>
+      <p class="section-subtitle" data-i18n="features_subtitle">Cinq onglets : Recettes, Ma cuisine, Planning, Communauté et Courses. Ma cuisine rassemble les réserves et les idées ; Planning s’ouvre sur Aujourd’hui et donne accès à la semaine.</p>
     </div>
 
-    <div class="features-grid fade-up delay-1">
+    <div class="feature-group fade-up">
+      <h3 class="feature-group-title" data-i18n="group_1">Vos recettes</h3>
+      <div class="features-grid">
       <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_1_name">Créer & modifier</div>
-        <div class="feature-desc" data-i18n="feat_1_desc">Rédigez vos recettes de zéro, étape par étape. Modifiez-les à tout moment, sans connexion.</div>
+        <h4 class="feature-name" data-i18n="feat_7_name">Votre carnet de recettes</h4>
+        <p class="feature-desc" data-i18n="feat_7_desc">Écrivez vos recettes avec photos, catégories et Markdown facultatif. Adaptez les quantités aux portions, puis partagez ou imprimez la recette.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_2_name">Catégories</div>
-        <div class="feature-desc" data-i18n="feat_2_desc">Organisez vos recettes par catégorie (entrées, desserts, plats rapides…). Filtrez en un geste.</div>
+        <h4 class="feature-name" data-i18n="feat_8_name">Importer depuis le web</h4>
+        <p class="feature-desc" data-i18n="feat_8_desc">Collez un lien de recette ou partagez-le depuis le navigateur. L’import dépend des données accessibles et des restrictions du site.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_3_name">Ajuster les portions</div>
-        <div class="feature-desc" data-i18n="feat_3_desc">Changez le nombre de portions et toutes les quantités se mettent à jour automatiquement. Plus de calcul mental.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_4_name">Photos</div>
-        <div class="feature-desc" data-i18n="feat_4_desc">Ajoutez une ou plusieurs photos par recette depuis votre bibliothèque ou directement depuis l'appareil photo.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_5_name">PDF & impression</div>
-        <div class="feature-desc" data-i18n="feat_5_desc">Exportez n'importe quelle recette en fichier PDF, ou envoyez-la directement à l'impression depuis l'app.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_6_name">Partager une recette</div>
-        <div class="feature-desc" data-i18n="feat_6_desc">Partagez une recette vers une autre application via la feuille de partage standard du système.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_7_name">Import depuis une URL</div>
-        <div class="feature-desc" data-i18n="feat_7_desc">Collez un lien depuis Marmiton, 750g, BBC Good Food — la recette s'importe automatiquement via schema.org/Recipe.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_8_name">Partager depuis le navigateur</div>
-        <div class="feature-desc" data-i18n="feat_8_desc">Vous repérez une recette en ligne ? Partagez la page depuis votre navigateur vers AvoCook. Import en un geste.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_9_name">Génération IA</div>
-        <div class="feature-desc" data-i18n="feat_9_desc">Scannez une recette depuis une photo, ou décrivez un plat pour obtenir une recette complète. Compatible OpenAI.</div>
+        <h4 class="feature-name" data-i18n="feat_9_name">Scanner avec l’IA, au choix</h4>
+        <p class="feature-desc" data-i18n="feat_9_desc">Scannez une recette en photo ou créez un brouillon depuis un plat ou un texte. Configurez le fournisseur, la clé et le modèle ; vérifiez le résultat avant de l’enregistrer.</p>
         <span class="feature-tag" data-i18n="tag_optional">Optionnel</span>
       </div>
       <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_10_name">Liste de courses</div>
-        <div class="feature-desc" data-i18n="feat_10_desc">Copiez les ingrédients dans le presse-papiers en un geste, ou exportez une liste vers les Rappels iOS.</div>
+        <h4 class="feature-name" data-i18n="feat_15_name">Découvrir les recettes de la communauté</h4>
+        <p class="feature-desc" data-i18n="feat_15_desc">Découvrez les recettes des autres, lisez-les dans votre langue et importez celles qui vous plaisent. Créez un profil pour partager les vôtres.</p>
       </div>
       <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_11_name">Minuteurs</div>
-        <div class="feature-desc" data-i18n="feat_11_desc">Lancez un ou plusieurs minuteurs de cuisson directement depuis une recette. Notification locale même en arrière-plan.</div>
+        <h4 class="feature-name" data-i18n="feat_18_name">Votre livre de recettes illustré</h4>
+        <p class="feature-desc" data-i18n="feat_18_desc">Choisissez vos recettes et créez un livre PDF avec couverture, sommaire et photos disponibles, y compris depuis Nextcloud. Les notes privées restent à part.</p>
       </div>
-      <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_12_name">Sauvegarde & restauration</div>
-        <div class="feature-desc" data-i18n="feat_12_desc">Exportez toutes vos recettes dans un fichier JSON et restaurez-les n'importe quand, sur n'importe quel appareil.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_13_name">Synchronisation Nextcloud</div>
-        <div class="feature-desc" data-i18n="feat_13_desc">Connectez votre propre serveur Nextcloud Cookbook pour synchroniser vos recettes entre appareils. Entièrement optionnel.</div>
-        <span class="feature-tag" data-i18n="tag_optional">Optionnel</span>
-      </div>
-      <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_14_name">100% hors ligne & privé</div>
-        <div class="feature-desc" data-i18n="feat_14_desc">AvoCook fonctionne sans connexion internet. Pas de compte, pas de tracking, pas de serveur tiers. Vos données vous appartiennent.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_15_name">Plateforme Communautaire</div>
-        <div class="feature-desc" data-i18n="feat_15_desc">Découvrez, notez, traduisez et importez des recettes de la communauté AvoCook. Créez votre profil et partagez vos plats.</div>
-      </div>
-      <div class="feature-card">
-        <div class="feature-name" data-i18n="feat_16_name">Courses partagées & Notifications</div>
-        <div class="feature-desc" data-i18n="feat_16_desc">Collaborez en temps réel sur vos courses avec un code à 6 chiffres, notifications push en temps réel et suivi des participants.</div>
       </div>
     </div>
+    <div class="feature-group fade-up">
+      <h3 class="feature-group-title" data-i18n="group_2">Les réserves et les idées</h3>
+      <div class="features-grid">
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_3_name">Vos réserves, bien rangées</h4>
+        <p class="feature-desc" data-i18n="feat_3_desc">Organisez le frigo, le placard et le congélateur avec les quantités et les dates. Ajoutez un aliment par code-barres, consultez les scores disponibles d’Open Food Facts et activez les rappels de péremption. Saisissez vous-même la date du paquet. La recherche par code-barres utilise Internet ; les fiches et les scores peuvent manquer. Les réserves et le planning restent accessibles hors ligne.</p>
+      </div>
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_4_name">Fruits et légumes de saison</h4>
+        <p class="feature-desc" data-i18n="feat_4_desc">Choisissez une zone et un mois, filtrez ou recherchez, puis sélectionnez des produits pour les courses ou des idées de recettes. Calendriers hors ligne sourcés, avec couverture régionale explicite.</p>
+      </div>
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_6_name">Une recette avec mon frigo (IA)</h4>
+        <p class="feature-desc" data-i18n="feat_6_desc">Saisissez vos ingrédients ou partez d’une photo du frigo, vérifiez la liste et demandez un brouillon de recette modifiable. Votre fournisseur, votre clé API et un modèle compatible sont nécessaires ; des frais peuvent s’appliquer.</p>
+        <span class="feature-tag" data-i18n="tag_optional">Optionnel</span>
+      </div>
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_19_name">Des outils pratiques en cuisine</h4>
+        <p class="feature-desc" data-i18n="feat_19_desc">Tirez une recette surprise, convertissez des unités compatibles et températures, ou consultez des substitutions de pâtisserie adaptées à la préparation, avec proportions et précautions. Pas de conversion inventée entre grammes et millilitres.</p>
+      </div>
+      </div>
+    </div>
+    <div class="feature-group fade-up">
+      <h3 class="feature-group-title" data-i18n="group_3">Les repas à prévoir</h3>
+      <div class="features-grid">
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_1_name">Organiser la semaine</h4>
+        <p class="feature-desc" data-i18n="feat_1_desc">Ajoutez des recettes, des repas simples, des restes ou des sorties. Ajustez les portions, déplacez les repas et choisissez les ingrédients à acheter. Enregistrez vos menus et retrouvez vos repas dans l’historique.</p>
+      </div>
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_2_name">Des repas sans recette</h4>
+        <p class="feature-desc" data-i18n="feat_2_desc">Notez un repas rapide, reprenez un repas habituel ou prévoyez des restes et une sortie. Seuls les repas avec des ingrédients alimentent les courses.</p>
+      </div>
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_11_name">Un carnet de cuisine privé</h4>
+        <p class="feature-desc" data-i18n="feat_11_desc">Notes sur 5, commentaires, modifications, dates de préparation, difficulté et coûts saisis à la main. Les étiquettes alimentaires et filtres personnels aident à classer les recettes ; ils ne certifient pas l’absence d’allergènes.</p>
+      </div>
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_17_name">Batch cooking et menus</h4>
+        <p class="feature-desc" data-i18n="feat_17_desc">Choisissez 3 à 5 recettes, regroupez les courses et consultez les tâches de préparation dans l’ordre des durées. Enregistrez et planifiez des menus de fête ; sans cuisson parallèle automatique.</p>
+      </div>
+      </div>
+    </div>
+    <div class="feature-group fade-up">
+      <h3 class="feature-group-title" data-i18n="group_4">En cuisine</h3>
+      <div class="features-grid">
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_5_name">Cuisiner étape par étape</h4>
+        <p class="feature-desc" data-i18n="feat_5_desc">Suivez vos recettes avec des minuteurs qui reprennent à votre retour. Les appareils compatibles proposent des commandes vocales locales. Gardez vos notes dans un carnet privé et préparez plusieurs recettes ensemble.</p>
+      </div>
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_20_name">Sur téléphone et tablette</h4>
+        <p class="feature-desc" data-i18n="feat_20_desc">Les cinq onglets sont Recettes, Ma cuisine, Planning, Communauté et Courses. Les grands écrans peuvent afficher une navigation latérale et des vues en colonnes ; la taille du texte est prise en compte. Les iPhone compatibles utilisent les commandes natives Liquid Glass.</p>
+      </div>
+      </div>
+    </div>
+    <div class="feature-group fade-up">
+      <h3 class="feature-group-title" data-i18n="group_5">Les courses et les données</h3>
+      <div class="features-grid">
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_10_name">Un seul écran pour les courses</h4>
+        <p class="feature-desc" data-i18n="feat_10_desc">Choisissez le mode local, le partage AvoCook ou Nextcloud Pantry. Les articles sont repris lors d’un changement de mode. Synchronisation Rappels Apple facultative sur iOS.</p>
+      </div>
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_16_name">Faire les courses à plusieurs</h4>
+        <p class="feature-desc" data-i18n="feat_16_desc">Invitez vos proches avec un code à six caractères et modifiez la liste ensemble. Les notifications vous préviennent des ajouts et retraits des autres participants, même quand l’application est fermée. Elles nécessitent les autorisations du téléphone et un service disponible.</p>
+      </div>
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_12_name">Des sauvegardes à garder</h4>
+        <p class="feature-desc" data-i18n="feat_12_desc">Exportez vos recettes en JSON ou sauvegardez toute votre cuisine : recettes, photos disponibles, planning, réserves et notes privées.</p>
+      </div>
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_13_name">Nextcloud facultatif</h4>
+        <p class="feature-desc" data-i18n="feat_13_desc">Connectez Nextcloud Cookbook pour synchroniser vos recettes et Pantry pour les courses du foyer. Ces échanges passent directement par le serveur choisi.</p>
+        <span class="feature-tag" data-i18n="tag_optional">Optionnel</span>
+      </div>
+      <div class="feature-card">
+        <h4 class="feature-name" data-i18n="feat_14_name">Outils locaux, services au choix</h4>
+        <p class="feature-desc" data-i18n="feat_14_desc">Planning, stocks et outils de cuisine fonctionnent sur l’appareil. Les fonctions en ligne contactent leurs services ; Firebase ouvre une session anonyme au lancement. Consultez la politique de confidentialité.</p>
+      </div>
+      </div>
+    </div>
+    <p class="catalog-scope" data-i18n="season_scope">Calendriers disponibles : France métropolitaine, Wallonie (Belgique), Suisse, Allemagne, Espagne, Italie, Royaume-Uni, Danemark, Ontario (Canada), État de New York (États-Unis) et Sydney (Australie). Soit 11 pays avec des limites régionales, et non une couverture mondiale. Les sources distinguent récolte, conservation ou disponibilité commerciale ; ce sont des repères, pas des prévisions de disponibilité en temps réel.</p>
+
   </div>
 </section>
 
 <section class="screenshots" id="screenshots">
   <div class="container">
     <div class="screenshots-header fade-up">
-      <span class="section-label" data-i18n="screenshots_label">Aperçu</span>
+      <span class="section-label" data-i18n="screenshots_label">L’application</span>
       <h2 class="section-title" data-i18n="screenshots_title">L'application en images</h2>
+      <p class="section-subtitle" data-i18n="screenshots_note">Les captures danoises sont affichées en anglais.</p>
     </div>
   </div>
   <div class="carousel-wrap">
     <div class="carousel-track fade-up delay-1" id="carousel">
       <div class="carousel-slide">
-        <img src="screenshots/en/login.png" data-i18n-img="screenshots/{lang}/login.png" alt="Login screen"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <img src="screenshots/en/login.png" data-i18n-img="screenshots/{lang}/login.png" data-i18n-alt="ph_home" alt="Login screen"
+              />
         <div class="screenshot-placeholder-wrap" style="display:none">
           <span class="screenshot-placeholder-label" data-i18n="ph_home">Écran d'accueil</span>
         </div>
       </div>
       <div class="carousel-slide">
-        <img src="screenshots/en/recipe_list.png" data-i18n-img="screenshots/{lang}/recipe_list.png" alt="Recipe list"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <img src="screenshots/en/recipe_list.png" data-i18n-img="screenshots/{lang}/recipe_list.png" data-i18n-alt="ph_list" alt="Recipe list"
+              />
         <div class="screenshot-placeholder-wrap" style="display:none">
           <span class="screenshot-placeholder-label" data-i18n="ph_list">Liste des recettes</span>
         </div>
       </div>
       <div class="carousel-slide">
-        <img src="screenshots/en/shopping.png" data-i18n-img="screenshots/{lang}/shopping.png" alt="Shopping list"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <img src="screenshots/en/shopping.png" data-i18n-img="screenshots/{lang}/shopping.png" data-i18n-alt="ph_shopping" alt="Shopping list"
+              />
         <div class="screenshot-placeholder-wrap" style="display:none">
           <span class="screenshot-placeholder-label" data-i18n="ph_shopping">Liste de courses</span>
         </div>
       </div>
       <div class="carousel-slide">
-        <img src="screenshots/en/import.png" data-i18n-img="screenshots/{lang}/import.png" alt="URL import"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <img src="screenshots/en/import.png" data-i18n-img="screenshots/{lang}/import.png" data-i18n-alt="ph_import" alt="URL import"
+              />
         <div class="screenshot-placeholder-wrap" style="display:none">
           <span class="screenshot-placeholder-label" data-i18n="ph_import">Import depuis une URL</span>
         </div>
       </div>
       <div class="carousel-slide">
-        <img src="screenshots/en/recipe.png" data-i18n-img="screenshots/{lang}/recipe.png" alt="Recipe detail"
-             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
+        <img src="screenshots/en/recipe.png" data-i18n-img="screenshots/{lang}/recipe.png" data-i18n-alt="ph_detail" alt="Recipe detail"
+              />
         <div class="screenshot-placeholder-wrap" style="display:none">
           <span class="screenshot-placeholder-label" data-i18n="ph_detail">Détail d'une recette</span>
         </div>
@@ -286,18 +325,18 @@
     <div class="how-header fade-up">
       <span class="section-label" data-i18n="how_label">Fonctionnement</span>
       <h2 class="section-title" data-i18n="how_title">Local d'abord. Nextcloud si vous voulez.</h2>
-      <p class="section-subtitle" data-i18n="how_subtitle">AvoCook est conçu pour fonctionner sans aucun compte. La synchronisation Nextcloud est une option, pas une obligation.</p>
+      <p class="section-subtitle" data-i18n="how_subtitle">Utilisez les outils locaux sans créer de compte. Communauté, partage, traduction et IA en ligne utilisent leurs services respectifs ; Nextcloud reste facultatif.</p>
     </div>
 
     <div class="modes-grid fade-up delay-1">
       <div class="mode-card mode-local">
         <div class="mode-title" data-i18n="local_title">Mode local</div>
-        <div class="mode-desc" data-i18n="local_desc">Le mode par défaut. Aucun compte, aucune connexion requise. Vos recettes sont stockées dans une base SQLite directement sur votre appareil.</div>
+        <div class="mode-desc" data-i18n="local_desc">Recettes, planning, stocks et notes privées sont conservés sur l’appareil, séparément pour chaque compte de recettes. La synchronisation Nextcloud des recettes ne synchronise pas les données Ma cuisine.</div>
         <ul class="mode-points">
           <li data-i18n="local_p1">Fonctionne en mode avion</li>
-          <li data-i18n="local_p2">Données uniquement sur l'appareil</li>
-          <li data-i18n="local_p3">Aucun serveur tiers impliqué</li>
-          <li data-i18n="local_p4">Sauvegarde manuelle vers un fichier JSON</li>
+          <li data-i18n="local_p2">Données uniquement sur l&#x27;appareil</li>
+          <li data-i18n="local_p3">Communauté, traduction, IA et partage utilisent des services en ligne</li>
+          <li data-i18n="local_p4">Sauvegarde des recettes ou sauvegarde complète Ma cuisine</li>
         </ul>
       </div>
 
@@ -311,8 +350,8 @@
         <ul class="mode-points">
           <li data-i18n="nextcloud_p1">Compatible Nextcloud Cookbook</li>
           <li data-i18n="nextcloud_p2">Synchronisation multi-appareils</li>
-          <li data-i18n="nextcloud_p3">Mot de passe d'application, HTTPS obligatoire</li>
-          <li data-i18n="nextcloud_p4">Aucun serveur tiers — votre Nextcloud uniquement</li>
+          <li data-i18n="nextcloud_p3">Mot de passe d’application ; HTTPS par défaut</li>
+          <li data-i18n="nextcloud_p4">Recettes Cookbook et courses Pantry facultatives</li>
         </ul>
       </div>
     </div>
@@ -324,8 +363,8 @@
     <div class="import-inner">
       <div class="import-text-content fade-up">
         <span class="section-label" data-i18n="import_label">Import intelligent</span>
-        <h2 class="section-title" data-i18n="import_title">Importez depuis n'importe quel site</h2>
-        <p class="section-subtitle" data-i18n="import_subtitle">AvoCook lit les données structurées schema.org/Recipe exposées par la plupart des sites de cuisine. Collez une URL, la recette est prête en quelques secondes.</p>
+        <h2 class="section-title" data-i18n="import_title">Rassemblez vos recettes</h2>
+        <p class="section-subtitle" data-i18n="import_subtitle">Collez le lien d’une page de recette compatible. AvoCook lit les données structurées disponibles ; les pages bloquées et données incomplètes peuvent empêcher l’import.</p>
 
         <div class="sites-list">
           <span class="site-pill">Marmiton</span>
@@ -340,7 +379,7 @@
 
         <div class="info-box">
           <div class="info-box-title" data-i18n="import_ai_title">Import par IA</div>
-          <div class="info-box-text" data-i18n="import_ai_desc">Prenez en photo une page de livre de cuisine, une carte au restaurant ou n'importe quel plat — AvoCook peut générer une recette complète via un modèle compatible OpenAI. Fonctionnalité optionnelle, votre propre clé API.</div>
+          <div class="info-box-text" data-i18n="import_ai_desc">Choisissez OpenAI, Gemini, Groq, Grok, Mistral, Claude ou un point d’accès personnalisé dans les réglages Assistant. Utilisez votre clé API et un modèle adapté ; les photos nécessitent la vision. Le fournisseur peut facturer les requêtes. Vérifiez les brouillons avant enregistrement.</div>
         </div>
       </div>
 
@@ -351,7 +390,7 @@
         </div>
         <div class="import-arrow">↓</div>
         <div class="import-result">
-          <div class="import-result-title">Tarte aux pommes normande</div>
+          <div class="import-result-title" data-i18n="result_title">Tarte aux pommes · exemple d’import</div>
           <div class="import-result-meta" data-i18n="import_result_meta">4 portions · 45 min · Importée depuis Marmiton</div>
           <div class="import-result-tags">
             <span class="import-result-tag" data-i18n="import_tag_ingredients">12 ingrédients</span>
@@ -370,11 +409,9 @@
       <div class="fade-up">
         <span class="section-label" data-i18n="about_label">Le projet</span>
         <h2 class="section-title" data-i18n="about_title">Fait par un étudiant, pour tous les jours</h2>
-        <blockquote class="about-quote" data-i18n="about_quote">
-          "J'avais mes recettes éparpillées entre des photos, des onglets Safari et des notes. J'ai décidé de construire l'app qui me manquait."
-        </blockquote>
+        <blockquote class="about-quote" data-i18n="about_quote">&quot;J&#x27;avais mes recettes éparpillées entre des photos, des onglets Safari et des notes. J&#x27;ai décidé de construire l&#x27;app qui me manquait.&quot;</blockquote>
         <p class="about-text" data-i18n="about_p1">AvoCook a commencé comme un projet perso pendant mes études d'informatique. L'objectif était double : avoir une vraie app de recettes sur mon téléphone, et apprendre à mener un projet React Native de A à Z — de l'écriture du premier composant jusqu'à la publication sur l'App Store.</p>
-        <p class="about-text" data-i18n="about_p2">Au fil du temps, le projet a grandi : modules natifs, synchronisation Nextcloud, import de recettes, génération IA, support multi-plateforme. Chaque fonctionnalité a été l'occasion d'apprendre quelque chose de concret — parfois en se battant deux heures sur un bug qu'on ne comprend finalement pas si mal.</p>
+        <p class="about-text" data-i18n="about_p2">AvoCook est une application gratuite et open source pour iOS et Android. Je la développe à côté de mes études pour garder mes recettes, prévoir mes repas et me faciliter un peu la cuisine au quotidien.</p>
         <p class="about-text" data-i18n="about_p3">L'app est entièrement open source sous licence GPLv3. Si vous voulez vous en inspirer, contribuer, ou juste regarder comment c'est construit, le code est sur GitHub.</p>
 
         <div class="info-box">
@@ -385,7 +422,7 @@
 
       <div class="about-numbers fade-up delay-1">
         <div class="about-number-card">
-          <div class="about-number-val">5</div>
+          <div class="about-number-val">6</div>
           <div class="about-number-label" data-i18n="num_languages">Langues disponibles dans l'application</div>
         </div>
         <div class="about-number-card">
@@ -398,7 +435,7 @@
         </div>
         <div class="about-number-card">
           <div class="about-number-val">0</div>
-          <div class="about-number-label" data-i18n="num_tracking">Traceurs · Analytics · Publicités</div>
+          <div class="about-number-label" data-i18n="num_tracking">Publicités ou outils d’analyse dans l’application</div>
         </div>
       </div>
     </div>
@@ -410,7 +447,7 @@
     <div class="fade-up">
       <span class="section-label" data-i18n="tech_label">Stack technique</span>
       <h2 class="section-title" data-i18n="tech_title">Ce qui tourne sous le capot</h2>
-      <p class="section-subtitle" data-i18n="tech_subtitle">Un projet React Native complet, sans raccourcis.</p>
+      <p class="section-subtitle" data-i18n="tech_subtitle">React Native, Expo et TypeScript, avec des modules natifs pour les fonctions du téléphone.</p>
     </div>
     <div class="tech-grid fade-up delay-1">
       <div class="tech-card">
@@ -419,7 +456,7 @@
       </div>
       <div class="tech-card">
         <div class="tech-card-name">TypeScript</div>
-        <div class="tech-card-desc" data-i18n="tech_ts">Typage complet, du composant à la couche de données. Aucun <code>any</code> implicite.</div>
+        <div class="tech-card-desc" data-i18n="tech_ts">Typage complet, du composant à la couche de données. Aucun any implicite.</div>
       </div>
       <div class="tech-card">
         <div class="tech-card-name">SQLite</div>
@@ -427,11 +464,11 @@
       </div>
       <div class="tech-card">
         <div class="tech-card-name">i18next</div>
-        <div class="tech-card-desc" data-i18n="tech_i18n">Internationalisation complète en 5 langues avec détection automatique de la locale.</div>
+        <div class="tech-card-desc" data-i18n="tech_i18n">Internationalisation complète en 6 langues avec détection automatique de la locale.</div>
       </div>
       <div class="tech-card">
         <div class="tech-card-name">Expo SecureStore</div>
-        <div class="tech-card-desc" data-i18n="tech_secure">Identifiants Nextcloud stockés dans l'enclave sécurisée du système (Keychain iOS / Keystore Android).</div>
+        <div class="tech-card-desc" data-i18n="tech_secure">Identifiants Nextcloud et clés API IA conservés avec Expo SecureStore (Keychain iOS / Keystore Android).</div>
       </div>
       <div class="tech-card">
         <div class="tech-card-name">Expo Calendar</div>
@@ -439,7 +476,7 @@
       </div>
       <div class="tech-card">
         <div class="tech-card-name">schema.org parser</div>
-        <div class="tech-card-desc" data-i18n="tech_schema">Import de recettes depuis n'importe quel site exposant des données structurées Recipe.</div>
+        <div class="tech-card-desc" data-i18n="tech_schema">Collez un lien de recette ou partagez-le depuis le navigateur. L’import dépend des données accessibles et des restrictions du site.</div>
       </div>
       <div class="tech-card">
         <div class="tech-card-name">Module natif custom</div>
@@ -467,7 +504,7 @@
           </a>
           <a href="https://github.com/Logarex/AvoCook/releases" class="opensource-link" target="_blank" rel="noopener noreferrer">
             <div class="opensource-link-text">
-              <div class="opensource-link-name" data-i18n="os_link_releases">Releases & APK</div>
+              <div class="opensource-link-name" data-i18n="os_link_releases">Releases &amp; APK</div>
               <div class="opensource-link-sub" data-i18n="os_link_releases_sub">Téléchargez la dernière version</div>
             </div>
             <span class="opensource-link-arrow">→</span>
@@ -475,7 +512,7 @@
           <a href="https://github.com/Logarex/AvoCook/blob/main/.github/CONTRIBUTING.md" class="opensource-link" target="_blank" rel="noopener noreferrer">
             <div class="opensource-link-text">
               <div class="opensource-link-name" data-i18n="os_link_contrib">Contribuer</div>
-              <div class="opensource-link-sub" data-i18n="os_link_contrib_sub">Guide & PR template</div>
+              <div class="opensource-link-sub" data-i18n="os_link_contrib_sub">Guide &amp; PR template</div>
             </div>
             <span class="opensource-link-arrow">→</span>
           </a>
@@ -511,9 +548,7 @@
       <div>
         <span class="section-label" data-i18n="contact_label">Contact</span>
         <h2 class="section-title" data-i18n="contact_title">Une question ? Une idée ?</h2>
-        <p class="about-text" data-i18n="contact_subtitle">
-          Pour les bugs et demandes de fonctionnalités, GitHub Issues est le meilleur endroit — les templates sont là pour ça. Pour tout le reste, l'email fonctionne.
-        </p>
+        <p class="about-text" data-i18n="contact_subtitle">Pour les bugs et demandes de fonctionnalités, GitHub Issues est le meilleur endroit. Pour tout le reste, l'email fonctionne.</p>
       </div>
 
       <div class="contact-cards">
@@ -567,7 +602,7 @@
       <div class="footer-links">
         <a href="https://github.com/Logarex/AvoCook" class="footer-link">GitHub</a>
         <a href="https://github.com/Logarex/AvoCook/releases" class="footer-link" data-i18n="footer_releases">Releases</a>
-        <a href="https://github.com/Logarex/AvoCook/blob/main/PRIVACY.md" class="footer-link" data-i18n="footer_privacy">Confidentialité</a>
+        <a href="https://github.com/Logarex/AvoCook/blob/main/PRIVACY.md" class="footer-link" data-i18n="footer_privacy" data-privacy-link>Confidentialité</a>
         <a href="https://apps.apple.com/app/avocook/id6769012665" class="footer-link">App Store</a>
       </div>
     </div>

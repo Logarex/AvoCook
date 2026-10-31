@@ -1,3 +1,6 @@
+import * as Notifications from "expo-notifications";
+import { CookingTimerPersistence } from "./features/kitchen/CookingTimerPersistence";
+import { getKitchenNative } from "./features/kitchen/kitchenNative";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   NavigationContainer,
@@ -13,19 +16,22 @@ import { useShareIntent } from "expo-share-intent";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
+import {
+  AppState,
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  View,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { AppLogo } from "./components/AppLogo";
 import "./i18n";
-// Initialize logging before components can issue requests.
 import { useTranslation } from "react-i18next";
 import packageInfo from "../package.json";
 import { AppText } from "./components/AppText";
-import {
-  BottomNavigation,
-  type BottomNavigationTab,
-} from "./components/BottomNavigation";
+import type { BottomNavigationTab } from "./components/BottomNavigation";
+import { AdaptiveNavigationLayout } from "./components/AdaptiveNavigationLayout";
 import { LongActionToastProvider } from "./components/LongActionToast";
 import { useReducedMotion } from "./features/accessibility/useReducedMotion";
 import { AuthProvider, useAuth } from "./features/auth/AuthProvider";
@@ -33,6 +39,11 @@ import { initFirebaseAuth } from "./features/firebase/firebaseClient";
 import { logService } from "./features/logging/logService";
 import { useOnboarding } from "./features/onboarding/useOnboarding";
 import { PreferencesProvider } from "./features/preferences/PreferencesProvider";
+import { KitchenProvider } from "./features/kitchen/KitchenProvider";
+import { KitchenScreen } from "./screens/KitchenScreen";
+import { FridgeRecipeScreen } from "./screens/FridgeRecipeScreen";
+import { CookingScreen } from "./screens/CookingScreen";
+import { RecipeJournalScreen } from "./screens/RecipeJournalScreen";
 import { RecipesProvider } from "./features/recipes/RecipesProvider";
 import {
   ShoppingListProvider,
@@ -80,9 +91,12 @@ export default function App() {
                 <LongActionToastProvider>
                   <RecipesProvider>
                     <ShoppingListProvider>
-                      <TimersProvider>
-                        <RootNavigator />
-                      </TimersProvider>
+                      <KitchenProvider>
+                        <TimersProvider>
+                          <CookingTimerPersistence />
+                          <RootNavigator />
+                        </TimersProvider>
+                      </KitchenProvider>
                     </ShoppingListProvider>
                   </RecipesProvider>
                 </LongActionToastProvider>
@@ -125,11 +139,15 @@ function RootNavigator() {
   const currentTab: BottomNavigationTab | undefined =
     route === "Recipes"
       ? "recipes"
-      : route === "Community"
-        ? "community"
-        : route === "ShoppingList"
-          ? "shoppingList"
-          : undefined;
+      : route === "Kitchen"
+        ? "kitchen"
+        : route === "Planning"
+          ? "planning"
+          : route === "Community"
+            ? "community"
+            : route === "ShoppingList"
+              ? "shoppingList"
+              : undefined;
   const syncCurrentRoute = () =>
     setCurrentRoute(navigationRef.getCurrentRoute()?.name);
 
@@ -143,8 +161,19 @@ function RootNavigator() {
         onStateChange={syncCurrentRoute}
       >
         {isAuthenticated ? <ShareIntentHandler /> : null}
+        {isAuthenticated ? <KitchenNotificationHandler /> : null}
         {isAuthenticated ? <RemindersOnboardingPrompt /> : null}
-        <View style={styles.flex}>
+        <AdaptiveNavigationLayout
+          current={currentTab}
+          onNavigate={(tab) => {
+            if (tab === currentTab) return;
+            if (tab === "recipes") navigationRef.navigate("Recipes");
+            else if (tab === "kitchen") navigationRef.navigate("Kitchen");
+            else if (tab === "planning") navigationRef.navigate("Planning", { section: "today" });
+            else if (tab === "community") navigationRef.navigate("Community");
+            else navigationRef.navigate("ShoppingList");
+          }}
+        >
           <Stack.Navigator
             initialRouteName={initialRoute}
             screenOptions={({ route }) => ({
@@ -156,6 +185,14 @@ function RootNavigator() {
             <Stack.Screen name="Tour" component={TourScreen} />
             <Stack.Screen name="Update" component={UpdateScreen} />
             <Stack.Screen name="Recipes" component={RecipeListScreen} />
+            <Stack.Screen name="Kitchen" component={KitchenScreen} />
+            <Stack.Screen name="Planning" component={KitchenScreen} />
+            <Stack.Screen name="FridgeRecipe" component={FridgeRecipeScreen} />
+            <Stack.Screen name="Cooking" component={CookingScreen} />
+            <Stack.Screen
+              name="RecipeJournal"
+              component={RecipeJournalScreen}
+            />
             <Stack.Screen name="RecipeDetail" component={RecipeDetailScreen} />
             <Stack.Screen name="RecipeEditor" component={RecipeEditorScreen} />
             <Stack.Screen name="ImportRecipe" component={ImportRecipeScreen} />
@@ -173,22 +210,57 @@ function RootNavigator() {
 
             <Stack.Screen name="Privacy" component={PrivacyScreen} />
           </Stack.Navigator>
-          {currentTab ? (
-            <BottomNavigation
-              current={currentTab}
-              onNavigate={(tab) => {
-                if (tab === currentTab) return;
-                if (tab === "recipes") navigationRef.navigate("Recipes");
-                else if (tab === "community")
-                  navigationRef.navigate("Community");
-                else navigationRef.navigate("ShoppingList");
-              }}
-            />
-          ) : null}
-        </View>
+        </AdaptiveNavigationLayout>
       </NavigationContainer>
     </>
   );
+}
+
+function KitchenNotificationHandler() {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { mode, loading } = useShoppingList();
+  const sharedCode = mode.kind === "firebase" ? mode.code : null;
+  useEffect(() => {
+    if (loading) return;
+    let mounted = true;
+    const handled = new Set<string>();
+    const open = (response: Notifications.NotificationResponse | null) => {
+      if (!mounted || !response || response.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER) return;
+      const { identifier, content } = response.notification.request;
+      if (content.data?.kind !== "shopping" || content.data?.code !== sharedCode || handled.has(identifier)) return;
+      handled.add(identifier);
+      navigation.navigate("ShoppingList");
+      void Notifications.clearLastNotificationResponseAsync().catch(() => undefined);
+    };
+    void Notifications.getLastNotificationResponseAsync().then(open).catch(() => undefined);
+    const subscription = Notifications.addNotificationResponseReceivedListener(open);
+    return () => { mounted = false; subscription.remove(); };
+  }, [navigation, sharedCode, loading]);
+  useEffect(() => {
+    let mounted = true;
+    const native = getKitchenNative();
+    const open = () => {
+      void native
+        ?.consumeStockReminderOpen()
+        .then((pending) => {
+          if (mounted && pending)
+            navigation.navigate("Kitchen", { section: "stock" });
+        })
+        .catch(() => undefined);
+    };
+    open();
+    const subscription = native?.addListener("stockReminderOpen", open);
+    const appState = AppState.addEventListener("change", (state) => {
+      if (state === "active") open();
+    });
+    return () => {
+      mounted = false;
+      subscription?.remove();
+      appState.remove();
+    };
+  }, [navigation]);
+  return null;
 }
 
 function ShareIntentHandler() {
@@ -201,7 +273,6 @@ function ShareIntentHandler() {
       return;
     }
 
-    // Allow the navigator to mount before handling a share.
     const timer = setTimeout(() => {
       try {
         if (shareIntent.type === "weburl" && shareIntent.webUrl) {
@@ -210,7 +281,6 @@ function ShareIntentHandler() {
             navigation.navigate("ImportRecipe", { url: rawUrl });
           }
         } else if (shareIntent.type === "text" && shareIntent.text) {
-          // Shared text may contain a page title before the URL.
           const rawText = shareIntent.text.trim();
           const urlMatch = rawText.match(/https?:\/\/[^\s]+/);
           if (urlMatch && urlMatch[0]) {
@@ -277,6 +347,8 @@ function getStackAnimation(
   if (
     reducedMotion ||
     routeName === "Recipes" ||
+    routeName === "Kitchen" ||
+    routeName === "Planning" ||
     routeName === "Community" ||
     routeName === "ShoppingList"
   ) {

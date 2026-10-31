@@ -11,7 +11,6 @@ if (!urls.length) {
 } else {
   const require = createRequire(import.meta.url);
   const cache = new Map();
-  // Compile the app's parser so this command checks the same import logic.
   function loadTypeScript(path) {
     if (cache.has(path)) return cache.get(path).exports;
     const module = { exports: {} };

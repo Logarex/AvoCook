@@ -1,3 +1,6 @@
+import type { FoodProduct } from "../features/kitchen/foodProducts";
+import type { Recipe } from "../features/recipes/types";
+
 export type SettingsSection =
   | "appearance"
   | "account"
@@ -7,6 +10,21 @@ export type SettingsSection =
   | "assistant"
   | "maintenance"
   | "about";
+
+export type KitchenSection =
+  | "today"
+  | "planner"
+  | "stock"
+  | "tonight"
+  | "batch"
+  | "history"
+  | "converter"
+  | "seasonal"
+  | "substitutions"
+  | "book"
+  | "profiles"
+  | "menus"
+  | "backup";
 
 export type RootStackParamList = {
   Tour: undefined;
@@ -21,12 +39,31 @@ export type RootStackParamList = {
         tabTransition?: "slide_from_left" | "slide_from_right";
       }
     | undefined;
+  Kitchen:
+    | {
+        section?: KitchenSection;
+        ingredients?: string;
+        product?: FoodProduct;
+        recipeId?: string;
+        tabTransition?: "slide_from_left" | "slide_from_right";
+      }
+    | undefined;
+  Planning: {
+    section?: "today" | "planner" | "tonight" | "history";
+    ingredients?: string;
+    recipeId?: string;
+    tabTransition?: "slide_from_left" | "slide_from_right";
+  } | undefined;
+  Cooking: { id: string };
+  RecipeJournal: { id: string };
+  FridgeRecipe: { ingredients?: string } | undefined;
   RecipeDetail: {
     id: string;
   };
   RecipeEditor: {
     id?: string;
     category?: string;
+    draft?: Recipe;
   };
   ImportRecipe:
     | {

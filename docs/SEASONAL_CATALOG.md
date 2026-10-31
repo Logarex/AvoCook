@@ -1,0 +1,33 @@
+# Seasonal fruit and vegetables
+
+The catalog is an offline selection, not an exhaustive inventory or a guarantee that a shop stocks local outdoor-grown produce. It contains 67 distinct produce identities and 11 explicitly scoped calendars. Factual month windows were reviewed on 19 October 2026; edition dates below belong to the publications, not to weather forecasts. Calendar data comes from the sources listed below. The source publications and their artwork are not redistributed.
+
+| Area shown in AvoCook | Source | Interpretation |
+| --- | --- | --- |
+| Mainland France | [Santé publique France, calendar on printed page 13](https://www.mangerbouger.fr/content/show/2132/file/DT05-414-24B%20148-5fx210_GUIDE_40P_MANGER_BOUGER_4-11_ANS_bd_v2.pdf) | Selected monthly seasonal availability. Corrects the earlier apricot August transcription. |
+| Belgium — Wallonia | [Apaq-W, 2020 calendar](https://www.apaqw.be/sites/default/files/uploads/Bibliotheque/calfrulegwal0623.pdf) | Harvest and storage; no extension to all Belgian climates. |
+| Switzerland | [Fédération romande des consommateurs, 2017](https://www.frc.ch/wp-content/uploads/2017/02/FRC-Calendrier-fruits-et-legumes-de-saison.pdf) | Harvest, beginning/end of harvest and storage. Partial-month windows appear in their overlapping month. |
+| Germany | [BLE/BZfE vegetables, 2024](https://www.bzfe.de/fileadmin/user_upload/Schule_und_Kita/Infografiken/Saisonkalender_Gemuese_Infografik_fuer_den_Unterricht_A4quer.pdf), [fruit, 2024](https://www.bzfe.de/fileadmin/user_upload/Schule_und_Kita/Infografiken/Saisonkalender_Obst_Infografik_fuer_den_Unterricht_A4quer.pdf) | Medium to very large local supply; the small-supply dots are excluded. Therefore some scarce local products are absent from the selection. |
+| Spain | [Ministry of Agriculture vegetables, 2017](https://www.alimentosdespana.es/dam/ade/contenido/campanas/campanas-del-ministerio/frutas/calendario-de-frutas-y-hortalizas-de-temporada/cartel_hortalizas.pdf), [fruit](https://www.alimentosdespana.es/dam/ade/contenido/campanas/campanas-del-ministerio/frutas/calendario-de-frutas-y-hortalizas-de-temporada/cartel_frutas.pdf) | The publication measures commercial availability, including lower-supply months. Some vegetables are present all year. The UI explicitly does not equate this with local outdoor harvest. |
+| Italy | [CREA Alimenti e Nutrizione](https://sapermangiare.an.crea.gov.it/528/prodotti-di-stagione.html) | Its checked month cells, including availability outside immediate harvest for some products. |
+| UK | [British Dietetic Association / Vegetarian Society](https://www.bda.uk.com/food-health/your-health/sustainable-diets/seasonal-fruit-and-veg-a-handy-guide.html) | Named monthly lists. Distinct crop types are not all interchangeable: wild mushrooms, for example, are not assigned to button mushrooms. |
+| Denmark | [Fødevarestyrelsen / Dansk Gartneri monthly posters, 2024](https://foedevarestyrelsen.dk/publikationer/2024/plakater-med-saesonens-frugt-og-groent) | A monthly inspiration selection. Months between featured occurrences are not interpolated. This is not the complete Danish harvest inventory. |
+| Canada — Ontario | [Foodland Ontario, 2025](https://www.ontario.ca/files/2025-02/foodland-availability-guide-en-2025-02-24.pdf) | Field and storage availability; separate greenhouse-only rows are excluded. No extension to Quebec or other provinces. |
+| USA — New York State | [New York Agriculture and Markets](https://agriculture.ny.gov/harvest-chart) | Harvest and availability bars, including partial months. Availability without a corresponding harvest period is marked as storage. No extension to other US states. |
+| Australia — Sydney | [NSW Health / Sydney Local Health District](https://slhd.health.nsw.gov.au/yhunger/brainfood/seasonal-fruit-vegetable-guide) | Its four explicit southern-hemisphere seasonal lists, plus year-round products. A shopping guide for Sydney, not a claim that every product is grown there. |
+
+## User flow
+
+Open My kitchen → Meal ideas → Seasonal produce, or use the existing Tools entry. Choose the explicit area once; it persists per kitchen account. The default month updates with the local date. Users can choose another month and return to the current month. Products are grouped into culinary fruit and vegetables (rhubarb follows the source's culinary fruit grouping).
+
+Selection does not change stock or groceries. Selected names, localized in the app's current language, are added only on request through the normal shopping provider. Quantities stay for the user to decide. Existing recipes are matched through recognized ingredient text, with at least one selected product. A seasonal ingredient does not certify that the whole recipe is seasonal.
+
+All product names, place labels, controls, source-basis descriptions and feedback are available in French, English, German, Spanish, Italian and Danish. Country is never inferred from language. Users outside the listed areas get an explicit unavailable state.
+
+## Maintenance and validation
+
+Data lives in `src/features/kitchen/seasonalCatalog.json`; area IDs and persisted preference validation live in `seasonalAreas.ts`. Keep stable IDs for backups. Add an area only with its own verifiable source, geographic scope, interpretation and review date. Do not copy a neighboring calendar or shift the French calendar six months. A future update should review the older source editions and expand Canadian, US and Australian regions individually.
+
+When editing: inspect the source's table legend and row alignment, preserve disjoint periods, distinguish storage where available, and review ambiguous crop names. Add each produce name to all six translation dictionaries and matching aliases. Do not reinterpret an old publication as current-year yield or a live availability forecast.
+
+Automated checks cover all 12 months in each area, category presence, unique/valid data, storage bounds, backup compatibility, geographic and hemisphere differences, fresh-ingredient matching, all six languages, month/location/account changes, searching, selection, duplicate shopping requests, failed persistence and provider failures. These checks validate catalog structure and behavior; they do not replace source review or verify real-world harvests.

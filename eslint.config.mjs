@@ -16,7 +16,6 @@ export default [
       "@typescript-eslint": tsPlugin
     },
     rules: {
-      // React Compiler diagnostics are opt-in until experiments.reactCompiler is enabled.
       "react-hooks/immutability": "off",
       "react-hooks/preserve-manual-memoization": "off",
       "react-hooks/refs": "off",

@@ -132,7 +132,6 @@ export function SubmitCommunityRecipeScreen({ navigation }: Props) {
       </GlassPanel>
 
       <GlassPanel style={styles.form}>
-        <AppText muted variant="caption">{t("editor.markdownHelp")}</AppText>
         <TextField markdown
           label={t("editor.name")}
           placeholder={t("community.titlePlaceholder")}

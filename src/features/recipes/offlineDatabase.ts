@@ -53,7 +53,6 @@ function getDatabase() {
   return dbPromise;
 }
 
-// Called only between serialized repository operations.
 export async function selectRecipeDatabase(accountKey: string) {
   await pendingOperation;
   const registry = await openDatabase(LEGACY_DATABASE);
@@ -100,7 +99,6 @@ export async function loadAllAccountImageReferences(): Promise<Recipe[] | null> 
   });
 }
 
-// Serialize every query so other calls cannot join a transaction in progress.
 function withDatabase<T>(task: (db: SQLite.SQLiteDatabase) => Promise<T>): Promise<T> {
   const result = pendingOperation.then(async () => task(await getDatabase()));
   pendingOperation = result.catch(() => undefined);

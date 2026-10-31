@@ -36,7 +36,6 @@ export function MarkdownInline({ nodes, linkColor, interactive = false }: {
   })}</>;
 }
 
-// Compact labels retain native line limits and inherited typography.
 export function compactMarkdownNodes(nodes: MarkdownNode[]): MarkdownNode[] {
   return nodes.flatMap((node, index) => {
     const separator: MarkdownNode = { type: "text", tag: "", content: " ", attrs: {}, children: [] };

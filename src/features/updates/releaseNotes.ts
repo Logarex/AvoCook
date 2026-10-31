@@ -1,8 +1,10 @@
 export const RELEASE_NOTE_KEYS = [
-  "design",
-  "settings",
-  "recipes",
-  "navigation",
-  "readability",
-  "fixes",
+  "clarity",
+  "reserves",
+  "planning",
+  "cooking",
+  "tools",
+  "assistant",
+  "book",
+  "shopping",
 ] as const;

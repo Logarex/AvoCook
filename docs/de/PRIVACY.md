@@ -1,6 +1,14 @@
 # Datenschutz und Daten
 
-Stand: 14. Oktober 2026. AvoCook enthält keine Werbung oder Analysewerkzeuge. Einige Funktionen nutzen die folgenden Netzwerkdienste.
+Stand: 31. Oktober 2026. AvoCook enthält keine Werbung oder Analysewerkzeuge. Einige Funktionen nutzen die folgenden Netzwerkdienste.
+
+## Meine Küche, Sprache und lokale Erinnerungen
+
+Speisepläne, Vorräte, Daten, persönliche Bewertungen, Notizen, Ernährungsangaben, Menüs und Kochverlauf werden lokal nach Rezeptkonto getrennt gespeichert. Private Notizen werden nicht veröffentlicht oder in PDF-Kochbücher aufgenommen. Die vollständige Küchensicherung enthält diese Informationen und Rezepte; die normale Rezeptsicherung enthält keine Küchendaten.
+
+Optionale Kochbefehle benötigen Mikrofon- und Spracherkennungsberechtigungen. Die Erkennung nutzt ausschließlich einen unterstützten lokalen Erkennungsdienst ohne Netzwerkersatz. AvoCook speichert weder Audio noch Transkripte. Beim Verlassen des Kochmodus oder im Hintergrund endet das Zuhören.
+
+Optionale Vorratserinnerungen werden auf dem Gerät geplant. Produktnamen können je nach Systemeinstellung auf dem Sperrbildschirm erscheinen. Erzeugte Zutaten verwenden den gewählten Einkaufsmodus einschließlich aktivierter Freigabe oder Apple-Erinnerungssynchronisierung.
 
 ## Rezepte, Nextcloud und Sicherungen
 
@@ -24,6 +32,8 @@ Optionaler KI-Import und Rezeptgenerierung senden das gewählte Foto oder den ei
 
 Automatische Community-Übersetzungen senden Rezepttexte an Google Translate und bei Bedarf an MyMemory. Dein KI-API-Schlüssel wird dafür nicht verwendet. Geladene Community-Rezepte und erfolgreiche Übersetzungen werden zum Offline-Lesen gespeichert. Die Anbieter verarbeiten Anfragen nach ihren eigenen Bedingungen und Datenschutzrichtlinien.
 
+Der optionale Kühlschrankassistent sendet ein Foto erst mit Analysieren und die bestätigten Zutaten und sichtbaren Vorgaben erst mit Generieren. Das Foto wird dem Rezept nicht beigefügt und nicht in den Daten von Meine Küche gespeichert. Das Speichern des bearbeitbaren Rezeptentwurfs ist ein separater Schritt und folgt Ihren üblichen Speicher- und Synchronisierungseinstellungen. Ihr Anbieter kann diese Anfragen berechnen.
+
 ## Apple Erinnerungen, Updates und Diagnose
 
 Wenn aktiviert, liest und schreibt die Einkaufssynchronisierung Apple Erinnerungen. Apple kann die Artikel entsprechend deinen Einstellungen über dein Konto synchronisieren, auch in geteilten iCloud-Listen.
@@ -31,6 +41,16 @@ Wenn aktiviert, liest und schreibt die Einkaufssynchronisierung Apple Erinnerung
 Android-Installationen per APK suchen auf GitHub nach Updates. Store-Installationen erhalten Updates über ihren Store. Geöffnete Rezept-, Support- und Anbieterlinks kontaktieren das jeweilige Ziel.
 
 Diagnoseprotokolle bleiben lokal. Geheimnisse werden maskiert, persönliche Informationen können jedoch enthalten sein. Prüfe Berichte vor dem Kopieren oder Teilen. Sie werden nicht automatisch gesendet.
+
+## Strichcodesuche
+
+Die Strichcodesuche sendet Code und Sprache an Open Food Facts. Kamerabilder, Vorräte und Daten werden nicht übertragen. Verfügbare Produktnamen, Mengen, Nährwerte und Bewertungen werden lokal mit Quellenangabe unter ODbL gespeichert.
+
+## Mitteilungen für geteilte Einkaufslisten
+
+Bei aktivierten Mitteilungen erhält ein Cloudflare Workers-Relay den Push-Token des Geräts und prüft Firebase-Identität und Listenzugriff. Listen bleiben in Firebase. Cloudflare D1 speichert technische Artikelkennungen, Listenversionen, Sprache, Installationskennungen und Push-Tokens, aber keine Produktnamen. Ein Serverprozess sucht mit einem schreibgeschützten Google-Dienstkonto nach verpassten Änderungen. Nextcloud-Zugangsdaten werden nicht übertragen.
+
+Allgemeine Mitteilungen werden über Expo Push und Apple oder Google zugestellt, auch bei geschlossener App und ohne Produktnamen. Deaktivieren oder Verlassen der Liste entfernt die Registrierung bei der nächsten Verbindung. Registrierungen verfallen nach 90 Tagen ohne Erneuerung; Zustelldatensätze werden nach zwei Tagen gelöscht. Timer und Ablauf-Erinnerungen werden auf dem Gerät geplant.
 
 ## Kontakt
 

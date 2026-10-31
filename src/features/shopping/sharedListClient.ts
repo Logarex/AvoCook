@@ -1,3 +1,4 @@
+import { notifySharedListChanged } from "./shoppingPushClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Crypto from "expo-crypto";
 import {
@@ -92,6 +93,7 @@ async function doPush(code: string, items: ShoppingListItem[]): Promise<void> {
     listRef(code),
     { items: normalizeShoppingListItems(items), updatedAt: serverTimestamp(), lastUpdatedBy: deviceId }
   );
+  void notifySharedListChanged(code);
 }
 
 export function schedulePush(
@@ -128,7 +130,7 @@ export async function flushSharedListPush(code?: string, items?: ShoppingListIte
 export async function joinSharedListWithItems(code: string, source: ShoppingListItem[]): Promise<ShoppingListItem[]> {
   await waitForAuth();
   const deviceId = await getDeviceId();
-  return runTransaction(getDb(), async (transaction) => {
+  const merged = await runTransaction(getDb(), async (transaction) => {
     const ref = listRef(code);
     const snap = await transaction.get(ref);
     if (!snap.exists()) throw new Error("List not found");
@@ -136,6 +138,8 @@ export async function joinSharedListWithItems(code: string, source: ShoppingList
     transaction.update(ref, { items, participantCount: increment(1), updatedAt: serverTimestamp(), lastUpdatedBy: deviceId });
     return items;
   });
+  void notifySharedListChanged(code);
+  return merged;
 }
 
 export async function createSharedList(

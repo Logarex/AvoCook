@@ -7,7 +7,7 @@ import { useAppTheme } from "../theme/ThemeProvider";
 import { AppText } from "./AppText";
 
 type StarRatingProps = {
-  rating: number; // 0 to 5
+  rating: number;
   maxStars?: number;
   size?: number;
   interactive?: boolean;

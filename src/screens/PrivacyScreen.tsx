@@ -26,6 +26,8 @@ export function PrivacyScreen({ navigation }: Props) {
       title: t("ui.privacyData"),
       paragraphs: [
         t("privacy.local"),
+        t("kitchen.privacyDataSummary"),
+        t("kitchen.privacyVoiceSummary"),
         t("privacy.credentials"),
         t("privacy.photos"),
       ],
@@ -35,6 +37,7 @@ export function PrivacyScreen({ navigation }: Props) {
       paragraphs: [
         t("privacy.sharedListsAndCommunity"),
         t("privacy.ai"),
+        t("kitchen.privacyBarcodeSummary"),
         t("privacy.translations"),
         t("privacy.reminders"),
       ],
@@ -42,7 +45,6 @@ export function PrivacyScreen({ navigation }: Props) {
   ];
   return (
     <Screen
-      showScrollTop={false}
       header={
         <ScreenHeader
           title={t("privacy.title")}

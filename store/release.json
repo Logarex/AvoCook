@@ -1,0 +1,11 @@
+{
+  "version": "5.0.0",
+  "notes": {
+    "en-US": "AvoCook 5.0.0 is a major redesign: adaptive navigation, native iOS controls, food inventory with barcode entry and expiry reminders, daily and weekly meal planning, step-by-step cooking with timers and local voice commands, private journal, seasonal produce, optional fridge assistant, illustrated PDF cookbooks and shared shopping notifications.",
+    "fr-FR": "AvoCook 5.0.0 fait peau neuve : navigation adaptative, commandes iOS natives, réserves avec codes-barres et rappels de péremption, planning du jour et de la semaine, cuisine étape par étape avec minuteurs et commandes vocales locales, carnet privé, produits de saison, assistant frigo facultatif, livres PDF illustrés et notifications de courses partagées.",
+    "de-DE": "AvoCook 5.0.0 wurde neu gestaltet: adaptive Navigation, native iOS-Bedienelemente, Vorräte mit Strichcodes und Ablauf-Erinnerungen, Tages- und Wochenplanung, Schritt-für-Schritt-Kochen mit Timern und lokalen Sprachbefehlen, privates Tagebuch, Saisonprodukte, optionaler Kühlschrank-Assistent, bebilderte PDF-Kochbücher und Mitteilungen für gemeinsame Einkäufe.",
+    "es-ES": "AvoCook 5.0.0 se renueva: navegación adaptable, controles iOS nativos, alimentos con códigos de barras y avisos de caducidad, plan diario y semanal, cocina paso a paso con temporizadores y voz local, diario privado, productos de temporada, asistente de nevera opcional, recetarios PDF ilustrados y avisos de compras compartidas.",
+    "it-IT": "AvoCook 5.0.0 si rinnova: navigazione adattiva, controlli iOS nativi, scorte con codici a barre e promemoria di scadenza, piano giornaliero e settimanale, cucina passo dopo passo con timer e comandi vocali locali, diario privato, prodotti stagionali, assistente frigo facoltativo, ricettari PDF illustrati e notifiche per la spesa condivisa.",
+    "da-DK": "AvoCook 5.0.0 har fået nyt design: adaptiv navigation, native iOS-knapper, madvarer med stregkoder og udløbspåmindelser, dags- og ugeplan, trinvis madlavning med timere og lokale stemmekommandoer, privat dagbog, sæsonvarer, valgfri køleskabsassistent, illustrerede PDF-kogebøger og beskeder om fælles indkøb."
+  }
+}

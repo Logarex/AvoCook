@@ -463,7 +463,16 @@ export class CookbookClient {
         );
       }
 
-      if (response.headers.get("content-type")?.includes("text/html") || /^\s*<(?:!doctype html|html)\b/i.test(body)) {
+      // Nextcloud/proxies can label empty WebDAV creation/deletion responses
+      // as text/html. Those are successful writes, not redirected login pages.
+      const emptyWriteResponse =
+        ["PUT", "MKCOL", "DELETE"].includes(options.method ?? "GET") &&
+        [201, 204].includes(response.status) &&
+        !body.trim();
+      if (!emptyWriteResponse && (
+        response.headers.get("content-type")?.toLowerCase().includes("text/html") ||
+        /^\s*<(?:!doctype html|html)\b/i.test(body)
+      )) {
         throw new CookbookApiError("Nextcloud returned a web page instead of a WebDAV response", response.status);
       }
       return body;
@@ -567,7 +576,6 @@ export class CookbookClient {
                 resolvedAuthorization &&
                 !triedAuthorizations.has(resolvedAuthorization)
               ) {
-                // The Nextcloud login and WebDAV user ID can differ.
                 console.warn(
                   "sync",
                   "WebDAV auth rejected login; retrying with resolved user id",
@@ -732,7 +740,6 @@ function getSafeRemoteImageFilename(uri: string) {
   try {
     rawName = decodeURIComponent(rawName);
   } catch {
-    // A filename can contain a literal percent sign.
   }
   const safeName = rawName
     .replace(/[^a-z0-9._-]+/gi, "-")

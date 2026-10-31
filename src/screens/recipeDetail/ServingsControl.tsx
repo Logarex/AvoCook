@@ -10,16 +10,18 @@ export function ServingsControl({
   baseServings,
   selectedServings,
   onChange,
+  compact = false,
 }: {
   baseServings: number;
   selectedServings: number;
   onChange: (servings: number) => void;
+  compact?: boolean;
 }) {
   const { t } = useTranslation();
   return (
-    <GlassPanel style={{ gap: 8, paddingVertical: 8 }}>
+    <GlassPanel style={{ gap: 8, paddingVertical: compact ? 4 : 8, ...(compact ? { paddingHorizontal: 12 } : {}) }}>
       <View style={styles.servingsRow}>
-        <AppText style={{ flex: 1 }}>{t("recipes.servings.title")}</AppText>
+        <AppText variant={compact ? "caption" : "body"} style={{ flex: 1 }}>{t("recipes.servings.title")}</AppText>
         <IconButton
           disabled={selectedServings <= 1}
           icon={Minus}
@@ -28,7 +30,7 @@ export function ServingsControl({
         />
         <AppText
           variant="subtitle"
-          style={{ minWidth: 28, textAlign: "center" }}
+          style={{ minWidth: compact ? 24 : 28, textAlign: "center", ...(compact ? { fontSize: 20, lineHeight: 24 } : {}) }}
         >
           {selectedServings}
         </AppText>

@@ -7,7 +7,6 @@ import { PantrySession } from "../features/pantry/pantrySession";
 import type { PantryCache } from "../features/pantry/pantryStore";
 import { addIngredientsToShoppingList } from "../features/shopping/shoppingList";
 
-// Real HTTP transport against the OCS contract (no live Nextcloud account needed).
 let server: Server;
 let serverUrl: string;
 let remote: PantryItem[];

@@ -4,7 +4,6 @@ import { normalizeRecipe, type Recipe } from "../recipes/types";
 type JsonLdValue = Record<string, unknown> | JsonLdValue[] | string;
 
 export async function importRecipeFromWeb(url: string): Promise<Recipe> {
-  // Some recipe sites reject generic fetch headers.
   const response = await fetch(url, {
     headers: {
       "User-Agent":
@@ -202,7 +201,7 @@ export function extractSemanticHtmlRecipe(html: string): Record<string, unknown>
 
   if (instMatches.length > 0) {
     const instructions: string[] = [];
-    
+
     for (let i = 0; i < instMatches.length; i++) {
       const match = instMatches[i];
       const afterHeading = html.slice(match.index! + match[0].length);
@@ -245,7 +244,6 @@ export function extractSemanticHtmlRecipe(html: string): Record<string, unknown>
 }
 
 function safeJsonParse(rawJson: string): JsonLdValue | null {
-  // Some WordPress JSON-LD starts with a BOM.
   const cleaned = rawJson.replace(/^\uFEFF/, "");
 
   try {
@@ -255,7 +253,6 @@ function safeJsonParse(rawJson: string): JsonLdValue | null {
     try {
       return JSON.parse(fix1) as JsonLdValue;
     } catch {
-      // Retain newline, carriage return and tab when stripping JSON-invalid control characters.
       const fix2 = fix1.replace(
         /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g,
         " "

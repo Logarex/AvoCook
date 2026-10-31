@@ -58,7 +58,6 @@ export function useOnboarding(): OnboardingState {
   const resetOnboarding = useCallback(async () => {
     setTourDone(false);
     setShowUpdateScreen(false);
-    // Keep the version marker so resetting the tour does not reopen the update screen.
     const currentVersion = APP_VERSION;
     await AsyncStorage.removeItem(TOUR_DONE_KEY);
     await AsyncStorage.setItem(LAST_SEEN_VERSION_KEY, currentVersion);

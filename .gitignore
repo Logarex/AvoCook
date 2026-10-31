@@ -45,3 +45,18 @@ Icon
 Network Trash Folder
 Temporary Items
 .Trashes
+
+# Store metadata generated from store/locales and store/release.json
+/store/generated/
+/fastlane/report.xml
+/fastlane/Preview.html
+/fastlane/vendor/
+
+# Firebase Android configuration supplied by the release environment
+/google-services.json
+
+# Cloudflare local runtime state and server-only service-account keys
+/notification-relay/.wrangler/
+/notification-relay/service-account*.json
+.dev.vars
+.dev.vars.*

@@ -30,14 +30,16 @@ export function ShoppingModeButton({
       : mode.kind === "firebase"
         ? Users
         : Smartphone;
-  if (nativeUI) {
+  if (nativeUI && !compact) {
     return (
       <NativeGlassButton
         ui={nativeUI}
         fitContent={compact}
         onPress={onPress}
         disabled={switching || disabled}
-        label={`${t("shoppingModes.choose")}: ${t(`shoppingModes.${mode.kind}`)}`}
+        label={`${t("shoppingModes.choose")}: ${compact && mode.kind === "pantry"
+                ? `${t(`shoppingModes.${mode.kind}`)} · ${mode.selection.list.name}`
+                : t(`shoppingModes.${mode.kind}`)}`}
         style={{
           minHeight: compact ? 44 : 60,
           alignSelf: compact ? "flex-start" : "stretch",
@@ -55,7 +57,9 @@ export function ShoppingModeButton({
               variant={compact ? "caption" : "label"}
               numberOfLines={compact ? 1 : undefined}
             >
-              {t(`shoppingModes.${mode.kind}`)}
+              {compact && mode.kind === "pantry"
+                ? `${t(`shoppingModes.${mode.kind}`)} · ${mode.selection.list.name}`
+                : t(`shoppingModes.${mode.kind}`)}
             </AppText>
             {!compact ? (
               <AppText muted variant="caption">
@@ -74,6 +78,8 @@ export function ShoppingModeButton({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={t("shoppingModes.choose")}
+      accessibilityValue={{ text: mode.kind === "pantry" ? `${t(`shoppingModes.${mode.kind}`)} · ${mode.selection.list.name}` : t(`shoppingModes.${mode.kind}`) }}
+      accessibilityState={{ disabled: switching || disabled }}
       disabled={switching || disabled}
       onPress={onPress}
       style={({ pressed }) => [
@@ -82,17 +88,21 @@ export function ShoppingModeButton({
         { opacity: switching ? 0.5 : pressed ? 0.75 : 1 },
       ]}
     >
-      <GlassSurface
-        pointerEvents="none"
-        style={[StyleSheet.absoluteFill, { borderRadius: radius.md }]}
-      />
+      {!compact ? (
+        <GlassSurface
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { borderRadius: radius.md }]}
+        />
+      ) : null}
       <Icon size={compact ? 16 : 22} color={colors.primary} />
       <View style={compact ? styles.compactText : styles.text}>
         <AppText
           variant={compact ? "caption" : "label"}
           numberOfLines={compact ? 1 : undefined}
         >
-          {t(`shoppingModes.${mode.kind}`)}
+          {compact && mode.kind === "pantry"
+                ? `${t(`shoppingModes.${mode.kind}`)} · ${mode.selection.list.name}`
+                : t(`shoppingModes.${mode.kind}`)}
         </AppText>
         {!compact ? (
           <AppText muted variant="caption">
@@ -121,7 +131,9 @@ const styles = StyleSheet.create({
   },
   text: { flex: 1, gap: spacing.xxs },
   compact: {
-    paddingHorizontal: spacing.sm,
+    flexShrink: 1,
+    minHeight: 44,
+    paddingHorizontal: 0,
     paddingVertical: spacing.xs,
     borderRadius: radius.md,
     gap: spacing.xs,

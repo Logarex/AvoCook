@@ -6,5 +6,7 @@
   "NSPhotoLibraryUsageDescription": "Erlauben Sie den Zugriff auf Fotos, um einem Rezept ein Bild hinzuzufügen.",
   "NSPhotoLibraryAddUsageDescription": "Erlauben Sie bei Bedarf das Speichern von Rezeptbildern.",
   "NSLocalNetworkUsageDescription": "Erlauben Sie den Zugriff auf das lokale Netzwerk nur, um eine Verbindung zu einem in Ihrem Netzwerk gehosteten Nextcloud-Server herzustellen.",
-  "NSCameraUsageDescription": "Kamerazugriff, um Rezepte aus Fotos zu scannen."
+  "NSCameraUsageDescription": "Kamerazugriff zum Scannen von Rezepten und Lebensmittel-Strichcodes erlauben.",
+  "NSMicrophoneUsageDescription": "AvoCook verwendet das Mikrofon, damit du mit optionalen Sprachbefehlen zwischen Rezeptschritten wechseln und Timer starten kannst. Audiodaten werden auf deinem Gerät verarbeitet.",
+  "NSSpeechRecognitionUsageDescription": "Kochbefehle auf diesem Gerät erkennen. Audiodaten werden nicht an einen Server gesendet."
 }

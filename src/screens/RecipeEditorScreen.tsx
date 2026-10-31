@@ -1,10 +1,18 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { usePreventRemove } from "@react-navigation/native";
 import { Image as ExpoImage } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { Check, ImagePlus, Link, Plus, X } from "lucide-react-native";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Platform, Pressable, StyleSheet, Switch, View } from "react-native";
+import {
+  Alert,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Switch,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ActionMenu } from "../components/ActionMenu";
 import { AppText } from "../components/AppText";
@@ -59,11 +67,18 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const initialRecipe = useMemo(
     () =>
       existingRecipe ??
+      (route.params.draft
+        ? normalizeRecipe({
+            ...route.params.draft,
+            id: null,
+            recipe_id: undefined,
+          })
+        : undefined) ??
       normalizeRecipe({
         ...createEmptyRecipe(),
         recipeCategory: route.params.category ?? "",
       }),
-    [existingRecipe, route.params.category],
+    [existingRecipe, route.params.category, route.params.draft],
   );
 
   const [name, setName] = useState(initialRecipe.name);
@@ -118,6 +133,22 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const [fiber, setFiber] = useState(initialNutrition.fiber);
   const [protein, setProtein] = useState(initialNutrition.protein);
   const [saving, setSaving] = useState(false);
+  const savedDraft = useRef(false);
+  usePreventRemove(Boolean(route.params.draft), ({ data }) => {
+    if (savedDraft.current) {
+      navigation.dispatch(data.action);
+      return;
+    }
+    if (saving) return;
+    Alert.alert(t("kitchen.unsaved"), t("kitchen.unsavedBody"), [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("kitchen.discard"),
+        style: "destructive",
+        onPress: () => navigation.dispatch(data.action),
+      },
+    ]);
+  });
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const categorySuggestions = useMemo(() => {
@@ -253,6 +284,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
       const saved = existingRecipe
         ? await updateRecipe(recipe)
         : await createRecipe(recipe);
+      savedDraft.current = true;
       if (saved.id) {
         if (existingRecipe && navigation.canGoBack()) {
           navigation.goBack();
@@ -271,32 +303,31 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   }
 
   async function handleChoosePhoto() {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      allowsEditing: true,
-      aspect: [4, 3],
-      mediaTypes: ["images"],
-      quality: 0.86,
-    });
-
-    if (result.canceled || !result.assets[0]?.uri) {
-      return;
-    }
-
-    const localUri = result.assets[0].uri;
     setUploadingPhoto(true);
     setError(null);
     try {
+      // The system picker grants access to the selected photo without requiring
+      // broad library access (which may be denied or blocked on Android).
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        aspect: [4, 3],
+        mediaTypes: ["images"],
+        quality: 0.86,
+      });
+
+      if (result.canceled || !result.assets[0]?.uri) {
+        return;
+      }
+
+      // Picker files live in a temporary cache. Keep a durable copy for offline
+      // display, including when the recipe image is uploaded to Nextcloud.
+      const localUri = await persistRecipeImage(result.assets[0].uri);
       if (client) {
         const remotePath = await client.uploadRecipeImage(localUri);
         setPhotoUrl(remotePath);
         setPhotoLocalUri(localUri);
       } else {
-        setPhotoUrl(await persistRecipeImage(localUri));
+        setPhotoUrl(localUri);
         setPhotoLocalUri("");
       }
     } catch (caught) {
@@ -310,7 +341,6 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   return (
     <Screen
       contentStyle={{ paddingBottom: spacing.md + insets.bottom }}
-      showScrollTop={false}
       header={
         <ScreenHeader
           title={
@@ -374,7 +404,7 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
               setPhotoLocalUri("");
             }}
             style={styles.rowItem}
-            variant="ghost"
+            variant="danger-secondary"
           />
         ) : null}
       </View>

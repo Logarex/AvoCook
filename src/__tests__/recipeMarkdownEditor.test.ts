@@ -8,9 +8,18 @@ import { RecipeEditorScreen } from "../screens/RecipeEditorScreen";
 const mocks = vi.hoisted(() => ({
   recipe: undefined as Recipe | undefined,
   save: vi.fn(async (recipe: Recipe) => ({ ...recipe, id: "test" })),
+  preventRemove: vi.fn(),
+  client: null as { uploadRecipeImage: (uri: string) => Promise<string> } | null,
+  permission: vi.fn(),
+  pickImage: vi.fn(),
+  persistImage: vi.fn(),
+}));
+vi.mock("@react-navigation/native", () => ({
+  usePreventRemove: mocks.preventRemove,
 }));
 vi.mock("react-native", () => ({
   View: "View",
+  Alert: { alert: vi.fn() },
   Pressable: "Pressable",
   Switch: "Switch",
   Platform: { OS: "ios" },
@@ -20,16 +29,18 @@ vi.mock("react-native-safe-area-context", () => ({
   useSafeAreaInsets: () => ({ bottom: 0 }),
 }));
 vi.mock("expo-image", () => ({ Image: "Image" }));
-vi.mock("expo-image-picker", () => ({}));
+vi.mock("expo-image-picker", () => ({
+  requestMediaLibraryPermissionsAsync: mocks.permission,
+  launchImageLibraryAsync: mocks.pickImage,
+}));
 vi.mock("../features/recipes/recipeImages", () => ({
-  persistRecipeImage: vi.fn(),
+  persistRecipeImage: mocks.persistImage,
 }));
 vi.mock("lucide-react-native", () =>
   Object.fromEntries(
     [
       "ArrowLeft",
       "ArrowDown",
-      "ArrowUp",
       "Check",
       "ImagePlus",
       "Link",
@@ -42,7 +53,7 @@ vi.mock("lucide-react-native", () =>
   ),
 );
 vi.mock("../features/auth/AuthProvider", () => ({
-  useAuth: () => ({ getClient: () => null }),
+  useAuth: () => ({ getClient: () => mocks.client }),
 }));
 vi.mock("../features/recipes/RecipesProvider", () => ({
   useRecipes: () => ({
@@ -97,16 +108,25 @@ beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   mocks.recipe = undefined;
   mocks.save.mockClear();
+  mocks.client = null;
+  mocks.permission.mockReset().mockResolvedValue({ granted: false });
+  mocks.pickImage.mockReset().mockResolvedValue({
+    canceled: false,
+    assets: [{ uri: "file:///cache/picked.jpg" }],
+  });
+  mocks.persistImage
+    .mockReset()
+    .mockResolvedValue("file:///documents/recipe-images/photo.jpg");
 });
 afterEach(async () => {
   if (screen) await act(async () => screen.unmount());
   vi.unstubAllGlobals();
 });
-async function render() {
+async function render(draft?: Recipe) {
   await act(async () => {
     screen = create(
       React.createElement(RecipeEditorScreen, {
-        route: { params: { id: mocks.recipe?.id } },
+        route: { params: { id: mocks.recipe?.id, draft } },
         navigation: {
           canGoBack: () => true,
           goBack: vi.fn(),
@@ -161,6 +181,33 @@ async function save() {
 }
 
 describe("Markdown recipe editing and saving", () => {
+  it("keeps an AI draft editable and unsaved until explicit save, without treating its ID as an update", async () => {
+    const draft = normalizeRecipe({
+      id: "untrusted-model-id",
+      name: "Fridge omelette",
+      recipeYield: 2,
+      recipeIngredient: ["2 eggs"],
+      recipeInstructions: ["Whisk", "Cook"],
+    });
+    await render(draft);
+    expect(input(en.translation.editor.name).props.value).toBe(
+      "Fridge omelette",
+    );
+    expect(mocks.save).not.toHaveBeenCalled();
+    expect(mocks.preventRemove).toHaveBeenLastCalledWith(
+      true,
+      expect.any(Function),
+    );
+    await enter(en.translation.editor.name, "My omelette");
+    await save();
+    expect(mocks.save.mock.calls[0][0]).toMatchObject({
+      id: null,
+      name: "My omelette",
+      recipeYield: 2,
+      recipeIngredient: ["2 eggs"],
+      recipeInstructions: ["Whisk", "Cook"],
+    });
+  });
   it("starts with essentials and preserves existing optional values without opening their sections", async () => {
     mocks.recipe = normalizeRecipe({
       id: "42",
@@ -292,5 +339,148 @@ describe("Markdown recipe editing and saving", () => {
       calories: "420 kcal",
     });
     expect(mocks.save.mock.calls[0][0].tool).toEqual(["Whisk", "Spoon"]);
+  });
+});
+
+function photoButton() {
+  return screen.root.findAll(
+    (node) =>
+      String(node.type) === "Button" &&
+      node.props.label === en.translation.editor.choosePhoto,
+  )[0];
+}
+async function choosePhoto() {
+  await act(async () => {
+    photoButton().props.onPress();
+    // The UI callback deliberately returns void; flush its asynchronous work.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
+describe("Recipe photo selection and saving", () => {
+  it("opens the system picker without requiring broad photo-library access and saves a durable local photo", async () => {
+    await render();
+    await enter(en.translation.editor.name, "Soup");
+    await choosePhoto();
+    expect(mocks.permission).not.toHaveBeenCalled();
+    expect(mocks.pickImage).toHaveBeenCalledWith(
+      expect.objectContaining({ mediaTypes: ["images"] }),
+    );
+    expect(mocks.persistImage).toHaveBeenCalledWith("file:///cache/picked.jpg");
+    expect(screen.root.findByType("Image" as never).props.source.uri).toBe(
+      "file:///documents/recipe-images/photo.jpg",
+    );
+    await save();
+    expect(mocks.save.mock.calls[0][0]).toMatchObject({
+      image: "file:///documents/recipe-images/photo.jpg",
+      imageUrl: "file:///documents/recipe-images/photo.jpg",
+      localMeta: { cachedImage: "file:///documents/recipe-images/photo.jpg" },
+    });
+  });
+
+  it("uploads a durable copy to Nextcloud and keeps it for the preview and offline use", async () => {
+    const upload = vi.fn().mockResolvedValue("/AvoCook Images/photo.jpg");
+    mocks.client = { uploadRecipeImage: upload };
+    mocks.recipe = normalizeRecipe({
+      id: "42",
+      name: "Soup",
+      image: "https://example.com/old.jpg",
+    });
+    await render();
+    await choosePhoto();
+    expect(upload).toHaveBeenCalledWith(
+      "file:///documents/recipe-images/photo.jpg",
+    );
+    expect(screen.root.findByType("Image" as never).props.source.uri).toBe(
+      "file:///documents/recipe-images/photo.jpg",
+    );
+    await save();
+    expect(mocks.save.mock.calls[0][0]).toMatchObject({
+      image: "/AvoCook Images/photo.jpg",
+      imageUrl: "/AvoCook Images/photo.jpg",
+      imagePlaceholderUrl: "/AvoCook Images/photo.jpg",
+      localMeta: { cachedImage: "file:///documents/recipe-images/photo.jpg" },
+    });
+  });
+
+  it.each([
+    { canceled: true, assets: null },
+    { canceled: false, assets: [] },
+  ])("preserves the existing photo when selection returns $canceled with no asset", async (result) => {
+    mocks.recipe = normalizeRecipe({
+      id: "42",
+      name: "Soup",
+      image: "https://example.com/old.jpg",
+    });
+    mocks.pickImage.mockResolvedValue(result);
+    await render();
+    await choosePhoto();
+    expect(mocks.persistImage).not.toHaveBeenCalled();
+    expect(JSON.stringify(screen.toJSON())).not.toContain(
+      en.translation.editor.photoUploadFailed,
+    );
+    expect(photoButton().props.disabled).toBe(false);
+    await save();
+    expect(mocks.save.mock.calls[0][0].image).toBe("https://example.com/old.jpg");
+  });
+
+  it.each(["picker", "storage", "upload"])("shows an error and allows retry after a %s failure", async (stage) => {
+    const upload = vi.fn().mockResolvedValue("/AvoCook Images/photo.jpg");
+    if (stage === "picker") {
+      mocks.pickImage.mockRejectedValueOnce(new Error("Picker unavailable"));
+    }
+    if (stage === "storage") {
+      mocks.persistImage.mockRejectedValueOnce(new Error("Disk full"));
+    }
+    if (stage === "upload") {
+      mocks.client = { uploadRecipeImage: upload };
+      upload.mockRejectedValueOnce(new Error("Server unavailable"));
+    }
+    mocks.recipe = normalizeRecipe({
+      id: "42",
+      name: "Soup",
+      image: "https://example.com/old.jpg",
+    });
+    await render();
+    await choosePhoto();
+    expect(JSON.stringify(screen.toJSON())).toContain(
+      en.translation.editor.photoUploadFailed,
+    );
+    expect(screen.root.findByType("Image" as never).props.source.uri).toBe(
+      "https://example.com/old.jpg",
+    );
+    expect(photoButton().props.disabled).toBe(false);
+    await choosePhoto();
+    expect(JSON.stringify(screen.toJSON())).not.toContain(
+      en.translation.editor.photoUploadFailed,
+    );
+    expect(screen.root.findByType("Image" as never).props.source.uri).toBe(
+      "file:///documents/recipe-images/photo.jpg",
+    );
+  });
+
+  it("disables saving and repeated selection while the picker is open", async () => {
+    let finish!: (value: { canceled: true; assets: null }) => void;
+    mocks.pickImage.mockReturnValue(new Promise((resolve) => {
+      finish = resolve;
+    }));
+    await render();
+    await act(async () => {
+      photoButton().props.onPress();
+    });
+    const saveButton = screen.root.findAll(
+      (node) => String(node.type) === "IconButton" &&
+        node.props.label === en.translation.common.save,
+    )[0];
+    expect(saveButton.props.disabled).toBe(true);
+    const uploadingButton = screen.root.findAll(
+      (node) => String(node.type) === "Button" &&
+        node.props.label === en.translation.editor.photoUploading,
+    )[0];
+    expect(uploadingButton.props.disabled).toBe(true);
+    await act(async () => {
+      finish({ canceled: true, assets: null });
+    });
+    expect(photoButton().props.disabled).toBe(false);
   });
 });

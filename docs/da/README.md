@@ -1,79 +1,86 @@
 # AvoCook
 
-AvoCook er en mobil opskriftsbog — den fungerer helt offline på din enhed uden brug af en konto. Hvis du har en Nextcloud-server, kan du valgfrit forbinde den for at holde dine opskrifter synkroniseret.
+[English](../../README.md) · [Français](../fr/README.md) · [Deutsch](../de/README.md) · [Español](../es/README.md) · [Italiano](../it/README.md) · [Dansk](README.md)
 
----
+AvoCook er en gratis open source-app til iOS og Android. Jeg udvikler den ved siden af mine studier for at samle opskrifter, planlægge måltider og gøre hverdagens madlavning lidt lettere.
 
-## Funktioner
+[App Store](https://apps.apple.com/app/avocook/id6769012665) · [Google Play](https://play.google.com/store/apps/details?id=app.avocook.mobile) · [APK](https://github.com/Logarex/AvoCook/releases/latest)
 
-### Fællesskabsplatform
+## Brug AvoCook
 
-- Opdag, bedøm og importer opskrifter fra AvoCook-fællesskabet;
-- Opskrifter fra fællesskabet vises automatisk på appens sprog, både på listen og i opskriftens detaljer;
-- Se den originale opskrift når som helst, eller importer den oversatte version til din opskriftsbog;
-- Del dine bedste retter ved at oprette en fællesskabsprofil;
-- Sikker og modereret platform med indbygget spambeskyttelse.
+### Alle opskrifter ét sted
 
-### Opskrifter
+Skriv opskrifter, tilføj fotos og kategorier, og tilpas mængder til portionerne. Ingredienser og trin understøtter valgfri Markdown. Indsæt et link eller del det fra browseren for at importere en opskrift, og tjek resultatet før du gemmer. Du kan også udskrive eller dele en enkelt opskrift.
 
-- Opret og rediger opskrifter lokalt, ingen konto påkrævet;
-- Organiser opskrifter efter kategori;
-- Tilpas ingrediensmængder til antallet af portioner;
-- Tilføj et eller flere fotos til hver opskrift;
-- Eksporter en opskrift som PDF eller udskriv den direkte;
-- Del en opskrift med en anden app.
+### Hold styr på dine madvarer
 
-### Valgfri Markdown
+Organiser køleskab, skab og fryser med mængder og datoer. Tilføj madvarer med stregkoder, se tilgængelige vurderinger fra Open Food Facts og slå påmindelser om udløbsdatoer til.
 
-Alle opskrifters tekstfelter accepterer Markdown på alle sprog: navn, beskrivelse, kategori, nøgleord, kildenavn, ingredienser, instruktioner, redskaber og næringsværdier. Almindelig tekst er stadig standard; kendskab til Markdown er ikke nødvendigt.
+Indtast datoen på pakken selv. Stregkodesøgning kræver Internet; varedata og vurderinger kan mangle. Forråd og madplan er stadig tilgængelige offline.
 
-Brug `**fed**`, `*kursiv*`, overskrifter, lister, citater, kode, tabeller eller `[et link](https://example.com)`. Formateringen vises ved læsning, i PDF-filer og ved udskrivning. Markdown-billeder vises som links. Tal (portioner og varighed) og URL-felter beholder deres sædvanlige format.
+### Planlæg i dag og resten af ugen
 
-Hver ingrediens og instruktion beholder sin Markdown, inklusive afsnit og indlejrede lister. Indsatte linjer med almindelig tekst opretter stadig separate punkter; indsatte Markdown-blokke holdes samlet.
+Tilføj opskrifter, enkle måltider, rester eller restaurantbesøg. Tilpas portioner, flyt måltider mellem dage og vælg ingredienser til indkøbslisten. Gem menuer og find tidligere måltider i historikken.
 
-### Import
+### Lav mad trin for trin
 
-- Importer en opskrift fra en URL — fungerer på alle websteder med `schema.org/Recipe` data;
-- Modtag en URL fra en browser eller en anden app for at importere med ét tryk;
-- Scan en opskrift fra et foto, eller generer en opskrift fra et billede af en ret ved hjælp af AI (kræver en OpenAI-kompatibel API-nøgle).
+Følg opskrifter med timere, der gendannes, når du vender tilbage. Understøttede enheder har lokale stemmekommandoer. Gem noter i en privat dagbog og tilbered flere opskrifter sammen.
 
-### Indkøbsliste
+### Idéer til hverdagen
 
-- Del indkøbslister med en kode på 6 tegn, et deltagerantal og lokale beskeder, mens AvoCook kører;
-- Kopier ingredienser til udklipsholderen med ét tryk;
-- Eksporter en indkøbsliste til Apple Påmindelser.
+Find opskrifter med dine ingredienser, se sæsonvarer i 11 regionale kalendere, eller brug omregninger og erstatninger til bagning. Sikkerhedskopiér opskrifter og private køkkendata sammen.
 
-### Timere
+Kalenderne dækker det franske fastland, Vallonien, Schweiz, Tyskland, Spanien, Italien, Storbritannien, Danmark, Ontario, delstaten New York og Sydney. Dækning og betydningen af tilgængelighed afhænger af kilden.
 
-- Start en eller flere tilberedningstimere direkte fra en opskrift;
-- Timere udløser en lokal meddelelse, selv når appen er i baggrunden.
+### Valgfri køleskabsassistent
 
-### Data & synkronisering
+Indtast ingredienser eller start med et foto af køleskabet, tjek listen og bed om et opskriftsudkast, du kan redigere. Kræver egen udbyder, API-nøgle og en passende model; der kan være omkostninger.
 
-- Sikkerhedskopier alle opskrifter til en JSON-fil og genopret dem;
-- **Valgfrit**: Forbind en Nextcloud Cookbook-server for at synkronisere opskrifter mellem enheder.
+### Din egen illustrerede kogebog
 
-> Lokale opskrifter bliver på enheden, medmindre du synkroniserer, deler eller eksporterer dem. Fællesskabet bruger Firebase med en anonym session ved opstart. Se [Privatliv og data](PRIVACY.md).
+Vælg opskrifter og en titel, og lav en PDF-bog med forside, indholdsfortegnelse, fotos, ingredienser og trin. Billeder fra dit lokale bibliotek og Nextcloud medtages, når de er tilgængelige.
 
-HTTPS bruges som standard, hvis ingen protokol angives. Til en Nextcloud-server på dit betroede lokale netværk skal du indtaste en eksplicit HTTP-adresse, f.eks. `http://192.168.1.50:8080/nextcloud` eller `http://nextcloud.local`. HTTP sender din app-adgangskode og dine opskrifter uden kryptering; brug det kun på et betroet netværk. Oplysningerne forbliver krypteret i enhedens nøglering.
+Private dagbogsnoter kommer ikke med i bogen. PDF-filen oprettes på enheden; Nextcloud-billeder kan skulle hentes først.
 
----
+### Indkøb alene eller sammen
+
+Brug en lokal liste, inviter andre til en AvoCook-liste med en kode på seks tegn, eller forbind en husstandsliste fra Nextcloud Pantry. Vælg ingredienser fra opskrifter og madplan. På iOS kan Påmindelser synkronisere med den aktive tilstand. Delte AvoCook-lister tilbyder pushbeskeder, når andre deltagere tilføjer eller fjerner varer.
+
+### Opskrifter fra fællesskabet
+
+Find, bedøm og importer andre brugeres opskrifter. Læs dem oversat eller se originalen. En fællesskabsprofil giver mulighed for at udgive egne opskrifter. Indlæste opskrifter og færdige oversættelser forbliver i enhedens cache.
+
+### På telefoner og tablets
+
+De fem faner er Opskrifter, Mit køkken, Madplan, Fællesskab og Indkøb. Store skærme kan bruge sidenavigation og kolonnevisning, der tager hensyn til tekststørrelsen. Understøttede iPhones bruger native Liquid Glass-knapper.
+
+### Dine data og forbindelser
+
+Opskrifter fungerer lokalt uden at oprette en konto. Forbind Nextcloud Cookbook for at synkronisere dem med din server. Madplan, forråd og private noter bliver på enheden, adskilt efter opskriftskonto; Cookbook synkroniserer dem ikke. Eksporter kun opskrifter, eller lav en komplet sikkerhedskopi med tilgængelige fotos og private køkkendata.
+
+Fællesskab og delte lister bruger Firebase med en anonym session ved opstart. Webimport, varesøgning og den valgfrie assistent bruger deres respektive tjenester. Talegenkendelse bruger en understøttet lokal motor uden cloud-reserve.
 
 ## Tilgængelige sprog
 
-Fransk · Engelsk · Tysk · Spansk · Italiensk · Dansk
+Dansk · Engelsk · Fransk · Tysk · Spansk · Italiensk
 
----
+## Vejledninger
+
+- [Køkkenvejledning](GUIDE.md)
+- [Dine data og forbindelser](PRIVACY.md)
+- [Teknisk dokumentation](../LOCAL_KITCHEN.md) · [Nextcloud Pantry](../NEXTCLOUD_PANTRY.md) · [Seasonal catalog](../SEASONAL_CATALOG.md)
 
 ## Opsætning til udvikling
 
-Projektet bruger Expo SDK 57, React Native 0.86 og TypeScript. Node.js 22.13 eller nyere er påkrævet. Lokale iOS-builds bruger Xcode 27 og Device Hub; den laveste understøttede iOS-version er 16.4.
+Projektet bruger Expo SDK 57, React Native 0.86 og TypeScript. Node.js >=22.13 og <27 er påkrævet. Lokale iOS-builds bruger Xcode 27 og Device Hub; den laveste understøttede iOS-version er 16.4.
 
 ```bash
-npm install
+npm ci
 npm run ios      # iOS-simulator
 npm run android  # Android-emulator
 ```
+
+Efter ændringer af native afhængigheder skal du køre `npx expo prebuild --clean` og bygge igen. Lokal stemmestyring og lagerpåmindelser kræver de lokale native moduler; Expo Go er ikke nok.
 
 Ved første start kompileres et udviklingsbuild med native moduler. Derefter åbner appen direkte.
 
@@ -87,6 +94,19 @@ npm test                               # Enhedstests (Vitest)
 npm run lint                           # ESLint
 npm run import:check -- <opskrift-url>  # Test import fra en URL
 ```
+
+---
+
+## Websted
+
+Webstedet ligger i `site/`, med tekster på seks sprog i `site/main.js`. Kommandoen nedenfor forbereder de samme filer som GitHub Pages, inklusive skærmbilleder. Webstedet udgives til `gh-pages` ved push til `main` eller via den manuelle Deploy site-workflow; push kun til denne gren udgiver ikke webstedet.
+
+```bash
+node tools/scripts/build-site.mjs
+python3 -m http.server 8765 --bind 127.0.0.1 --directory dist/site
+```
+
+[http://127.0.0.1:8765/](http://127.0.0.1:8765/)
 
 ---
 

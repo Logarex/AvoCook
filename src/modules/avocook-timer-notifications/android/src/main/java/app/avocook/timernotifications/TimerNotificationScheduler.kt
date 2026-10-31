@@ -14,6 +14,8 @@ import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
+import org.json.JSONObject
+import java.util.UUID
 
 internal object TimerNotificationScheduler {
   private const val CHANNEL_ID = "avocook-timer-alarms"
@@ -45,9 +47,9 @@ internal object TimerNotificationScheduler {
     return "ready"
   }
 
-  fun requestExactAlarmSettingsIfNeeded(context: Context) {
+  fun requestExactAlarmSettingsIfNeeded(context: Context): Boolean {
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || canScheduleExactAlarms(context)) {
-      return
+      return false
     }
 
     val intent = Intent(
@@ -55,7 +57,7 @@ internal object TimerNotificationScheduler {
       Uri.parse("package:${context.packageName}")
     ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
-    runCatching { context.startActivity(intent) }
+    return runCatching { context.startActivity(intent); true }.getOrDefault(false)
   }
 
   fun schedule(
@@ -66,8 +68,21 @@ internal object TimerNotificationScheduler {
     timerId: String,
     seconds: Double
   ): String {
-    val notificationId = "timer:$recipeId:$timerId:${System.currentTimeMillis()}"
+    val notificationId = "timer:$recipeId:$timerId:${UUID.randomUUID()}"
     val triggerAt = System.currentTimeMillis() + (seconds.coerceAtLeast(1.0) * 1000).toLong()
+    scheduleAt(context, notificationId, title, body, recipeId, timerId, triggerAt)
+    val entry = JSONObject().put("title", title).put("body", body)
+      .put("recipeId", recipeId).put("timerId", timerId).put("triggerAt", triggerAt)
+    if (!context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+      .putString("alarm:$notificationId", entry.toString()).commit()) {
+      cancel(context, notificationId)
+      throw IllegalStateException("Could not persist timer alarm")
+    }
+    return notificationId
+  }
+
+  private fun scheduleAt(context: Context, notificationId: String, title: String, body: String,
+    recipeId: String, timerId: String, triggerAt: Long) {
     val requestCode = notificationIntId(notificationId)
     val fireIntent = Intent(context, TimerAlarmReceiver::class.java).apply {
       action = ACTION_FIRE_TIMER
@@ -100,10 +115,34 @@ internal object TimerNotificationScheduler {
       firePendingIntent
     )
 
-    return notificationId
+  }
+
+  fun restore(context: Context) {
+    if (getState(context) != "ready") return
+    val preferences = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    for ((key, value) in preferences.all) {
+      if (!key.startsWith("alarm:") || value !is String) continue
+      runCatching {
+        val entry = JSONObject(value)
+        val triggerAt = entry.getLong("triggerAt")
+        if (System.currentTimeMillis() - triggerAt > 3600000) {
+          preferences.edit().remove(key).apply()
+        } else {
+          scheduleAt(context, key.removePrefix("alarm:"), entry.getString("title"),
+            entry.getString("body"), entry.getString("recipeId"), entry.getString("timerId"),
+            triggerAt.coerceAtLeast(System.currentTimeMillis() + 1000))
+        }
+      }
+    }
+  }
+
+  fun markDelivered(context: Context, notificationId: String) {
+    context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE).edit()
+      .remove("alarm:$notificationId").apply()
   }
 
   fun cancel(context: Context, notificationId: String) {
+    markDelivered(context, notificationId)
     val requestCode = notificationIntId(notificationId)
     val fireIntent = Intent(context, TimerAlarmReceiver::class.java).apply {
       action = ACTION_FIRE_TIMER
@@ -129,6 +168,7 @@ internal object TimerNotificationScheduler {
     }
 
     val notificationId = intent.getStringExtra(EXTRA_NOTIFICATION_ID) ?: return
+    markDelivered(context, notificationId)
     val recipeId = intent.getStringExtra(EXTRA_RECIPE_ID) ?: return
     val timerId = intent.getStringExtra(EXTRA_TIMER_ID) ?: return
     val title = intent.getStringExtra(EXTRA_TITLE) ?: return
@@ -197,6 +237,7 @@ internal object TimerNotificationScheduler {
 
   fun stop(context: Context, intent: Intent) {
     val notificationId = intent.getStringExtra(EXTRA_NOTIFICATION_ID) ?: return
+    markDelivered(context, notificationId)
     val recipeId = intent.getStringExtra(EXTRA_RECIPE_ID) ?: return
     val timerId = intent.getStringExtra(EXTRA_TIMER_ID) ?: return
     cancel(context, notificationId)
@@ -209,6 +250,10 @@ internal object TimerNotificationScheduler {
   }
 
   private fun hasNotificationPermission(context: Context): Boolean {
+    val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    if (!manager.areNotificationsEnabled()) return false
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+      manager.getNotificationChannel(CHANNEL_ID)?.importance == NotificationManager.IMPORTANCE_NONE) return false
     return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
       context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
       PackageManager.PERMISSION_GRANTED
