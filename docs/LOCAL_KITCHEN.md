@@ -16,13 +16,13 @@ Hold a recipe search result or a planned meal for 350 ms and drag it onto a visi
 
 ## Groceries and matching
 
-The generated shopping preview scales recipes by servings and includes each future, uncompleted planned occurrence. Users select which lines to buy before confirming. Exact stock matches are marked; an explicit action can deselect them, with a reminder to check quantities. It consolidates exact ingredient identities with compatible mass or volume units. Known common ingredient names and plural forms work across the six supported languages. Different ingredients, mass versus volume, opaque units, ranges and ambiguous thousands separators are not guessed. Opaque lines show repetitions and scaling factors for manual checking.
+The generated shopping review scales recipes by servings and includes each future, uncompleted planned occurrence. Users select which lines to buy before confirming. Exact stock matches are marked; an explicit action can deselect them, with a reminder to check quantities. It consolidates exact ingredient identities with compatible mass or volume units. Known common ingredient names and plural forms work across the six supported languages. Different ingredients, mass versus volume, opaque units, ranges and ambiguous thousands separators are not guessed. Opaque lines show repetitions and scaling factors for manual checking.
 
 In local shopping mode, Update this week's shopping replaces only that week's generated group in one persisted operation. Manual purchases and other weeks remain; identical lines preserve their IDs and checked states. An empty week can remove its previous generated group. Its source uses a random local namespace, not an account URL or username. Remote shopping modes offer explicit additions rather than an unsafe multi-request replacement.
 
-Tonight accepts temporary comma-separated ingredient names as well as saved stock. Exact name matches are indicative: quantities and freshness are not verified. Past product dates are excluded. Fewer missing ingredients ranks first; use of products dated within three days breaks ties. Users can preview missing ingredients before adding them.
+Tonight accepts temporary comma-separated ingredient names as well as saved stock. Exact name matches are indicative: quantities and freshness are not verified. Past product dates are excluded. Fewer missing ingredients ranks first; use of products dated within three days breaks ties. Users can review missing ingredients before adding them.
 
-Tonight initially renders eight results and three missing ingredients per card; the shopping preview contains all missing lines. Further results load on request. Recipe pickers and seasonal suggestions also load progressively, with full recipe titles. Imported optional plural notation such as `Œuf(s)` and `Pomme(s) de terre` matches its ordinary food name.
+Tonight initially renders eight results and three missing ingredients per card; the shopping review contains all missing lines. Further results load on request. Recipe pickers and seasonal suggestions also load progressively, with full recipe titles. Imported optional plural notation such as `Œuf(s)` and `Pomme(s) de terre` matches its ordinary food name.
 
 Food profiles filter the personal recipe list and Tonight. Excluded words are matched against ingredient text. Vegetarian, vegan and gluten-free labels must be entered by the user in a recipe's private journal; unlabelled recipes are excluded when a label is required. None of these filters certifies allergy safety or detects cross-contamination.
 
@@ -42,7 +42,7 @@ Cooking mode keeps the screen awake, displays one step with a progress count, an
 
 Speech uses only `SFSpeechRecognizer` with both support checking and `requiresOnDeviceRecognition` on iOS, or Android's `createOnDeviceSpeechRecognizer` on API 31+. There is no cloud fallback. Microphone permission is requested only on explicit activation. Whole-utterance commands support next, previous, ingredients, start timer and stop listening in all six app languages. Listening stops on backgrounding, exit or recognition error. Availability, installed language models and recognition accuracy depend on the device.
 
-Optional stock reminders group product names by future reminder date, 9 am two days before the entered date, for at most the next 20 dates. Already-near dates stay visible in the stock list rather than being repeatedly notified. iOS uses ordinary local notifications, separate from timer alerts. Android uses inexact, idle-compatible alarms and restores future alarms after boot/app replacement. System settings and battery management can delay delivery. Tapping a reminder opens stock. Permission or scheduling failures are visible. Switching accounts cancels/reschedules this app's stock reminder group.
+Optional stock reminders group product names by future reminder date, 9 am two days before the entered date, for at most the next 20 dates. Products entered after the usual reminder time are scheduled at the next suitable time, without moving the reminder past their entered date. iOS uses ordinary local notifications, separate from timer alerts. Android uses inexact, idle-compatible alarms and restores future alarms after boot/app replacement. System settings and battery management can delay delivery. Tapping a reminder opens stock. Permission or scheduling failures are visible. Switching accounts cancels/reschedules this app's stock reminder group.
 
 Journals are local and account-scoped. They store private ratings, comments, changes, difficulty, dietary labels, a manually entered cost in the user's currency, and preparation dates. Cost per serving uses the recipe's original yield. Private journal fields are not published or included in cookbooks. Unsaved notes are protected on back navigation and native back gestures.
 
@@ -58,9 +58,7 @@ Batch cooking selects 3–5 recipes, consolidates groceries, gathers shared ingr
 
 Celebration menus suggest known starter/main/dessert categories, preferring occasion keywords. Missing course categories are not invented. Users choose the final menu and portions, save it, and schedule it on a selected date.
 
-PDF cookbooks contain up to 50 selected recipes, in selection order, with a contents page, ingredients and steps. They exclude images and private notes and are generated locally. The full My kitchen JSON backup includes recipes, available local photos and private data. The standard Settings recipe backup remains recipe-only. Restore previews counts, imports recipes using existing duplicate handling, remaps references only when unambiguous, and replaces My kitchen data. Unresolved references remain unavailable. Reminders are disabled on restore. The previous My kitchen state can be restored from the same screen; recipe imports themselves are not undone.
-
-The monthly challenge interface was removed to keep the community focused on finding and sharing recipes. Existing published descriptions are preserved.
+PDF cookbooks contain up to 50 selected recipes in selection order, with a cover, contents, available photos, ingredients and steps. Image preparation supports local and authenticated Nextcloud photos with bounded concurrency; an unavailable image does not prevent export. HTML embeds image data rather than private URLs. Private journal notes are excluded. The PDF is generated on the device. The full My kitchen JSON backup includes recipes, available local photos and private data. The standard Settings recipe backup remains recipe-only. Restore shows counts, imports recipes using existing duplicate handling, remaps references only when unambiguous, and replaces My kitchen data. Unresolved references remain unavailable. Reminders are disabled on restore. The previous My kitchen state can be restored from the same screen; recipe imports themselves are not undone.
 
 ## Development validation
 
@@ -68,7 +66,7 @@ Run `npm run typecheck`, `npm run lint`, and `npm test` (integration tests bind 
 
 A release still needs device testing of microphone consent/denial, unavailable offline languages, recognition with airplane mode enabled, background/locked-device notifications, Android reboot, accessibility text sizes, PDF export, backup round trips, and drag/drop with VoiceOver's tap alternatives. No claim of successful device permission/delivery testing should be inferred from passing unit tests or native compilation.
 
-## Food supplies in 5.0.0
+## Food inventory
 
 Fridge, pantry and freezer, with search, quantities and dates. Scan a barcode or enter food manually. Nutri-Score and Green-Score from Open Food Facts when available; optional local reminders. Enter the date printed on the pack yourself. Product records and scores may be missing and do not constitute a complete product analysis. Product lookup needs Internet; supplies and planning stay local. Notifications depend on device permissions.
 

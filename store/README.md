@@ -4,8 +4,8 @@ Les textes sont conservés dans Git pour éviter de les ressaisir à chaque vers
 
 ## Préparer une version
 
-1. Modifier une fois les textes permanents dans les fichiers de `store/locales/` (français, anglais, allemand, espagnol, italien et danois) : nom, sous-titre iOS, texte promotionnel iOS, description courte Android, description complète et mots-clés iOS. Les textes initiaux sont des propositions à relire avant le premier envoi.
-2. Dans `store/release.json`, renseigner la version de `app.json` et les nouveautés par langue. Elles sont volontairement vides au départ : écrire les changements réels de la version. Le même texte alimente les deux stores, avec un maximum commun de 500 caractères.
+1. Modifier une fois les textes permanents dans les fichiers de `store/locales/` (français, anglais, allemand, espagnol, italien et danois) : nom, sous-titre iOS, texte promotionnel iOS, description courte Android, description complète et mots-clés iOS.
+2. Dans `store/release.json`, renseigner la version de `app.json` et les nouveautés par langue. Décrire les changements réels de la version. Le même texte alimente les deux stores, avec un maximum commun de 500 caractères.
 3. Exécuter :
 
 ```sh
@@ -39,7 +39,7 @@ La commande prépare les fichiers puis met à jour (ou crée si nécessaire) la 
 
 ### Google Play
 
-Configurer un compte de service autorisé sur l'app dans Play Console ; conserver ses identifiants JSON hors du dépôt. Un build doit déjà exister sur la piste choisie. `PLAY_VERSION_CODE` est son code de version Android, et non la version commerciale `5.0.0`.
+Configurer un compte de service autorisé sur l'app dans Play Console ; conserver ses identifiants JSON hors du dépôt. Un build doit déjà exister sur la piste choisie. `PLAY_VERSION_CODE` est son code de version Android, et non la version commerciale de l’application.
 
 ```sh
 GOOGLE_PLAY_JSON_KEY=/chemin/prive/google-play.json PLAY_VERSION_CODE=123 PLAY_TRACK=internal BUNDLE_GEMFILE=fastlane/Gemfile bundle exec fastlane android metadata

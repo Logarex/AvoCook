@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { ArrowRight, Archive, CalendarDays, ChefHat, Wrench, WandSparkles, Sparkles } from "lucide-react-native";
+import { ArrowRight, Archive, CalendarDays, ChefHat, Wrench, WandSparkles, Sparkles, BookOpen, ShoppingCart } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -21,6 +21,8 @@ const featureIcons = {
   tools: Wrench,
   assistant: WandSparkles,
   clarity: Sparkles,
+  book: BookOpen,
+  shopping: ShoppingCart,
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, "Update">;

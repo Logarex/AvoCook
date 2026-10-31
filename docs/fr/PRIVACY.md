@@ -1,6 +1,6 @@
 # Confidentialité et données
 
-Mise à jour : 19 octobre 2026. AvoCook ne contient ni publicité ni outil d’analyse. Certaines fonctions utilisent les services réseau décrits ci-dessous.
+Mise à jour : 31 octobre 2026. AvoCook ne contient ni publicité ni outil d’analyse. Certaines fonctions utilisent les services réseau décrits ci-dessous.
 
 ## Ma cuisine, voix et rappels locaux
 
@@ -42,8 +42,16 @@ Les installations Android par APK recherchent les versions sur GitHub. Les insta
 
 Les journaux de diagnostic sont locaux. Les secrets sont masqués, mais des informations personnelles peuvent rester dans un rapport. Vérifiez-le avant de le copier ou de le partager. Aucun rapport n’est envoyé automatiquement.
 
+## Recherche par code-barres
+
+La recherche facultative par code-barres transmet uniquement le code scanné ou saisi et la langue de l’application à Open Food Facts, qui reçoit aussi les informations réseau habituelles comme votre adresse IP. Les images de la caméra restent sur l’appareil. Votre réserve, les lieux de rangement et les dates de péremption ne sont pas transmis. Les noms, quantités, valeurs nutritionnelles et scores provenant d’Open Food Facts sont conservés localement avec attribution sous ODbL ; les scores absents restent vides.
+
+## Notifications de courses partagées
+
+Si vous activez les notifications d’une liste partagée AvoCook, un relais Cloudflare Workers reçoit le jeton push du téléphone et vérifie votre identité Firebase et votre accès à la liste. Les listes restent dans Firebase. Cloudflare D1 conserve les identifiants techniques des éléments, versions de liste, langue, identifiants d’installation et jetons push ; les noms des produits ne sont pas conservés. Une tâche serveur recherche les changements manqués avec un compte Google en lecture seule. Aucun identifiant Nextcloud n’est transmis.
+
+Les messages génériques passent par Expo Push puis Apple ou Google, même lorsque l’application est fermée, sans noms de produits. Désactiver les notifications ou quitter la liste supprime l’inscription lors de la prochaine connexion. Les inscriptions expirent après 90 jours sans renouvellement et les envois sont supprimés après deux jours. Les minuteurs et rappels de péremption sont programmés sur l’appareil.
+
 ## Contact
 
 Utilisez [le dépôt GitHub](https://github.com/Logarex/AvoCook) ou le bouton de contact dans l’application.
-
-La recherche facultative par code-barres transmet uniquement le code scanné ou saisi et la langue de l’application à Open Food Facts, qui reçoit aussi les informations réseau habituelles comme votre adresse IP. Les images de la caméra restent sur l’appareil. Votre réserve, les lieux de rangement et les dates de péremption ne sont pas transmis. Les noms, quantités, valeurs nutritionnelles et scores provenant d’Open Food Facts sont conservés localement avec attribution sous ODbL ; les scores absents restent vides.

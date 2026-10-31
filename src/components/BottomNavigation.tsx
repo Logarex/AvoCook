@@ -43,7 +43,6 @@ export function BottomNavigation({
   const insets = useSafeAreaInsets();
   const nativeUI = useNativeGlassControls();
 
-  // Keep system Liquid Glass interactions on every supported iOS version.
   if (nativeUI && NativeTabBar && !rail) {
     const symbols = {
       recipes: "book.closed",

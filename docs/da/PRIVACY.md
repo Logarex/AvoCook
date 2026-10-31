@@ -1,6 +1,6 @@
 # Privatliv og data
 
-Opdateret: 19. oktober 2026. AvoCook indeholder ikke reklamer eller analyseværktøjer. Nogle funktioner bruger de netværkstjenester, der er beskrevet her.
+Opdateret: 31. oktober 2026. AvoCook indeholder ikke reklamer eller analyseværktøjer. Nogle funktioner bruger de netværkstjenester, der er beskrevet her.
 
 ## Mit køkken, stemme og lokale påmindelser
 
@@ -42,8 +42,16 @@ Android-installationer via APK tjekker GitHub for nye versioner. Installationer 
 
 Diagnoselogfiler gemmes lokalt. Adgangskoder og nøgler skjules, men personlige oplysninger kan stadig indgå. Gennemgå rapporter, før du kopierer eller deler dem. De sendes ikke automatisk.
 
+## Stregkodesøgning
+
+Stregkodesøgning sender kode og sprog til Open Food Facts. Kamerabilleder, forråd og datoer sendes ikke. Tilgængelige varenavne, mængder, næringsindhold og vurderinger gemmes lokalt med kildeangivelse under ODbL.
+
+## Beskeder om delte indkøbslister
+
+Ved aktiverede beskeder modtager en Cloudflare Workers-relætjeneste enhedens pushtoken og kontrollerer Firebase-identitet og listeadgang. Listerne bliver i Firebase. Cloudflare D1 gemmer tekniske vare-id’er, listeversioner, sprog, installations-id’er og pushtokens, men ikke varenavne. En serveropgave søger efter oversete ændringer med en Google-tjenestekonto med læseadgang. Nextcloud-loginoplysninger sendes ikke.
+
+Generelle beskeder sendes gennem Expo Push og Apple eller Google, også når appen er lukket, uden varenavne. Deaktivering eller udmeldelse af listen fjerner registreringen ved næste forbindelse. Registreringer udløber efter 90 dage uden fornyelse, og leveringsposter slettes efter to dage. Timere og udløbspåmindelser planlægges på enheden.
+
 ## Kontakt
 
 Brug [GitHub-projektet](https://github.com/Logarex/AvoCook) eller kontaktknappen i appen.
-
-Stregkodesøgning sender kode og sprog til Open Food Facts. Kamerabilleder, forråd og datoer sendes ikke. Tilgængelige varenavne, mængder, næringsindhold og vurderinger gemmes lokalt med kildeangivelse under ODbL.

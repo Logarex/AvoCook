@@ -2,113 +2,73 @@
 
 [English](../../README.md) · [Français](../fr/README.md) · [Deutsch](../de/README.md) · [Español](../es/README.md) · [Italiano](../it/README.md) · [Dansk](README.md)
 
-AvoCook er en gratis køkkenhjælper med åben kildekode til iOS og Android, med eller uden opskrift. Gem opskrifter, planlæg hverdagens måltider, brug de råvarer, du har, og forbered indkøb. De lokale værktøjer virker offline uden at oprette en konto; fællesskab, delte lister, import, valgfri AI og Nextcloud-forbindelser bruger onlinetjenester.
-
-> Denne README beskriver den aktuelle kildekodegren. Butiks- og GitHub-udgivelser indeholder muligvis ikke de seneste ændringer endnu.
+AvoCook er en gratis open source-app til iOS og Android. Jeg udvikler den ved siden af mine studier for at samle opskrifter, planlægge måltider og gøre hverdagens madlavning lidt lettere.
 
 [App Store](https://apps.apple.com/app/avocook/id6769012665) · [Google Play](https://play.google.com/store/apps/details?id=app.avocook.mobile) · [APK](https://github.com/Logarex/AvoCook/releases/latest)
 
----
+## Brug AvoCook
 
-## Nyt i version 5.0.0
+### Alle opskrifter ét sted
 
-Fem faner: Opskrifter, Mit køkken, Madplan, Fællesskab og Indkøb. Mit køkken samler forråd og madidéer; Madplan åbner på I dag og viser også ugen.
+Skriv opskrifter, tilføj fotos og kategorier, og tilpas mængder til portionerne. Ingredienser og trin understøtter valgfri Markdown. Indsæt et link eller del det fra browseren for at importere en opskrift, og tjek resultatet før du gemmer. Du kan også udskrive eller dele en enkelt opskrift.
 
-- **Madvarer med orden på** — Køleskab, skab og fryser med søgning, mængder og datoer. Scan en stregkode eller indtast en madvare. Nutri-Score og Green-Score fra Open Food Facts, når de findes; valgfrie lokale påmindelser.
-- **En selvstændig madplan** — Planlæg I dag og ugen: opskrifter, enkle måltider, rester eller at spise ude. Tilpas portioner, flyt måltider og forbered indkøb. Genbrugelige menuer og tilberedning af flere opskrifter er stadig tilgængelige.
-- **Lav mad og gem dine vaner** — Følg trin med timere og understøttede lokale stemmekommandoer. Gem noter, tilberedninger og vanlige måltider i privat dagbog og historik. Timere gendannes uden dobbelte alarmer.
-- **Værktøjer til hverdagen** — Sæsonkalendere med kilder for 11 lande med regionale grænser, omregninger og erstatninger efter anvendelse. Lav en PDF-kogebog og sikkerhedskopiér opskrifter sammen med private køkkendata.
-- **En idé med dine ingredienser** — Indtast ingredienser eller analysér et foto, ret listen og generér et udkast, der kan redigeres. Valgfri AI med din udbyder, API-nøgle og en passende model; der kan være omkostninger.
-- **En lettere brugerflade** — Kompakte opskrifts- og indkøbshandlinger, madvarer grupperet efter opbevaring og detaljer efter behov. Mindre kategorier og visninger tilpasset skærm- og tekststørrelse.
+### Hold styr på dine madvarer
 
-Indtast datoen på pakken selv. Varedata og vurderinger kan mangle og er ikke en fuld produktanalyse. Varesøgning kræver Internet; forråd og madplan forbliver lokale. Notifikationer afhænger af enhedens tilladelser.
+Organiser køleskab, skab og fryser med mængder og datoer. Tilføj madvarer med stregkoder, se tilgængelige vurderinger fra Open Food Facts og slå påmindelser om udløbsdatoer til.
 
-## Funktioner
+Indtast datoen på pakken selv. Stregkodesøgning kræver Internet; varedata og vurderinger kan mangle. Forråd og madplan er stadig tilgængelige offline.
 
-### Fællesskabsplatform
+### Planlæg i dag og resten af ugen
 
-- Opdag, bedøm og importer opskrifter fra AvoCook-fællesskabet;
-- Opskrifter fra fællesskabet vises automatisk på appens sprog, både på listen og i opskriftens detaljer;
-- Se den originale opskrift når som helst, eller importer den oversatte version til din opskriftsbog;
-- Del dine bedste retter ved at oprette en fællesskabsprofil;
-- Indeholder fællesskabsrapportering og spamkontrol; offentliggjort indhold kommer fra brugerne.
-- Vælg et særskilt oversættelsessprog til fællesskabet, herunder kinesisk, portugisisk, nederlandsk, japansk, koreansk, arabisk og russisk. Indlæste opskrifter og vellykkede oversættelser gemmes til offlinelæsning.
+Tilføj opskrifter, enkle måltider, rester eller restaurantbesøg. Tilpas portioner, flyt måltider mellem dage og vælg ingredienser til indkøbslisten. Gem menuer og find tidligere måltider i historikken.
 
-### Opskrifter
+### Lav mad trin for trin
 
-- Opret og rediger opskrifter lokalt, ingen konto påkrævet;
-- Organiser opskrifter efter kategori;
-- Tilpas ingrediensmængder til antallet af portioner;
-- Tilføj et eller flere fotos til hver opskrift;
-- Eksporter en opskrift som PDF eller udskriv den direkte;
-- Del en opskrift med en anden app.
+Følg opskrifter med timere, der gendannes, når du vender tilbage. Understøttede enheder har lokale stemmekommandoer. Gem noter i en privat dagbog og tilbered flere opskrifter sammen.
 
-### Mit køkken — hverdagens måltider, lokalt
+### Idéer til hverdagen
 
-Fem faner: Opskrifter, Mit køkken, Madplan, Fællesskab og Indkøb. Mit køkken samler forråd og madidéer; Madplan åbner på I dag og viser også ugen.
+Find opskrifter med dine ingredienser, se sæsonvarer i 11 regionale kalendere, eller brug omregninger og erstatninger til bagning. Sikkerhedskopiér opskrifter og private køkkendata sammen.
 
-- **Planlæg ugen** — Tilføj frokost og aftensmad, træk opskrifter mellem dage, og tilpas portioner. Gennemgå samlede ingredienser, før du tilføjer dem til indkøb.
-- **Måltider uden opskrift** — Notér et hurtigt måltid, gentag et sædvanligt måltid, eller planlæg rester og restaurantbesøg. Kun måltider med ingredienser bidrager til indkøb.
-- **Brug det, du har** — Gem køleskabs-, skabs- og frostvarer med datoer. Find opskrifter med færre manglende ingredienser, og gennemgå indkøb. Valgfrie lokale datopåmindelser.
-- **Frugt og grønt i sæson** — Vælg område og måned, søg eller filtrér, og vælg varer til indkøb eller opskriftsidéer. Kildebaserede offlinekalendere med tydelig regional dækning.
-- **Lav mad trin for trin** — Ét trin med stor skrift, fremdrift, ingredienser og timere. Valgfrie lokale stemmekommandoer på understøttede enheder; beskeder afhænger af tilladelser og systemindstillinger.
-- **En opskrift fra køleskabet (AI)** — Indtast ingredienser eller analysér et foto, ret de genkendte madvarer, og generér et redigerbart udkast. Valgfrit: egen API-nøgle og egnet model; udbyderen kan opkræve betaling.
-- **En privat køkkendagbog** — Bedømmelser, noter, ændringer, tilberedningsdatoer, sværhedsgrad og manuelt angivne priser. Egne kostmærker og filtre hjælper med at sortere; de garanterer ikke fravær af allergener.
-- **Batch cooking og menuer** — Vælg 3–5 opskrifter, saml indkøb, og gennemgå forberedelsen efter varighed. Gem og planlæg festmenuer; ingen automatisk parallel madlavning.
-- **Din egen kogebog** — Vælg op til 50 opskrifter til en lokal tekst-PDF med indhold, ingredienser og trin. Private noter og fotos medtages ikke.
-- **Praktiske køkkenværktøjer** — Vælg en tilfældig opskrift, omregn kompatible enheder og temperaturer, eller se bageerstatninger til bestemte tilberedninger med forhold og forholdsregler. Ingen gættet omregning fra gram til milliliter.
-- **Sikkerhedskopier under din kontrol** — Eksportér opskrifter til JSON, eller brug den komplette Mit køkken-kopi til opskrifter, tilgængelige lokale fotos og private plandata. Gennemgå før gendannelse.
+Kalenderne dækker det franske fastland, Vallonien, Schweiz, Tyskland, Spanien, Italien, Storbritannien, Danmark, Ontario, delstaten New York og Sydney. Dækning og betydningen af tilgængelighed afhænger af kilden.
 
-Tilgængelige kalendere: det franske fastland, Vallonien (Belgien), Schweiz, Tyskland, Spanien, Italien, Storbritannien, Danmark, Ontario (Canada), staten New York (USA) og Sydney (Australien). 11 lande med regionale grænser, ikke verdensdækning. Kilderne skelner mellem høst, opbevaring eller markedsudbud; det er vejledning, ikke realtidsprognoser.
+### Valgfri køleskabsassistent
 
-Ingredienssøgning kontrollerer ikke tilgængelige mængder, friskhed eller allergener. Kostmærker indtastes af brugeren. Erstatninger gælder kun understøttede tilberedninger. Stemme og meddelelser afhænger af enhed og tilladelser.
+Indtast ingredienser eller start med et foto af køleskabet, tjek listen og bed om et opskriftsudkast, du kan redigere. Kræver egen udbyder, API-nøgle og en passende model; der kan være omkostninger.
 
-[Funktion og begrænsninger](../LOCAL_KITCHEN.md) · [Kilder til sæsonkataloget](../SEASONAL_CATALOG.md)
+### Din egen illustrerede kogebog
 
-Filtrér idéer efter kendt varighed (≤30 minutter), egen bedømmelse (≥4/5), let sværhedsgrad og egne kostmærker. Historikken gemmer måltider bekræftet som spist og tilberedninger registreret i dagbogen eller madlavningstilstanden.
+Vælg opskrifter og en titel, og lav en PDF-bog med forside, indholdsfortegnelse, fotos, ingredienser og trin. Billeder fra dit lokale bibliotek og Nextcloud medtages, når de er tilgængelige.
 
-### Valgfri Markdown
+Private dagbogsnoter kommer ikke med i bogen. PDF-filen oprettes på enheden; Nextcloud-billeder kan skulle hentes først.
 
-Alle opskrifters tekstfelter accepterer Markdown på alle sprog: navn, beskrivelse, kategori, nøgleord, kildenavn, ingredienser, instruktioner, redskaber og næringsværdier. Almindelig tekst er stadig standard; kendskab til Markdown er ikke nødvendigt.
+### Indkøb alene eller sammen
 
-Brug `**fed**`, `*kursiv*`, overskrifter, lister, citater, kode, tabeller eller `[et link](https://example.com)`. Formateringen vises ved læsning, i PDF-filer og ved udskrivning. Markdown-billeder vises som links. Tal (portioner og varighed) og URL-felter beholder deres sædvanlige format.
+Brug en lokal liste, inviter andre til en AvoCook-liste med en kode på seks tegn, eller forbind en husstandsliste fra Nextcloud Pantry. Vælg ingredienser fra opskrifter og madplan. På iOS kan Påmindelser synkronisere med den aktive tilstand. Delte AvoCook-lister tilbyder pushbeskeder, når andre deltagere tilføjer eller fjerner varer.
 
-Hver ingrediens og instruktion beholder sin Markdown, inklusive afsnit og indlejrede lister. Indsatte linjer med almindelig tekst opretter stadig separate punkter; indsatte Markdown-blokke holdes samlet.
+### Opskrifter fra fællesskabet
 
-### Import
+Find, bedøm og importer andre brugeres opskrifter. Læs dem oversat eller se originalen. En fællesskabsprofil giver mulighed for at udgive egne opskrifter. Indlæste opskrifter og færdige oversættelser forbliver i enhedens cache.
 
-- Importér fra understøttede sider med tilgængelige `schema.org/Recipe`-data; nogle websteder blokerer udtræk eller leverer ufuldstændige data.
-- Modtag en URL fra en browser eller en anden app for at importere med ét tryk;
-- Valgfri AI: scan opskrifter, generér fra tekst eller et foto af en ret, eller opret et køleskabsudkast. Vælg OpenAI, Gemini, Groq, Grok, Mistral, Claude eller et eget endpoint i assistentindstillingerne. Kræver egen API-nøgle og kompatibel model; fotos kræver billedforståelse, og udbyderen kan opkræve betaling.
+### På telefoner og tablets
 
-### Indkøbsliste
+De fem faner er Opskrifter, Mit køkken, Madplan, Fællesskab og Indkøb. Store skærme kan bruge sidenavigation og kolonnevisning, der tager hensyn til tekststørrelsen. Understøttede iPhones bruger native Liquid Glass-knapper.
 
-- Vælg lokal liste, AvoCook-deling eller Nextcloud Pantry med overførsel af varer ved skift. Valgfri iOS Påmindelser-synkronisering fungerer i alle tre tilstande. [Nextcloud Pantry](../NEXTCLOUD_PANTRY.md).
-- Del indkøbslister med en kode på 6 tegn, et deltagerantal og lokale beskeder, mens AvoCook kører;
-- Kopier ingredienser til udklipsholderen med ét tryk;
-- Eksporter en indkøbsliste til Apple Påmindelser.
+### Dine data og forbindelser
 
-### Timere
+Opskrifter fungerer lokalt uden at oprette en konto. Forbind Nextcloud Cookbook for at synkronisere dem med din server. Madplan, forråd og private noter bliver på enheden, adskilt efter opskriftskonto; Cookbook synkroniserer dem ikke. Eksporter kun opskrifter, eller lav en komplet sikkerhedskopi med tilgængelige fotos og private køkkendata.
 
-- Start en eller flere tilberedningstimere direkte fra en opskrift;
-- Lokale timerbeskeder kan fungere i baggrunden, når tilladelser og systemindstillinger tillader det; kontrollér leveringen på din enhed.
-
-### Data & synkronisering
-
-- Sikkerhedskopier alle opskrifter til en JSON-fil og genopret dem;
-- **Valgfrit**: Forbind en Nextcloud Cookbook-server for at synkronisere opskrifter mellem enheder.
-
-> Lokale opskrifter bliver på enheden, medmindre du synkroniserer, deler eller eksporterer dem. Fællesskabet bruger Firebase med en anonym session ved opstart. Se [Privatliv og data](PRIVACY.md).
-
-HTTPS bruges som standard, hvis ingen protokol angives. Til en Nextcloud-server på dit betroede lokale netværk skal du indtaste en eksplicit HTTP-adresse, f.eks. `http://192.168.1.50:8080/nextcloud` eller `http://nextcloud.local`. HTTP sender din app-adgangskode og dine opskrifter uden kryptering; brug det kun på et betroet netværk. Oplysningerne forbliver krypteret i enhedens nøglering.
-
----
+Fællesskab og delte lister bruger Firebase med en anonym session ved opstart. Webimport, varesøgning og den valgfrie assistent bruger deres respektive tjenester. Talegenkendelse bruger en understøttet lokal motor uden cloud-reserve.
 
 ## Tilgængelige sprog
 
-Fransk · Engelsk · Tysk · Spansk · Italiensk · Dansk
+Dansk · Engelsk · Fransk · Tysk · Spansk · Italiensk
 
----
+## Vejledninger
+
+- [Køkkenvejledning](GUIDE.md)
+- [Dine data og forbindelser](PRIVACY.md)
+- [Teknisk dokumentation](../LOCAL_KITCHEN.md) · [Nextcloud Pantry](../NEXTCLOUD_PANTRY.md) · [Seasonal catalog](../SEASONAL_CATALOG.md)
 
 ## Opsætning til udvikling
 

@@ -2,118 +2,73 @@
 
 [English](../../README.md) · [Français](../fr/README.md) · [Deutsch](../de/README.md) · [Español](../es/README.md) · [Italiano](README.md) · [Dansk](../da/README.md)
 
-AvoCook è un compagno di cucina gratuito e open source per iOS e Android, con o senza ricetta. Conserva ricette, organizza i pasti quotidiani, usa gli alimenti disponibili e prepara la spesa. Gli strumenti locali funzionano offline senza creare un account; comunità, liste condivise, importazioni, IA facoltativa e connessioni Nextcloud utilizzano servizi online.
+AvoCook è un’app gratuita e open source per iOS e Android. La sviluppo insieme ai miei studi per raccogliere ricette, pianificare pasti e rendermi un po’ più semplice cucinare ogni giorno.
 
-L'ho sviluppato per uso personale mentre imparavo a portare avanti un progetto React Native completo dall'inizio alla fine.
+[App Store](https://apps.apple.com/app/avocook/id6769012665) · [Google Play](https://play.google.com/store/apps/details?id=app.avocook.mobile) · [APK](https://github.com/Logarex/AvoCook/releases/latest)
 
-[App Store](https://apps.apple.com/app/avocook/id6769012665) · [Google Play](https://play.google.com/store/apps/details?id=app.avocook.mobile) · [APK Android](https://github.com/Logarex/AvoCook/releases/latest) · [![Download APK](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
+## Usare AvoCook
 
-<div align="center">
-  <img src="../../assets/screenshots/it/login.png" width="280" alt="Accesso AvoCook" />
-  <img src="../../assets/screenshots/it/recipe.png" width="280" alt="Dettaglio ricetta" />
-</div>
+### Tutte le ricette in un posto
 
-> Questo README descrive il ramo sorgente attuale. Le versioni negli store e nelle release GitHub potrebbero non includere ancora le ultime modifiche.
+Scrivi ricette, aggiungi foto e categorie e adatta le quantità alle porzioni. Ingredienti e passaggi supportano Markdown facoltativo. Incolla un link o condividilo dal browser per importare una ricetta, poi controlla il risultato prima di salvare. Puoi anche stampare o condividere una singola ricetta.
 
----
+### Tieni d’occhio le scorte
 
-## Novità della versione 5.0.0
+Organizza frigo, dispensa e congelatore con quantità e date. Aggiungi alimenti tramite codice a barre, consulta i punteggi disponibili di Open Food Facts e attiva i promemoria di scadenza.
 
-Cinque schede: Ricette, La mia cucina, Pianifica, Comunità e Spesa. La mia cucina raccoglie scorte e idee; Pianifica si apre su Oggi e offre anche la settimana.
+Inserisci la data sulla confezione. La ricerca tramite codice a barre richiede Internet; schede e punteggi possono mancare. Scorte e piano restano disponibili offline.
 
-- **Scorte ben organizzate** — Frigo, dispensa e congelatore con ricerca, quantità e date. Scansiona un codice a barre o inserisci un alimento. Nutri-Score e Green-Score di Open Food Facts quando disponibili; promemoria locali facoltativi.
-- **Uno spazio per pianificare** — Organizza Oggi e la settimana: ricette, pasti semplici, avanzi o uscite. Regola le porzioni, sposta i pasti e prepara la spesa. Restano disponibili menu riutilizzabili e preparazione di più ricette.
-- **Cucina e conserva le tue abitudini** — Segui i passaggi con timer e comandi vocali locali compatibili. Conserva note, preparazioni e pasti abituali nel diario privato e nella cronologia. I timer vengono ripristinati senza avvisi duplicati.
-- **Strumenti per ogni giorno** — Calendari stagionali con fonti per 11 paesi e limiti regionali, conversioni e sostituzioni secondo l’uso. Crea un ricettario PDF e salva ricette insieme ai dati privati della cucina.
-- **Un’idea con i tuoi ingredienti** — Inserisci ingredienti o analizza una foto, correggi la lista e genera una bozza modificabile. IA facoltativa con il tuo fornitore, la tua chiave API e un modello compatibile; possono esserci costi.
-- **Un’interfaccia più leggera** — Azioni di ricette e spesa compatte, alimenti raggruppati per posizione e dettagli su richiesta. Categorie più piccole e viste adatte alle dimensioni dello schermo e del testo.
+### Pianifica oggi e la settimana
 
-Inserisci la data sulla confezione. Schede e punteggi possono mancare e non costituiscono un’analisi completa del prodotto. La ricerca richiede Internet; scorte e pianificazione restano locali. Le notifiche dipendono dai permessi del dispositivo.
+Aggiungi ricette, pasti semplici, avanzi o uscite. Regola le porzioni, sposta i pasti tra i giorni e scegli gli ingredienti da acquistare. Salva i menu e ritrova i pasti precedenti nella cronologia.
 
-## Funzionalità
+### Cucina passo dopo passo
 
-### Piattaforma Comunità
+Segui le ricette con timer che vengono ripristinati al ritorno. I dispositivi compatibili offrono comandi vocali locali. Conserva le note in un diario privato e prepara più ricette insieme.
 
-- Scopri, valuta e importa ricette dalla comunità AvoCook;
-- Le ricette della community vengono mostrate automaticamente nella lingua dell’app, sia nell’elenco sia nei dettagli;
-- Consulta la ricetta originale in qualsiasi momento o importa la versione tradotta nel tuo ricettario;
-- Condividi i tuoi piatti migliori impostando un profilo comunitario;
-- Include segnalazioni della comunità e controlli antispam; i contenuti pubblicati sono forniti dagli utenti.
-- Scegli una lingua diversa per tradurre la comunità, tra cui cinese, portoghese, olandese, giapponese, coreano, arabo e russo. Ricette caricate e traduzioni riuscite vengono salvate per la lettura offline.
+### Idee per tutti i giorni
 
-### Ricette
+Cerca ricette con i tuoi ingredienti, consulta i prodotti di stagione in 11 calendari regionali o usa conversioni e sostituzioni per dolci. Salva ricette e dati privati della cucina nello stesso backup.
 
-- Creare e modificare ricette localmente, senza account;
-- Organizzare le ricette per categoria;
-- Adattare le quantità al numero di porzioni;
-- Aggiungere una o più foto a ogni ricetta;
-- Esportare una ricetta in PDF o stamparla direttamente;
-- Condividere una ricetta con un'altra app.
+I calendari coprono Francia metropolitana, Vallonia, Svizzera, Germania, Spagna, Italia, Regno Unito, Danimarca, Ontario, Stato di New York e Sydney. Copertura e significato della disponibilità dipendono dalla fonte.
 
-### La mia cucina — pasti quotidiani, in locale
+### Assistente frigo facoltativo
 
-Cinque schede: Ricette, La mia cucina, Pianifica, Comunità e Spesa. La mia cucina raccoglie scorte e idee; Pianifica si apre su Oggi e offre anche la settimana.
+Inserisci ingredienti o parti da una foto del frigo, verifica la lista e richiedi una bozza di ricetta modificabile. Servono il tuo fornitore, la tua chiave API e un modello compatibile; possono esserci costi.
 
-- **Organizza la settimana** — Aggiungi pranzi e cene, trascina ricette tra i giorni e adatta le porzioni. Controlla gli ingredienti raggruppati prima di aggiungerli alla spesa.
-- **Pasti senza ricetta** — Annota un pasto veloce, riutilizza un pasto abituale o pianifica avanzi e uscite. Solo i pasti con ingredienti contribuiscono alla spesa.
-- **Usa quello che hai** — Salva alimenti di frigo, dispensa e congelatore con le date. Trova ricette con meno ingredienti mancanti e controlla gli acquisti. Promemoria locali delle date facoltativi.
-- **Frutta e verdura di stagione** — Scegli zona e mese, cerca o filtra e seleziona prodotti per la spesa o idee di ricette. Calendari offline con fonti e copertura regionale esplicita.
-- **Cucina passo dopo passo** — Un passaggio in caratteri grandi, avanzamento, ingredienti e timer. Comandi vocali locali facoltativi se supportati; avvisi secondo permessi e impostazioni del dispositivo.
-- **Una ricetta dal tuo frigo (IA)** — Inserisci ingredienti o analizza una foto, correggi gli alimenti riconosciuti e genera una bozza modificabile. Facoltativo: la tua chiave API e un modello adatto; il fornitore può addebitare le richieste.
-- **Un diario di cucina privato** — Valutazioni, note, modifiche, date di preparazione, difficoltà e costi inseriti a mano. Etichette alimentari e filtri personali aiutano a organizzare; non certificano l’assenza di allergeni.
-- **Batch cooking e menu** — Scegli 3–5 ricette, raggruppa la spesa e consulta le attività per durata. Salva menu per le feste e pianificali; nessuna cottura parallela automatica.
-- **Il tuo libro di ricette** — Seleziona fino a 50 ricette per un PDF di testo locale con indice, ingredienti e passaggi. Note private e foto escluse.
-- **Strumenti pratici** — Scegli una ricetta a sorpresa, converti unità compatibili e temperature o consulta sostituzioni per dolci secondo la preparazione, con proporzioni e precauzioni. Nessuna conversione inventata tra grammi e millilitri.
-- **Backup sotto il tuo controllo** — Esporta ricette in JSON o usa il backup completo di La mia cucina per ricette, foto locali disponibili e pianificazione privata. Controlla prima di ripristinare.
+### Il tuo ricettario illustrato
 
-Calendari disponibili: Francia metropolitana, Vallonia (Belgio), Svizzera, Germania, Spagna, Italia, Regno Unito, Danimarca, Ontario (Canada), Stato di New York (USA) e Sydney (Australia). 11 paesi con limiti regionali, non copertura mondiale. Le fonti distinguono raccolta, conservazione o disponibilità commerciale; sono indicazioni, non previsioni in tempo reale.
+Scegli ricette e titolo per creare un libro PDF con copertina, indice, foto, ingredienti e passaggi. Le immagini della libreria locale e di Nextcloud vengono incluse quando disponibili.
 
-La ricerca per ingredienti non verifica quantità disponibili, freschezza o allergeni. Le etichette alimentari sono inserite dall’utente. Le sostituzioni riguardano solo preparazioni supportate. Voce e notifiche dipendono dal dispositivo e dai permessi.
+Le note del diario privato non sono incluse nel libro. Il PDF viene creato sul dispositivo; potrebbe essere necessario scaricare le immagini da Nextcloud.
 
-[Funzionamento e limiti](../LOCAL_KITCHEN.md) · [Fonti del catalogo stagionale](../SEASONAL_CATALOG.md)
+### La spesa, da soli o insieme
 
-Filtra le idee per durata nota (≤30 minuti), voto personale (≥4/5), difficoltà facile ed etichette alimentari personali. La cronologia include pasti confermati come consumati e preparazioni registrate nel diario o nella modalità cucina.
+Usa una lista locale, invita altre persone in una lista AvoCook con un codice di sei caratteri o collega una lista domestica di Nextcloud Pantry. Scegli gli ingredienti da aggiungere dalle ricette e dal piano. Su iOS, Promemoria può sincronizzarsi con la modalità attiva. Le liste condivise AvoCook offrono notifiche quando altri partecipanti aggiungono o rimuovono prodotti.
 
-### Markdown facoltativo
+### Ricette della comunità
 
-Tutti i campi di testo delle ricette accettano Markdown, in ogni lingua: nome, descrizione, categoria, parole chiave, nome della fonte, ingredienti, istruzioni, utensili e valori nutrizionali. Il testo semplice resta la scelta predefinita; non serve conoscere Markdown.
+Scopri, valuta e importa le ricette degli altri utenti. Puoi leggerle tradotte o consultare l’originale. Un profilo della comunità permette di pubblicare le tue ricette. Ricette caricate e traduzioni completate restano nella cache del dispositivo.
 
-Usa `**grassetto**`, `*corsivo*`, titoli, elenchi, citazioni, codice, tabelle o `[un link](https://example.com)`. La formattazione appare durante la lettura, nei PDF e nella stampa. Le immagini Markdown appaiono come link. I numeri (porzioni e durate) e i campi URL mantengono il formato abituale.
+### Su telefoni e tablet
 
-Ogni ingrediente e istruzione conserva il proprio Markdown, inclusi paragrafi ed elenchi annidati. Incollare righe di testo semplice crea ancora elementi separati; incollare un blocco Markdown lo mantiene unito.
+Le cinque schede sono Ricette, La mia cucina, Pianifica, Comunità e Spesa. Gli schermi grandi possono usare navigazione laterale e viste a colonne, tenendo conto della dimensione del testo. Gli iPhone compatibili usano controlli Liquid Glass nativi.
 
-### Importazione
+### Dati e connessioni
 
-- Importa da pagine compatibili con dati `schema.org/Recipe` accessibili; alcuni siti bloccano l’estrazione o forniscono dati incompleti.
-- Ricevere un URL condiviso da un browser o un'altra app per importare una ricetta con un tocco;
-- IA facoltativa: scansiona ricette, genera da testo o foto di un piatto o crea una bozza con il frigo. Scegli OpenAI, Gemini, Groq, Grok, Mistral, Claude o un endpoint personalizzato nelle impostazioni Assistente. Servono la tua chiave API e un modello compatibile; le foto richiedono visione e il fornitore può addebitare le richieste.
+Le ricette funzionano in locale senza creare un account. Collega Nextcloud Cookbook per sincronizzarle con il tuo server. Piano, scorte e note private restano sul dispositivo, separati per account di ricette; Cookbook non li sincronizza. Esporta solo le ricette o crea un backup completo con foto disponibili e dati privati della cucina.
 
-### Lista della spesa
-
-- Scegli spesa locale, condivisione AvoCook o Nextcloud Pantry, con trasferimento degli articoli al cambio. La sincronizzazione facoltativa con Promemoria iOS funziona nelle tre modalità. [Nextcloud Pantry](../NEXTCLOUD_PANTRY.md).
-- Condividi liste della spesa con un codice di 6 caratteri, un conteggio dei partecipanti e avvisi locali mentre AvoCook è in esecuzione;
-- Copiare gli ingredienti negli appunti con un tocco;
-- Esportare una lista della spesa in Promemoria iOS per sfruttare la condivisione Apple e l'integrazione con Siri.
-
-### Timer
-
-- Avviare uno o più timer di cottura direttamente da una ricetta;
-- Gli avvisi locali dei timer possono funzionare in background secondo permessi e impostazioni di sistema; verifica la ricezione sul tuo dispositivo.
-
-### Dati e sincronizzazione
-
-- Eseguire il backup di tutte le ricette in un file JSON e ripristinarle;
-- **Facoltativo**: collegare un server Nextcloud Cookbook per sincronizzare le ricette tra i dispositivi. I dati passano direttamente tra l'app e il tuo server, senza intermediari.
-
-> Le ricette locali restano sul dispositivo, salvo sincronizzazione, condivisione o esportazione. La community usa Firebase con una sessione anonima all’avvio. Vedi [Privacy e dati](PRIVACY.md).
-
----
+Comunità e liste condivise usano Firebase, con una sessione anonima all’avvio. Importazione web, ricerca prodotti e assistente facoltativo contattano i rispettivi servizi. La voce usa un motore locale compatibile, senza passare al cloud.
 
 ## Lingue disponibili
 
-Francese · Inglese · Tedesco · Spagnolo · Italiano · Danese
+Italiano · Inglese · Francese · Tedesco · Spagnolo · Danese
 
----
+## Guide
+
+- [Guida alla cucina](GUIDE.md)
+- [Dati e connessioni](PRIVACY.md)
+- [Documentazione tecnica](../LOCAL_KITCHEN.md) · [Nextcloud Pantry](../NEXTCLOUD_PANTRY.md) · [Seasonal catalog](../SEASONAL_CATALOG.md)
 
 ## Configurazione per lo sviluppo
 

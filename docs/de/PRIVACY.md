@@ -1,6 +1,6 @@
 # Datenschutz und Daten
 
-Stand: 19. Oktober 2026. AvoCook enthält keine Werbung oder Analysewerkzeuge. Einige Funktionen nutzen die folgenden Netzwerkdienste.
+Stand: 31. Oktober 2026. AvoCook enthält keine Werbung oder Analysewerkzeuge. Einige Funktionen nutzen die folgenden Netzwerkdienste.
 
 ## Meine Küche, Sprache und lokale Erinnerungen
 
@@ -42,8 +42,16 @@ Android-Installationen per APK suchen auf GitHub nach Updates. Store-Installatio
 
 Diagnoseprotokolle bleiben lokal. Geheimnisse werden maskiert, persönliche Informationen können jedoch enthalten sein. Prüfe Berichte vor dem Kopieren oder Teilen. Sie werden nicht automatisch gesendet.
 
+## Strichcodesuche
+
+Die Strichcodesuche sendet Code und Sprache an Open Food Facts. Kamerabilder, Vorräte und Daten werden nicht übertragen. Verfügbare Produktnamen, Mengen, Nährwerte und Bewertungen werden lokal mit Quellenangabe unter ODbL gespeichert.
+
+## Mitteilungen für geteilte Einkaufslisten
+
+Bei aktivierten Mitteilungen erhält ein Cloudflare Workers-Relay den Push-Token des Geräts und prüft Firebase-Identität und Listenzugriff. Listen bleiben in Firebase. Cloudflare D1 speichert technische Artikelkennungen, Listenversionen, Sprache, Installationskennungen und Push-Tokens, aber keine Produktnamen. Ein Serverprozess sucht mit einem schreibgeschützten Google-Dienstkonto nach verpassten Änderungen. Nextcloud-Zugangsdaten werden nicht übertragen.
+
+Allgemeine Mitteilungen werden über Expo Push und Apple oder Google zugestellt, auch bei geschlossener App und ohne Produktnamen. Deaktivieren oder Verlassen der Liste entfernt die Registrierung bei der nächsten Verbindung. Registrierungen verfallen nach 90 Tagen ohne Erneuerung; Zustelldatensätze werden nach zwei Tagen gelöscht. Timer und Ablauf-Erinnerungen werden auf dem Gerät geplant.
+
 ## Kontakt
 
 Nutze [das GitHub-Repository](https://github.com/Logarex/AvoCook) oder die Kontaktfunktion der App.
-
-Die Strichcodesuche sendet Code und Sprache an Open Food Facts. Kamerabilder, Vorräte und Daten werden nicht übertragen. Verfügbare Produktnamen, Mengen, Nährwerte und Bewertungen werden lokal mit Quellenangabe unter ODbL gespeichert.

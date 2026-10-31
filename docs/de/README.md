@@ -2,118 +2,73 @@
 
 [English](../../README.md) · [Français](../fr/README.md) · [Deutsch](README.md) · [Español](../es/README.md) · [Italiano](../it/README.md) · [Dansk](../da/README.md)
 
-AvoCook ist ein kostenloser Open-Source-Küchenbegleiter für iOS und Android, mit oder ohne Rezept. Rezepte sammeln, Alltagsmahlzeiten planen, Vorräte nutzen und Einkäufe vorbereiten: Die lokalen Werkzeuge funktionieren offline ohne eigenes Konto. Community, geteilte Listen, Importe, optionale KI und Nextcloud-Verbindungen nutzen Onlinedienste.
+AvoCook ist eine kostenlose Open-Source-App für iOS und Android. Ich entwickle sie neben meinem Studium, um Rezepte zu sammeln, Mahlzeiten zu planen und mir das Kochen im Alltag etwas leichter zu machen.
 
-Ich habe es für den persönlichen Gebrauch entwickelt und dabei gelernt, ein vollständiges React Native-Projekt von Anfang bis Ende umzusetzen.
+[App Store](https://apps.apple.com/app/avocook/id6769012665) · [Google Play](https://play.google.com/store/apps/details?id=app.avocook.mobile) · [APK](https://github.com/Logarex/AvoCook/releases/latest)
 
-[App Store](https://apps.apple.com/app/avocook/id6769012665) · [Google Play](https://play.google.com/store/apps/details?id=app.avocook.mobile) · [Android APK](https://github.com/Logarex/AvoCook/releases/latest) · [![APK-Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
+## AvoCook nutzen
 
-<div align="center">
-  <img src="../../assets/screenshots/de/login.png" width="280" alt="AvoCook Login" />
-  <img src="../../assets/screenshots/de/recipe.png" width="280" alt="Rezeptdetails" />
-</div>
+### Alle Rezepte an einem Ort
 
-> Dieses README beschreibt den aktuellen Quellcode-Branch. Store- und GitHub-Versionen enthalten möglicherweise noch nicht die neuesten Änderungen.
+Eigene Rezepte schreiben, Fotos und Kategorien ergänzen und Mengen an die Portionen anpassen. Zutaten und Schritte unterstützen optional Markdown. Einen Link einfügen oder aus dem Browser teilen, um ein Rezept zu importieren, und das Ergebnis vor dem Speichern prüfen. Einzelne Rezepte lassen sich drucken und teilen.
 
----
+### Vorräte im Blick behalten
 
-## Neu in Version 5.0.0
+Kühlschrank, Vorratsschrank und Gefrierfach mit Mengen und Daten verwalten. Lebensmittel per Strichcode hinzufügen, verfügbare Open Food Facts-Bewertungen ansehen und Ablauf-Erinnerungen aktivieren.
 
-Fünf Tabs: Rezepte, Meine Küche, Wochenplan, Community und Einkauf. Meine Küche enthält Vorräte und Essensideen; der Wochenplan startet mit Heute und bietet die Wochenansicht.
+Das Datum auf der Packung selbst eingeben. Die Strichcodesuche braucht Internet; Produktdaten und Bewertungen können fehlen. Vorräte und Planung bleiben offline verfügbar.
 
-- **Gut sortierte Vorräte** — Kühlschrank, Schrank und Gefrierfach mit Suche, Mengen und Daten. Strichcode scannen oder Lebensmittel eingeben. Nutri-Score und Green-Score von Open Food Facts, soweit verfügbar; optionale lokale Erinnerungen.
-- **Ein eigener Essensplan** — Heute und die Woche planen: Rezepte, einfache Mahlzeiten, Reste oder auswärts essen. Portionen anpassen, Mahlzeiten verschieben und Einkäufe vorbereiten. Wiederverwendbare Menüs und die Vorbereitung mehrerer Rezepte bleiben verfügbar.
-- **Kochen und Gewohnheiten festhalten** — Schritte mit Timern und unterstützten lokalen Sprachbefehlen verfolgen. Notizen, Zubereitungen und gewohnte Mahlzeiten im privaten Tagebuch und Verlauf speichern. Timer werden ohne doppelte Meldungen wiederhergestellt.
-- **Werkzeuge für den Alltag** — Belegte Saisonkalender für 11 Länder mit regionalen Grenzen, Umrechnungen und anwendungsbezogene Alternativen. PDF-Kochbuch erstellen und Rezepte zusammen mit privaten Küchendaten sichern.
-- **Eine Idee aus Ihren Zutaten** — Zutaten eingeben oder ein Foto analysieren, Liste korrigieren und einen bearbeitbaren Entwurf erzeugen. Optionale KI mit Ihrem Anbieter, API-Schlüssel und einem passenden Modell; Kosten sind möglich.
-- **Eine leichtere Oberfläche** — Kompakte Rezept- und Einkaufsaktionen, nach Lagerort sortierte Lebensmittel und Details bei Bedarf. Kleinere Kategorieelemente und an Bildschirm- und Textgröße angepasste Ansichten.
+### Heute und die Woche planen
 
-Das Datum auf der Packung selbst eingeben. Produktdaten und Bewertungen können fehlen und stellen keine vollständige Produktanalyse dar. Die Produktsuche benötigt Internet; Vorräte und Planung bleiben lokal. Benachrichtigungen hängen von Geräteberechtigungen ab.
+Rezepte, einfache Mahlzeiten, Reste oder Restaurantbesuche eintragen. Portionen anpassen, Mahlzeiten verschieben und Zutaten für die Einkaufsliste auswählen. Menüs speichern und vergangene Mahlzeiten im Verlauf finden.
 
-## Funktionen
+### Schritt für Schritt kochen
 
-### Community-Plattform
+Rezepte mit Timern verfolgen, die beim Zurückkehren weiterlaufen. Unterstützte Geräte bieten lokale Sprachbefehle. Kochnotizen im privaten Tagebuch speichern und mehrere Rezepte gemeinsam vorbereiten.
 
-- Entdecke, bewerte und importiere Rezepte aus der AvoCook-Community;
-- Community-Rezepte werden in der Liste und in der Detailansicht automatisch in deiner App-Sprache angezeigt;
-- Sieh dir jederzeit das Original an oder importiere die übersetzte Version in dein Rezeptheft;
-- Teile deine besten Gerichte, indem du ein Community-Profil erstellst;
-- Community-Meldungen und Spamprüfungen sind enthalten; veröffentlichte Inhalte stammen von Nutzern.
-- Eine eigene Übersetzungssprache für die Community wählen, darunter Chinesisch, Portugiesisch, Niederländisch, Japanisch, Koreanisch, Arabisch und Russisch. Geladene Rezepte und erfolgreiche Übersetzungen werden zum Offline-Lesen gespeichert.
+### Ideen für den Alltag
 
-### Rezepte
+Rezepte mit vorhandenen Zutaten suchen, Saisonprodukte in 11 regionalen Kalendern entdecken oder Umrechnungen und Backalternativen nutzen. Rezepte und private Küchendaten gemeinsam sichern.
 
-- Rezepte lokal erstellen und bearbeiten, ohne Konto;
-- Rezepte nach Kategorie organisieren;
-- Zutatenmengen nach Portionenanzahl anpassen;
-- Ein oder mehrere Fotos pro Rezept hinzufügen;
-- Ein Rezept als PDF exportieren oder direkt drucken;
-- Ein Rezept über die Teilen-Funktion weitergeben.
+Kalender gibt es für das französische Festland, Wallonien, die Schweiz, Deutschland, Spanien, Italien, Großbritannien, Dänemark, Ontario, den Bundesstaat New York und Sydney. Gebiet und Bedeutung der Verfügbarkeit richten sich nach der jeweiligen Quelle.
 
-### Meine Küche — Alltagsmahlzeiten lokal planen
+### Optionaler Kühlschrank-Assistent
 
-Fünf Tabs: Rezepte, Meine Küche, Wochenplan, Community und Einkauf. Meine Küche enthält Vorräte und Essensideen; der Wochenplan startet mit Heute und bietet die Wochenansicht.
+Zutaten eingeben oder mit einem Kühlschrankfoto beginnen, die Liste prüfen und einen bearbeitbaren Rezeptentwurf anfordern. Eigener Anbieter, API-Schlüssel und passendes Modell erforderlich; Gebühren sind möglich.
 
-- **Die Woche planen** — Mittag- und Abendessen eintragen, Rezepte zwischen Tagen verschieben und Portionen anpassen. Zusammengefasste Zutaten vor dem Einkauf prüfen.
-- **Mahlzeiten ohne Rezept** — Schnelles Essen notieren, übliche Mahlzeiten wiederverwenden oder Reste und Restaurantbesuche planen. Nur Mahlzeiten mit Zutaten ergänzen die Einkaufsliste.
-- **Vorhandenes nutzen** — Kühlschrank-, Vorrats- und Tiefkühlprodukte mit Datum speichern. Rezepte mit wenigen fehlenden Zutaten finden und Einkäufe prüfen. Optionale lokale Datumserinnerungen.
-- **Obst und Gemüse der Saison** — Region und Monat wählen, suchen oder filtern und Produkte für Einkäufe oder Rezeptideen auswählen. Quellenbasierte Offline-Kalender mit klaren regionalen Grenzen.
-- **Schritt für Schritt kochen** — Ein Schritt in großer Schrift, Fortschritt, Zutaten und Timer. Optionale lokale Sprachbefehle auf unterstützten Geräten; Meldungen hängen von Berechtigungen und Systemeinstellungen ab.
-- **Ein Rezept aus dem Kühlschrank (KI)** — Zutaten eingeben oder ein Foto analysieren, erkannte Lebensmittel korrigieren und einen bearbeitbaren Entwurf erzeugen. Optional: eigener API-Schlüssel und geeignetes Modell; Anbietergebühren sind möglich.
-- **Ein privates Kochtagebuch** — Bewertungen, Notizen, Änderungen, Zubereitungsdaten, Schwierigkeit und manuell eingetragene Kosten. Eigene Ernährungskennzeichnungen und Filter helfen beim Ordnen; sie garantieren keine Allergenfreiheit.
-- **Vorkochen und Menüs** — 3–5 Rezepte wählen, Einkäufe zusammenfassen und Vorbereitung nach Dauer durchgehen. Festmenüs speichern und einplanen; kein automatisches paralleles Kochen.
-- **Dein eigenes Kochbuch** — Bis zu 50 Rezepte als lokales Text-PDF mit Inhaltsverzeichnis, Zutaten und Schritten auswählen. Private Notizen und Fotos sind nicht enthalten.
-- **Praktische Küchenwerkzeuge** — Zufallsrezept wählen, kompatible Einheiten und Temperaturen umrechnen oder kontextabhängigen Backersatz mit Mengen und Hinweisen nachschlagen. Keine geschätzte Umrechnung von Gramm in Milliliter.
-- **Eigene Sicherungen** — Rezepte als JSON exportieren oder die vollständige Meine-Küche-Sicherung für Rezepte, verfügbare lokale Fotos und private Planungsdaten nutzen. Vor der Wiederherstellung prüfen.
+### Das eigene bebilderte Kochbuch
 
-Verfügbare Kalender: französisches Mutterland, Wallonien (Belgien), Schweiz, Deutschland, Spanien, Italien, Vereinigtes Königreich, Dänemark, Ontario (Kanada), Bundesstaat New York (USA) und Sydney (Australien). 11 Länder mit regionalen Grenzen, keine weltweite Abdeckung. Quellen unterscheiden Ernte, Lagerung und Marktangebot; dies sind Orientierungshilfen, keine Echtzeitprognosen.
+Rezepte und Titel wählen und ein PDF-Buch mit Cover, Inhaltsverzeichnis, Fotos, Zutaten und Schritten erstellen. Verfügbare Bilder aus der lokalen Sammlung und Nextcloud werden eingebunden.
 
-Zutatenabgleiche prüfen weder vorhandene Mengen noch Frische oder Allergene. Ernährungskennzeichnungen werden selbst eingetragen. Ersatzvorschläge gelten nur für unterstützte Zubereitungen. Sprachbefehle und Benachrichtigungen hängen von Gerät und Berechtigungen ab.
+Private Tagebuchnotizen werden nicht in das Buch übernommen. Das PDF entsteht auf dem Gerät; Nextcloud-Bilder müssen gegebenenfalls heruntergeladen werden.
 
-[Verhalten und Grenzen](../LOCAL_KITCHEN.md) · [Quellen der Saisonkalender](../SEASONAL_CATALOG.md)
+### Allein oder gemeinsam einkaufen
 
-Essensideen nach bekannter Dauer (≤30 Minuten), eigener Bewertung (≥4/5), einfacher Schwierigkeit und eigenen Ernährungskennzeichnungen filtern. Der Verlauf enthält als gegessen bestätigte Mahlzeiten und im Tagebuch oder Kochmodus erfasste Zubereitungen.
+Eine lokale Liste nutzen, andere mit einem sechsstelligen Code zu einer AvoCook-Liste einladen oder eine Haushaltsliste aus Nextcloud Pantry verbinden. Zutaten aus Rezepten und dem Wochenplan gezielt hinzufügen. Unter iOS kann Apple Erinnerungen mit dem aktiven Modus synchronisiert werden. Geteilte AvoCook-Listen bieten Push-Mitteilungen bei Ergänzungen und Entfernungen durch andere Teilnehmer.
 
-### Optionales Markdown
+### Rezepte aus der Community
 
-Alle Textfelder der Rezepte unterstützen Markdown in jeder Sprache: Name, Beschreibung, Kategorie, Schlagwörter, Quellenname, Zutaten, Anweisungen, Küchenutensilien und Nährwerte. Einfacher Text bleibt der Standard; Markdown-Kenntnisse sind nicht erforderlich.
+Rezepte anderer Nutzer entdecken, bewerten und importieren. Übersetzungen und Originaltexte stehen zur Auswahl. Mit einem Community-Profil lassen sich eigene Rezepte veröffentlichen. Geladene Rezepte und erfolgreiche Übersetzungen bleiben im Gerätecache.
 
-Verwenden Sie `**fett**`, `*kursiv*`, Überschriften, Listen, Zitate, Code, Tabellen oder `[einen Link](https://example.com)`. Die Formatierung erscheint beim Lesen, im PDF und beim Drucken. Markdown-Bilder erscheinen als Links. Zahlen (Portionen und Zeitangaben) und URL-Felder behalten ihr übliches Format.
+### Auf Smartphone und Tablet
 
-Jede Zutat und Anweisung behält ihr Markdown, einschließlich Absätzen und verschachtelten Listen. Eingefügte einfache Textzeilen erzeugen weiterhin einzelne Einträge; eingefügte Markdown-Blöcke bleiben zusammen.
+Die fünf Tabs heißen Rezepte, Meine Küche, Wochenplan, Community und Einkauf. Große Bildschirme können eine seitliche Navigation und mehrspaltige Ansichten nutzen; die Schriftgröße wird berücksichtigt. Unterstützte iPhones verwenden native Liquid Glass-Bedienelemente.
 
-### Import
+### Daten und Verbindungen
 
-- Von unterstützten Seiten mit zugänglichen `schema.org/Recipe`-Daten importieren; manche Seiten blockieren das Auslesen oder liefern unvollständige Daten.
-- Eine aus einem Browser oder einer anderen App geteilte URL empfangen, um Rezepte mit einem Tippen zu importieren;
-- Optionale KI: Rezepte scannen, aus Text oder einem Gerichtsfoto generieren oder einen Kühlschrankentwurf erstellen. In den Assistent-Einstellungen OpenAI, Gemini, Groq, Grok, Mistral, Claude oder einen eigenen Endpunkt wählen. Eigener API-Schlüssel und geeignetes Modell erforderlich; Fotos benötigen Bilderkennung und Anbietergebühren sind möglich.
+Rezepte funktionieren lokal ohne Konto. Nextcloud Cookbook verbindet die Rezeptsammlung mit dem eigenen Server. Planung, Vorräte und private Notizen bleiben für jedes Rezeptkonto getrennt auf dem Gerät; Cookbook synchronisiert sie nicht. Nur Rezepte exportieren oder eine vollständige Küchensicherung mit verfügbaren Fotos und privaten Daten erstellen.
 
-### Einkaufsliste
-
-- Lokale Liste, AvoCook-Freigabe oder Nextcloud Pantry wählen; Artikel werden beim Wechsel übernommen. Die optionale iOS-Erinnerungen-Synchronisierung funktioniert in allen drei Modi. [Nextcloud Pantry](../NEXTCLOUD_PANTRY.md).
-- Teile Einkaufslisten mit einem Code aus 6 Zeichen, einer Teilnehmeranzahl und lokalen Hinweisen, während AvoCook läuft;
-- Zutaten mit einem Tippen in die Zwischenablage kopieren;
-- Eine Einkaufsliste in iOS-Erinnerungen exportieren, um Apples Teilen-Funktion und Siri-Integration zu nutzen.
-
-### Timer
-
-- Einen oder mehrere Koch-Timer direkt aus einem Rezept starten;
-- Lokale Timer-Meldungen funktionieren im Hintergrund, sofern Berechtigungen und Systemeinstellungen dies erlauben; Zustellung auf dem eigenen Gerät prüfen.
-
-### Daten & Synchronisierung
-
-- Alle Rezepte in einer JSON-Datei sichern und wiederherstellen;
-- **Optional**: einen Nextcloud Cookbook-Server verbinden, um Rezepte geräteübergreifend zu synchronisieren. Die Daten fließen direkt zwischen der App und deinem Server — kein Drittanbieter ist beteiligt.
-
-> Lokale Rezepte bleiben auf dem Gerät, sofern du sie nicht synchronisierst, teilst oder exportierst. Die Community nutzt Firebase mit einer anonymen Sitzung beim Start. Siehe [Datenschutz und Daten](PRIVACY.md).
-
----
+Community und geteilte Listen nutzen Firebase, einschließlich einer anonymen Sitzung beim Start. Webimporte, Produktsuche und der optionale Assistent kontaktieren ihre jeweiligen Dienste. Die Spracherkennung verwendet eine unterstützte lokale Engine ohne Cloud-Ersatz.
 
 ## Verfügbare Sprachen
 
-Französisch · Englisch · Deutsch · Spanisch · Italienisch · Dänisch
+Deutsch · Englisch · Französisch · Spanisch · Italienisch · Dänisch
 
----
+## Anleitungen
+
+- [Küchenanleitung](GUIDE.md)
+- [Daten und Verbindungen](PRIVACY.md)
+- [Technische Dokumentation](../LOCAL_KITCHEN.md) · [Nextcloud Pantry](../NEXTCLOUD_PANTRY.md) · [Seasonal catalog](../SEASONAL_CATALOG.md)
 
 ## Entwicklungs-Setup
 

@@ -880,3 +880,7 @@ footer {
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .fade-up { opacity: 1; transform: none; }
 }
+
+.feature-group { margin-top: 2.5rem; }
+.feature-group-title { font-size: clamp(1.25rem, 2vw, 1.65rem); margin: 0 0 1rem; }
+.feature-group .features-grid { margin-top: 0; }

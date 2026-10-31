@@ -1,6 +1,6 @@
 # Privacy e dati
 
-Aggiornamento: 19 ottobre 2026. AvoCook non contiene pubblicità né strumenti di analisi. Alcune funzioni usano i servizi di rete descritti qui sotto.
+Aggiornamento: 31 ottobre 2026. AvoCook non contiene pubblicità né strumenti di analisi. Alcune funzioni usano i servizi di rete descritti qui sotto.
 
 ## La mia cucina, voce e promemoria locali
 
@@ -42,8 +42,16 @@ Le installazioni Android tramite APK cercano le versioni su GitHub. Quelle da un
 
 I registri diagnostici restano locali. I dati di accesso vengono mascherati, ma possono rimanere informazioni personali. Controlla i rapporti prima di copiarli o condividerli. Non vengono inviati automaticamente.
 
+## Ricerca tramite codice a barre
+
+La ricerca per codice a barre invia codice e lingua a Open Food Facts. Immagini della fotocamera, scorte e date non vengono trasmesse. Nomi, quantità, valori nutrizionali e punteggi disponibili sono salvati localmente con attribuzione sotto ODbL.
+
+## Notifiche delle liste condivise
+
+Attivando le notifiche di una lista AvoCook, un relè Cloudflare Workers riceve il token push del dispositivo e verifica identità Firebase e accesso alla lista. Le liste restano in Firebase. Cloudflare D1 conserva identificatori tecnici degli articoli, versioni, lingua, identificatori di installazione e token push, senza nomi dei prodotti. Un processo cerca modifiche non segnalate con un account di servizio Google in sola lettura. Non vengono inviate credenziali Nextcloud.
+
+I messaggi generici passano tramite Expo Push e Apple o Google, anche con l’app chiusa, senza nomi dei prodotti. Disattivare le notifiche o lasciare la lista rimuove la registrazione alla connessione successiva. Le registrazioni scadono dopo 90 giorni senza rinnovo; i dati degli invii vengono eliminati dopo due giorni. Timer e promemoria di scadenza sono programmati sul dispositivo.
+
 ## Contatti
 
 Usa [il repository GitHub](https://github.com/Logarex/AvoCook) o il pulsante di contatto nell’app.
-
-La ricerca per codice a barre invia codice e lingua a Open Food Facts. Immagini della fotocamera, scorte e date non vengono trasmesse. Nomi, quantità, valori nutrizionali e punteggi disponibili sono salvati localmente con attribuzione sotto ODbL.
