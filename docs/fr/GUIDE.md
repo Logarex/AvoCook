@@ -2,6 +2,10 @@
 
 Les cinq onglets sont Recettes, Ma cuisine, Planning, Communauté et Courses. Les grands écrans peuvent afficher une navigation latérale et des vues en colonnes ; la taille du texte est prise en compte. Les iPhone compatibles utilisent les commandes natives Liquid Glass.
 
+## Markdown
+
+Dans les textes des recettes, utilisez `**gras**`, `*italique*` et des liens comme `[https://example.com](https://example.com)`. Le Markdown reste facultatif : le texte simple fonctionne aussi.
+
 ## Gardez un œil sur vos réserves
 
 Ouvrez Ma cuisine et ajoutez un aliment au frigo, au placard ou au congélateur. Indiquez son nom, sa quantité et la date du paquet. Le code-barres peut remplir les informations produit disponibles. Activez les rappels de péremption si vous le souhaitez ; vous pouvez annuler une consommation enregistrée.

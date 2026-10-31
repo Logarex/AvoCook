@@ -2,6 +2,10 @@
 
 De fem faner er Opskrifter, Mit køkken, Madplan, Fællesskab og Indkøb. Store skærme kan bruge sidenavigation og kolonnevisning, der tager hensyn til tekststørrelsen. Understøttede iPhones bruger native Liquid Glass-knapper.
 
+## Markdown
+
+I opskriftstekster kan du bruge `**fed**`, `*kursiv*` og links som `[https://example.com](https://example.com)`. Markdown er valgfrit; almindelig tekst fungerer også.
+
 ## Hold styr på dine madvarer
 
 Åbn Mit køkken, og tilføj madvarer til køleskab, skab eller fryser. Angiv navn, mængde og datoen på pakken. En stregkode kan udfylde tilgængelige varedata. Slå påmindelser til, hvis du ønsker det; en vare markeret som brugt kan gendannes.

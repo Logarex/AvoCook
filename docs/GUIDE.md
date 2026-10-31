@@ -2,6 +2,10 @@
 
 The five tabs are Recipes, My kitchen, Meal plan, Community and Shopping. Wide screens can use side navigation and split layouts; text size is taken into account. Supported iPhones use native Liquid Glass controls.
 
+## Markdown
+
+In recipe text, use `**bold**`, `*italic*` and links such as `[https://example.com](https://example.com)`. Markdown is optional: plain text works too.
+
 ## Keep track of your food
 
 Open My kitchen and add food to the fridge, pantry or freezer. Enter the name and quantity, then the date printed on the pack. You can scan a barcode to fill available product information. Enable expiry reminders if you want them; marking food as used can be undone.

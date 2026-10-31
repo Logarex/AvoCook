@@ -6,69 +6,35 @@ AvoCook ist eine kostenlose Open-Source-App für iOS und Android. Ich entwickle 
 
 [App Store](https://apps.apple.com/app/avocook/id6769012665) · [Google Play](https://play.google.com/store/apps/details?id=app.avocook.mobile) · [APK](https://github.com/Logarex/AvoCook/releases/latest)
 
-## AvoCook nutzen
+[![APK-Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
 
-### Alle Rezepte an einem Ort
+<p align="center">
+  <img src="../../assets/screenshots/de/recipe_list.png" width="230" alt="Rezeptliste" />
+  <img src="../../assets/screenshots/de/recipe.png" width="230" alt="Rezeptdetails" />
+  <img src="../../assets/screenshots/de/shopping.png" width="230" alt="Einkaufsliste" />
+</p>
 
-Eigene Rezepte schreiben, Fotos und Kategorien ergänzen und Mengen an die Portionen anpassen. Zutaten und Schritte unterstützen optional Markdown. Einen Link einfügen oder aus dem Browser teilen, um ein Rezept zu importieren, und das Ergebnis vor dem Speichern prüfen. Einzelne Rezepte lassen sich drucken und teilen.
+## Funktionen
 
-### Vorräte im Blick behalten
+- Rezepte mit Fotos, Kategorien, anpassbaren Portionen, Webimport und optionalem Markdown.
+- Vorräte in Kühlschrank, Schrank und Gefrierfach mit Strichcodes, Daten und Ablauf-Erinnerungen.
+- Tages- und Wochenplanung, einfache Mahlzeiten, Reste, gespeicherte Menüs und Verlauf.
+- Schrittweises Kochen, gespeicherte Timer, lokale Sprachbefehle und private Notizen.
+- Ideen aus vorhandenen Zutaten, regionale Saisonkalender, Umrechnungen und Backalternativen.
+- Lokale oder geteilte Einkaufslisten, Push-Mitteilungen, Nextcloud Pantry und Apple Erinnerungen unter iOS.
+- Bebilderte PDF-Kochbücher, Rezepte teilen und vollständige Küchensicherungen.
+- Community-Rezepte entdecken, übersetzen und teilen; optionaler Assistent mit eigenem API-Schlüssel.
 
-Kühlschrank, Vorratsschrank und Gefrierfach mit Mengen und Daten verwalten. Lebensmittel per Strichcode hinzufügen, verfügbare Open Food Facts-Bewertungen ansehen und Ablauf-Erinnerungen aktivieren.
-
-Das Datum auf der Packung selbst eingeben. Die Strichcodesuche braucht Internet; Produktdaten und Bewertungen können fehlen. Vorräte und Planung bleiben offline verfügbar.
-
-### Heute und die Woche planen
-
-Rezepte, einfache Mahlzeiten, Reste oder Restaurantbesuche eintragen. Portionen anpassen, Mahlzeiten verschieben und Zutaten für die Einkaufsliste auswählen. Menüs speichern und vergangene Mahlzeiten im Verlauf finden.
-
-### Schritt für Schritt kochen
-
-Rezepte mit Timern verfolgen, die beim Zurückkehren weiterlaufen. Unterstützte Geräte bieten lokale Sprachbefehle. Kochnotizen im privaten Tagebuch speichern und mehrere Rezepte gemeinsam vorbereiten.
-
-### Ideen für den Alltag
-
-Rezepte mit vorhandenen Zutaten suchen, Saisonprodukte in 11 regionalen Kalendern entdecken oder Umrechnungen und Backalternativen nutzen. Rezepte und private Küchendaten gemeinsam sichern.
-
-Kalender gibt es für das französische Festland, Wallonien, die Schweiz, Deutschland, Spanien, Italien, Großbritannien, Dänemark, Ontario, den Bundesstaat New York und Sydney. Gebiet und Bedeutung der Verfügbarkeit richten sich nach der jeweiligen Quelle.
-
-### Optionaler Kühlschrank-Assistent
-
-Zutaten eingeben oder mit einem Kühlschrankfoto beginnen, die Liste prüfen und einen bearbeitbaren Rezeptentwurf anfordern. Eigener Anbieter, API-Schlüssel und passendes Modell erforderlich; Gebühren sind möglich.
-
-### Das eigene bebilderte Kochbuch
-
-Rezepte und Titel wählen und ein PDF-Buch mit Cover, Inhaltsverzeichnis, Fotos, Zutaten und Schritten erstellen. Verfügbare Bilder aus der lokalen Sammlung und Nextcloud werden eingebunden.
-
-Private Tagebuchnotizen werden nicht in das Buch übernommen. Das PDF entsteht auf dem Gerät; Nextcloud-Bilder müssen gegebenenfalls heruntergeladen werden.
-
-### Allein oder gemeinsam einkaufen
-
-Eine lokale Liste nutzen, andere mit einem sechsstelligen Code zu einer AvoCook-Liste einladen oder eine Haushaltsliste aus Nextcloud Pantry verbinden. Zutaten aus Rezepten und dem Wochenplan gezielt hinzufügen. Unter iOS kann Apple Erinnerungen mit dem aktiven Modus synchronisiert werden. Geteilte AvoCook-Listen bieten Push-Mitteilungen bei Ergänzungen und Entfernungen durch andere Teilnehmer.
-
-### Rezepte aus der Community
-
-Rezepte anderer Nutzer entdecken, bewerten und importieren. Übersetzungen und Originaltexte stehen zur Auswahl. Mit einem Community-Profil lassen sich eigene Rezepte veröffentlichen. Geladene Rezepte und erfolgreiche Übersetzungen bleiben im Gerätecache.
-
-### Auf Smartphone und Tablet
-
-Die fünf Tabs heißen Rezepte, Meine Küche, Wochenplan, Community und Einkauf. Große Bildschirme können eine seitliche Navigation und mehrspaltige Ansichten nutzen; die Schriftgröße wird berücksichtigt. Unterstützte iPhones verwenden native Liquid Glass-Bedienelemente.
-
-### Daten und Verbindungen
-
-Rezepte funktionieren lokal ohne Konto. Nextcloud Cookbook verbindet die Rezeptsammlung mit dem eigenen Server. Planung, Vorräte und private Notizen bleiben für jedes Rezeptkonto getrennt auf dem Gerät; Cookbook synchronisiert sie nicht. Nur Rezepte exportieren oder eine vollständige Küchensicherung mit verfügbaren Fotos und privaten Daten erstellen.
-
-Community und geteilte Listen nutzen Firebase, einschließlich einer anonymen Sitzung beim Start. Webimporte, Produktsuche und der optionale Assistent kontaktieren ihre jeweiligen Dienste. Die Spracherkennung verwendet eine unterstützte lokale Engine ohne Cloud-Ersatz.
-
-## Verfügbare Sprachen
-
-Deutsch · Englisch · Französisch · Spanisch · Italienisch · Dänisch
+Lokale Rezepte funktionieren offline ohne Konto. Nextcloud Cookbook ist optional; Planung, Vorräte und private Notizen bleiben auf dem Gerät.
 
 ## Anleitungen
 
 - [Küchenanleitung](GUIDE.md)
 - [Daten und Verbindungen](PRIVACY.md)
 - [Technische Dokumentation](../LOCAL_KITCHEN.md) · [Nextcloud Pantry](../NEXTCLOUD_PANTRY.md) · [Seasonal catalog](../SEASONAL_CATALOG.md)
+
+<details>
+<summary>Entwicklung und Projektstruktur</summary>
 
 ## Entwicklungs-Setup
 
@@ -123,6 +89,8 @@ docs/                                    # Dokumentation in anderen Sprachen (fr
 ```
 
 ---
+
+</details>
 
 ## Nextcloud Cookbook
 

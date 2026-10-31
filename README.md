@@ -6,69 +6,35 @@ AvoCook is a free, open-source app for iOS and Android. I’m building it alongs
 
 [App Store](https://apps.apple.com/app/avocook/id6769012665) · [Google Play](https://play.google.com/store/apps/details?id=app.avocook.mobile) · [APK](https://github.com/Logarex/AvoCook/releases/latest)
 
-## Using AvoCook
+[![APK downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
 
-### Recipes in one place
+<p align="center">
+  <img src="assets/screenshots/en/recipe_list.png" width="230" alt="Recipe list" />
+  <img src="assets/screenshots/en/recipe.png" width="230" alt="Recipe detail" />
+  <img src="assets/screenshots/en/shopping.png" width="230" alt="Shopping list" />
+</p>
 
-Write your recipes, add photos and categories, and adjust quantities to the number of servings. Ingredients and steps support optional Markdown. Paste a recipe link or share it from your browser to import it, then check the result before saving. You can print or share an individual recipe too.
+## Features
 
-### Keep track of your food
+- Recipes with photos, categories, adjustable servings, web import and optional Markdown.
+- Fridge, pantry and freezer inventory, with barcode entry, dates and expiry reminders.
+- Daily and weekly meal plans, simple meals, leftovers, saved menus and meal history.
+- Step-by-step cooking, persistent timers, local voice commands and private notes.
+- Ingredient-based ideas, regional seasonal calendars, conversions and baking substitutions.
+- Local or shared shopping lists, push notifications, Nextcloud Pantry and Apple Reminders on iOS.
+- Illustrated PDF cookbooks, recipe sharing and complete kitchen backups.
+- Community recipes to discover, translate and share; an optional assistant with your own API key.
 
-Organize your fridge, pantry and freezer with quantities and dates. Add food by barcode, view available Open Food Facts scores and enable expiry reminders.
-
-Enter the date printed on the pack yourself. Barcode lookup uses the Internet; product information and scores may be missing. Stock and planning remain available offline.
-
-### Plan today and the week
-
-Add recipes, simple meals, leftovers or eating out. Adjust servings, move meals between days and choose ingredients for your shopping list. Save menus and find past meals in the history.
-
-### Cook step by step
-
-Follow recipes with timers that resume when you return. Supported devices offer local voice commands. Keep your cooking notes in a private journal and prepare several recipes together.
-
-### Find ideas for everyday meals
-
-Look for recipes using your ingredients, browse seasonal produce in 11 regional calendars, or use conversions and baking substitutions. Back up recipes and your private kitchen data together.
-
-Seasonal calendars cover mainland France, Wallonia, Switzerland, Germany, Spain, Italy, the UK, Denmark, Ontario, New York State and Sydney. Coverage and the meaning of availability depend on the source.
-
-### An optional fridge assistant
-
-Enter ingredients or start from a fridge photo, check the list and request an editable recipe draft. Uses your own provider, API key and a compatible model; charges may apply.
-
-### Your own illustrated cookbook
-
-Choose recipes and a title to create a PDF book with a cover, contents, photos, ingredients and steps. Images from your local library and Nextcloud are included when available.
-
-Private journal notes are not included in the book. Creating the PDF happens on the device; Nextcloud images may need to be downloaded.
-
-### Shopping, alone or together
-
-Use a local list, invite others to an AvoCook list with a six-character code, or connect a Nextcloud Pantry household list. Choose which ingredients to add from recipes and the meal plan. On iOS, Apple Reminders can sync with the active mode. Shared AvoCook lists support push notifications for additions and removals by other participants.
-
-### Recipes from the community
-
-Browse, rate and import recipes shared by other users. Recipes can be translated into your language; you can also read the original. A community profile lets you publish your own recipes. Loaded recipes and successful translations remain in the device cache.
-
-### On phones and tablets
-
-The five tabs are Recipes, My kitchen, Meal plan, Community and Shopping. Wide screens can use side navigation and split layouts; text size is taken into account. Supported iPhones use native Liquid Glass controls.
-
-### Your data and connections
-
-Recipes work locally without creating an account. Connect Nextcloud Cookbook if you want to sync recipes with your own server. Planning, stock and private notes stay on the device, separately for each recipe account; they are not synced by Cookbook. Export recipes alone or make a complete kitchen backup with available photos and private data.
-
-Community and shared lists use Firebase, including an anonymous session at startup. Web imports, product lookup and the optional assistant contact their respective services. Voice recognition uses a compatible on-device engine, without a cloud fallback.
-
-## Available languages
-
-English · French · German · Spanish · Italian · Danish
+Local recipes work offline without an account. Nextcloud Cookbook sync is optional; meal plans, inventory and private notes stay on the device.
 
 ## Guides
 
 - [Kitchen guide](docs/GUIDE.md)
 - [Your data and connections](PRIVACY.md)
 - [Technical references](docs/LOCAL_KITCHEN.md) · [Nextcloud Pantry](docs/NEXTCLOUD_PANTRY.md) · [Seasonal catalog](docs/SEASONAL_CATALOG.md)
+
+<details>
+<summary>Development and project structure</summary>
 
 ## Development setup
 
@@ -132,6 +98,8 @@ docs/                              # Documentation in other languages (fr, de, e
 ```
 
 ---
+
+</details>
 
 ## Nextcloud Cookbook
 

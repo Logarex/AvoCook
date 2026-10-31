@@ -99,7 +99,7 @@ describe("optional recipe Markdown", () => {
     expect(isSafeMarkdownLink("mailto:chef@example.com")).toBe(true);
   });
 
-  it.each(Object.entries(languages))("documents optional Markdown in the app and README for %s", (language, [locale]) => {
+  it.each(Object.entries(languages))("documents optional Markdown in the app, README and linked guide for %s", (language, [locale]) => {
     const help = locale.translation.editor.markdownHelp;
     expect(help).toContain("Markdown");
     expect(help).toContain("**");
@@ -107,6 +107,11 @@ describe("optional recipe Markdown", () => {
     const path = language === "en" ? "../../README.md" : `../../docs/${language}/README.md`;
     const readme = readFileSync(new URL(path, import.meta.url), "utf8");
     expect(readme).toContain("Markdown");
-    expect(readme).toContain("https://example.com");
+    const guideLink = language === "en" ? "docs/GUIDE.md" : "GUIDE.md";
+    expect(readme).toContain(`](${guideLink})`);
+    const guide = readFileSync(new URL(guideLink, new URL(path, import.meta.url)), "utf8");
+    expect(guide).toContain("Markdown");
+    expect(guide).toContain("**");
+    expect(guide).toContain("[https://example.com](https://example.com)");
   });
 });

@@ -2,6 +2,10 @@
 
 Die fünf Tabs heißen Rezepte, Meine Küche, Wochenplan, Community und Einkauf. Große Bildschirme können eine seitliche Navigation und mehrspaltige Ansichten nutzen; die Schriftgröße wird berücksichtigt. Unterstützte iPhones verwenden native Liquid Glass-Bedienelemente.
 
+## Markdown
+
+Rezepttexte unterstützen `**fett**`, `*kursiv*` und Links wie `[https://example.com](https://example.com)`. Markdown ist optional; einfacher Text funktioniert ebenfalls.
+
 ## Vorräte im Blick behalten
 
 In Meine Küche Lebensmittel zum Kühlschrank, Vorratsschrank oder Gefrierfach hinzufügen. Name, Menge und Datum auf der Packung eintragen. Ein Strichcode kann verfügbare Produktdaten ergänzen. Ablauf-Erinnerungen sind optional; ein als verbraucht markierter Eintrag lässt sich wiederherstellen.

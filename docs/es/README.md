@@ -6,69 +6,35 @@ AvoCook es una aplicación gratuita y de código abierto para iOS y Android. La 
 
 [App Store](https://apps.apple.com/app/avocook/id6769012665) · [Google Play](https://play.google.com/store/apps/details?id=app.avocook.mobile) · [APK](https://github.com/Logarex/AvoCook/releases/latest)
 
-## Usar AvoCook
+[![Descargas APK](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
 
-### Todas tus recetas en un sitio
+<p align="center">
+  <img src="../../assets/screenshots/es/recipe_list.png" width="230" alt="Lista de recetas" />
+  <img src="../../assets/screenshots/es/recipe.png" width="230" alt="Detalle de receta" />
+  <img src="../../assets/screenshots/es/shopping.png" width="230" alt="Lista de la compra" />
+</p>
 
-Escribe recetas, añade fotos y categorías y ajusta las cantidades a las raciones. Los ingredientes y pasos admiten Markdown opcional. Pega un enlace o compártelo desde el navegador para importar una receta y comprueba el resultado antes de guardar. También puedes imprimir o compartir una receta individual.
+## Funciones
 
-### Controla tus alimentos
+- Recetas con fotos, categorías, raciones ajustables, importación web y Markdown opcional.
+- Nevera, despensa y congelador con códigos de barras, fechas y avisos de caducidad.
+- Plan diario y semanal, comidas sencillas, sobras, menús guardados e historial.
+- Cocina paso a paso, temporizadores guardados, comandos de voz locales y notas privadas.
+- Ideas con tus ingredientes, calendarios regionales de temporada, conversiones y sustituciones de repostería.
+- Listas locales o compartidas, notificaciones, Nextcloud Pantry y Recordatorios de Apple en iOS.
+- Recetarios PDF ilustrados, recetas para compartir y copias completas de tu cocina.
+- Recetas de la comunidad para descubrir, traducir y compartir; asistente opcional con tu clave API.
 
-Organiza la nevera, la despensa y el congelador con cantidades y fechas. Añade alimentos por código de barras, consulta las puntuaciones disponibles de Open Food Facts y activa avisos de caducidad.
-
-Introduce la fecha del envase. La búsqueda por código de barras necesita Internet; pueden faltar fichas y puntuaciones. Los alimentos y el plan siguen disponibles sin conexión.
-
-### Planifica hoy y la semana
-
-Añade recetas, comidas sencillas, sobras o salidas. Ajusta raciones, mueve comidas entre días y elige ingredientes para la lista de la compra. Guarda menús y consulta las comidas anteriores en el historial.
-
-### Cocina paso a paso
-
-Sigue recetas con temporizadores que se recuperan al volver. Los dispositivos compatibles ofrecen comandos de voz locales. Guarda notas en un diario privado y prepara varias recetas juntas.
-
-### Ideas para cada día
-
-Busca recetas con tus ingredientes, consulta productos de temporada en 11 calendarios regionales o usa conversiones y sustituciones de repostería. Guarda recetas y datos privados de tu cocina en una misma copia de seguridad.
-
-Hay calendarios para Francia metropolitana, Valonia, Suiza, Alemania, España, Italia, Reino Unido, Dinamarca, Ontario, el estado de Nueva York y Sídney. La cobertura y el significado de disponibilidad dependen de cada fuente.
-
-### Asistente de nevera opcional
-
-Escribe ingredientes o empieza con una foto de la nevera, revisa la lista y pide un borrador de receta editable. Requiere tu proveedor, clave API y un modelo compatible; puede haber cargos.
-
-### Tu recetario ilustrado
-
-Elige recetas y un título para crear un libro PDF con portada, índice, fotos, ingredientes y pasos. Se incluyen las imágenes de tu biblioteca local y de Nextcloud cuando están disponibles.
-
-Las notas del diario privado no se incluyen en el libro. El PDF se crea en el dispositivo; puede ser necesario descargar imágenes de Nextcloud.
-
-### La compra, a solas o en compañía
-
-Usa una lista local, invita a otras personas a una lista AvoCook con un código de seis caracteres o conecta una lista del hogar de Nextcloud Pantry. Elige qué ingredientes añadir desde las recetas y el plan. En iOS, Recordatorios puede sincronizarse con el modo activo. Las listas compartidas AvoCook ofrecen notificaciones cuando otros participantes añaden o eliminan productos.
-
-### Recetas de la comunidad
-
-Descubre, valora e importa recetas de otros usuarios. Puedes leerlas traducidas o consultar el original. Un perfil de comunidad permite publicar tus propias recetas. Las recetas cargadas y las traducciones completadas permanecen en la caché del dispositivo.
-
-### En móviles y tabletas
-
-Las cinco pestañas son Recetas, Mi cocina, Plan, Comunidad y Compra. Las pantallas grandes pueden usar navegación lateral y vistas en columnas, teniendo en cuenta el tamaño del texto. Los iPhone compatibles usan controles Liquid Glass nativos.
-
-### Tus datos y conexiones
-
-Las recetas funcionan localmente sin crear una cuenta. Conecta Nextcloud Cookbook para sincronizarlas con tu servidor. El plan, los alimentos y las notas privadas se guardan en el dispositivo, separados por cuenta de recetas; Cookbook no los sincroniza. Exporta solo las recetas o crea una copia completa con las fotos disponibles y los datos privados de tu cocina.
-
-La comunidad y las listas compartidas usan Firebase, con una sesión anónima al iniciar. Los enlaces web, la búsqueda de productos y el asistente opcional usan sus respectivos servicios. La voz utiliza un motor local compatible, sin recurrir a la nube.
-
-## Idiomas disponibles
-
-Español · Inglés · Francés · Alemán · Italiano · Danés
+Las recetas locales funcionan sin conexión ni cuenta. Nextcloud Cookbook es opcional; plan, alimentos y notas privadas permanecen en el dispositivo.
 
 ## Guías
 
 - [Guía de cocina](GUIDE.md)
 - [Tus datos y conexiones](PRIVACY.md)
 - [Documentación técnica](../LOCAL_KITCHEN.md) · [Nextcloud Pantry](../NEXTCLOUD_PANTRY.md) · [Seasonal catalog](../SEASONAL_CATALOG.md)
+
+<details>
+<summary>Desarrollo y estructura del proyecto</summary>
 
 ## Configuración de desarrollo
 
@@ -123,6 +89,8 @@ docs/                                    # Documentación en otros idiomas (fr, 
 ```
 
 ---
+
+</details>
 
 ## Nextcloud Cookbook
 

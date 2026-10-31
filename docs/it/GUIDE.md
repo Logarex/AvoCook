@@ -2,6 +2,10 @@
 
 Le cinque schede sono Ricette, La mia cucina, Pianifica, Comunità e Spesa. Gli schermi grandi possono usare navigazione laterale e viste a colonne, tenendo conto della dimensione del testo. Gli iPhone compatibili usano controlli Liquid Glass nativi.
 
+## Markdown
+
+Nei testi delle ricette puoi usare `**grassetto**`, `*corsivo*` e link come `[https://example.com](https://example.com)`. Markdown è facoltativo: puoi anche scrivere testo normale.
+
 ## Tieni d’occhio le scorte
 
 Apri La mia cucina e aggiungi alimenti a frigo, dispensa o congelatore. Inserisci nome, quantità e data sulla confezione. Un codice a barre può completare i dati disponibili. Attiva i promemoria se vuoi; puoi annullare un alimento segnato come consumato.

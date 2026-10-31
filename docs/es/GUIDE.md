@@ -2,6 +2,10 @@
 
 Las cinco pestañas son Recetas, Mi cocina, Plan, Comunidad y Compra. Las pantallas grandes pueden usar navegación lateral y vistas en columnas, teniendo en cuenta el tamaño del texto. Los iPhone compatibles usan controles Liquid Glass nativos.
 
+## Markdown
+
+En los textos de las recetas puedes usar `**negrita**`, `*cursiva*` y enlaces como `[https://example.com](https://example.com)`. Markdown es opcional; también puedes escribir texto normal.
+
 ## Controla tus alimentos
 
 Abre Mi cocina y añade alimentos a la nevera, despensa o congelador. Indica nombre, cantidad y fecha del envase. Un código de barras puede completar datos del producto. Activa los avisos de caducidad si quieres; puedes deshacer una marca de alimento consumido.
