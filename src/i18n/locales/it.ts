@@ -1264,6 +1264,13 @@ export default {
       sectionData: "Dati e Backup",
       sectionSupport: "Supporto e Informazioni",
       keepAwake: "Tieni lo schermo acceso su una ricetta",
+      appIcon: "Icona dell’app",
+      appIconDefault: "AvoCook",
+      appIconCarrot: "Carota",
+      appIconCookbook: "Ricettario",
+      appIconPlate: "Piatto",
+      appIconError: "Impossibile cambiare l’icona dell’app.",
+      appIconAndroidHint: "La nuova icona appare nella schermata Home dopo aver chiuso l’app.",
       keepRecipesLocal:
         "Conserva una copia locale delle ricette per l'uso offline",
       showDefaultCategories: "Mostra le categorie predefinite",

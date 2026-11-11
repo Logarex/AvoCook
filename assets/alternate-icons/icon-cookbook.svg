@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#DCE7F7"/>
+  <path d="M160 300c120-40 240-40 352 20 112-60 232-60 352-20v460c-120-40-240-40-352 20-112-60-232-60-352-20Z" fill="#2D4C86"/>
+  <path d="M196 280c110-30 214-24 308 28v444c-94-52-198-58-308-28Z" fill="#FFFDF7"/>
+  <path d="M828 280c-110-30-214-24-308 28v444c94-52 198-58 308-28Z" fill="#FFFDF7"/>
+  <path d="M504 308h16v444h-16Z" fill="#E9E3D3"/>
+  <rect x="244" y="350" width="200" height="20" rx="10" fill="#B9C6DD"/>
+  <rect x="244" y="410" width="168" height="20" rx="10" fill="#B9C6DD"/>
+  <rect x="244" y="470" width="200" height="20" rx="10" fill="#B9C6DD"/>
+  <rect x="244" y="530" width="140" height="20" rx="10" fill="#B9C6DD"/>
+  <rect x="244" y="590" width="184" height="20" rx="10" fill="#B9C6DD"/>
+  <ellipse cx="672" cy="420" rx="62" ry="80" fill="#2D4C86"/>
+  <rect x="656" y="480" width="32" height="200" rx="16" fill="#2D4C86"/>
+  <path d="M560 252h56v236l-28-26-28 26Z" fill="#E2504C"/>
+</svg>

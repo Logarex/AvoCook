@@ -38,6 +38,7 @@ import {
   Switch,
   View,
 } from "react-native";
+import { AppIconPicker } from "../components/AppIconPicker";
 import { AppText } from "../components/AppText";
 import { ChoiceField } from "../components/ChoiceField";
 import { DisclosureSection } from "../components/DisclosureSection";
@@ -597,6 +598,11 @@ export function SettingsScreen({ navigation, route }: Props) {
                 { label: t("settings.dark"), value: "dark" },
               ]}
             />
+            <View
+              style={[styles.divider, { backgroundColor: colors.border }]}
+            />
+
+            <AppIconPicker />
             <View
               style={[styles.divider, { backgroundColor: colors.border }]}
             />

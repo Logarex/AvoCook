@@ -53,6 +53,7 @@ import {
 import { TimersProvider } from "./features/timers/TimersProvider";
 import type { RootStackParamList } from "./navigation/types";
 import { parseAppLink } from "./features/linking/appLinks";
+import { SCREENSHOT_HOST, ScreenshotHarness } from "./features/screenshots/ScreenshotHarness";
 import { CommunityDetailScreen } from "./screens/CommunityDetailScreen";
 import { CommunityScreen } from "./screens/CommunityScreen";
 import { ImportRecipeScreen } from "./screens/ImportRecipeScreen";
@@ -162,6 +163,7 @@ function RootNavigator() {
         onReady={syncCurrentRoute}
         onStateChange={syncCurrentRoute}
       >
+        {SCREENSHOT_HOST ? <ScreenshotHarness /> : null}
         {isAuthenticated ? <ShareIntentHandler /> : null}
         {isAuthenticated ? <KitchenNotificationHandler /> : null}
         {isAuthenticated ? <AppLinkHandler /> : null}

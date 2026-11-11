@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="avocook_icon_carrot_bg">#FBE3CC</color>
+  <color name="avocook_icon_cookbook_bg">#DCE7F7</color>
+  <color name="avocook_icon_plate_bg">#F6CF45</color>
+</resources>

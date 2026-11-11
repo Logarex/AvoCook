@@ -6,7 +6,8 @@
   "apple": {
     "modules": [
       "AvoCookTimerNotificationsModule",
-      "AvoCookKitchenModule"
+      "AvoCookKitchenModule",
+      "AvoCookAppIconModule"
     ],
     "appDelegateSubscribers": [
       "AvoCookTimerNotificationsAppDelegateSubscriber"
@@ -15,7 +16,8 @@
   "android": {
     "modules": [
       "app.avocook.timernotifications.AvoCookTimerNotificationsModule",
-      "app.avocook.timernotifications.AvoCookKitchenModule"
+      "app.avocook.timernotifications.AvoCookKitchenModule",
+      "app.avocook.timernotifications.AvoCookAppIconModule"
     ]
   }
 }

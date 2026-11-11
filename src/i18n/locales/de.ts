@@ -1265,6 +1265,13 @@ export default {
       sectionData: "Daten & Backups",
       sectionSupport: "Support & Informationen",
       keepAwake: "Bildschirm bei einem Rezept wach halten",
+      appIcon: "App-Symbol",
+      appIconDefault: "AvoCook",
+      appIconCarrot: "Karotte",
+      appIconCookbook: "Kochbuch",
+      appIconPlate: "Teller",
+      appIconError: "Das App-Symbol konnte nicht geändert werden.",
+      appIconAndroidHint: "Das neue Symbol erscheint auf dem Startbildschirm, sobald du die App verlässt.",
       keepRecipesLocal:
         "Eine lokale Kopie der Rezepte für die Offline-Nutzung behalten",
       showDefaultCategories: "Standardkategorien anzeigen",

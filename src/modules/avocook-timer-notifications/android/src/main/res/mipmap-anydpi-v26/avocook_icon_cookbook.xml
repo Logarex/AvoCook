@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+  <background android:drawable="@color/avocook_icon_cookbook_bg"/>
+  <foreground>
+    <inset android:drawable="@drawable/avocook_icon_cookbook_art" android:inset="16.667%"/>
+  </foreground>
+</adaptive-icon>

@@ -211,6 +211,7 @@
       "./tools/plugins/withOptionalCamera",
       "./tools/plugins/withIosBuildNumber",
       "./tools/plugins/withProguardRules",
+      "./tools/plugins/withAlternateAppIcons",
       "expo-font",
       [
         "expo-camera",
