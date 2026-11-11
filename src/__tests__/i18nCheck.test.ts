@@ -50,7 +50,7 @@ describe("translations before release", () => {
       expect([...String(note)].length).toBeLessThanOrEqual(500);
     }
     expect(readFileSync(new URL("../../site/index.html", import.meta.url), "utf8"))
-      .toContain(`class="hero-badge-pill">v${APP_VERSION}</span>`);
+      .toContain(`<span class="version">v${APP_VERSION}</span>`);
   });
 
   it.each(Object.entries(resources))("renders the current release and every release note in %s", async (language, resource) => {
