@@ -2,7 +2,6 @@
 const translations = {
 
   fr: {
-    screenshots_note: "Les captures danoises sont affichées en anglais.",
     nav_download: "Télécharger",
     hero_title: "Votre cuisine au quotidien,<br><em>avec ou sans recette</em>",
     hero_subtitle: "Gardez vos recettes, prévoyez des repas simples, utilisez ce qu’il reste au frigo et préparez vos courses. Gratuit et open source sur iOS et Android.",
@@ -52,11 +51,14 @@ const translations = {
     tag_optional: "Optionnel",
     screenshots_label: "L’application",
     screenshots_title: "L'application en images",
-    ph_home: "Écran d'accueil",
+    ph_today: "Repas du jour",
+    ph_planning: "Planning de la semaine",
+    ph_cooking: "Mode cuisine",
+    ph_stock: "Réserves",
+    ph_seasonal: "Produits de saison",
     ph_list: "Liste des recettes",
     ph_detail: "Détail d'une recette",
     ph_editor: "Éditeur de recette",
-    ph_import: "Import depuis une URL",
     ph_shopping: "Liste de courses",
     ph_timer: "Minuteurs",
     how_label: "Fonctionnement",
@@ -163,7 +165,6 @@ const translations = {
   },
 
   en: {
-    screenshots_note: "Screenshots are shown in English for Danish.",
     nav_download: "Download",
     hero_title: "Your everyday kitchen,<br><em>with or without a recipe</em>",
     hero_subtitle: "Keep your recipes, plan simple meals, use what is in your fridge and prepare your shopping. Free and open source on iOS and Android.",
@@ -213,11 +214,14 @@ const translations = {
     tag_optional: "Optional",
     screenshots_label: "The app",
     screenshots_title: "The app in pictures",
-    ph_home: "Home screen",
+    ph_today: "Today's meals",
+    ph_planning: "Weekly meal plan",
+    ph_cooking: "Cooking mode",
+    ph_stock: "Kitchen stock",
+    ph_seasonal: "Seasonal produce",
     ph_list: "Recipe list",
     ph_detail: "Recipe detail",
     ph_editor: "Recipe editor",
-    ph_import: "URL import",
     ph_shopping: "Shopping List",
     ph_timer: "Timers",
     how_label: "How it works",
@@ -324,7 +328,6 @@ const translations = {
   },
 
   de: {
-    screenshots_note: "Für Dänisch werden die Bilder auf Englisch angezeigt.",
     nav_download: "Herunterladen",
     hero_title: "Deine Küche im Alltag,<br><em>mit oder ohne Rezept</em>",
     hero_subtitle: "Rezepte sammeln, einfache Mahlzeiten planen, Kühlschrankreste nutzen und Einkäufe vorbereiten. Kostenlos und Open Source für iOS und Android.",
@@ -374,11 +377,14 @@ const translations = {
     tag_optional: "Optional",
     screenshots_label: "Die App",
     screenshots_title: "Die App in Bildern",
-    ph_home: "Startbildschirm",
+    ph_today: "Heutige Mahlzeiten",
+    ph_planning: "Wochenplan",
+    ph_cooking: "Kochmodus",
+    ph_stock: "Vorrat",
+    ph_seasonal: "Saisonprodukte",
     ph_list: "Rezeptliste",
     ph_detail: "Rezeptdetails",
     ph_editor: "Rezepteditor",
-    ph_import: "URL-Import",
     ph_shopping: "Einkaufsliste",
     ph_timer: "Timer",
     how_label: "Funktionsweise",
@@ -485,7 +491,6 @@ const translations = {
   },
 
   es: {
-    screenshots_note: "Las capturas se muestran en inglés para danés.",
     nav_download: "Descargar",
     hero_title: "Tu cocina de cada día,<br><em>con o sin receta</em>",
     hero_subtitle: "Guarda recetas, planifica comidas sencillas, aprovecha lo que queda en la nevera y prepara la compra. Gratis y de código abierto para iOS y Android.",
@@ -535,11 +540,14 @@ const translations = {
     tag_optional: "Opcional",
     screenshots_label: "La aplicación",
     screenshots_title: "La aplicación en imágenes",
-    ph_home: "Pantalla de inicio",
+    ph_today: "Comidas de hoy",
+    ph_planning: "Menú semanal",
+    ph_cooking: "Modo cocina",
+    ph_stock: "Despensa",
+    ph_seasonal: "Productos de temporada",
     ph_list: "Lista de recetas",
     ph_detail: "Detalle de receta",
     ph_editor: "Editor de recetas",
-    ph_import: "Importar desde URL",
     ph_shopping: "Lista de compras",
     ph_timer: "Temporizadores",
     how_label: "Funcionamiento",
@@ -646,7 +654,6 @@ const translations = {
   },
 
   it: {
-    screenshots_note: "Per il danese, le schermate sono mostrate in inglese.",
     nav_download: "Scarica",
     hero_title: "La tua cucina quotidiana,<br><em>con o senza ricetta</em>",
     hero_subtitle: "Conserva ricette, pianifica pasti semplici, usa ciò che resta in frigo e prepara la spesa. Gratis e open source per iOS e Android.",
@@ -696,11 +703,14 @@ const translations = {
     tag_optional: "Opzionale",
     screenshots_label: "L’app",
     screenshots_title: "L'app in immagini",
-    ph_home: "Schermata home",
+    ph_today: "Pasti di oggi",
+    ph_planning: "Menù settimanale",
+    ph_cooking: "Modalità cucina",
+    ph_stock: "Dispensa",
+    ph_seasonal: "Prodotti di stagione",
     ph_list: "Lista ricette",
     ph_detail: "Dettaglio ricetta",
     ph_editor: "Editor ricetta",
-    ph_import: "Importa da URL",
     ph_shopping: "Lista della spesa",
     ph_timer: "Timer",
     how_label: "Come funziona",
@@ -807,7 +817,6 @@ const translations = {
   },
 
   da: {
-    screenshots_note: "Skærmbillederne vises på engelsk.",
     nav_download: "Hent",
     hero_title: "Dit køkken i hverdagen,<br><em>med eller uden opskrift</em>",
     hero_subtitle: "Gem opskrifter, planlæg nemme måltider, brug resterne i køleskabet og forbered indkøb. Gratis og med åben kildekode til iOS og Android.",
@@ -857,11 +866,14 @@ const translations = {
     tag_optional: "Valgfrit",
     screenshots_label: "Appen",
     screenshots_title: "Appen i billeder",
-    ph_home: "Startskærm",
+    ph_today: "Dagens måltider",
+    ph_planning: "Ugens madplan",
+    ph_cooking: "Madlavningstilstand",
+    ph_stock: "Lager",
+    ph_seasonal: "Sæsonvarer",
     ph_list: "Opskriftsliste",
     ph_detail: "Opskriftsdetaljer",
     ph_editor: "Opskredigerer",
-    ph_import: "URL-import",
     ph_shopping: "Indkøbsliste",
     ph_timer: "Timere",
     how_label: "Hvordan det fungerer",
@@ -1027,7 +1039,7 @@ function applyLanguage(lang) {
       el.style.display = 'none';
       if (el.nextElementSibling) el.nextElementSibling.style.display = 'flex';
     };
-    el.src = template.replace('{lang}', lang === 'da' ? 'en' : lang);
+    el.src = template.replace('{lang}', lang);
   });
 
   document.querySelectorAll('.lang-btn').forEach(btn => {

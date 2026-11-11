@@ -1,5 +1,5 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
-import { ArrowRight, ArchiveRestore, Refrigerator, RefreshCw, ShieldCheck, Smartphone } from "lucide-react-native";
+import { ArrowRight, ArchiveRestore, Palette, Refrigerator, RefreshCw, ShieldCheck, Smartphone, Wrench } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -20,6 +20,8 @@ const featureIcons = {
   backups: ArchiveRestore,
   iphone: Smartphone,
   community: ShieldCheck,
+  appIcon: Palette,
+  fixes: Wrench,
 };
 
 type Props = NativeStackScreenProps<RootStackParamList, "Update">;

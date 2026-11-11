@@ -60,3 +60,6 @@ Temporary Items
 /notification-relay/service-account*.json
 .dev.vars
 .dev.vars.*
+
+# Store screenshot exports (tools/screenshots/export.py)
+/store/screenshots/

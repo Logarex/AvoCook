@@ -9,9 +9,10 @@ AvoCook ist eine kostenlose Open-Source-App für iOS und Android. Ich entwickle 
 [![APK-Downloads](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/Logarex/AvoCook/badges/apk-downloads.json&logo=android)](https://github.com/Logarex/AvoCook/releases)
 
 <p align="center">
-  <img src="../../assets/screenshots/de/recipe_list.png" width="230" alt="Rezeptliste" />
-  <img src="../../assets/screenshots/de/recipe.png" width="230" alt="Rezeptdetails" />
-  <img src="../../assets/screenshots/de/shopping.png" width="230" alt="Einkaufsliste" />
+  <img src="../../assets/screenshots/de/recipe_list.png" width="200" alt="Rezeptliste" />
+  <img src="../../assets/screenshots/de/recipe.png" width="200" alt="Rezeptdetails" />
+  <img src="../../assets/screenshots/de/planning.png" width="200" alt="Wochenplan" />
+  <img src="../../assets/screenshots/de/stock.png" width="200" alt="Vorrat" />
 </p>
 
 ## Funktionen

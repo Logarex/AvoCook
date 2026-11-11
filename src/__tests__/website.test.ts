@@ -94,19 +94,19 @@ describe("public website and documentation", () => {
     expect(existsSync(resolve(root, "assets", page.image.src))).toBe(true);
   });
 
-  it("recovers hidden screenshots on a language change and uses bundled English images for Danish", () => {
+  it("recovers hidden screenshots on a language change and uses Danish images for Danish", () => {
     const page = browser();
     page.run('applyLanguage("fr")');
     page.image.onerror();
     expect(page.image.style.display).toBe("none");
     page.run('applyLanguage("da")');
-    expect(page.image.src).toBe("screenshots/en/recipe.png");
+    expect(page.image.src).toBe("screenshots/da/recipe.png");
     page.image.onload();
     expect(page.image.style.display).toBe("");
     expect(page.image.nextElementSibling.style.display).toBe("none");
     for (const language of Object.keys(translations)) {
       for (const [, template] of html.matchAll(/data-i18n-img="([^"]+)"/g)) {
-        const path = template.replace("{lang}", language === "da" ? "en" : language);
+        const path = template.replace("{lang}", language);
         expect(existsSync(resolve(root, "assets", path)), `${language}:${path}`).toBe(true);
       }
     }

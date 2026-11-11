@@ -135,7 +135,25 @@ export function ScreenshotHarness() {
       state.current.navigation.reset({ index: routes.length - 1, routes } as never);
     };
     const subscription = Linking.addEventListener("url", ({ url }) => void handle(url));
-    return () => subscription.remove();
+    // iOS asks before opening links from simctl, so the capture script can
+    // also publish the next link in nav.txt ("<id> <url>").
+    let last: string | null = null;
+    const poll = setInterval(() => {
+      fetch(`${SCREENSHOT_HOST}/nav.txt?t=${Date.now()}`)
+        .then((response) => (response.ok ? response.text() : ""))
+        .then((text) => {
+          const line = text.trim();
+          const stale = last === null;
+          if (line === last) return;
+          last = line;
+          if (!stale && line) void handle(line.split(" ")[1] ?? null);
+        })
+        .catch(() => undefined);
+    }, 700);
+    return () => {
+      subscription.remove();
+      clearInterval(poll);
+    };
   }, []);
 
   return null;

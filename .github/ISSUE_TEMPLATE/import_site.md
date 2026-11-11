@@ -33,5 +33,5 @@ https://...
 
 ## App version and platform
 
-Version: <!-- e.g. 5.1.0 — visible in Settings -->
+Version: <!-- e.g. 5.0.1 — visible in Settings -->
 Platform: <!-- iOS / Android -->
