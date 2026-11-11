@@ -54,7 +54,7 @@ export type RootStackParamList = {
     recipeId?: string;
     tabTransition?: "slide_from_left" | "slide_from_right";
   } | undefined;
-  Cooking: { id: string };
+  Cooking: { id: string; servings?: number };
   RecipeJournal: { id: string };
   FridgeRecipe: { ingredients?: string } | undefined;
   RecipeDetail: {

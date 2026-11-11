@@ -81,6 +81,7 @@ import { radius, spacing } from "../theme/colors";
 import { useAppTheme, type ThemeMode } from "../theme/ThemeProvider";
 import { containsProfanity } from "../utils/profanityFilter";
 import { APP_VERSION } from "../version";
+import { CommunityPrivacyPanel } from "./CommunityPrivacyPanel";
 import { ShoppingModeModal } from "./ShoppingModeModal";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Settings">;
@@ -753,6 +754,13 @@ export function SettingsScreen({ navigation, route }: Props) {
               />
             </View>
           </GlassPanel>
+          <CommunityPrivacyPanel
+            pseudonym={communityPseudonym}
+            onDeleted={async () => {
+              await setCommunityPseudonym(null);
+              setLocalPseudonym("");
+            }}
+          />
           <GlassPanel style={styles.section}>
             <View style={styles.rowSectionInner}>
               <View style={styles.rowText}>

@@ -14,12 +14,16 @@ type KitchenNative = {
   startVoice: (language: string) => Promise<boolean>;
   stopVoice: () => Promise<void>;
   addListener: (
-    name: "voiceResult" | "voiceError" | "stockReminderOpen",
+    name: "voiceResult" | "voiceError" | "stockReminderOpen" | "linkOpen",
     callback: (event: { text?: string }) => void,
   ) => EventSubscription;
   consumeStockReminderOpen: () => Promise<boolean>;
   requestReminderPermission: () => Promise<boolean>;
   replaceStockReminders: (json: string) => Promise<boolean>;
+  /** iOS only: Spotlight index and links queued by Spotlight or Siri. */
+  consumePendingLink?: () => Promise<string | null>;
+  replaceRecipeIndex?: (json: string) => Promise<boolean>;
+  clearRecipeIndex?: () => Promise<boolean>;
 };
 export function getKitchenNative(): KitchenNative | null {
   try {

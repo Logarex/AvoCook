@@ -90,3 +90,14 @@ export const simpleMealIdeas = [
     vegan: true,
   },
 ] as const;
+
+/**
+ * Lines typed in "Shopping for this meal" that should reach the shopping list
+ * when the meal is saved: only for meals still to come, and only lines that
+ * were not already there in the previously saved version.
+ */
+export function newMealShoppingLines(previous: Meal | undefined, saved: Meal): string[] {
+  if (saved.kind !== "simple" || saved.completed) return [];
+  const before = new Set((previous?.kind === "simple" ? previous.ingredients ?? [] : []).map((line) => line.trim().toLocaleLowerCase()));
+  return (saved.ingredients ?? []).filter((line) => line.trim() && !before.has(line.trim().toLocaleLowerCase()));
+}

@@ -9,6 +9,7 @@ public class AvoCookTimerNotificationsModule: Module {
     Events("timerStop")
 
     OnCreate {
+      AvoCookLiveActivities.endExpired()
       AvoCookTimerNotificationCenter.shared.module = self
       AvoCookTimerNotificationCenter.shared.installDelegate()
       AvoCookTimerNotificationCenter.shared.emitPendingStopEvents()
@@ -88,6 +89,13 @@ public class AvoCookTimerNotificationsModule: Module {
           return
         }
 
+        AvoCookLiveActivities.start(
+          notificationId: notificationId,
+          recipeName: title,
+          label: body,
+          recipeId: recipeId,
+          seconds: seconds
+        )
         promise.resolve(notificationId)
       }
     }
@@ -95,6 +103,7 @@ public class AvoCookTimerNotificationsModule: Module {
     AsyncFunction("cancelTimerNotification") { (notificationId: String) in
       UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: [notificationId])
       UNUserNotificationCenter.current().removeDeliveredNotifications(withIdentifiers: [notificationId])
+      AvoCookLiveActivities.end(notificationId: notificationId)
     }
   }
 

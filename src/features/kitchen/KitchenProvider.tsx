@@ -13,6 +13,9 @@ import React, {
 } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { createKitchenStore } from "./kitchenStore";
+import { useAutomaticBackup } from "./useAutomaticBackup";
+import { useKitchenSync } from "./useKitchenSync";
+import { AppleSurfaces } from "./AppleSurfaces";
 
 const Context = createContext<ReturnType<typeof createKitchenStore> | null>(
   null,
@@ -32,9 +35,16 @@ export function KitchenProvider({ children }: { children: React.ReactNode }) {
   return (
     <Context.Provider value={store}>
       <StockReminderSync />
+      <KitchenBackgroundTasks />
       {children}
     </Context.Provider>
   );
+}
+function KitchenBackgroundTasks() {
+  const kitchen = useKitchen();
+  useAutomaticBackup(kitchen.account, kitchen.ready, kitchen.data);
+  useKitchenSync(kitchen);
+  return <AppleSurfaces account={kitchen.account} ready={kitchen.ready} data={kitchen.data} />;
 }
 function StockReminderSync() {
   const { data, ready, account, setReminderError } = useKitchen();

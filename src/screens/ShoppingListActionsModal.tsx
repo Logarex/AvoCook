@@ -1,4 +1,4 @@
-import { Trash2 } from "lucide-react-native";
+import { Refrigerator, Trash2 } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { View } from "react-native";
 import { AppSheet, useSheetActions } from "../components/AppSheet";
@@ -9,12 +9,14 @@ export function ShoppingListActionsModal({
   onClose,
   onClearChecked,
   onClearAll,
+  onStoreChecked,
   checkedCount,
   visible,
 }: {
   onClose: () => void;
   onClearChecked: () => void;
   onClearAll: () => void;
+  onStoreChecked?: () => void;
   checkedCount: number;
   visible: boolean;
 }) {
@@ -30,6 +32,17 @@ export function ShoppingListActionsModal({
       onDismiss={afterDismiss}
     >
       <View style={styles.recipeActionGrid}>
+        {checkedCount > 0 && onStoreChecked && (
+          <PrimaryButton
+            icon={Refrigerator}
+            label={t("kitchen.storeGroceriesMenu", { count: checkedCount })}
+            onPress={() => {
+              dismissThen(onStoreChecked);
+            }}
+            style={styles.recipeActionButton}
+            variant="secondary"
+          />
+        )}
         {checkedCount > 0 && (
           <PrimaryButton
             icon={Trash2}

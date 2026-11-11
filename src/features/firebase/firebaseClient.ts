@@ -10,6 +10,7 @@ import {
   getAuth,
   signInAnonymously,
   onAuthStateChanged,
+  deleteUser,
   type Auth,
   type User
 } from "firebase/auth";
@@ -129,4 +130,12 @@ export function waitForAuth(timeoutMs = 15000): Promise<User | null> {
 
 export function getAnonymousUid(): string | null {
   return _user?.uid ?? null;
+}
+
+/** Removes the anonymous Firebase account; the next community action signs in afresh. */
+export async function deleteAnonymousIdentity(): Promise<void> {
+  const user = getFirebaseAuth().currentUser ?? _user;
+  if (!user) return;
+  await deleteUser(user);
+  if (_user?.uid === user.uid) _user = null;
 }

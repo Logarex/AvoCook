@@ -25,7 +25,7 @@ AvoCook ist eine kostenlose Open-Source-App für iOS und Android. Ich entwickle 
 - Bebilderte PDF-Kochbücher, Rezepte teilen und vollständige Küchensicherungen.
 - Community-Rezepte entdecken, übersetzen und teilen; optionaler Assistent mit eigenem API-Schlüssel.
 
-Lokale Rezepte funktionieren offline ohne Konto. Nextcloud Cookbook ist optional; Planung, Vorräte und private Notizen bleiben auf dem Gerät.
+Lokale Rezepte funktionieren offline ohne Konto. Nextcloud Cookbook ist optional; Planung, Vorräte und private Notizen bleiben auf dem Gerät, außer du aktivierst die Synchronisierung von Meine Küche mit deiner eigenen Nextcloud.
 
 ## Anleitungen
 

@@ -3,7 +3,7 @@
     "name": "AvoCook",
     "slug": "avocook",
     "scheme": "avocook",
-    "version": "5.0.0",
+    "version": "5.1.0",
     "locales": {
       "en": "./locales/en.json",
       "fr": "./locales/fr.json",
@@ -20,7 +20,7 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "buildNumber": "3",
+      "buildNumber": "4",
       "bundleIdentifier": "org.epimac.avocook",
       "appleTeamId": "E5L7NC8M9T",
       "appStoreUrl": "https://apps.apple.com/fr/app/avocook/id6769012665",
@@ -44,7 +44,78 @@
         "NSRemindersUsageDescription": "AvoCook uses your reminders to export and synchronize your grocery lists.",
         "NSRemindersFullAccessUsageDescription": "AvoCook uses your reminders to export and synchronize your grocery lists.",
         "NSMicrophoneUsageDescription": "AvoCook uses the microphone so you can move between recipe steps and start timers with optional voice commands. Audio is processed on your device.",
-        "NSSpeechRecognitionUsageDescription": "Recognize optional cooking commands on this device. Audio is not sent to a server."
+        "NSSpeechRecognitionUsageDescription": "Recognize optional cooking commands on this device. Audio is not sent to a server.",
+        "NSSupportsLiveActivities": true,
+        "NSUserActivityTypes": [
+          "com.apple.corespotlightitem"
+        ]
+      },
+      "privacyManifests": {
+        "NSPrivacyTracking": false,
+        "NSPrivacyTrackingDomains": [],
+        "NSPrivacyCollectedDataTypes": [
+          {
+            "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeUserID",
+            "NSPrivacyCollectedDataTypeLinked": false,
+            "NSPrivacyCollectedDataTypeTracking": false,
+            "NSPrivacyCollectedDataTypePurposes": [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+            ]
+          },
+          {
+            "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeOtherUserContent",
+            "NSPrivacyCollectedDataTypeLinked": false,
+            "NSPrivacyCollectedDataTypeTracking": false,
+            "NSPrivacyCollectedDataTypePurposes": [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+            ]
+          },
+          {
+            "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypePhotosorVideos",
+            "NSPrivacyCollectedDataTypeLinked": false,
+            "NSPrivacyCollectedDataTypeTracking": false,
+            "NSPrivacyCollectedDataTypePurposes": [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+            ]
+          },
+          {
+            "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeProductInteraction",
+            "NSPrivacyCollectedDataTypeLinked": false,
+            "NSPrivacyCollectedDataTypeTracking": false,
+            "NSPrivacyCollectedDataTypePurposes": [
+              "NSPrivacyCollectedDataTypePurposeAppFunctionality"
+            ]
+          }
+        ],
+        "NSPrivacyAccessedAPITypes": [
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryUserDefaults",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "CA92.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryFileTimestamp",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "0A2A.1",
+              "3B52.1",
+              "C617.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategoryDiskSpace",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "E174.1",
+              "85F4.1"
+            ]
+          },
+          {
+            "NSPrivacyAccessedAPIType": "NSPrivacyAccessedAPICategorySystemBootTime",
+            "NSPrivacyAccessedAPITypeReasons": [
+              "35F9.1"
+            ]
+          }
+        ]
       }
     },
     "android": {
@@ -149,7 +220,9 @@
           "barcodeScannerEnabled": true
         }
       ],
-      "expo-notifications"
+      "expo-notifications",
+      "@bacons/apple-targets",
+      "./tools/plugins/withAppIntents"
     ],
     "extra": {
       "eas": {

@@ -17,15 +17,16 @@ AvoCook est une application gratuite et open source pour iOS et Android. Je la d
 ## Fonctionnalités
 
 - Recettes avec photos, catégories, portions ajustables, import web et Markdown facultatif.
-- Réserves du frigo, du placard et du congélateur, avec codes-barres, dates et rappels de péremption.
+- Réserves du frigo, du placard et du congélateur, avec codes-barres, dates et rappels de péremption ; rangement des courses et mise à jour du stock après la cuisson.
 - Planning du jour et de la semaine, repas simples, restes, menus enregistrés et historique.
 - Cuisine étape par étape, minuteurs sauvegardés, commandes vocales locales et notes privées.
 - Idées avec vos ingrédients, calendriers de saison régionaux, conversions et substitutions de pâtisserie.
 - Courses locales ou partagées, notifications, Nextcloud Pantry et Rappels Apple sur iOS.
-- Livres PDF illustrés, partage de recettes et sauvegardes complètes de votre cuisine.
-- Recettes communautaires à découvrir, traduire et partager ; assistant facultatif avec votre clé API.
+- Livres PDF illustrés, partage de recettes, sauvegardes automatiques quotidiennes et synchronisation facultative de Ma cuisine via Nextcloud.
+- Sur iPhone : minuteurs en Live Activities et Dynamic Island, widget Aujourd’hui, raccourcis Siri et recherche Spotlight.
+- Recettes communautaires à découvrir, traduire et partager, avec signalement et blocage d’auteurs ; assistant facultatif avec votre clé API.
 
-Les recettes locales fonctionnent hors ligne sans compte. Nextcloud Cookbook reste facultatif ; le planning, les réserves et les notes privées restent sur l’appareil.
+Les recettes locales fonctionnent hors ligne sans compte. Nextcloud Cookbook reste facultatif ; le planning, les réserves et les notes privées restent sur l’appareil, sauf si vous activez la synchronisation de Ma cuisine avec votre propre Nextcloud.
 
 ## Guides
 

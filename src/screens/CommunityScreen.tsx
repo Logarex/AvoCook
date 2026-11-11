@@ -26,6 +26,10 @@ import { Screen } from "../components/Screen";
 import { SearchField } from "../components/SearchField";
 import { StarRating } from "../components/StarRating";
 import {
+  useBlockedAuthors,
+  withoutBlockedAuthors,
+} from "../features/community/communityBlocks";
+import {
   cacheCommunityFeed,
   COMMUNITY_CACHE_TTL_MS,
   getCachedCommunityFeed,
@@ -294,11 +298,13 @@ export function CommunityScreen({ navigation }: Props) {
     }, [loadData]),
   );
 
+  const blockedAuthors = useBlockedAuthors();
   const filteredRecipes = React.useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
+    const visible = withoutBlockedAuthors(recipes, blockedAuthors);
     const matches = !q
-      ? recipes
-      : recipes.filter((r) => {
+      ? visible
+      : visible.filter((r) => {
           const original = sourceRecipes.current.get(r.id);
           const titleMatch = Boolean(
             r.title && r.title.toLowerCase().includes(q),
@@ -327,7 +333,7 @@ export function CommunityScreen({ navigation }: Props) {
           );
         });
     return matches;
-  }, [recipes, searchQuery]);
+  }, [recipes, searchQuery, blockedAuthors]);
 
   const renderRecipeItem = useCallback(
     ({ item }: { item: CommunityRecipe }) => (

@@ -21,8 +21,8 @@ import {
   documentId,
   Timestamp
 } from "firebase/firestore";
-import { getDb, waitForAuth, getAnonymousUid, getFirebaseStorage } from "../firebase/firebaseClient";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { getDb, waitForAuth, getAnonymousUid, getFirebaseStorage, deleteAnonymousIdentity } from "../firebase/firebaseClient";
+import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import { cleanTranslatedText } from "./communityTranslation";
 import { isoDurationToMinutes, minutesToIsoDuration } from "../../utils/duration";
 import { resolveCommunityLanguage, type RecipeLanguage } from "./communityLanguages";
@@ -473,10 +473,13 @@ export async function getCommunityRecipe(
 
 export const REPORT_THRESHOLD = 3;
 
+export type CommunityReportResult = "reported" | "alreadyReported" | "missing";
+
+/** Resolves only once the report is stored; network or permission failures reject. */
 export async function reportCommunityRecipe(
   recipeId: string,
   reason?: string
-): Promise<void> {
+): Promise<CommunityReportResult> {
   await waitForAuth();
   const db = getDb();
   const uid = getAnonymousUid();
@@ -485,7 +488,7 @@ export async function reportCommunityRecipe(
     const userReportRef = doc(db, "communityRecipes", recipeId, "reports", uid);
     const userReportSnap = await getDoc(userReportRef);
     if (userReportSnap.exists()) {
-      return;
+      return "alreadyReported";
     }
     await setDoc(userReportRef, {
       reportedAt: serverTimestamp(),
@@ -495,7 +498,7 @@ export async function reportCommunityRecipe(
 
   const ref = doc(db, "communityRecipes", recipeId);
   const snap = await getDoc(ref);
-  if (!snap.exists()) return;
+  if (!snap.exists()) return "missing";
 
   const data = snap.data();
   const currentCount = typeof data.reportCount === "number" ? data.reportCount : 0;
@@ -518,4 +521,40 @@ export async function reportCommunityRecipe(
     reason: reason ?? "Inappropriate content",
     createdAt: serverTimestamp(),
   });
+  return "reported";
+}
+
+export type CommunityDataDeletion = { recipes: number; images: number; pseudonym: boolean };
+
+/**
+ * Deletes everything that links this device's anonymous community identity to
+ * published content: own recipes and their images, the reserved pseudonym and
+ * finally the Firebase anonymous account itself. A new, unrelated identity is
+ * created the next time the community is opened.
+ */
+export async function deleteMyCommunityData(pseudonym?: string | null): Promise<CommunityDataDeletion> {
+  await waitForAuth();
+  const uid = getAnonymousUid();
+  if (!uid) throw new Error("Not authenticated");
+  const db = getDb();
+  const own = await getDocs(query(collection(db, "communityRecipes"), where("authorUid", "==", uid)));
+  let images = 0;
+  for (const recipe of own.docs) {
+    const imageUrl: unknown = recipe.data().imageUrl;
+    if (typeof imageUrl === "string" && /firebasestorage/i.test(imageUrl)) {
+      try {
+        await deleteObject(ref(getFirebaseStorage(), imageUrl));
+        images += 1;
+      } catch (error) {
+        console.warn("community", "Could not delete a community image", error);
+      }
+    }
+    await deleteDoc(recipe.ref);
+  }
+  const reserved = await getDocs(query(collection(db, "pseudonyms"), where("uid", "==", uid)));
+  for (const entry of reserved.docs) await deleteDoc(entry.ref);
+  if (pseudonym && !reserved.docs.length) await releasePseudonym(pseudonym).catch(() => undefined);
+  await invalidateCommunityCache();
+  await deleteAnonymousIdentity();
+  return { recipes: own.docs.length, images, pseudonym: reserved.docs.length > 0 };
 }

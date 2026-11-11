@@ -170,6 +170,9 @@ vi.mock("../features/shopping/remindersSync", () => ({
 vi.mock("../screens/ShoppingListActionsModal", () => ({
   ShoppingListActionsModal: "Actions",
 }));
+vi.mock("../screens/StockArrivalSheet", () => ({
+  StockArrivalSheet: "StockArrival",
+}));
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
     t: (key: string, params: Record<string, unknown> = {}) => {

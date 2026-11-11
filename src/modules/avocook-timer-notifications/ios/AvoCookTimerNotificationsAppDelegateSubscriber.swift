@@ -14,4 +14,12 @@ public class AvoCookTimerNotificationsAppDelegateSubscriber: ExpoAppDelegateSubs
     AvoCookTimerNotificationCenter.shared.installDelegate()
     return true
   }
+
+  public func application(
+    _ application: UIApplication,
+    continue userActivity: NSUserActivity,
+    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
+  ) -> Bool {
+    return AvoCookSpotlight.open(userActivity)
+  }
 }

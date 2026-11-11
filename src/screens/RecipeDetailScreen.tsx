@@ -766,7 +766,7 @@ function RecipeDetailContent({
               fillAvailableSpace
               style={styles.cookingButton}
               disabled={!recipe.recipeInstructions.length}
-              onPress={() => navigation.navigate("Cooking", { id: recipeId })}
+              onPress={() => navigation.navigate("Cooking", { id: recipeId, servings: selectedServings })}
             />
             <IconButton
               icon={CalendarPlus}

@@ -5,11 +5,15 @@ import { MarkdownText } from "../components/MarkdownText";
 import type { CommunityRecipe } from "../features/community/communityClient";
 import { CommunityDetailScreen } from "../screens/CommunityDetailScreen";
 import { darkColors, lightColors } from "../theme/colors";
+import { Alert } from "react-native";
+import { reportCommunityRecipe } from "../features/community/communityClient";
+import { blockAuthor } from "../features/community/communityBlocks";
 
 const mocks = vi.hoisted(() => ({
   dark: false,
   language: "en",
   recipe: null as CommunityRecipe | null,
+  blocked: [] as string[],
 }));
 vi.mock("react-native", () => ({
   useWindowDimensions: () => ({ width: 390, height: 844, fontScale: 1, scale: 3 }),
@@ -35,6 +39,7 @@ vi.mock("lucide-react-native", () =>
       "Link",
       "Mail",
       "Trash2",
+      "UserX",
       "Users",
     ].map((name) => [name, name]),
   ),
@@ -67,6 +72,11 @@ vi.mock("../features/community/communityClient", () => ({
   deleteCommunityRecipe: vi.fn(),
   reportCommunityRecipe: vi.fn(),
   voteOnRecipe: vi.fn(),
+}));
+vi.mock("../features/community/communityBlocks", () => ({
+  blockAuthor: vi.fn(async () => {}),
+  isAuthorBlocked: (uid?: string) => mocks.blocked.includes(uid ?? ""),
+  useBlockedAuthors: () => mocks.blocked.map((uid) => ({ uid, name: "", blockedAt: "" })),
 }));
 vi.mock("../features/community/communityTranslation", () => ({
   translateCommunityRecipe: async (recipe: CommunityRecipe) => ({
@@ -102,6 +112,8 @@ beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   mocks.dark = false;
   mocks.language = "en";
+  mocks.blocked = [];
+  vi.mocked(Alert.alert).mockClear();
   mocks.recipe = {
     id: "42",
     title: "Cake",
@@ -186,4 +198,66 @@ describe("community ingredients and instructions", () => {
       );
     },
   );
+});
+
+describe("community moderation", () => {
+  type Button = { text: string; onPress?: () => void };
+  const lastAlert = () => vi.mocked(Alert.alert).mock.calls.at(-1)!;
+  const press = async (label: string) => {
+    const buttons = (lastAlert()[2] ?? []) as Button[];
+    await act(async () => {
+      buttons.find((button) => button.text === label)!.onPress!();
+    });
+  };
+  async function open() {
+    const navigation = { goBack: vi.fn() };
+    mocks.recipe = { ...mocks.recipe!, authorUid: "author-1" };
+    await act(async () => {
+      screen = create(
+        React.createElement(CommunityDetailScreen, {
+          route: { params: { id: "42" } },
+          navigation,
+        } as never),
+      );
+    });
+    const action = (id: string) =>
+      (screen!.root.findByType("Menu" as never).props.actions as { id: string; onPress: () => void }[]).find((entry) => entry.id === id)!;
+    return { navigation, action };
+  }
+
+  it("confirms a report only after the server stored it", async () => {
+    let resolve!: (value: "reported") => void;
+    vi.mocked(reportCommunityRecipe).mockReturnValueOnce(new Promise((done) => { resolve = done; }));
+    const { navigation, action } = await open();
+    await act(async () => action("report").onPress());
+    await press("community.reportAction");
+    expect(lastAlert()[0]).toBe("community.reportTitle");
+    await act(async () => resolve("reported"));
+    expect(lastAlert()[0]).toBe("community.reportedTitle");
+    await press("common.close");
+    expect(navigation.goBack).toHaveBeenCalledTimes(1);
+  });
+
+  it("tells the user when the report could not be sent and stays on the recipe", async () => {
+    vi.mocked(reportCommunityRecipe).mockRejectedValueOnce(new Error("offline"));
+    const { navigation, action } = await open();
+    await act(async () => action("report").onPress());
+    await press("community.reportAction");
+    expect(lastAlert().slice(0, 2)).toEqual(["common.error", "community.reportFailedBody"]);
+    expect(navigation.goBack).not.toHaveBeenCalled();
+  });
+
+  it("blocks the author after confirmation and hides blocked authors' recipes", async () => {
+    const { navigation, action } = await open();
+    await act(async () => action("block").onPress());
+    expect(lastAlert()[0]).toBe("community.blockAuthorTitle");
+    await press("community.blockAuthorAction");
+    expect(blockAuthor).toHaveBeenCalledWith("author-1", "Chef");
+    expect(navigation.goBack).toHaveBeenCalled();
+    await act(async () => screen?.unmount());
+    mocks.blocked = ["author-1"];
+    await open();
+    expect(content(screen!.root)).toContain("community.blockedRecipeTitle");
+    expect(content(screen!.root)).not.toContain("Bake for 20 minutes.");
+  });
 });

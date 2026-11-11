@@ -20,6 +20,7 @@ import {
   AppState,
   ActivityIndicator,
   Alert,
+  Linking,
   StyleSheet,
   View,
 } from "react-native";
@@ -51,6 +52,7 @@ import {
 } from "./features/shopping/ShoppingListProvider";
 import { TimersProvider } from "./features/timers/TimersProvider";
 import type { RootStackParamList } from "./navigation/types";
+import { parseAppLink } from "./features/linking/appLinks";
 import { CommunityDetailScreen } from "./screens/CommunityDetailScreen";
 import { CommunityScreen } from "./screens/CommunityScreen";
 import { ImportRecipeScreen } from "./screens/ImportRecipeScreen";
@@ -162,6 +164,7 @@ function RootNavigator() {
       >
         {isAuthenticated ? <ShareIntentHandler /> : null}
         {isAuthenticated ? <KitchenNotificationHandler /> : null}
+        {isAuthenticated ? <AppLinkHandler /> : null}
         {isAuthenticated ? <RemindersOnboardingPrompt /> : null}
         <AdaptiveNavigationLayout
           current={currentTab}
@@ -260,6 +263,51 @@ function KitchenNotificationHandler() {
       appState.remove();
     };
   }, [navigation]);
+  return null;
+}
+
+/** Opens screens requested by widgets, Live Activities, Spotlight and Siri. */
+function AppLinkHandler() {
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const { addItem, loading } = useShoppingList();
+  const { t } = useTranslation();
+  useEffect(() => {
+    if (loading) return;
+    let mounted = true;
+    const handle = (url: string | null | undefined) => {
+      const link = parseAppLink(url);
+      if (!mounted || !link) return;
+      if (link.kind === "recipe") navigation.navigate("RecipeDetail", { id: link.id });
+      else if (link.kind === "community") navigation.navigate("CommunityDetail", { id: link.id });
+      else if (link.kind === "today") navigation.navigate("Planning", { section: "today" });
+      else if (link.kind === "stock") navigation.navigate("Kitchen", { section: "stock" });
+      else {
+        navigation.navigate("ShoppingList");
+        if (link.add)
+          void addItem(link.add).catch(() =>
+            Alert.alert(t("common.error"), t("shoppingModes.editError")),
+          );
+      }
+    };
+    const native = getKitchenNative();
+    const consume = () => {
+      void native?.consumePendingLink?.().then(handle).catch(() => undefined);
+    };
+    void Linking.getInitialURL().then(handle).catch(() => undefined);
+    consume();
+    const urls = Linking.addEventListener("url", ({ url }) => handle(url));
+    const queued = native?.addListener("linkOpen", consume);
+    const appState = AppState.addEventListener("change", (state) => {
+      if (state === "active") consume();
+    });
+    return () => {
+      mounted = false;
+      urls.remove();
+      queued?.remove();
+      appState.remove();
+    };
+  }, [navigation, addItem, loading, t]);
   return null;
 }
 

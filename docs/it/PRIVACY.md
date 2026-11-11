@@ -1,6 +1,6 @@
 # Privacy e dati
 
-Aggiornamento: 31 ottobre 2026. AvoCook non contiene pubblicità né strumenti di analisi. Alcune funzioni usano i servizi di rete descritti qui sotto.
+Aggiornamento: 1 novembre 2026. AvoCook non contiene pubblicità né strumenti di analisi. Alcune funzioni usano i servizi di rete descritti qui sotto.
 
 ## La mia cucina, voce e promemoria locali
 
@@ -9,6 +9,12 @@ Piani pasti, scorte, date, voti, note personali, etichette alimentari, menu e cr
 I comandi di cucina facoltativi richiedono permessi per microfono e riconoscimento vocale. Si usa solo un riconoscitore locale supportato, senza alternativa di rete. AvoCook non salva audio né trascrizioni. L’ascolto termina uscendo dalla modalità cucina o passando in background.
 
 I promemoria delle scorte facoltativi sono programmati sul dispositivo. I nomi dei prodotti possono apparire sullo schermo bloccato secondo le impostazioni. Gli ingredienti generati usano la modalità spesa scelta, inclusa la condivisione o la sincronizzazione con Promemoria Apple attivate.
+
+I backup automatici conservano fino a sette copie giornaliere delle ricette e di La mia cucina nello spazio dell’app sul dispositivo; non vengono caricati online e seguono le impostazioni di backup del dispositivo. Sono incluse le foto salvate solo sul dispositivo; le immagini online restano link. Puoi disattivarli in La mia cucina > Backup.
+
+Con un account Nextcloud, la sincronizzazione facoltativa di La mia cucina salva pasti, dispensa, note del diario, menu e preferenze alimentari in `AvoCook/kitchen.json` nei tuoi file Nextcloud, scambiato direttamente con il server come le ricette. Timer in corso, impostazioni dei promemoria e identificativi del gruppo della spesa restano su ogni dispositivo. Disattivandola, il file resta sul server finché non lo elimini.
+
+Su iPhone il widget Oggi legge un breve riepilogo (pasti del giorno, alcuni prodotti da consumare e numero di articoli da comprare) dallo spazio condiviso dell’App Group sul dispositivo. Titoli, descrizioni e parole chiave delle ricette salvate vengono indicizzati localmente da Spotlight; l’indice viene cancellato alla disconnessione. I timer possono comparire come Attività in tempo reale nella schermata di blocco e nella Dynamic Island; sono avviati localmente, senza servizio push.
 
 ## Ricette, Nextcloud e backup
 
@@ -23,6 +29,8 @@ HTTPS è l’impostazione predefinita. Un server configurato esplicitamente con 
 AvoCook avvia una sessione Firebase anonima all’apertura, anche in modalità locale. Firebase riceve l’identificatore e le informazioni di rete necessarie alla connessione. Non servono e-mail o password per questa sessione.
 
 Ricette della community, nomi degli autori, profili, valutazioni, segnalazioni e liste condivise usano Firebase. Le ricette pubblicate sono visibili agli altri utenti. Chi possiede il codice di una lista può unirsi. Evita di pubblicare informazioni private. Le regole di accesso e conservazione Firebase sono gestite separatamente dall’app. Disconnettersi o cancellare dati locali non elimina i contenuti remoti.
+
+In Impostazioni > Account, «Elimina i miei dati della community» cancella le ricette pubblicate, le relative foto caricate, lo pseudonimo riservato e lo stesso account anonimo Firebase. Voti e segnalazioni restano come dati anonimi di valutazione e moderazione, senza legame con un’identità. Se userai di nuovo la community verrà creata una nuova identità anonima indipendente. Gli autori bloccati sono salvati solo sul dispositivo e le loro ricette vengono nascoste nella tua community.
 
 ## Importazione, IA e traduzione
 

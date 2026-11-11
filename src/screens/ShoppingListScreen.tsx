@@ -55,6 +55,7 @@ import { useNavigationContentInset } from "../hooks/useNavigationContentInset";
 import { PantryItemEditorModal } from "./PantryItemEditorModal";
 import { ShoppingListActionsModal } from "./ShoppingListActionsModal";
 import { ShoppingModeModal } from "./ShoppingModeModal";
+import { StockArrivalSheet } from "./StockArrivalSheet";
 
 
 type Props = NativeStackScreenProps<RootStackParamList, "ShoppingList">;
@@ -85,6 +86,7 @@ export function ShoppingListScreen({ navigation }: Props) {
   const [showActionsMenu, setShowActionsMenu] = useState(false);
   const [showModes, setShowModes] = useState(false);
   const [pantryEditing, setPantryEditing] = useState<PantryItem | null>(null);
+  const [storing, setStoring] = useState<ShoppingListItem[] | null>(null);
   const [mutating, setMutating] = useState(false);
   const mutationPending = useRef(false);
   const [newItem, setNewItem] = useState("");
@@ -595,7 +597,32 @@ export function ShoppingListScreen({ navigation }: Props) {
           onClearAll={() => {
             void perform(clearAll);
           }}
+          onStoreChecked={() => setStoring(items.filter((item) => item.checked))}
         />
+        {storing ? (
+          <StockArrivalSheet
+            items={storing}
+            onClose={() => setStoring(null)}
+            onStored={(ids, result) => {
+              setStoring(null);
+              Alert.alert(
+                t("kitchen.storedTitle"),
+                t("kitchen.storedBody", result),
+                [
+                  { text: t("kitchen.keepInList"), style: "cancel" },
+                  {
+                    text: t("kitchen.removeFromList"),
+                    onPress: () => {
+                      void perform(async () => {
+                        for (const id of ids) await removeItem(id);
+                      });
+                    },
+                  },
+                ],
+              );
+            }}
+          />
+        ) : null}
         <ShoppingModeModal
           visible={showModes}
           onClose={() => setShowModes(false)}

@@ -16,6 +16,7 @@ import {
   repeatMeal,
   stockedShoppingIndices,
   upcomingMeals,
+  newMealShoppingLines,
 } from "../features/kitchen/everyday";
 import { PageSwipeGesture } from "../components/PageSwipeGesture";
 import { KitchenBackupScreen } from "./KitchenBackupScreen";
@@ -1222,11 +1223,21 @@ function KitchenContent({ navigation, route }: Props) {
               } : undefined}
               onSave={() => {
                 void run(async () => {
+                  const saved: Meal = { ...meal, completed: isMealCompleted(meal, today), title: meal.title?.trim() || recipes.find((recipe) => recipe.id === meal.linkedRecipeId)?.name, servings: Number(servings), ingredients: meal.kind === "simple" ? freeIngredients.split("\n").map((line) => line.trim()).filter(Boolean) : undefined };
+                  const previous = kitchen.data.meals.find((item) => item.id === meal.id);
                   await kitchen.update((data) => ({ ...data, meals: [
                     ...data.meals.filter((item) => item.id !== meal.id),
-                    { ...meal, completed: isMealCompleted(meal, today), title: meal.title?.trim() || recipes.find((recipe) => recipe.id === meal.linkedRecipeId)?.name, servings: Number(servings), ingredients: meal.kind === "simple" ? freeIngredients.split("\n").map((line) => line.trim()).filter(Boolean) : undefined },
+                    saved,
                   ] }));
                   setMeal(null);
+                  const toBuy = newMealShoppingLines(previous, saved);
+                  if (!toBuy.length) return;
+                  try {
+                    const result = await shopping.addIngredients(toBuy, { recipeName: markdownToPlainText(saved.title ?? "") });
+                    Alert.alert(t(result.added.length ? "kitchen.itemsAdded" : "kitchen.alreadyInShopping", { count: result.added.length }));
+                  } catch {
+                    Alert.alert(t("common.error"), t("shoppingModes.editError"));
+                  }
                 });
               }}
             />}

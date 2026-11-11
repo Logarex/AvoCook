@@ -1,6 +1,6 @@
 {
   "name": "avocook-mobile",
-  "version": "5.0.0",
+  "version": "5.1.0",
   "private": true,
   "description": "Mobile recipe client compatible with Nextcloud Cookbook.",
   "license": "GPL-3.0",
@@ -18,6 +18,7 @@
     "store:check": "node tools/scripts/prepare-store.mjs --check"
   },
   "dependencies": {
+    "@bacons/apple-targets": "^5.0.0",
     "@expo/ui": "~57.0.25",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-navigation/native": "^7.1.8",

@@ -1,12 +1,18 @@
 # Privacy and data
 
-Updated: 31 October 2026. AvoCook has no advertising or analytics tools. Some features use network services as described below.
+Updated: 1 November 2026. AvoCook has no advertising or analytics tools. Some features use network services as described below.
 
 ## My kitchen, voice and local reminders
 
 Meal plans, stock, dates, personal ratings, notes, dietary labels, menus and cooking history are stored locally, separately for each recipe account. These private notes are excluded from community publishing and PDF cookbooks. The complete My kitchen backup includes this information and recipes; the usual recipe backup does not include My kitchen data.
 
 Optional cooking commands request microphone and speech permissions. Recognition runs only on a supported on-device recognizer; there is no network fallback. Audio and transcripts are not saved by AvoCook. Listening stops when the cooking screen closes or the app enters the background.
+
+Automatic backups keep up to seven daily copies of your recipes and My kitchen data in the app's own storage on the device; they are not uploaded. They follow your device backup settings. Photos stored only on the device are embedded; online images stay as links. You can turn automatic backups off in My kitchen > Backup.
+
+With a Nextcloud account, optional My kitchen sync stores meals, stock, journal notes, menus and food preferences in `AvoCook/kitchen.json` in your Nextcloud files, exchanged directly with your server like recipes. Running timers, reminder settings and shopping-group identifiers stay on each device. Turning sync off stops future exchanges; the file on your server remains until you delete it.
+
+On iPhone, the Today widget reads a small summary (today's meals, a few foods to use soon and the number of items left to buy) from the app's shared App Group storage on the device. Saved recipe titles, descriptions and keywords are indexed by Spotlight on the device so you can search them; the index is removed when you sign out. Cooking timers can appear as Live Activities on the Lock Screen and in the Dynamic Island; they are started locally and no push service is used.
 
 Optional stock reminders are scheduled on the device. Product names may appear on the lock screen according to system settings. Generated ingredients use your selected shopping mode, including any sharing or Apple Reminders sync you enabled.
 
@@ -22,7 +28,9 @@ HTTPS is the default. An explicitly configured HTTP server sends credentials, re
 
 AvoCook starts an anonymous Firebase authentication session at launch, including in local mode. Firebase receives the anonymous identifier and the network information needed to handle the connection. No email address or password is required for this session.
 
-Community recipes, author names, profiles, ratings, reports and shared shopping lists use Firebase. Published recipes are visible to other users. People with a shopping list's sharing code can join that list. Avoid including private information in published content. Firebase's server access rules and retention settings are managed separately from this app; local storage or signing out does not delete remote content.
+Community recipes, author names, profiles, ratings, reports and shared shopping lists use Firebase. Published recipes are visible to other users. People with a shopping list's sharing code can join that list. Avoid including private information in published content. Firebase's server access rules and retention settings are managed separately from this app; signing out does not delete remote content.
+
+In Settings > Account, Delete my community data removes your published recipes, their uploaded photos, your reserved pseudonym and the anonymous Firebase account itself. Ratings and reports you made remain as anonymous moderation and rating records that are no longer linked to an identity. A new, unrelated anonymous identity is created if you use the community again. Authors you block are stored only on your device and their recipes are hidden from your community view.
 
 ## Recipe import, AI and translation
 

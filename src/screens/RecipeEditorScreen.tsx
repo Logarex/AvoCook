@@ -47,6 +47,7 @@ import { isoDurationToMinutes, minutesToIsoDuration } from "../utils/duration";
 import {
   applyKeywordSuggestion,
   expandEditableListItem,
+  isMultilinePaste,
   getKeywordSuggestions,
   mergeNutritionForSave,
   normalizeSuggestionSearch,
@@ -61,9 +62,23 @@ export function RecipeEditorScreen({ navigation, route }: Props) {
   const { getClient } = useAuth();
   const { createRecipe, customCategories, getRecipe, recipes, updateRecipe } =
     useRecipes();
-  const existingRecipe = route.params.id
-    ? getRecipe(route.params.id)
-    : undefined;
+  const liveRecipe = route.params.id ? getRecipe(route.params.id) : undefined;
+  // Snapshot the recipe being edited: background syncs replace the recipe
+  // object every minute, and re-seeding the form from it would wipe the
+  // user's unsaved edits (issue #129). Only pick up the recipe once it has
+  // loaded, or when the editor is pointed at another recipe.
+  const [editedRecipe, setEditedRecipe] = useState(() => ({
+    id: route.params.id,
+    recipe: liveRecipe,
+  }));
+  if (
+    editedRecipe.id !== route.params.id ||
+    (!editedRecipe.recipe && liveRecipe)
+  ) {
+    setEditedRecipe({ id: route.params.id, recipe: liveRecipe });
+  }
+  const existingRecipe =
+    editedRecipe.id === route.params.id ? editedRecipe.recipe : liveRecipe;
   const initialRecipe = useMemo(
     () =>
       existingRecipe ??
@@ -743,8 +758,7 @@ function EditableLineList({
   values: string[];
 }) {
   function updateItem(index: number, value: string) {
-    const isPaste =
-      Math.abs(value.length - values[index].length) > 1 && value.includes("\n");
+    const isPaste = isMultilinePaste(values[index], value);
     onChange(
       splitPastedLines && isPaste
         ? expandEditableListItem(values, index, value)

@@ -1,6 +1,6 @@
 # Privatliv og data
 
-Opdateret: 31. oktober 2026. AvoCook indeholder ikke reklamer eller analyseværktøjer. Nogle funktioner bruger de netværkstjenester, der er beskrevet her.
+Opdateret: 1. november 2026. AvoCook indeholder ikke reklamer eller analyseværktøjer. Nogle funktioner bruger de netværkstjenester, der er beskrevet her.
 
 ## Mit køkken, stemme og lokale påmindelser
 
@@ -9,6 +9,12 @@ Madplaner, lager, datoer, personlige vurderinger, noter, kostmærker, menuer og 
 Valgfrie madlavningskommandoer kræver tilladelser til mikrofon og talegenkendelse. Der bruges kun understøttet lokal genkendelse uden netværksalternativ. AvoCook gemmer hverken lyd eller transskriptioner. Lytning stopper, når madlavningstilstanden lukkes, eller appen går i baggrunden.
 
 Valgfrie lagerpåmindelser planlægges på enheden. Varenavne kan vises på låseskærmen efter systemindstillingerne. Genererede ingredienser bruger den valgte indkøbstilstand, herunder aktiveret deling eller synkronisering med Apple-påmindelser.
+
+Automatiske sikkerhedskopier gemmer op til syv daglige kopier af dine opskrifter og Mit køkken i appens eget lager på enheden; de uploades ikke og følger enhedens indstillinger for sikkerhedskopiering. Billeder, der kun ligger på enheden, kommer med; onlinebilleder forbliver links. Du kan slå dem fra under Mit køkken > Sikkerhedskopi.
+
+Med en Nextcloud-konto gemmer den valgfri synkronisering af Mit køkken måltider, lager, dagbogsnoter, menuer og madpræferencer i `AvoCook/kitchen.json` i dine Nextcloud-filer og udveksles direkte med din server ligesom opskrifter. Kørende timere, påmindelsesindstillinger og id’er for indkøbsgrupper bliver på hver enhed. Når du slår den fra, bliver filen på serveren, indtil du sletter den.
+
+På iPhone læser I dag-widgetten et kort resumé (dagens måltider, nogle varer der skal bruges snart og antal varer at købe) fra appgruppens delte lager på enheden. Titler, beskrivelser og nøgleord for gemte opskrifter indekseres lokalt i Spotlight; indekset slettes, når du logger ud. Madlavningstimere kan vises som Live Activities på låseskærmen og i Dynamic Island; de startes lokalt uden pushtjeneste.
 
 ## Opskrifter, Nextcloud og sikkerhedskopier
 
@@ -23,6 +29,8 @@ HTTPS er standard. En server, der udtrykkeligt er sat op med HTTP, overfører lo
 AvoCook starter en anonym Firebase-session ved åbning, også i lokal tilstand. Firebase modtager ID’et og de netværksoplysninger, som forbindelsen kræver. Der kræves ikke e-mail eller adgangskode til sessionen.
 
 Fællesskabsopskrifter, forfatternavne, profiler, bedømmelser, anmeldelser og delte indkøbslister bruger Firebase. Udgivne opskrifter er synlige for andre brugere. Alle med en listes kode kan tilmelde sig. Undgå at udgive private oplysninger. Firebase-adgangsregler og opbevaring styres separat fra appen. Udlogning eller lokal sletning fjerner ikke indhold på serveren.
+
+Under Indstillinger > Konto sletter “Slet mine fællesskabsdata” dine udgivne opskrifter, deres uploadede billeder, dit reserverede pseudonym og selve den anonyme Firebase-konto. Dine bedømmelser og anmeldelser forbliver som anonyme bedømmelses- og moderationsdata uden kobling til en identitet. Bruger du fællesskabet igen, oprettes en ny, uafhængig anonym identitet. Forfattere, du blokerer, gemmes kun på din enhed, og deres opskrifter skjules i din visning af fællesskabet.
 
 ## Import, AI og oversættelse
 

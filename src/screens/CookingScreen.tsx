@@ -22,6 +22,8 @@ import {
 } from "../features/timers/TimersProvider";
 import type { RootStackParamList } from "../navigation/types";
 import { TimerSection } from "./recipeDetail/TimerSection";
+import { CookingStockSheet } from "./CookingStockSheet";
+import { stockUsesForRecipe, type StockUse } from "../features/kitchen/stockFlows";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Cooking">;
 export function CookingScreen(props: Props) {
@@ -138,10 +140,16 @@ function CookingSteps({
       }).catch(() => undefined);
     }
   });
+  const [stockUses, setStockUses] = useState<StockUse[] | null>(null);
   const finish = async () => {
     if (busy) return;
     setBusy(true);
     try {
+      const uses = stockUsesForRecipe(
+        recipe,
+        route.params.servings ?? recipe.recipeYield,
+        kitchen.data.stock,
+      );
       await kitchen.update((data) => {
         const journal = data.journals[route.params.id] ?? emptyJournal();
         return {
@@ -157,7 +165,8 @@ function CookingSteps({
           },
         };
       });
-      navigation.goBack();
+      if (uses.length) setStockUses(uses);
+      else navigation.goBack();
     } catch {
       Alert.alert(t("common.error"), t("kitchen.saveError"));
     } finally {
@@ -312,6 +321,15 @@ function CookingSteps({
           }}
         />
       )}
+      {stockUses ? (
+        <CookingStockSheet
+          uses={stockUses}
+          onDone={() => {
+            setStockUses(null);
+            navigation.goBack();
+          }}
+        />
+      ) : null}
     </Screen>
   );
 }

@@ -53,6 +53,8 @@ type CreateRecipeBackupOptions = {
   source: RecipeBackupSource;
   client?: CookbookClient | null;
   imageDownloadTimeoutMs?: number;
+  /** Only embed images stored on the device; remote images stay as links. */
+  localImagesOnly?: boolean;
 };
 
 async function mapWithConcurrency<T, R>(
@@ -82,7 +84,8 @@ export async function createRecipeBackup({
   favoriteCategories,
   source,
   client,
-  imageDownloadTimeoutMs
+  imageDownloadTimeoutMs,
+  localImagesOnly = false
 }: CreateRecipeBackupOptions): Promise<RecipeBackupExportResult> {
   const assets: Record<string, RecipeBackupImageAsset> = {};
   let skippedImageCount = 0;
@@ -91,8 +94,9 @@ export async function createRecipeBackup({
     const normalizedRecipe = normalizeRecipe(recipe);
     const imageAsset = await collectRecipeImageAsset(
       normalizedRecipe,
-      client,
-      imageDownloadTimeoutMs
+      localImagesOnly ? null : client,
+      imageDownloadTimeoutMs,
+      localImagesOnly
     );
     return {
       recipe: normalizedRecipe,
@@ -104,7 +108,7 @@ export async function createRecipeBackup({
   for (const entry of entries) {
     if (entry.imageAsset) {
       assets[entry.imageAsset.id] = entry.imageAsset;
-    } else if (hasBackupImageReference(entry.recipe)) {
+    } else if (!localImagesOnly && hasBackupImageReference(entry.recipe)) {
       skippedImageCount += 1;
     }
 
@@ -224,13 +228,16 @@ function getRecipeBackupFilename(createdAt: string) {
 async function collectRecipeImageAsset(
   recipe: Recipe,
   client?: CookbookClient | null,
-  imageDownloadTimeoutMs?: number
+  imageDownloadTimeoutMs?: number,
+  localImagesOnly = false
 ) {
-  const localOrPublicUri =
-    getCachedRecipeImage(recipe) ||
+  const candidate =
+    (localImagesOnly ? "" : getCachedRecipeImage(recipe)) ||
     recipe.image ||
     recipe.imageUrl ||
     recipe.imagePlaceholderUrl;
+  const localOrPublicUri =
+    localImagesOnly && candidate && !/^(?:file|data):/i.test(candidate) ? "" : candidate;
   const directAsset = localOrPublicUri
     ? await createImageAssetFromUri(localOrPublicUri, {
         timeoutMs: imageDownloadTimeoutMs

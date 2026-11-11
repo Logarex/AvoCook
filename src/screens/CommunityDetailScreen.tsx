@@ -10,6 +10,7 @@ import {
   Link as LinkIcon,
   Mail,
   Trash2,
+  UserX,
   Users,
 } from "lucide-react-native";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -33,6 +34,11 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { StarRating } from "../components/StarRating";
+import {
+  blockAuthor,
+  isAuthorBlocked,
+  useBlockedAuthors,
+} from "../features/community/communityBlocks";
 import {
   getCachedCommunityRecipe,
   hydrateCommunityCache,
@@ -80,6 +86,8 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
   const [userVote, setUserVote] = useState<number>(0);
   const [importing, setImporting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [reporting, setReporting] = useState(false);
+  const blockedAuthors = useBlockedAuthors();
   const [currentUid, setCurrentUid] = useState<string | null>(
     getAnonymousUid(),
   );
@@ -114,6 +122,10 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
   const isAuthor = Boolean(
     recipe?.authorUid && currentUid && recipe.authorUid === currentUid,
   );
+  const authorBlocked =
+    !isAuthor &&
+    blockedAuthors.length > 0 &&
+    isAuthorBlocked(recipe?.authorUid);
 
   useEffect(() => {
     let active = true;
@@ -289,21 +301,66 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
   };
 
   const handleReport = () => {
+    if (!recipe || reporting) return;
     Alert.alert(t("community.reportTitle"), t("community.reportConfirmBody"), [
       { text: t("common.cancel"), style: "cancel" },
       {
         text: t("community.reportAction"),
         style: "destructive",
         onPress: () => {
-          if (recipe) void reportCommunityRecipe(recipe.id);
-          Alert.alert(
-            t("community.reportedTitle"),
-            t("community.reportedBody"),
-          );
-          navigation.goBack();
+          setReporting(true);
+          void reportCommunityRecipe(recipe.id)
+            .then((result) => {
+              const canBlock = Boolean(recipe.authorUid) && !isAuthor;
+              Alert.alert(
+                t("community.reportedTitle"),
+                t(
+                  result === "alreadyReported"
+                    ? "community.alreadyReportedBody"
+                    : "community.reportedBody",
+                ),
+                canBlock
+                  ? [
+                      {
+                        text: t("community.blockAuthorAction"),
+                        style: "destructive",
+                        onPress: confirmBlock,
+                      },
+                      { text: t("common.close"), onPress: () => navigation.goBack() },
+                    ]
+                  : [{ text: t("common.close"), onPress: () => navigation.goBack() }],
+              );
+            })
+            .catch((err) => {
+              console.warn("community", "Report failed", err);
+              Alert.alert(t("common.error"), t("community.reportFailedBody"));
+            })
+            .finally(() => setReporting(false));
         },
       },
     ]);
+  };
+
+  const confirmBlock = () => {
+    const uid = recipe?.authorUid;
+    if (!recipe || !uid || isAuthor) return;
+    const name = recipe.authorName || t("community.anonymousAuthor");
+    Alert.alert(
+      t("community.blockAuthorTitle", { name }),
+      t("community.blockAuthorBody"),
+      [
+        { text: t("common.cancel"), style: "cancel" },
+        {
+          text: t("community.blockAuthorAction"),
+          style: "destructive",
+          onPress: () => {
+            void blockAuthor(uid, name)
+              .then(() => navigation.goBack())
+              .catch(() => Alert.alert(t("common.error"), t("kitchen.saveError")));
+          },
+        },
+      ],
+    );
   };
 
   const handleProposeChange = () => {
@@ -332,6 +389,15 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
             <AppText muted>{t("community.translating")}</AppText>
           ) : null}
         </View>
+      </Screen>
+    );
+  }
+
+  if (recipe && authorBlocked) {
+    return (
+      <Screen header={<ScreenHeader onBack={() => navigation.goBack()} />}>
+        <AppText variant="subtitle">{t("community.blockedRecipeTitle")}</AppText>
+        <AppText muted>{t("community.blockedRecipeBody")}</AppText>
       </Screen>
     );
   }
@@ -379,8 +445,20 @@ export function CommunityDetailScreen({ navigation, route }: Props) {
       icon: Flag,
       label: t("community.reportAction"),
       onPress: handleReport,
+      disabled: reporting,
       destructive: true,
     },
+    ...(recipe.authorUid && !isAuthor
+      ? [
+          {
+            id: "block",
+            icon: UserX,
+            label: t("community.blockAuthorAction"),
+            onPress: confirmBlock,
+            destructive: true,
+          },
+        ]
+      : []),
     ...(isAuthor
       ? [
           {

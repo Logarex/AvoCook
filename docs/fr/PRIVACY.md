@@ -1,12 +1,18 @@
 # Confidentialité et données
 
-Mise à jour : 31 octobre 2026. AvoCook ne contient ni publicité ni outil d’analyse. Certaines fonctions utilisent les services réseau décrits ci-dessous.
+Mise à jour : 1er novembre 2026. AvoCook ne contient ni publicité ni outil d’analyse. Certaines fonctions utilisent les services réseau décrits ci-dessous.
 
 ## Ma cuisine, voix et rappels locaux
 
 Planning, stocks, dates, notes personnelles, indications alimentaires, menus et historique sont conservés localement, séparément pour chaque compte de recettes. Les notes privées sont exclues des publications communautaires et des livres PDF. La sauvegarde complète de Ma cuisine contient ces informations et les recettes ; la sauvegarde habituelle des recettes ne contient pas les données de Ma cuisine.
 
 Les commandes vocales facultatives demandent les autorisations de microphone et de reconnaissance vocale. La reconnaissance utilise uniquement un moteur local compatible, sans relais réseau. AvoCook ne conserve ni son ni transcription. L’écoute cesse en quittant le mode cuisine ou lorsque l’app passe en arrière-plan.
+
+Les sauvegardes automatiques conservent jusqu’à sept copies quotidiennes de vos recettes et de Ma cuisine dans le stockage propre de l’application, sur l’appareil ; elles ne sont pas envoyées en ligne et suivent les réglages de sauvegarde de l’appareil. Les photos stockées uniquement sur l’appareil sont incluses ; les images en ligne restent des liens. Vous pouvez les désactiver dans Ma cuisine > Sauvegarde.
+
+Avec un compte Nextcloud, la synchronisation facultative de Ma cuisine enregistre repas, stock, notes du carnet, menus et préférences alimentaires dans `AvoCook/kitchen.json` de vos fichiers Nextcloud, échangé directement avec votre serveur comme les recettes. Les minuteurs en cours, les réglages de rappels et les identifiants de groupe de courses restent propres à chaque appareil. Désactiver la synchronisation arrête les échanges suivants ; le fichier reste sur votre serveur jusqu’à ce que vous le supprimiez.
+
+Sur iPhone, le widget Aujourd’hui lit un court résumé (repas du jour, quelques produits à consommer et nombre d’articles restant à acheter) dans le stockage partagé de l’App Group, sur l’appareil. Les titres, descriptions et mots-clés des recettes enregistrées sont indexés localement par Spotlight pour la recherche ; l’index est effacé à la déconnexion. Les minuteurs peuvent s’afficher en Live Activities sur l’écran verrouillé et dans la Dynamic Island ; ils sont lancés localement, sans service de notification push.
 
 Les rappels de stocks facultatifs sont programmés sur l’appareil. Les noms des produits peuvent apparaître sur l’écran verrouillé selon les réglages système. Les ingrédients générés utilisent le mode de courses choisi, y compris le partage ou la synchronisation avec Rappels Apple activés.
 
@@ -22,7 +28,9 @@ HTTPS est utilisé par défaut. Un serveur configuré explicitement en HTTP tran
 
 AvoCook ouvre une session Firebase anonyme au démarrage, y compris en mode local. Firebase reçoit cet identifiant et les informations réseau nécessaires à la connexion. Aucun e-mail ni mot de passe n’est demandé pour cette session.
 
-Les recettes communautaires, noms d’auteurs, profils, notes, signalements et listes partagées utilisent Firebase. Les recettes publiées sont visibles par les autres utilisateurs. Toute personne disposant du code d’une liste peut la rejoindre. Évitez de publier des informations privées. Les règles d’accès et la conservation côté Firebase sont gérées séparément de l’application. Une déconnexion ou un effacement local ne supprime pas les contenus distants.
+Les recettes communautaires, noms d’auteurs, profils, notes, signalements et listes partagées utilisent Firebase. Les recettes publiées sont visibles par les autres utilisateurs. Toute personne disposant du code d’une liste peut la rejoindre. Évitez de publier des informations privées. Les règles d’accès et la conservation côté Firebase sont gérées séparément de l’application. Une déconnexion ne supprime pas les contenus distants.
+
+Dans Réglages > Compte, « Supprimer mes données communautaires » efface vos recettes publiées, leurs photos téléversées, votre pseudonyme réservé et le compte Firebase anonyme lui-même. Vos notes et signalements restent comme données anonymes de notation et de modération, sans lien avec une identité. Une nouvelle identité anonyme, sans rapport avec la précédente, est créée si vous revenez dans la communauté. Les auteurs que vous bloquez sont enregistrés uniquement sur votre appareil et leurs recettes sont masquées de votre communauté.
 
 ## Importation, IA et traduction
 

@@ -90,11 +90,13 @@ describe("startup reliability", () => {
   });
 
   it("offers release APKs for a sideloaded Android installation", async () => {
+    const [major, minor, patch] = APP_VERSION.split(".").map(Number);
+    const next = `v${major}.${minor}.${patch + 1}`;
     mocks.fetch.mockResolvedValueOnce({ ok: true, json: async () => ({
-      tag_name: "v5.0.1", html_url: "https://github.com/Logarex/AvoCook/releases/tag/v5.0.1",
-      assets: [{ name: "avocook.apk", browser_download_url: "https://github.com/Logarex/AvoCook/releases/download/v5.0.1/avocook.apk" }]
+      tag_name: next, html_url: `https://github.com/Logarex/AvoCook/releases/tag/${next}`,
+      assets: [{ name: "avocook.apk", browser_download_url: `https://github.com/Logarex/AvoCook/releases/download/${next}/avocook.apk` }]
     }) });
-    expect(await checkForUpdates()).toMatchObject({ updateAvailable: true, latestVersion: "v5.0.1", apkUrl: expect.stringContaining("avocook.apk") });
+    expect(await checkForUpdates()).toMatchObject({ updateAvailable: true, latestVersion: next, apkUrl: expect.stringContaining("avocook.apk") });
   });
 
   it("does not offer the previous published APK as an update to this release", async () => {

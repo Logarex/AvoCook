@@ -1,6 +1,6 @@
 # Privacidad y datos
 
-Actualizado: 31 de octubre de 2026. AvoCook no incluye publicidad ni herramientas de análisis. Algunas funciones usan los servicios de red descritos a continuación.
+Actualizado: 1 de noviembre de 2026. AvoCook no incluye publicidad ni herramientas de análisis. Algunas funciones usan los servicios de red descritos a continuación.
 
 ## Mi cocina, voz y avisos locales
 
@@ -9,6 +9,12 @@ Planes, existencias, fechas, notas personales, etiquetas alimentarias, menús e 
 Los comandos de cocina opcionales solicitan permisos de micrófono y reconocimiento de voz. Solo se usa un reconocedor local compatible, sin alternativa en red. AvoCook no guarda audio ni transcripciones. La escucha se detiene al salir del modo cocina o pasar a segundo plano.
 
 Los avisos de existencias opcionales se programan en el dispositivo. Los nombres de productos pueden mostrarse en la pantalla bloqueada según los ajustes. Los ingredientes generados usan el modo de compra elegido, incluido el uso compartido o la sincronización con Recordatorios de Apple activados.
+
+Las copias automáticas guardan hasta siete copias diarias de tus recetas y de Mi cocina en el almacenamiento propio de la app, en el dispositivo; no se suben a internet y siguen los ajustes de copia del dispositivo. Se incluyen las fotos guardadas solo en el dispositivo; las imágenes en línea quedan como enlaces. Puedes desactivarlas en Mi cocina > Copia.
+
+Con una cuenta de Nextcloud, la sincronización opcional de Mi cocina guarda comidas, despensa, notas del diario, menús y preferencias alimentarias en `AvoCook/kitchen.json` de tus archivos de Nextcloud, intercambiado directamente con tu servidor como las recetas. Los temporizadores en curso, los ajustes de avisos y los identificadores de grupo de compras se quedan en cada dispositivo. Al desactivarla, el archivo sigue en el servidor hasta que lo elimines.
+
+En iPhone, el widget Hoy lee un breve resumen (comidas del día, algunos productos por consumir y número de artículos pendientes) del almacenamiento compartido del App Group en el dispositivo. Los títulos, descripciones y palabras clave de las recetas guardadas se indexan localmente en Spotlight; el índice se borra al cerrar sesión. Los temporizadores pueden mostrarse como Actividades en vivo en la pantalla bloqueada y en la Dynamic Island; se inician localmente, sin servicio push.
 
 ## Recetas, Nextcloud y copias de seguridad
 
@@ -23,6 +29,8 @@ HTTPS es la opción predeterminada. Un servidor configurado expresamente con HTT
 AvoCook inicia una sesión anónima de Firebase al abrirse, también en modo local. Firebase recibe el identificador y la información de red necesaria para la conexión. No se pide correo ni contraseña para esta sesión.
 
 Las recetas de la comunidad, nombres de autor, perfiles, valoraciones, avisos y listas compartidas usan Firebase. Las recetas publicadas son visibles para otros usuarios. Cualquier persona con el código de una lista puede unirse. Evita publicar información privada. Las reglas de acceso y conservación de Firebase se administran por separado de la app. Cerrar sesión o borrar datos locales no elimina el contenido remoto.
+
+En Ajustes > Cuenta, «Eliminar mis datos de la comunidad» borra tus recetas publicadas, sus fotos subidas, tu seudónimo reservado y la propia cuenta anónima de Firebase. Tus valoraciones y avisos quedan como datos anónimos de valoración y moderación, sin vínculo con una identidad. Si vuelves a usar la comunidad se crea una identidad anónima nueva e independiente. Los autores que bloqueas se guardan solo en tu dispositivo y sus recetas se ocultan en tu vista de la comunidad.
 
 ## Importación, IA y traducción
 

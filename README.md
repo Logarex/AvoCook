@@ -17,21 +17,22 @@ AvoCook is a free, open-source app for iOS and Android. I’m building it alongs
 ## Features
 
 - Recipes with photos, categories, adjustable servings, web import and optional Markdown.
-- Fridge, pantry and freezer inventory, with barcode entry, dates and expiry reminders.
+- Fridge, pantry and freezer inventory, with barcode entry, dates and expiry reminders; put groceries away and update stock after cooking.
 - Daily and weekly meal plans, simple meals, leftovers, saved menus and meal history.
 - Step-by-step cooking, persistent timers, local voice commands and private notes.
 - Ingredient-based ideas, regional seasonal calendars, conversions and baking substitutions.
 - Local or shared shopping lists, push notifications, Nextcloud Pantry and Apple Reminders on iOS.
-- Illustrated PDF cookbooks, recipe sharing and complete kitchen backups.
-- Community recipes to discover, translate and share; an optional assistant with your own API key.
+- Illustrated PDF cookbooks, recipe sharing, daily automatic backups and optional My kitchen sync through Nextcloud.
+- On iPhone: timers in Live Activities and the Dynamic Island, a Today widget, Siri shortcuts and Spotlight search.
+- Community recipes to discover, translate and share, with reporting and author blocking; an optional assistant with your own API key.
 
-Local recipes work offline without an account. Nextcloud Cookbook sync is optional; meal plans, inventory and private notes stay on the device.
+Local recipes work offline without an account. Nextcloud Cookbook sync is optional; meal plans, inventory and private notes stay on the device unless you turn on My kitchen sync with your own Nextcloud.
 
 ## Guides
 
 - [Kitchen guide](docs/GUIDE.md)
 - [Your data and connections](PRIVACY.md)
-- [Technical references](docs/LOCAL_KITCHEN.md) · [Nextcloud Pantry](docs/NEXTCLOUD_PANTRY.md) · [Seasonal catalog](docs/SEASONAL_CATALOG.md)
+- [Technical references](docs/LOCAL_KITCHEN.md) · [Nextcloud Pantry](docs/NEXTCLOUD_PANTRY.md) · [Seasonal catalog](docs/SEASONAL_CATALOG.md) · [Community moderation](docs/COMMUNITY_MODERATION.md)
 
 <details>
 <summary>Development and project structure</summary>

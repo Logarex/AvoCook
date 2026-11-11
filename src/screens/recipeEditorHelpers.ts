@@ -67,6 +67,39 @@ export function expandEditableListItem(
   );
 }
 
+/**
+ * Returns the text that was inserted between two successive values of a text
+ * input, by trimming their common prefix and suffix.
+ */
+export function getInsertedText(previous: string, next: string) {
+  let start = 0;
+  const maxStart = Math.min(previous.length, next.length);
+  while (start < maxStart && previous[start] === next[start]) start += 1;
+
+  let previousEnd = previous.length;
+  let nextEnd = next.length;
+  while (
+    previousEnd > start &&
+    nextEnd > start &&
+    previous[previousEnd - 1] === next[nextEnd - 1]
+  ) {
+    previousEnd -= 1;
+    nextEnd -= 1;
+  }
+
+  return next.slice(start, nextEnd);
+}
+
+/**
+ * Only a real multi-line paste should split an item into several items.
+ * Typing Enter, or a keyboard suggestion inserted into an item that already
+ * contains a line break, must keep the item intact (issue #129).
+ */
+export function isMultilinePaste(previous: string, next: string) {
+  const inserted = getInsertedText(previous, next);
+  return inserted.length > 1 && splitNonEmptyLines(inserted).length > 1;
+}
+
 export function normalizeSuggestionSearch(value: string) {
   return value
     .normalize("NFD")

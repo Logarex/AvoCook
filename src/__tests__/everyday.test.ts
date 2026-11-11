@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  newMealShoppingLines,
   reusableMeals,
   repeatMeal,
   stockedShoppingIndices,
@@ -102,5 +103,22 @@ describe("everyday meals", () => {
       ),
     ).toEqual([0, 1]);
     expect(lines).toHaveLength(5);
+  });
+});
+
+describe("meal shopping lines", () => {
+  const meal = (patch: Partial<Meal>): Meal => ({ id: "m", date: "2026-11-03", slot: "dinner", recipeId: "", servings: 1, kind: "simple", title: "Salade", ingredients: [], ...patch });
+
+  it("sends every typed line of a new upcoming simple meal to the shopping list", () => {
+    expect(newMealShoppingLines(undefined, meal({ ingredients: ["Tomates", "Mozzarella"] }))).toEqual(["Tomates", "Mozzarella"]);
+  });
+
+  it("only sends lines added since the last save", () => {
+    expect(newMealShoppingLines(meal({ ingredients: ["Tomates"] }), meal({ ingredients: ["tomates ", "Basilic"] }))).toEqual(["Basilic"]);
+  });
+
+  it("ignores eaten meals and recipe meals", () => {
+    expect(newMealShoppingLines(undefined, meal({ completed: true, ingredients: ["Pain"] }))).toEqual([]);
+    expect(newMealShoppingLines(undefined, meal({ kind: "recipe", recipeId: "r", ingredients: ["Pain"] }))).toEqual([]);
   });
 });

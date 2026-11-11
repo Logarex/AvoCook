@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Alert, View } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { Alert, Switch, View } from "react-native";
 import { useTranslation } from "react-i18next";
 import { Directory, File, Paths } from "expo-file-system";
 import * as Sharing from "expo-sharing";
@@ -9,7 +9,6 @@ import { PrimaryButton } from "../components/PrimaryButton";
 import { useKitchen } from "../features/kitchen/KitchenProvider";
 import { useRecipes } from "../features/recipes/RecipesProvider";
 import {
-  createRecipeBackup,
   parseRecipeBackup,
   type RecipeBackup,
 } from "../features/recipes/recipeBackup";
@@ -18,8 +17,24 @@ import {
   type KitchenData,
 } from "../features/kitchen/kitchen";
 import { remapKitchenBackup } from "../features/kitchen/kitchenBackup";
+import {
+  isAutoBackupEnabled,
+  listAutoBackups,
+  loadAutoBackupStatus,
+  setAutoBackupEnabled,
+  writeAutoBackup,
+  type AutoBackupStatus,
+  type AutoBackupVersion,
+} from "../features/kitchen/autoBackup";
+import { serializeKitchenBackup } from "../features/kitchen/useAutomaticBackup";
+import {
+  setKitchenSyncEnabled,
+  syncKitchenNow,
+  useKitchenSyncState,
+} from "../features/kitchen/useKitchenSync";
+import { useAuth } from "../features/auth/AuthProvider";
 export function KitchenBackupScreen() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const kitchen = useKitchen();
   const recipeStore = useRecipes();
   const [busy, setBusy] = useState(false);
@@ -29,6 +44,29 @@ export function KitchenBackupScreen() {
     data: KitchenData;
   } | null>(null);
   const [previous, setPrevious] = useState<KitchenData | null>(null);
+  const [autoEnabled, setAutoEnabled] = useState(true);
+  const [status, setStatus] = useState<AutoBackupStatus>({ lastSuccess: null, lastError: null });
+  const [versions, setVersions] = useState<AutoBackupVersion[]>([]);
+  const { isLocalMode, getClient } = useAuth();
+  const syncState = useKitchenSyncState();
+  const canSync = !isLocalMode && Boolean(getClient());
+  const refreshAuto = useCallback(async () => {
+    setAutoEnabled(await isAutoBackupEnabled());
+    setStatus(await loadAutoBackupStatus(kitchen.account));
+    setVersions(listAutoBackups(kitchen.account));
+  }, [kitchen.account]);
+  useEffect(() => {
+    void refreshAuto();
+  }, [refreshAuto]);
+  const formatDate = (iso: string) =>
+    new Date(iso).toLocaleString(i18n.language, { dateStyle: "medium", timeStyle: "short" });
+  async function review(uri: string, text: string) {
+    const raw: unknown = JSON.parse(text);
+    if (!raw || typeof raw !== "object" || !("kitchen" in raw))
+      throw new Error("Not a kitchen backup");
+    const data = parseKitchenData(raw.kitchen);
+    setPending({ uri, backup: parseRecipeBackup(text), data });
+  }
   async function run(action: () => Promise<void>) {
     if (busy) return;
     setBusy(true);
@@ -49,17 +87,10 @@ export function KitchenBackupScreen() {
         disabled={busy}
         onPress={() => {
           void run(async () => {
-            const result = await createRecipeBackup({
-              recipes: recipeStore.recipes,
-              customCategories: recipeStore.customCategories,
-              favoriteCategories: recipeStore.favoriteCategories,
-              source: "local",
-              client: null,
-            });
-            const serialized = JSON.stringify({
-              ...result.backup,
-              kitchen: kitchen.data,
-            });
+            const { result, serialized } = await serializeKitchenBackup(
+              recipeStore,
+              kitchen.data,
+            );
             if (await Sharing.isAvailableAsync()) {
               const file = new File(
                 Paths.cache,
@@ -100,19 +131,110 @@ export function KitchenBackupScreen() {
             );
             const file = Array.isArray(picked) ? picked[0] : picked;
             if (!file) return;
-            const text = await file.text();
-            const raw: unknown = JSON.parse(text);
-            if (!raw || typeof raw !== "object" || !("kitchen" in raw))
-              throw new Error("Not a kitchen backup");
-            const data = parseKitchenData(raw.kitchen);
-            setPending({
-              uri: file.uri,
-              backup: parseRecipeBackup(text),
-              data,
-            });
+            await review(file.uri, await file.text());
           });
         }}
       />
+      {canSync ? (
+        <GlassPanel style={{ gap: 12 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <AppText variant="label" style={{ flex: 1 }}>
+              {t("kitchen.syncTitle")}
+            </AppText>
+            <Switch
+              accessibilityLabel={t("kitchen.syncTitle")}
+              value={syncState.enabled}
+              onValueChange={(value) => {
+                void setKitchenSyncEnabled(kitchen.account, value);
+              }}
+            />
+          </View>
+          <AppText muted variant="caption">
+            {t("kitchen.syncHelp")}
+          </AppText>
+          {syncState.enabled ? (
+            <>
+              <AppText accessibilityLiveRegion="polite">
+                {syncState.syncing
+                  ? t("kitchen.syncRunning")
+                  : syncState.failed
+                    ? t("kitchen.syncFailed")
+                    : syncState.lastSync
+                      ? t("kitchen.syncLast", { date: formatDate(syncState.lastSync) })
+                      : t("kitchen.syncNever")}
+              </AppText>
+              <PrimaryButton
+                label={t("kitchen.syncNow")}
+                variant="secondary"
+                disabled={syncState.syncing}
+                onPress={syncKitchenNow}
+              />
+            </>
+          ) : null}
+        </GlassPanel>
+      ) : null}
+      <GlassPanel style={{ gap: 12 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <AppText variant="label" style={{ flex: 1 }}>
+            {t("kitchen.autoBackupTitle")}
+          </AppText>
+          <Switch
+            accessibilityLabel={t("kitchen.autoBackupTitle")}
+            value={autoEnabled}
+            onValueChange={(value) => {
+              setAutoEnabled(value);
+              void setAutoBackupEnabled(value);
+            }}
+          />
+        </View>
+        <AppText muted variant="caption">
+          {t("kitchen.autoBackupHelp")}
+        </AppText>
+        <AppText accessibilityLiveRegion="polite">
+          {status.lastSuccess
+            ? t("kitchen.autoBackupLast", { date: formatDate(status.lastSuccess) })
+            : t("kitchen.autoBackupNever")}
+        </AppText>
+        {status.lastError &&
+        (!status.lastSuccess || status.lastError > status.lastSuccess) ? (
+          <AppText accessibilityRole="alert">
+            {t("kitchen.autoBackupFailed", { date: formatDate(status.lastError) })}
+          </AppText>
+        ) : null}
+        <PrimaryButton
+          label={t("kitchen.autoBackupNow")}
+          variant="secondary"
+          disabled={busy}
+          onPress={() => {
+            void run(async () => {
+              const { serialized } = await serializeKitchenBackup(
+                recipeStore,
+                kitchen.data,
+                true,
+              );
+              await writeAutoBackup(kitchen.account, serialized).finally(refreshAuto);
+            });
+          }}
+        />
+        {versions.map((version) => (
+          <View key={version.uri} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <AppText style={{ flex: 1 }}>
+              {`${formatDate(version.createdAt)} · ${Math.max(1, Math.round(version.size / 1024))} KB`}
+            </AppText>
+            <PrimaryButton
+              compact
+              variant="ghost"
+              label={t("kitchen.autoBackupRestore")}
+              disabled={busy}
+              onPress={() => {
+                void run(async () => {
+                  await review(version.uri, await new File(version.uri).text());
+                });
+              }}
+            />
+          </View>
+        ))}
+      </GlassPanel>
       {pending && (
         <GlassPanel style={{ gap: 16 }}>
           <AppText>

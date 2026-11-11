@@ -10,6 +10,14 @@ public class AvoCookKitchenModule: Module {
     pendingStockOpen = true
     active?.sendEvent("stockReminderOpen", [:])
   }
+  private static var pendingLink: String?
+  /// Queues an avocook:// link from Spotlight or Siri; JS consumes it once it is ready.
+  public static func openLink(_ url: String) {
+    DispatchQueue.main.async {
+      pendingLink = url
+      active?.sendEvent("linkOpen", [:])
+    }
+  }
   private var engine: AVAudioEngine?
   private var task: SFSpeechRecognitionTask?
   private var request: SFSpeechAudioBufferRecognitionRequest?
@@ -19,7 +27,7 @@ public class AvoCookKitchenModule: Module {
 
   public func definition() -> ModuleDefinition {
     Name("AvoCookKitchen")
-    Events("voiceResult", "voiceError", "stockReminderOpen")
+    Events("voiceResult", "voiceError", "stockReminderOpen", "linkOpen")
     OnCreate { Self.active = self }
     AsyncFunction("consumeStockReminderOpen") { () -> Bool in
       let pending = Self.pendingStockOpen
@@ -54,6 +62,17 @@ public class AvoCookKitchenModule: Module {
     }
     AsyncFunction("replaceStockReminders") { (json: String, promise: Promise) in
       self.replaceReminders(json: json, promise: promise)
+    }
+    AsyncFunction("consumePendingLink") { () -> String? in
+      let link = Self.pendingLink
+      Self.pendingLink = nil
+      return link
+    }.runOnQueue(.main)
+    AsyncFunction("replaceRecipeIndex") { (json: String, promise: Promise) in
+      AvoCookSpotlight.replace(json: json) { promise.resolve($0) }
+    }
+    AsyncFunction("clearRecipeIndex") { (promise: Promise) in
+      AvoCookSpotlight.clear { promise.resolve($0) }
     }
     OnDestroy { if Self.active === self { Self.active = nil }; DispatchQueue.main.async { self.stopVoice() } }
     OnAppEntersBackground { DispatchQueue.main.async { self.stopVoice() } }
