@@ -8,7 +8,7 @@ Screens: `recipe_list`, `recipe`, `today`, `planning`, `cooking`, `stock`, `shop
 | --- | --- | --- |
 | App Store iPhone 6.9" | iPhone 18 Pro Max (iOS 27.2) | 1320 × 2868 |
 | App Store iPad 13" | iPad Pro 13-inch (M5) | 2064 × 2752 |
-| App Store iPhone Duo | iPhone Duo, outer / inner display | 1398 × 2034 / 2007 × 2853 |
+| App Store iPhone Duo | iPhone Duo, outer / inner display (portrait) | 1398 × 2034 / 2007 × 2853 |
 | Google Play phone | AVD 1080 × 1920, 420 dpi, no cutout | 1080 × 1920 |
 
 ## 1. Demo data
@@ -45,6 +45,22 @@ tools/screenshots/capture.sh <ios-udid|android> <lang> <raw-dir>/<device>/<lang>
 python3 tools/screenshots/export.py <raw-dir>
 ```
 
-`export.py` writes `store/screenshots/ios/<locale>/` and `store/screenshots/android/<locale>/phoneScreenshots/` (ignored by Git, upload them by hand or with Fastlane) and replaces `assets/screenshots/<lang>/` used by the README and the website.
+`export.py` writes `store/screenshots/ios/<locale>/{iphone,ipad,duo-int,duo-out}/` and `store/screenshots/android/<locale>/phoneScreenshots/` (ignored by Git, upload them by hand or with Fastlane) and replaces `assets/screenshots/<lang>/` used by the README and the website.
+
+## 4. App Store creative assets (iOS 27)
+
+```sh
+python3 tools/screenshots/creative.py <raw-dir>
+```
+
+Writes `store/screenshots/ios/<locale>/creative/` from the iPhone captures and `assets/icon.png`:
+
+| File | Use in App Store Connect | Size | Art safe area |
+| --- | --- | --- | --- |
+| `header_3840x1646.png` | Product page header (PNG: App Store Connect rejects .jpg) | 3840 × 1646 (21:9) | 1646 × 661 at (1097, 493) |
+| `search_3840x2560.jpg` | Search results | 3840 × 2560 (3:2) | 2168 × 1030 at (836, 765) |
+| `universal_5244x2950.png` | Universal asset (replaces both) | 5244 × 2950 (16:9, PNG) | 1402 × 962 at (1921, 660) |
+
+The icon, the text and the main screens stay inside the safe area; side phones may be cropped. Short phrases only: no prices, URLs or other platforms (App Review 2.3). The universal asset can be used for both placements instead of the header and search files.
 
 Allow notifications once per simulator (open a recipe timer and accept the prompt), otherwise the recipe screen shows a "notifications disabled" hint.
