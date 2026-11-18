@@ -8,9 +8,9 @@ import {
   Sparkles,
   Upload,
 } from "lucide-react-native";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, StyleSheet } from "react-native";
+import { Alert, Keyboard, StyleSheet } from "react-native";
 import { AppText } from "../components/AppText";
 import { GlassPanel } from "../components/GlassPanel";
 import { useLongActionToast } from "../components/LongActionToast";
@@ -51,6 +51,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
     "url" | "file" | "photo" | "text" | null
   >(null);
   const [error, setError] = useState<string | null>(null);
+  const textImportPending = useRef(false);
   const { watchLongAction } = useLongActionToast();
   const [cameraPermission, requestCameraPermission, getCameraPermission] =
     ImagePicker.useCameraPermissions({ get: false });
@@ -345,6 +346,9 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
   }
 
   async function handleTextPromptSubmit() {
+    if (textImportPending.current || submitting !== null || !prompt.trim()) return;
+    textImportPending.current = true;
+    Keyboard.dismiss();
     setSubmitting("text");
     setError(null);
     const stopLongActionNotice = watchLongAction("longActions.importRecipe");
@@ -385,6 +389,7 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
       }
     } finally {
       stopLongActionNotice();
+      textImportPending.current = false;
       setSubmitting(null);
     }
   }
@@ -534,6 +539,9 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
                       : t("importRecipe.generateTextAction")
                   }
                   disabled={!prompt.trim() || submitting !== null}
+                  // Keep presses in React Native so the ScrollView handles them
+                  // while the multiline input's iOS keyboard is open.
+                  fillAvailableSpace
                   onPress={() => void handleTextPromptSubmit()}
                 />
               </>
