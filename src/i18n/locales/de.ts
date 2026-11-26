@@ -1497,7 +1497,7 @@ export default {
       appIconTitle: "Wähle dein App-Icon",
       appIconBody: "Unter Einstellungen > Darstellung kannst du das AvoCook-Icon gegen die Karotte, das Kochbuch oder den Teller tauschen. Zum Original kommst du jederzeit zurück.",
       fixesTitle: "Zuverlässiger",
-      fixesBody: "Deine Änderungen an Rezepten werden beim Synchronisieren nicht mehr überschrieben, und ein Zeilenumbruch teilt einen Schritt nicht mehr in zwei.",
+      fixesBody: "Der Rezeptimport aus Text oder Foto funktioniert wieder mit aktuellen KI-Modellen wie Claude Haiku 5.5. Deine Änderungen an Rezepten werden beim Synchronisieren nicht mehr überschrieben, und ein Zeilenumbruch teilt einen Schritt nicht mehr in zwei.",
       title: "Was ist neu?",
       subtitle: "Version {{version}}",
       clarityTitle: "AvoCook neu gestaltet",

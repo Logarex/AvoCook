@@ -1422,7 +1422,7 @@ export default {
       appIconTitle: "Vælg dit ikon",
       appIconBody: "Under Indstillinger > Udseende kan du skifte AvoCook-ikonet ud med guleroden, kogebogen eller tallerkenen. Du kan altid skifte tilbage til det oprindelige.",
       fixesTitle: "Mere pålidelig",
-      fixesBody: "Dine ændringer i opskrifter bliver ikke længere overskrevet under synkronisering, og et linjeskift i et trin deler det ikke længere i to.",
+      fixesBody: "Import af opskrifter fra tekst eller foto virker igen med nyere AI-modeller som Claude Haiku 5.5. Dine ændringer i opskrifter bliver ikke længere overskrevet under synkronisering, og et linjeskift i et trin deler det ikke længere i to.",
       title: "Hvad er nyt?",
       subtitle: "Version {{version}}",
       clarityTitle: "AvoCook i nyt design",

@@ -1495,7 +1495,7 @@ export default {
       appIconTitle: "Scegli la tua icona",
       appIconBody: "In Impostazioni > Aspetto puoi sostituire l’icona di AvoCook con la carota, il ricettario o il piatto. Puoi tornare all’originale quando vuoi.",
       fixesTitle: "Più affidabile",
-      fixesBody: "Le modifiche alle ricette non vengono più sovrascritte durante la sincronizzazione e un a capo dentro un passaggio non lo divide più in due.",
+      fixesBody: "L’importazione di ricette da testo o foto funziona di nuovo con i modelli di IA recenti come Claude Haiku 5.5. Le modifiche alle ricette non vengono più sovrascritte durante la sincronizzazione e un a capo dentro un passaggio non lo divide più in due.",
       title: "Novità",
       subtitle: "Versione {{version}}",
       clarityTitle: "AvoCook si rinnova",

@@ -1494,7 +1494,7 @@ export default {
       appIconTitle: "Elige tu icono",
       appIconBody: "En Ajustes > Apariencia, cambia el icono de AvoCook por la zanahoria, el recetario o el plato. Puedes volver al original cuando quieras.",
       fixesTitle: "Más fiable",
-      fixesBody: "Tus cambios en las recetas ya no se sobrescriben al sincronizar, y un salto de línea dentro de un paso ya no lo divide en dos.",
+      fixesBody: "Importar recetas desde un texto o una foto vuelve a funcionar con modelos de IA recientes como Claude Haiku 5.5. Tus cambios en las recetas ya no se sobrescriben al sincronizar, y un salto de línea dentro de un paso ya no lo divide en dos.",
       title: "¿Qué hay de nuevo?",
       subtitle: "Versión {{version}}",
       clarityTitle: "AvoCook se renueva",

@@ -1488,7 +1488,7 @@ export default {
       appIconTitle: "Pick your icon",
       appIconBody: "In Settings > Appearance, swap the AvoCook icon for the carrot, the cookbook or the plate. You can switch back to the original whenever you like.",
       fixesTitle: "More reliable",
-      fixesBody: "Your recipe edits are no longer overwritten during sync, and a line break inside a step no longer splits it in two.",
+      fixesBody: "Recipe import from text or a photo works again with recent AI models such as Claude Haiku 5.5. Your recipe edits are no longer overwritten during sync, and a line break inside a step no longer splits it in two.",
       title: "What's new?",
       subtitle: "Version {{version}}",
       clarityTitle: "AvoCook, redesigned",

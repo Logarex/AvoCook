@@ -1499,7 +1499,7 @@ export default {
       appIconTitle: "Choisissez votre icône",
       appIconBody: "Dans Réglages > Apparence, remplacez l’icône d’AvoCook par la carotte, le livre de recettes ou l’assiette. Vous pouvez revenir à l’icône d’origine à tout moment.",
       fixesTitle: "Plus de fiabilité",
-      fixesBody: "Vos modifications de recettes ne sont plus écrasées pendant la synchronisation, et un retour à la ligne dans une étape ne la coupe plus en deux.",
+      fixesBody: "L’import de recettes depuis un texte ou une photo fonctionne de nouveau avec les modèles d’IA récents comme Claude Haiku 5.5. Vos modifications de recettes ne sont plus écrasées pendant la synchronisation, et un retour à la ligne dans une étape ne la coupe plus en deux.",
       title: "Quoi de neuf ?",
       subtitle: "Version {{version}}",
       clarityTitle: "AvoCook fait peau neuve",
