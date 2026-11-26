@@ -2,6 +2,7 @@ import React from "react";
 import { act, create, type ReactTestRenderer } from "react-test-renderer";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { ImportRecipeScreen } from "../screens/ImportRecipeScreen";
+import { LlmApiError } from "../features/import/photoRecipeImport";
 import { createEmptyRecipe } from "../features/recipes/types";
 
 const mocks = vi.hoisted(() => ({
@@ -84,4 +85,19 @@ it("shows failures and allows retrying the same text", async () => {
   expect(button().props.disabled).toBe(false);
   await act(async () => button().props.onPress());
   expect(mocks.save).toHaveBeenCalledOnce();
+});
+
+it("shows the provider status without exposing its response", async () => {
+  await openImport();
+  mocks.generate.mockRejectedValueOnce(new LlmApiError(400, "private response"));
+  await act(async () => button().props.onPress());
+  expect(JSON.stringify(screen.toJSON())).toContain("importRecipe.textFailed (HTTP 400)");
+  expect(JSON.stringify(screen.toJSON())).not.toContain("private response");
+});
+
+it("reports an exhausted AI balance", async () => {
+  await openImport();
+  mocks.generate.mockRejectedValueOnce(new LlmApiError(400, "Your credit balance is too low"));
+  await act(async () => button().props.onPress());
+  expect(JSON.stringify(screen.toJSON())).toContain("importRecipe.photoApiNoCredits");
 });

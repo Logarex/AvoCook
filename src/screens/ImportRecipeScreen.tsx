@@ -22,6 +22,7 @@ import { TextField } from "../components/TextField";
 import {
   extractRecipeFromPhoto,
   generateRecipeFromText,
+  isLlmBillingError,
   LlmApiError,
   LlmModelNotFoundError,
   LlmNotFoodError,
@@ -35,6 +36,11 @@ import { spacing } from "../theme/colors";
 import { useAppTheme } from "../theme/ThemeProvider";
 
 type Props = NativeStackScreenProps<RootStackParamList, "ImportRecipe">;
+
+// The provider's reason stays in the logs; the status alone makes reports actionable.
+function llmStatusSuffix(err: unknown) {
+  return err instanceof LlmApiError ? ` (HTTP ${err.status})` : "";
+}
 
 export function ImportRecipeScreen({ navigation, route }: Props) {
   const { t } = useTranslation();
@@ -332,12 +338,12 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         setError(t("importRecipe.notFoodError"));
       } else if (err instanceof LlmApiError && err.status === 401) {
         setError(t("importRecipe.photoApiKeyInvalid"));
-      } else if (err instanceof LlmApiError && err.status === 403) {
+      } else if (err instanceof LlmApiError && isLlmBillingError(err)) {
         setError(t("importRecipe.photoApiNoCredits"));
       } else if (err instanceof LlmApiError && err.status === 429) {
         setError(t("importRecipe.photoApiKeyQuotaExceeded"));
       } else {
-        setError(t("importRecipe.photoFailed"));
+        setError(t("importRecipe.photoFailed") + llmStatusSuffix(err));
       }
     } finally {
       stopLongActionNotice();
@@ -380,12 +386,12 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         setError(t("importRecipe.notFoodError"));
       } else if (err instanceof LlmApiError && err.status === 401) {
         setError(t("importRecipe.photoApiKeyInvalid"));
-      } else if (err instanceof LlmApiError && err.status === 403) {
+      } else if (err instanceof LlmApiError && isLlmBillingError(err)) {
         setError(t("importRecipe.photoApiNoCredits"));
       } else if (err instanceof LlmApiError && err.status === 429) {
         setError(t("importRecipe.photoApiKeyQuotaExceeded"));
       } else {
-        setError(t("importRecipe.textFailed"));
+        setError(t("importRecipe.textFailed") + llmStatusSuffix(err));
       }
     } finally {
       stopLongActionNotice();

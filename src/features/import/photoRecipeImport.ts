@@ -551,8 +551,9 @@ async function callAnthropicApi(
       },
       body: JSON.stringify({
         model,
-        temperature: 0.2,
-        max_tokens: 4096,
+        // Claude 4.7 and later reject a custom temperature with a 400, and their
+        // thinking, on by default since Claude 5, counts toward max_tokens.
+        max_tokens: 16000,
         messages: [{ role: "user", content }],
       }),
     },
@@ -643,6 +644,15 @@ export class LlmNotFoodError extends Error {
     super("The provided content is not related to food or beverages.");
     this.name = "LlmNotFoodError";
   }
+}
+
+export function isLlmBillingError(err: LlmApiError): boolean {
+  return (
+    err.status === 402 ||
+    err.status === 403 ||
+    // Anthropic reports an empty credit balance as a 400.
+    (err.status === 400 && /credit balance/i.test(err.message))
+  );
 }
 
 function isModelNotFoundError(err: LlmApiError): boolean {
