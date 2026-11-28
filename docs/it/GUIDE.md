@@ -8,7 +8,7 @@ Nei testi delle ricette puoi usare `**grassetto**`, `*corsivo*` e link come `[ht
 
 ## Tieni d’occhio le scorte
 
-Apri La mia cucina e aggiungi alimenti a frigo, dispensa o congelatore. Inserisci nome, quantità e data sulla confezione. Un codice a barre può completare i dati disponibili. Attiva i promemoria se vuoi; puoi annullare un alimento segnato come consumato.
+Apri La mia cucina e aggiungi alimenti a frigo, dispensa o congelatore. Inserisci nome, quantità e data sulla confezione. Un codice a barre può completare i dati disponibili. Attiva i promemoria se vuoi; puoi annullare un alimento segnato come consumato. Per condividere l’inventario con la famiglia, apri le opzioni in cima all’elenco e scegli Nextcloud Pantry: ogni posto viene associato a un inventario di Pantry e le modifiche passano in entrambe le direzioni. I prodotti utilizzati restano in Pantry a zero, in «Finiti in Pantry», per aggiungerli alla lista della spesa.
 
 ## Pianifica oggi e la settimana
 
@@ -38,7 +38,7 @@ In Spesa, apri il selettore della modalità. Mantieni una lista locale, crea o r
 
 ## Dati e connessioni
 
-Le ricette funzionano in locale senza creare un account. Collega Nextcloud Cookbook per sincronizzarle con il tuo server. Piano, scorte e note private restano sul dispositivo, separati per account di ricette; Cookbook non li sincronizza. Esporta solo le ricette o crea un backup completo con foto disponibili e dati privati della cucina.
+Le ricette funzionano in locale senza creare un account. Collega Nextcloud Cookbook per sincronizzarle con il tuo server. Piano dei pasti, scorte e note private sono separati per account. Restano sul dispositivo, a meno che tu non attivi la sincronizzazione della cucina con il tuo server Nextcloud o degli inventari con Pantry. Esporta solo le ricette o crea un backup completo con foto disponibili e dati privati della cucina.
 
 Comunità e liste condivise usano Firebase, con una sessione anonima all’avvio. Importazione web, ricerca prodotti e assistente facoltativo contattano i rispettivi servizi. La voce usa un motore locale compatibile, senza passare al cloud.
 

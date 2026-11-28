@@ -18,7 +18,7 @@ En iPhone, el widget Hoy lee un breve resumen (comidas del día, algunos product
 
 ## Recetas, Nextcloud y copias de seguridad
 
-Las recetas y fotos locales se guardan en tu dispositivo. Se transmiten cuando eliges sincronizarlas, compartirlas, exportarlas o publicarlas. Nextcloud Cookbook y Pantry intercambian datos directamente con el servidor elegido. Las copias de Pantry y los traslados pendientes se guardan por separado para cada cuenta de Nextcloud. Cerrar sesión no copia automáticamente los productos de Pantry a la lista local.
+Las recetas y fotos locales se guardan en tu dispositivo. Se transmiten cuando eliges sincronizarlas, compartirlas, exportarlas o publicarlas. Nextcloud Cookbook y Pantry intercambian datos directamente con el servidor elegido. Las copias de Pantry y los traslados pendientes se guardan por separado para cada cuenta de Nextcloud. Cerrar sesión no copia automáticamente los productos de Pantry a la lista local. Con la sincronización del inventario de Pantry, tu inventario (nombres, cantidades, fechas, códigos de barras y lugares) se intercambia con los inventarios de Pantry elegidos y es visible para ese hogar; los datos nutricionales de Open Food Facts permanecen en el dispositivo.
 
 Las credenciales de Nextcloud y las claves API de IA se guardan en el almacenamiento seguro del sistema mediante Expo SecureStore. Las recetas, fotos y preferencias normales usan SQLite, archivos o el almacenamiento de la app. iOS puede conservar datos seguros tras una reinstalación; las copias del dispositivo también pueden restaurar datos. Exporta tus recetas antes de desinstalar.
 

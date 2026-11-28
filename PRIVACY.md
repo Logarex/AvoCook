@@ -18,7 +18,7 @@ Optional stock reminders are scheduled on the device. Product names may appear o
 
 ## Recipes, Nextcloud and backups
 
-Local recipes and photos are stored on your device. They are sent elsewhere when you choose to sync, share, export or publish them. With Nextcloud Cookbook or Pantry, data is exchanged directly with your selected server. Pantry caches and migration progress are stored separately for each Nextcloud account; signing out does not automatically copy Pantry items into the local shopping list.
+Local recipes and photos are stored on your device. They are sent elsewhere when you choose to sync, share, export or publish them. With Nextcloud Cookbook or Pantry, data is exchanged directly with your selected server. Pantry caches and migration progress are stored separately for each Nextcloud account; signing out does not automatically copy Pantry items into the local shopping list. With Pantry inventory sync on, your inventory (names, quantities, dates, barcodes and places) is exchanged with the Pantry inventories you chose and visible to that household; nutrition details from Open Food Facts stay on the device.
 
 Nextcloud credentials and AI API keys are kept in the operating system's secure storage through Expo SecureStore. Recipes, photos and ordinary preferences use SQLite, files or app storage. iOS can retain secure storage after reinstalling; device backups may also restore data. Export a recipe backup before uninstalling.
 

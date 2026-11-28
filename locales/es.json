@@ -3,10 +3,10 @@
   "NSCalendarsFullAccessUsageDescription": "AvoCook requiere acceso al calendario porque comparte el mismo componente del sistema que los recordatorios, utilizados para sus listas de la compra.",
   "NSRemindersUsageDescription": "AvoCook utiliza sus recordatorios para exportar y sincronizar sus listas de la compra.",
   "NSRemindersFullAccessUsageDescription": "AvoCook utiliza sus recordatorios para exportar y sincronizar sus listas de la compra.",
-  "NSPhotoLibraryUsageDescription": "Permita el acceso a las fotos para añadir una imagen a una receta.",
-  "NSPhotoLibraryAddUsageDescription": "Permita guardar imágenes de recetas si es necesario.",
-  "NSLocalNetworkUsageDescription": "Permita el acceso a la red local solo para conectarse a un servidor Nextcloud alojado en su red.",
-  "NSCameraUsageDescription": "Permitir la cámara para escanear recetas y códigos de barras de alimentos.",
-  "NSMicrophoneUsageDescription": "AvoCook utiliza el micrófono para que puedas cambiar de paso e iniciar temporizadores con comandos de voz opcionales. El audio se procesa en tu dispositivo.",
-  "NSSpeechRecognitionUsageDescription": "Reconocer comandos de cocina en este dispositivo. El audio no se envía a un servidor."
+  "NSPhotoLibraryUsageDescription": "Elige una foto para ilustrar una receta o leer una receta fotografiada.",
+  "NSPhotoLibraryAddUsageDescription": "Guarda imágenes de recetas en tu fototeca.",
+  "NSLocalNetworkUsageDescription": "Conecta AvoCook a tu servidor Nextcloud en la red local.",
+  "NSCameraUsageDescription": "Fotografía una receta o escanea el código de barras de un alimento.",
+  "NSMicrophoneUsageDescription": "Usa la voz para cambiar de paso o iniciar un temporizador. Los comandos son opcionales y el audio se procesa en tu dispositivo.",
+  "NSSpeechRecognitionUsageDescription": "Los comandos de voz se reconocen en tu dispositivo. El audio no se envía a un servidor."
 }

@@ -1,4 +1,4 @@
-# Shopping modes and Nextcloud Pantry
+# Shopping modes, inventory and Nextcloud Pantry
 
 AvoCook has one active shopping list, with one backend at a time:
 
@@ -27,6 +27,21 @@ Apple Reminders is an optional companion to the active backend: app/server chang
 Granular household permissions and view-only shares control available actions. Lists refresh on focus, when returning to the foreground, every 30 seconds while visible, and on pull-to-refresh. Periodic refresh pauses while typing or editing.
 
 The latest successful Pantry contents are cached per Nextcloud server/account. Offline copies are read-only; switching back to local carries that available copy. Logging out or changing Nextcloud accounts does not copy private Pantry contents into the global local list. Caches remain available to the owning account for later use.
+
+## Inventory sync
+
+My kitchen's inventory can sync both ways with [Pantry inventories](https://github.com/chenasraf/nextcloud-pantry) (Pantry 0.39 or later). Open **My kitchen → inventory options** (the bar above the add buttons), choose **Nextcloud Pantry**, then a household and one inventory per place. Places can share one inventory; inventories named like a place (Fridge, Frigo, Kühlschrank…) are preselected, and missing ones can be created. The same sheet holds the expiry reminder switch, the sync status, **Sync now** and **Stop syncing**.
+
+- **What syncs:** name, quantity (count items), level (level items: full / running low), expiry date, barcode and place (moving a product between places mapped to different inventories moves it in Pantry). Prices, stores, labels, categories, custom fields, images, targets and reorder points are never sent, so Pantry keeps them. Open Food Facts nutrition and scores stay on the device.
+- **Used up:** AvoCook's stock is what is at home. Marking a product as used, or using it up while cooking, sets it to zero (count) or "out" (level) in Pantry instead of deleting it. Pantry's used-up products appear in **Used up in Pantry**, where they can be added to the shopping list, brought back in stock (which restocks the Pantry item) or deleted from Pantry for the household (to Pantry's trash). Adding a product with the same name or barcode as a used-up Pantry product restocks it instead of creating a duplicate.
+- **When:** shortly after each local change, when the app returns to the foreground, every 30 seconds while the inventory is on screen, and on demand. Offline changes are kept and sent on the next round.
+- **Merging:** each round is a three-way merge per item and per field against the last synced version. The device wins real conflicts, as in My kitchen sync. The first round (or a round after the local stock was wiped or restored) matches products by barcode, then by normalized name, within the same inventory, so nothing is duplicated. A product removed from Pantry elsewhere is removed here unless it was edited here meanwhile, in which case it is recreated.
+- **Permissions:** read-only inventories are shown with a lock and only downloaded; changes refused by the server keep the server version and are counted in the status.
+- **Storage:** the configuration, the last synced versions and the used-up list are stored per Nextcloud account (`inventory.pantry.v1:<account>`); products carry their Pantry item and inventory ids. Stopping the sync keeps the products as a local inventory and removes nothing from Pantry. While Pantry inventory sync is on, My kitchen sync leaves the stock out of `kitchen.json` so the two never fight.
+
+Dates: AvoCook stores calendar days and Pantry midnight timestamps in the server's timezone. AvoCook sends UTC midnight and reads back the nearest UTC day, which is exact for servers between UTC−12 and UTC+12.
+
+Validation: `inventorySync.test.ts` runs every flow above against an in-memory Pantry (first merge, field conflicts, used up and restock, household changes, moves and shared inventories, level items, read-only inventories, refused changes, network errors, wiped stock, duplicate links); `pantryClient.test.ts` covers the inventory endpoints.
 
 ## API and validation
 

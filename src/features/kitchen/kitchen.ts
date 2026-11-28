@@ -36,7 +36,25 @@ export type StockItem = {
   quantity: string;
   location: "fridge" | "cupboard" | "freezer";
   expires: string;
+  /** Link to the Nextcloud Pantry inventory item when inventory sync is on. */
+  pantry?: StockPantryLink;
 };
+export type StockPantryLink = {
+  itemId: number;
+  listId: number;
+  /** Present for Pantry items tracked by level (full/low) instead of a counted quantity. */
+  level?: "full" | "low";
+  /** Pantry reports the product as running low. */
+  low?: boolean;
+};
+const pantryId = (value: unknown) => typeof value === "number" && Number.isSafeInteger(value) && value > 0;
+export function isStockPantryLink(value: unknown): value is StockPantryLink {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const link = value as Record<string, unknown>;
+  return pantryId(link.itemId) && pantryId(link.listId) &&
+    (link.level === undefined || link.level === "full" || link.level === "low") &&
+    (link.low === undefined || typeof link.low === "boolean");
+}
 export type StepTimer = { id: string; step: number; minutes: number };
 export type Diet = "vegetarian" | "vegan" | "glutenFree";
 export type Journal = {
@@ -564,7 +582,8 @@ export function parseKitchenData(value: unknown): KitchenData {
         (s.greenScore === undefined || (text(s.greenScore) && /^[A-E]$/.test(s.greenScore))) &&
         (s.nutrients === undefined || (s.nutrients !== null && typeof s.nutrients === "object" && !Array.isArray(s.nutrients) && Object.entries(s.nutrients).every(([key, value]) => ["energy", "fat", "saturatedFat", "carbohydrates", "sugars", "fiber", "proteins", "salt"].includes(key) && typeof value === "number" && Number.isFinite(value) && value >= 0))) &&
         text(s.expires) &&
-        (!s.expires || validDate(s.expires)),
+        (!s.expires || validDate(s.expires)) &&
+        (s.pantry === undefined || isStockPantryLink(s.pantry)),
     ) ||
     !Object.values(raw.journals).every(
       (j) =>

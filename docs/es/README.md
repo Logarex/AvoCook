@@ -18,7 +18,7 @@ AvoCook es una aplicación gratuita y de código abierto para iOS y Android. La 
 ## Funciones
 
 - Recetas con fotos, categorías, raciones ajustables, importación web y Markdown opcional. Escaneo gratuito de páginas de libros, recetas impresas y PDF, en el propio dispositivo.
-- Nevera, despensa y congelador con códigos de barras, fechas y avisos de caducidad.
+- Nevera, despensa y congelador con códigos de barras, fechas y avisos de caducidad; sincronización opcional en ambos sentidos con los inventarios de Nextcloud Pantry para compartirlos con tu hogar.
 - Plan diario y semanal, comidas sencillas, sobras, menús guardados e historial.
 - Cocina paso a paso, temporizadores guardados, comandos de voz locales y notas privadas.
 - Ideas con tus ingredientes, calendarios regionales de temporada, conversiones y sustituciones de repostería.

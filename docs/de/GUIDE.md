@@ -8,7 +8,7 @@ Rezepttexte unterstützen `**fett**`, `*kursiv*` und Links wie `[https://example
 
 ## Vorräte im Blick behalten
 
-In Meine Küche Lebensmittel zum Kühlschrank, Vorratsschrank oder Gefrierfach hinzufügen. Name, Menge und Datum auf der Packung eintragen. Ein Strichcode kann verfügbare Produktdaten ergänzen. Ablauf-Erinnerungen sind optional; ein als verbraucht markierter Eintrag lässt sich wiederherstellen.
+In Meine Küche Lebensmittel zum Kühlschrank, Vorratsschrank oder Gefrierfach hinzufügen. Name, Menge und Datum auf der Packung eintragen. Ein Strichcode kann verfügbare Produktdaten ergänzen. Ablauf-Erinnerungen sind optional; ein als verbraucht markierter Eintrag lässt sich wiederherstellen. Um den Vorrat mit deinem Haushalt zu teilen, öffne oben in der Liste die Vorratsoptionen und wähle Nextcloud Pantry: Jeder Ort wird einem Pantry-Inventar zugeordnet, Änderungen gehen in beide Richtungen. Verbrauchte Produkte bleiben in Pantry mit null unter „In Pantry aufgebraucht“, damit du sie auf die Einkaufsliste setzen kannst.
 
 ## Heute und die Woche planen
 
@@ -38,7 +38,7 @@ Im Einkauf die Modusauswahl öffnen. Eine lokale Liste behalten, eine geteilte A
 
 ## Daten und Verbindungen
 
-Rezepte funktionieren lokal ohne Konto. Nextcloud Cookbook verbindet die Rezeptsammlung mit dem eigenen Server. Planung, Vorräte und private Notizen bleiben für jedes Rezeptkonto getrennt auf dem Gerät; Cookbook synchronisiert sie nicht. Nur Rezepte exportieren oder eine vollständige Küchensicherung mit verfügbaren Fotos und privaten Daten erstellen.
+Rezepte funktionieren lokal ohne Konto. Nextcloud Cookbook verbindet die Rezeptsammlung mit dem eigenen Server. Planung, Vorräte und private Notizen werden nach Konto getrennt gespeichert. Sie bleiben auf dem Gerät, sofern du nicht die Küchensynchronisierung mit deinem Nextcloud-Server oder die Inventarsynchronisierung mit Pantry aktivierst. Nur Rezepte exportieren oder eine vollständige Küchensicherung mit verfügbaren Fotos und privaten Daten erstellen.
 
 Community und geteilte Listen nutzen Firebase, einschließlich einer anonymen Sitzung beim Start. Webimporte, Produktsuche und der optionale Assistent kontaktieren ihre jeweiligen Dienste. Die Spracherkennung verwendet eine unterstützte lokale Engine ohne Cloud-Ersatz.
 

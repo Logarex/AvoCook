@@ -3,10 +3,10 @@
   "NSCalendarsFullAccessUsageDescription": "AvoCook kræver kalenderadgang, fordi den deler den samme systemkomponent som påmindelser, der bruges til dine indkøbslister.",
   "NSRemindersUsageDescription": "AvoCook bruger dine påmindelser til at eksportere og synkronisere dine indkøbslister.",
   "NSRemindersFullAccessUsageDescription": "AvoCook bruger dine påmindelser til at eksportere og synkronisere dine indkøbslister.",
-  "NSPhotoLibraryUsageDescription": "Tillad adgang til billeder for at tilføje et billede til en opskrift.",
-  "NSPhotoLibraryAddUsageDescription": "Tillad at gemme opskriftsbilleder om nødvendigt.",
-  "NSLocalNetworkUsageDescription": "Tillad kun lokal netværksadgang for at oprette forbindelse til en Nextcloud-server hostet på dit netværk.",
-  "NSCameraUsageDescription": "Tillad kameraadgang for at scanne opskrifter og stregkoder på madvarer.",
-  "NSMicrophoneUsageDescription": "AvoCook bruger mikrofonen, så du kan skifte mellem opskriftstrin og starte timere med valgfrie stemmekommandoer. Lyd behandles på din enhed.",
-  "NSSpeechRecognitionUsageDescription": "Genkend madlavningskommandoer på denne enhed. Lyd sendes ikke til en server."
+  "NSPhotoLibraryUsageDescription": "Vælg et billede til en opskrift eller for at læse en fotograferet opskrift.",
+  "NSPhotoLibraryAddUsageDescription": "Gem opskriftsbilleder i dit fotobibliotek.",
+  "NSLocalNetworkUsageDescription": "Forbind AvoCook med din Nextcloud-server på det lokale netværk.",
+  "NSCameraUsageDescription": "Fotografér en opskrift, eller scan stregkoden på en madvare.",
+  "NSMicrophoneUsageDescription": "Brug stemmen til at skifte trin eller starte en timer. Stemmekommandoer er valgfrie, og lyden behandles på din enhed.",
+  "NSSpeechRecognitionUsageDescription": "Stemmekommandoer genkendes på din enhed. Lyden sendes ikke til en server."
 }

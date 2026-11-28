@@ -21,6 +21,35 @@ export type PantryItem = {
 };
 export type PantryCategory = { id: number; houseId: number; listId?: number | null; name: string };
 export type PantryItemPatch = { name?: string; quantity?: string; description?: string; categoryId?: number; rrule?: string; repeatFromCompletion?: boolean; deleteOnDone?: boolean };
+export type PantryInventory = PantryList & { kind?: "inventory"; deletedAt?: number | null; archivedAt?: number | null };
+export type PantryStockMode = "count" | "level";
+export type PantryStockLevel = "full" | "low" | "out";
+export type PantryInventoryItem = {
+  id: number;
+  listId: number;
+  name: string;
+  quantity: string | null;
+  description?: string | null;
+  barcode?: string | null;
+  stockMode?: PantryStockMode;
+  stockLevel?: PantryStockLevel;
+  stockStatus?: "ok" | "low" | "out" | "uncounted";
+  /** Midnight timestamp in seconds, in the server's timezone. */
+  expiresAt?: number | null;
+  updatedAt?: number;
+  deletedAt?: number | null;
+  archivedAt?: number | null;
+};
+/** Only the fields AvoCook owns; everything else on the item (prices, stores, labels, images…) is left untouched. */
+export type PantryInventoryItemPatch = {
+  name?: string;
+  quantity?: string;
+  barcode?: string;
+  expiresAt?: number;
+  stockLevel?: PantryStockLevel;
+  targetListId?: number;
+};
+export type PantryInventoryItemInput = { name: string; quantity?: string; barcode?: string; expiresAt?: number; stockMode?: PantryStockMode; stockLevel?: PantryStockLevel };
 export type PantryErrorCode = "auth" | "forbidden" | "unavailable" | "network" | "invalid" | "server";
 
 export class PantryError extends Error {
@@ -51,6 +80,18 @@ export function isPantryItem(value: unknown): value is PantryItem {
     typeof value.done === "boolean" &&
     (value.quantity === null || typeof value.quantity === "string") &&
     (value.description === null || typeof value.description === "string") && isPantryHouse(value);
+}
+export function isPantryInventory(value: unknown): value is PantryInventory {
+  return isPantryList(value) && (value as { kind?: unknown }).kind !== "checklist" && (value as { kind?: unknown }).kind !== "template";
+}
+const optional = (value: unknown, type: "string" | "number") => value === undefined || value === null || typeof value === type;
+export function isPantryInventoryItem(value: unknown): value is PantryInventoryItem {
+  return isRecord(value) && isId(value.id) && isId(value.listId) && typeof value.name === "string" &&
+    optional(value.quantity, "string") && optional(value.description, "string") && optional(value.barcode, "string") &&
+    (value.expiresAt === undefined || value.expiresAt === null || (typeof value.expiresAt === "number" && Number.isSafeInteger(value.expiresAt))) &&
+    (value.stockMode === undefined || value.stockMode === "count" || value.stockMode === "level") &&
+    (value.stockLevel === undefined || ["full", "low", "out"].includes(value.stockLevel as string)) &&
+    (value.stockStatus === undefined || ["ok", "low", "out", "uncounted"].includes(value.stockStatus as string));
 }
 function requireShape<T>(value: unknown, guard: (value: unknown) => value is T): T {
   if (!guard(value)) throw new PantryError("invalid");
@@ -187,6 +228,42 @@ export class PantryClient {
   async deleteItem(houseId: number, listId: number, itemId: number) {
     await this.request(`${this.listPath(houseId, listId)}/items/${pathId(itemId)}`, "DELETE");
   }
+  /* ------------------------------ Inventories ------------------------------ */
+
+  async inventories(houseId: number) {
+    const lists = await this.all(`/houses/${pathId(houseId)}/inventories`, isPantryInventory);
+    if (lists.some((list) => list.houseId !== houseId)) throw new PantryError("invalid");
+    return lists.filter((list) => !list.deletedAt && !list.archivedAt);
+  }
+  async createInventory(houseId: number, name: string, icon?: string) {
+    const list = requireShape(await this.request(`/houses/${pathId(houseId)}/inventories`, "POST", {
+      name: name.trim(), ...(icon ? { icon } : {})
+    }), isPantryInventory);
+    if (list.houseId !== houseId) throw new PantryError("invalid");
+    return list;
+  }
+  async inventoryItems(houseId: number, listId: number) {
+    const items = await this.all(`${this.inventoryPath(houseId, listId)}/items`, isPantryInventoryItem);
+    if (items.some((item) => item.listId !== listId)) throw new PantryError("invalid");
+    return items.filter((item) => !item.deletedAt && !item.archivedAt);
+  }
+  async addInventoryItem(houseId: number, listId: number, input: PantryInventoryItemInput) {
+    const item = requireShape(await this.request(`${this.inventoryPath(houseId, listId)}/items`, "POST", { ...input, name: input.name.trim() }), isPantryInventoryItem);
+    if (item.listId !== listId) throw new PantryError("invalid");
+    return item;
+  }
+  async updateInventoryItem(houseId: number, listId: number, itemId: number, patch: PantryInventoryItemPatch) {
+    const item = requireShape(await this.request(`${this.inventoryPath(houseId, listId)}/items/${pathId(itemId)}`, "PATCH", patch), isPantryInventoryItem);
+    if (item.id !== itemId || item.listId !== (patch.targetListId ?? listId)) throw new PantryError("invalid");
+    return item;
+  }
+  async deleteInventoryItem(houseId: number, listId: number, itemId: number) {
+    await this.request(`${this.inventoryPath(houseId, listId)}/items/${pathId(itemId)}`, "DELETE");
+  }
+  private inventoryPath(houseId: number, listId: number) {
+    return `/houses/${pathId(houseId)}/inventories/${pathId(listId)}`;
+  }
+
   private itemResult(data: unknown, listId: number, itemId?: number) {
     const item = requireShape(data, isPantryItem);
     if (item.listId !== listId || (itemId !== undefined && item.id !== itemId)) throw new PantryError("invalid");

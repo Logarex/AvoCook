@@ -3,6 +3,12 @@ import { KitchenHistorySection } from "./KitchenHistorySection";
 import { StockQuickAdd } from "./StockQuickAdd";
 import { stockDuplicates } from "../features/kitchen/stockInventory";
 import { StockInventoryList } from "./StockInventoryList";
+import { InventorySyncBar } from "./InventorySyncBar";
+import { InventorySyncSheet } from "./InventorySyncSheet";
+import { useIsFocused } from "@react-navigation/native";
+import { useAuth } from "../features/auth/AuthProvider";
+import { restockedItem } from "../features/pantry/inventorySync";
+import { deleteOutOfStock, useInventoryFocus, usePantryInventoryState } from "../features/pantry/usePantryInventory";
 import { DisclosureSection } from "../components/DisclosureSection";
 import { StockExpiryField } from "./StockExpiryField";
 import { StockProductLookup } from "./StockProductLookup";
@@ -40,7 +46,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Switch,
   useWindowDimensions,
   View,
 } from "react-native";
@@ -48,7 +53,7 @@ import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { AppSheet } from "../components/AppSheet";
 import { IconButton } from "../components/IconButton";
-import { ArrowLeft, ArrowRight, Pencil, ScanBarcode } from "lucide-react-native";
+import { ArrowLeft, ArrowRight, ListPlus, Pencil, ScanBarcode } from "lucide-react-native";
 import { GlassPanel } from "../components/GlassPanel";
 import { PrimaryButton } from "../components/PrimaryButton";
 import { Screen } from "../components/Screen";
@@ -181,6 +186,13 @@ function KitchenContent({ navigation, route }: Props) {
   const [quickStock, setQuickStock] = useState(false);
   const [lastSurprise, setLastSurprise] = useState<string | undefined>();
   const [usedStock, setUsedStock] = useState<StockItem | null>(null);
+  const [inventorySheet, setInventorySheet] = useState(false);
+  const inventory = usePantryInventoryState();
+  const { credentials } = useAuth();
+  const focused = useIsFocused();
+  useInventoryFocus(focused && tab === "stock");
+  const inventoryReadOnly = (item: StockItem) => Boolean(inventory.config && item.pantry &&
+    Object.values(inventory.config.locations).some((target) => target.id === item.pantry?.listId && !target.canEdit));
   const incomingProduct = route.params && "product" in route.params ? route.params.product : undefined;
   useEffect(() => {
     if (!incomingProduct || !kitchen.ready) return;
@@ -790,13 +802,7 @@ function KitchenContent({ navigation, route }: Props) {
               )}
               {tab === "stock" && (
                 <>
-                  <View style={[styles.reminderCompact, { backgroundColor: colors.backgroundElevated, borderColor: colors.border }]}>
-                    <View style={{ flex: 1, minWidth: 0 }}>
-                      <AppText variant="label">{t("kitchen.stockReminders")}</AppText>
-                      <AppText muted variant="caption">{t("kitchen.reminderSchedule")}</AppText>
-                    </View>
-                    <Switch accessibilityLabel={t("kitchen.stockReminders")} accessibilityHint={t("kitchen.reminderShort")} value={Boolean(kitchen.data.remindersEnabled)} disabled={busy} onValueChange={toggleStockReminders} trackColor={{ true: colors.primary }} />
-                  </View>
+                  <InventorySyncBar onPress={() => setInventorySheet(true)} />
                   <View style={[styles.stockActions, { backgroundColor: colors.backgroundElevated, borderColor: colors.border }]}>
                     <Pressable accessibilityRole="button" accessibilityLabel={t("kitchen.scanProduct")}
                       style={({ pressed }) => [styles.stockAction, { backgroundColor: pressed ? colors.chip : "transparent" }]}
@@ -817,10 +823,29 @@ function KitchenContent({ navigation, route }: Props) {
                       <Pencil size={20} color={colors.primaryStrong} />
                       <AppText variant="label" style={styles.stockActionLabel}>{t("kitchen.manualShort")}</AppText>
                     </Pressable>
+                    <View style={[styles.stockActionDivider, { backgroundColor: colors.border }]} />
+                    <Pressable accessibilityRole="button" accessibilityLabel={t("kitchen.quickStock")}
+                      style={({ pressed }) => [styles.stockAction, { backgroundColor: pressed ? colors.chip : "transparent" }]}
+                      onPress={() => setQuickStock(true)}>
+                      <ListPlus size={21} color={colors.primaryStrong} />
+                      <AppText variant="label" style={styles.stockActionLabel}>{t("inventorySync.listShort")}</AppText>
+                    </Pressable>
                   </View>
-                  <PrimaryButton compact variant="ghost" label={t("kitchen.quickStock")} onPress={() => setQuickStock(true)} />
                   <StockInventoryList
                     items={kitchen.data.stock} today={today} busy={busy}
+                    isReadOnly={inventoryReadOnly}
+                    out={inventory.config ? inventory.out.filter((item) => !kitchen.data.stock.some((entry) => entry.pantry?.itemId === item.itemId)) : []}
+                    onRestock={(item) => { setScanStock(false); setStock(restockedItem(item)); }}
+                    onBuy={(item) => {
+                      void run(async () => {
+                        await shopping.addItem(item.quantity ? `${item.quantity} ${item.name}` : item.name);
+                        Alert.alert(t("inventorySync.addedToShopping", { name: item.name }));
+                      });
+                    }}
+                    onDeleteOut={(item) => {
+                      if (!credentials) return;
+                      void run(() => deleteOutOfStock(credentials, kitchen.account, item));
+                    }}
                     onLocationChange={setStockLocation}
                     onEdit={(item) => { setScanStock(false); setStock(item); }}
                     onIdeas={(item) => navigation.navigate("Planning", { section: "tonight", ingredients: item.name })}
@@ -1277,9 +1302,10 @@ function KitchenContent({ navigation, route }: Props) {
             )}
           </AppSheet>
           {quickStock && <StockQuickAdd location={stockLocation} onClose={() => setQuickStock(false)} />}
+          <InventorySyncSheet visible={inventorySheet} onClose={() => setInventorySheet(false)} remindersBusy={busy} onToggleReminders={toggleStockReminders} />
           <AppSheet
             visible={stock !== null}
-            title={t("kitchen.addStock")}
+            title={t(stock && kitchen.data.stock.some((item) => item.id === stock.id) ? "kitchen.edit" : stock?.pantry ? "inventorySync.restockTitle" : "kitchen.addStock")}
             busy={busy}
             onClose={() => setStock(null)}
           >
@@ -1299,6 +1325,13 @@ function KitchenContent({ navigation, route }: Props) {
                   <AppText muted variant="caption">{t("kitchen.stockDuplicateHelp")}</AppText>
                 </View>}
                 <StockProductScores item={stock} />
+                {stock.pantry?.level ? (
+                  <SegmentedControl
+                    options={(["full", "low"] as const).map((value) => ({ value, label: t(`inventorySync.level_${value}`) }))}
+                    value={stock.pantry.level}
+                    onChange={(level) => setStock({ ...stock, pantry: { ...stock.pantry!, level: level as "full" | "low" } })}
+                  />
+                ) : (
                 <DisclosureSection title={`${t("kitchen.quantity")}${stock.quantity ? ` · ${stock.quantity}` : ""}`}>
                 <TextField
                   label={t("kitchen.quantity")}
@@ -1306,6 +1339,7 @@ function KitchenContent({ navigation, route }: Props) {
                   onChangeText={(quantity) => setStock({ ...stock, quantity })}
                 />
                 </DisclosureSection>
+                )}
                 <StockExpiryField value={stock.expires} onChange={(expires) => setStock({ ...stock, expires })} />
                 <SegmentedControl
                   options={(["fridge", "cupboard", "freezer"] as const).map((value) => ({ value, label: t(`kitchen.${value}`) }))}
@@ -1466,7 +1500,6 @@ const styles = StyleSheet.create({
   stockAction: { flex: 1, minWidth: 0, minHeight: 56, paddingVertical: 12, paddingHorizontal: 12, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
   stockActionLabel: { flexShrink: 1, fontSize: 16 },
   stockActionDivider: { width: StyleSheet.hairlineWidth, height: 24 },
-  reminderCompact: { flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 12, paddingVertical: 8, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14 },
   undoStock: { flexDirection: "row", alignItems: "center", gap: 12, paddingLeft: 12, paddingRight: 4, borderRadius: 12 },
   undoAction: { minHeight: 44, justifyContent: "center", paddingHorizontal: 12 },
   reminderSetting: { flexDirection: "row", alignItems: "center", gap: 12, minHeight: 44 },

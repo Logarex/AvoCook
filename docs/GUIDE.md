@@ -8,7 +8,7 @@ In recipe text, use `**bold**`, `*italic*` and links such as `[https://example.c
 
 ## Keep track of your food
 
-Open My kitchen and add food to the fridge, pantry or freezer. Enter the name and quantity, then the date printed on the pack. You can scan a barcode to fill available product information. Enable expiry reminders if you want them; marking food as used can be undone.
+Open My kitchen and add food to the fridge, pantry or freezer. Enter the name and quantity, then the date printed on the pack. You can scan a barcode to fill available product information. Enable expiry reminders if you want them; marking food as used can be undone. To share the inventory with your household, open the inventory options at the top of the list and choose Nextcloud Pantry: each place is matched to a Pantry inventory and changes go both ways. Used-up products stay in Pantry at zero, listed under “Used up in Pantry”, so you can add them to the shopping list.
 
 ## Plan today and the week
 
@@ -38,7 +38,7 @@ In Shopping, open the mode selector. Keep a local list, create or join an AvoCoo
 
 ## Your data and connections
 
-Recipes work locally without creating an account. Connect Nextcloud Cookbook if you want to sync recipes with your own server. Planning, stock and private notes stay on the device, separately for each recipe account; they are not synced by Cookbook. Export recipes alone or make a complete kitchen backup with available photos and private data.
+Recipes work locally without creating an account. Connect Nextcloud Cookbook if you want to sync recipes with your own server. Meal plans, stock and private notes are kept separately for each account. They stay on the device unless you turn on My kitchen sync with your Nextcloud server or inventory sync with Pantry. Export recipes alone or make a complete kitchen backup with available photos and private data.
 
 Community and shared lists use Firebase, including an anonymous session at startup. Web imports, product lookup and the optional assistant contact their respective services. Voice recognition uses a compatible on-device engine, without a cloud fallback.
 

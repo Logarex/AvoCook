@@ -8,7 +8,7 @@ Dans les textes des recettes, utilisez `**gras**`, `*italique*` et des liens com
 
 ## Gardez un œil sur vos réserves
 
-Ouvrez Ma cuisine et ajoutez un aliment au frigo, au placard ou au congélateur. Indiquez son nom, sa quantité et la date du paquet. Le code-barres peut remplir les informations produit disponibles. Activez les rappels de péremption si vous le souhaitez ; vous pouvez annuler une consommation enregistrée.
+Ouvrez Ma cuisine et ajoutez un aliment au frigo, au placard ou au congélateur. Indiquez son nom, sa quantité et la date du paquet. Le code-barres peut remplir les informations produit disponibles. Activez les rappels de péremption si vous le souhaitez ; vous pouvez annuler une consommation enregistrée. Pour partager l’inventaire avec votre foyer, ouvrez les options en haut de la liste et choisissez Nextcloud Pantry : chaque rangement est associé à un inventaire Pantry et les changements passent dans les deux sens. Les produits utilisés restent dans Pantry à zéro, dans « Épuisés dans Pantry », pour les ajouter à la liste de courses.
 
 ## Préparez vos repas du jour et de la semaine
 
@@ -38,7 +38,7 @@ Dans Courses, ouvrez le choix du mode. Gardez une liste locale, créez ou rejoig
 
 ## Vos données et vos connexions
 
-Les recettes fonctionnent en local sans créer de compte. Connectez Nextcloud Cookbook pour synchroniser les recettes avec votre serveur. Planning, réserves et notes privées restent sur l’appareil, séparément pour chaque compte de recettes ; Cookbook ne les synchronise pas. Exportez seulement les recettes ou créez une sauvegarde complète avec les photos disponibles et les données privées de votre cuisine.
+Les recettes fonctionnent en local sans créer de compte. Connectez Nextcloud Cookbook pour synchroniser les recettes avec votre serveur. Le planning, les réserves et les notes privées sont séparés par compte. Ils restent sur l’appareil, sauf si vous activez la synchronisation de Ma cuisine avec votre serveur Nextcloud ou celle des inventaires avec Pantry. Exportez seulement les recettes ou créez une sauvegarde complète avec les photos disponibles et les données privées de votre cuisine.
 
 La communauté et les listes partagées utilisent Firebase, avec une session anonyme au démarrage. Les imports web, la recherche de produits et l’assistant facultatif contactent leurs services respectifs. La reconnaissance vocale utilise un moteur local compatible, sans relais dans le cloud.
 

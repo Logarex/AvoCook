@@ -18,7 +18,7 @@ Les rappels de stocks facultatifs sont programmés sur l’appareil. Les noms de
 
 ## Recettes, Nextcloud et sauvegardes
 
-Les recettes et photos locales sont conservées sur votre appareil. Elles sont transmises lorsque vous choisissez de les synchroniser, partager, exporter ou publier. Avec Nextcloud Cookbook ou Pantry, les échanges se font directement avec le serveur choisi. Les copies Pantry et les transferts en cours sont séparés par compte Nextcloud. La déconnexion ne copie pas automatiquement les articles Pantry dans la liste locale.
+Les recettes et photos locales sont conservées sur votre appareil. Elles sont transmises lorsque vous choisissez de les synchroniser, partager, exporter ou publier. Avec Nextcloud Cookbook ou Pantry, les échanges se font directement avec le serveur choisi. Les copies Pantry et les transferts en cours sont séparés par compte Nextcloud. La déconnexion ne copie pas automatiquement les articles Pantry dans la liste locale. Avec la synchronisation d’inventaire Pantry, votre inventaire (noms, quantités, dates, codes-barres et rangements) est échangé avec les inventaires Pantry choisis et visible par ce foyer ; les informations nutritionnelles d’Open Food Facts restent sur l’appareil.
 
 Les identifiants Nextcloud et les clés API d’IA sont conservés dans le stockage sécurisé du système via Expo SecureStore. Les recettes, photos et préférences ordinaires utilisent SQLite, des fichiers ou le stockage de l’application. iOS peut conserver le stockage sécurisé après une réinstallation ; une sauvegarde de l’appareil peut aussi restaurer des données. Exportez vos recettes avant de désinstaller l’application.
 

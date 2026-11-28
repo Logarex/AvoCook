@@ -18,7 +18,7 @@ På iPhone læser I dag-widgetten et kort resumé (dagens måltider, nogle varer
 
 ## Opskrifter, Nextcloud og sikkerhedskopier
 
-Lokale opskrifter og billeder gemmes på enheden. De overføres, når du vælger at synkronisere, dele, eksportere eller udgive dem. Nextcloud Cookbook og Pantry udveksler data direkte med den valgte server. Pantry-kopier og igangværende overførsler gemmes separat for hver Nextcloud-konto. Når du logger ud, kopieres Pantry-varer ikke automatisk til den lokale liste.
+Lokale opskrifter og billeder gemmes på enheden. De overføres, når du vælger at synkronisere, dele, eksportere eller udgive dem. Nextcloud Cookbook og Pantry udveksler data direkte med den valgte server. Pantry-kopier og igangværende overførsler gemmes separat for hver Nextcloud-konto. Når du logger ud, kopieres Pantry-varer ikke automatisk til den lokale liste. Med Pantry-lagersynkronisering udveksles dit lager (navne, mængder, datoer, stregkoder og steder) med de valgte Pantry-lagre og er synligt for den husstand; ernæringsoplysninger fra Open Food Facts bliver på enheden.
 
 Nextcloud-loginoplysninger og AI-API-nøgler gemmes i systemets sikre lager via Expo SecureStore. Opskrifter, billeder og almindelige indstillinger bruger SQLite, filer eller appens lager. iOS kan bevare sikre data efter geninstallation; sikkerhedskopier af enheden kan også gendanne data. Eksportér dine opskrifter, før du afinstallerer.
 

@@ -18,7 +18,7 @@ Auf dem iPhone liest das Heute-Widget eine kurze Zusammenfassung (heutige Mahlze
 
 ## Rezepte, Nextcloud und Sicherungen
 
-Lokale Rezepte und Fotos bleiben auf deinem Gerät. Sie werden übertragen, wenn du sie synchronisierst, teilst, exportierst oder veröffentlichst. Nextcloud Cookbook und Pantry tauschen Daten direkt mit deinem gewählten Server aus. Pantry-Kopien und laufende Übertragungen werden nach Nextcloud-Konto getrennt gespeichert. Beim Abmelden werden Pantry-Artikel nicht automatisch in die lokale Liste kopiert.
+Lokale Rezepte und Fotos bleiben auf deinem Gerät. Sie werden übertragen, wenn du sie synchronisierst, teilst, exportierst oder veröffentlichst. Nextcloud Cookbook und Pantry tauschen Daten direkt mit deinem gewählten Server aus. Pantry-Kopien und laufende Übertragungen werden nach Nextcloud-Konto getrennt gespeichert. Beim Abmelden werden Pantry-Artikel nicht automatisch in die lokale Liste kopiert. Mit der Pantry-Vorratssynchronisierung wird dein Vorrat (Namen, Mengen, Daten, Strichcodes und Orte) mit den gewählten Pantry-Inventaren ausgetauscht und ist für diesen Haushalt sichtbar; Nährwertangaben von Open Food Facts bleiben auf dem Gerät.
 
 Nextcloud-Zugangsdaten und KI-API-Schlüssel liegen über Expo SecureStore im sicheren Systemspeicher. Rezepte, Fotos und gewöhnliche Einstellungen verwenden SQLite, Dateien oder den App-Speicher. iOS kann sichere Daten nach einer Neuinstallation behalten; Gerätesicherungen können Daten wiederherstellen. Exportiere deine Rezepte vor der Deinstallation.
 

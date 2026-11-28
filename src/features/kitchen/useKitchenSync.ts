@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AppState } from "react-native";
 import { useAuth } from "../auth/AuthProvider";
 import type { KitchenData } from "./kitchen";
+import { usePantryInventoryState } from "../pantry/usePantryInventory";
 import {
   applySyncedKitchen,
   mergeSyncedKitchen,
@@ -70,6 +71,11 @@ export function useKitchenSync(store: Store) {
   const running = useRef<Promise<void> | null>(null);
   const again = useRef(false);
   const { account, ready, data } = store;
+  // With Pantry inventory sync on, Pantry owns the stock: My kitchen sync leaves it out on both sides.
+  const inventory = usePantryInventoryState();
+  const pantryStock = inventory.account === account && Boolean(inventory.config);
+  const pantryStockRef = useRef(pantryStock);
+  pantryStockRef.current = pantryStock;
   const available = Boolean(client) && ready && !["loading", "signed-out", "local"].includes(account);
 
   useEffect(() => {
@@ -103,11 +109,15 @@ export function useKitchenSync(store: Store) {
           const snapshot = latest.current.data;
           const rawBase = await AsyncStorage.getItem(baseKey(account));
           const base = rawBase ? (JSON.parse(rawBase) as SyncedKitchen) : null;
-          const sent = syncedPart(snapshot);
+          const withoutStock = pantryStockRef.current;
+          // Sending the last common stock means "unchanged here", so the remote file keeps its own.
+          const sent = withoutStock ? { ...syncedPart(snapshot), stock: base?.stock ?? [] } : syncedPart(snapshot);
           const { merged } = await syncKitchenWithRemote(client, sent, base);
           // Edits made while the request was running are merged on top instead of being lost.
           await latest.current.update((current) => {
-            const next = mergeSyncedKitchen(sent, syncedPart(current), merged);
+            const mine = withoutStock ? { ...syncedPart(current), stock: sent.stock } : syncedPart(current);
+            const combined = mergeSyncedKitchen(sent, mine, merged);
+            const next = withoutStock ? { ...combined, stock: current.stock } : combined;
             return JSON.stringify(next) === JSON.stringify(syncedPart(current))
               ? current
               : applySyncedKitchen(current, next);
@@ -150,7 +160,9 @@ export function useKitchenSync(store: Store) {
     };
   }, [account]);
 
-  const signature = available && enabled ? JSON.stringify(syncedPart(data)) : "";
+  const signature = available && enabled
+    ? JSON.stringify(pantryStock ? { ...syncedPart(data), stock: [] } : syncedPart(data))
+    : "";
   const first = useRef(true);
   useEffect(() => {
     if (!signature) return;

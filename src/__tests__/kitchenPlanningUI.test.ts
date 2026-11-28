@@ -10,7 +10,7 @@ vi.mock("react-native", () => ({ Platform: { OS: "ios" }, View: "View", Pressabl
 vi.mock("react-native-reanimated", () => ({ default: { View: "AnimatedView" }, useSharedValue: (value: unknown) => ({ value }), useAnimatedStyle: () => ({}) }));
 vi.mock("react-native-safe-area-context", () => ({ useSafeAreaInsets: () => ({ bottom: 0 }) }));
 vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key: string) => key, i18n: { language: "fr" } }) }));
-vi.mock("lucide-react-native", () => Object.fromEntries(["ArrowLeft", "ArrowRight", "Wrench", "Pencil", "ScanBarcode", "ChevronDown", "Check"].map((key) => [key, key])));
+vi.mock("lucide-react-native", () => Object.fromEntries(["ArrowLeft", "ArrowRight", "Wrench", "Pencil", "ScanBarcode", "ChevronDown", "Check", "ListPlus"].map((key) => [key, key])));
 vi.mock("../theme/ThemeProvider", () => ({ useAppTheme: () => ({ colors: {} }) }));
 vi.mock("../features/kitchen/KitchenProvider", () => ({ useKitchen: () => ({ data: mocks.data, update: mocks.update, ready: true, account: "local" }) }));
 vi.mock("../features/recipes/RecipesProvider", () => ({ useRecipes: () => ({ recipes: mocks.emptyRecipes ? [] : [{ ...createEmptyRecipe(), id: "r", name: "Soupe", recipeIngredient: ["200 g carottes"] }], loading: mocks.loading }) }));
@@ -38,6 +38,11 @@ vi.mock("../screens/StockExpiryField", () => ({ StockExpiryField: "Date" }));
 vi.mock("../screens/StockProductLookup", () => ({ StockProductLookup: "Lookup" }));
 vi.mock("../screens/StockProductScores", () => ({ StockProductScores: "Scores" }));
 vi.mock("../screens/StockQuickAdd", () => ({ StockQuickAdd: "QuickAdd" }));
+vi.mock("../screens/InventorySyncBar", () => ({ InventorySyncBar: "InventorySyncBar" }));
+vi.mock("../screens/InventorySyncSheet", () => ({ InventorySyncSheet: "InventorySyncSheet" }));
+vi.mock("../features/pantry/usePantryInventory", () => ({ usePantryInventoryState: () => ({ config: null, out: [] }), useInventoryFocus: () => undefined, deleteOutOfStock: vi.fn() }));
+vi.mock("../features/auth/AuthProvider", () => ({ useAuth: () => ({ credentials: null, isLocalMode: true }) }));
+vi.mock("@react-navigation/native", () => ({ useIsFocused: () => true }));
 let screen: ReactTestRenderer;
 beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);

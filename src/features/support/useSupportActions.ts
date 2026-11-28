@@ -10,7 +10,7 @@ export function useSupportActions() {
       if (url.startsWith("mailto:")) {
         Alert.alert(
           t("support.emailFailedTitle", "No email app found"),
-          t("support.emailFailedBody", "We couldn't open an email app. You can reach us at contact@nephoos.com")
+          t("support.emailFailedBody", "No email app could be opened. You can write to me at contact@nephoos.com.")
         );
       }
     });

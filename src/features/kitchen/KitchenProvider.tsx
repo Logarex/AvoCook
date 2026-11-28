@@ -15,6 +15,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { createKitchenStore } from "./kitchenStore";
 import { useAutomaticBackup } from "./useAutomaticBackup";
 import { useKitchenSync } from "./useKitchenSync";
+import { usePantryInventorySync } from "../pantry/usePantryInventory";
 import { AppleSurfaces } from "./AppleSurfaces";
 
 const Context = createContext<ReturnType<typeof createKitchenStore> | null>(
@@ -44,6 +45,7 @@ function KitchenBackgroundTasks() {
   const kitchen = useKitchen();
   useAutomaticBackup(kitchen.account, kitchen.ready, kitchen.data);
   useKitchenSync(kitchen);
+  usePantryInventorySync(kitchen);
   return <AppleSurfaces account={kitchen.account} ready={kitchen.ready} data={kitchen.data} />;
 }
 function StockReminderSync() {

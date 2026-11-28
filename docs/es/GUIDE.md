@@ -8,7 +8,7 @@ En los textos de las recetas puedes usar `**negrita**`, `*cursiva*` y enlaces co
 
 ## Controla tus alimentos
 
-Abre Mi cocina y añade alimentos a la nevera, despensa o congelador. Indica nombre, cantidad y fecha del envase. Un código de barras puede completar datos del producto. Activa los avisos de caducidad si quieres; puedes deshacer una marca de alimento consumido.
+Abre Mi cocina y añade alimentos a la nevera, despensa o congelador. Indica nombre, cantidad y fecha del envase. Un código de barras puede completar datos del producto. Activa los avisos de caducidad si quieres; puedes deshacer una marca de alimento consumido. Para compartir el inventario con tu hogar, abre las opciones en la parte superior de la lista y elige Nextcloud Pantry: cada lugar se asocia a un inventario de Pantry y los cambios van en ambos sentidos. Los productos utilizados quedan en Pantry a cero, en «Agotados en Pantry», para añadirlos a la lista de la compra.
 
 ## Planifica hoy y la semana
 
@@ -38,7 +38,7 @@ En Compra, abre el selector de modo. Conserva una lista local, crea o únete a u
 
 ## Tus datos y conexiones
 
-Las recetas funcionan localmente sin crear una cuenta. Conecta Nextcloud Cookbook para sincronizarlas con tu servidor. El plan, los alimentos y las notas privadas se guardan en el dispositivo, separados por cuenta de recetas; Cookbook no los sincroniza. Exporta solo las recetas o crea una copia completa con las fotos disponibles y los datos privados de tu cocina.
+Las recetas funcionan localmente sin crear una cuenta. Conecta Nextcloud Cookbook para sincronizarlas con tu servidor. El menú, las existencias y las notas privadas se guardan por separado para cada cuenta. Se quedan en el dispositivo salvo que actives la sincronización de Mi cocina con tu servidor Nextcloud o la de inventarios con Pantry. Exporta solo las recetas o crea una copia completa con las fotos disponibles y los datos privados de tu cocina.
 
 La comunidad y las listas compartidas usan Firebase, con una sesión anónima al iniciar. Los enlaces web, la búsqueda de productos y el asistente opcional usan sus respectivos servicios. La voz utiliza un motor local compatible, sin recurrir a la nube.
 

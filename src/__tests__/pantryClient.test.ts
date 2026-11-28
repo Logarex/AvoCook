@@ -112,3 +112,49 @@ describe("Pantry OCS client", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("Pantry inventories", () => {
+  const inventory = { id: 5, houseId: 1, name: "Fridge", kind: "inventory", canEdit: true };
+  const stockItem = { id: 7, listId: 5, name: "Milk", quantity: "2", barcode: null, stockMode: "count", stockLevel: "full", stockStatus: "ok", expiresAt: 1796083200 };
+  it("lists active inventories and their items on the inventory endpoints", async () => {
+    fetchMock
+      .mockResolvedValueOnce(ocs([inventory, { ...inventory, id: 6, archivedAt: 1 }]))
+      .mockResolvedValueOnce(ocs([stockItem, { ...stockItem, id: 8, deletedAt: 1 }]));
+    const client = new PantryClient(credentials);
+    expect(await client.inventories(1)).toEqual([inventory]);
+    expect(await client.inventoryItems(1, 5)).toEqual([stockItem]);
+    expect(fetchMock.mock.calls[0][0]).toContain("/apps/pantry/api/houses/1/inventories?limit=100");
+    expect(fetchMock.mock.calls[1][0]).toContain("/apps/pantry/api/houses/1/inventories/5/items?limit=100");
+  });
+  it("creates, patches, moves and deletes inventory items with narrow bodies", async () => {
+    fetchMock
+      .mockResolvedValueOnce(ocs(inventory))
+      .mockResolvedValueOnce(ocs(stockItem))
+      .mockResolvedValueOnce(ocs({ ...stockItem, listId: 6, quantity: "0", stockStatus: "out" }))
+      .mockResolvedValueOnce(ocs(null));
+    const client = new PantryClient(credentials);
+    await client.createInventory(1, " Fridge ", "basket");
+    await client.addInventoryItem(1, 5, { name: " Milk ", quantity: "2", expiresAt: 1796083200 });
+    await client.updateInventoryItem(1, 5, 7, { quantity: "0", targetListId: 6 });
+    await client.deleteInventoryItem(1, 6, 7);
+    const bodies = fetchMock.mock.calls.map(([url, options]) => [String(url).split("/api")[1].split("?")[0], options?.method, options?.body]);
+    expect(bodies).toEqual([
+      ["/houses/1/inventories", "POST", JSON.stringify({ name: "Fridge", icon: "basket" })],
+      ["/houses/1/inventories/5/items", "POST", JSON.stringify({ name: "Milk", quantity: "2", expiresAt: 1796083200 })],
+      ["/houses/1/inventories/5/items/7", "PATCH", JSON.stringify({ quantity: "0", targetListId: 6 })],
+      ["/houses/1/inventories/6/items/7", "DELETE", undefined],
+    ]);
+  });
+  it("rejects items from another inventory and malformed stock fields", async () => {
+    const client = new PantryClient(credentials);
+    fetchMock.mockResolvedValueOnce(ocs([{ ...stockItem, listId: 9 }])).mockResolvedValueOnce(ocs([{ ...stockItem, stockMode: "weight" }]));
+    await expect(client.inventoryItems(1, 5)).rejects.toMatchObject({ code: "invalid" });
+    await expect(client.inventoryItems(1, 5)).rejects.toMatchObject({ code: "invalid" });
+    fetchMock.mockResolvedValueOnce(ocs(stockItem));
+    await expect(client.updateInventoryItem(1, 5, 7, { targetListId: 6 })).rejects.toMatchObject({ code: "invalid" });
+  });
+  it("reports servers without inventories as unavailable", async () => {
+    fetchMock.mockResolvedValueOnce(new Response("", { status: 404 }));
+    await expect(new PantryClient(credentials).inventories(1)).rejects.toMatchObject({ code: "unavailable" });
+  });
+});

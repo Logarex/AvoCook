@@ -8,7 +8,7 @@ I opskriftstekster kan du bruge `**fed**`, `*kursiv*` og links som `[https://exa
 
 ## Hold styr på dine madvarer
 
-Åbn Mit køkken, og tilføj madvarer til køleskab, skab eller fryser. Angiv navn, mængde og datoen på pakken. En stregkode kan udfylde tilgængelige varedata. Slå påmindelser til, hvis du ønsker det; en vare markeret som brugt kan gendannes.
+Åbn Mit køkken, og tilføj madvarer til køleskab, skab eller fryser. Angiv navn, mængde og datoen på pakken. En stregkode kan udfylde tilgængelige varedata. Slå påmindelser til, hvis du ønsker det; en vare markeret som brugt kan gendannes. For at dele lageret med din husstand skal du åbne indstillingerne øverst på listen og vælge Nextcloud Pantry: hvert sted knyttes til et Pantry-lager, og ændringer går begge veje. Brugte varer bliver i Pantry med nul under “Brugt op i Pantry”, så du kan føje dem til indkøbslisten.
 
 ## Planlæg i dag og resten af ugen
 
@@ -38,7 +38,7 @@ Den valgfrie assistent bruger din valgte udbyder og API-nøgle. Indtast ingredie
 
 ## Dine data og forbindelser
 
-Opskrifter fungerer lokalt uden at oprette en konto. Forbind Nextcloud Cookbook for at synkronisere dem med din server. Madplan, forråd og private noter bliver på enheden, adskilt efter opskriftskonto; Cookbook synkroniserer dem ikke. Eksporter kun opskrifter, eller lav en komplet sikkerhedskopi med tilgængelige fotos og private køkkendata.
+Opskrifter fungerer lokalt uden at oprette en konto. Forbind Nextcloud Cookbook for at synkronisere dem med din server. Madplan, lager og private noter gemmes separat for hver konto. De bliver på enheden, medmindre du slår køkkensynkronisering med din Nextcloud-server eller lagersynkronisering med Pantry til. Eksporter kun opskrifter, eller lav en komplet sikkerhedskopi med tilgængelige fotos og private køkkendata.
 
 Fællesskab og delte lister bruger Firebase med en anonym session ved opstart. Webimport, varesøgning og den valgfrie assistent bruger deres respektive tjenester. Talegenkendelse bruger en understøttet lokal motor uden cloud-reserve.
 

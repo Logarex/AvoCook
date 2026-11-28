@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
-import { Archive, Check, ChevronDown, Pencil, Refrigerator, Snowflake, Utensils } from "lucide-react-native";
+import { AlertTriangle, Archive, Check, ChevronDown, Lock, PackageCheck, Pencil, Refrigerator, ShoppingCart, Snowflake, Trash2, Utensils } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
 import { AppText } from "../components/AppText";
 import { PrimaryButton } from "../components/PrimaryButton";
@@ -9,10 +9,20 @@ import { shiftDate, type StockItem } from "../features/kitchen/kitchen";
 import { stockGroups, stockLocations, type StockFilter } from "../features/kitchen/stockInventory";
 import { useAppTheme } from "../theme/ThemeProvider";
 import { StockProductScores } from "./StockProductScores";
+import { DisclosureSection } from "../components/DisclosureSection";
+import { IconButton } from "../components/IconButton";
+import type { OutOfStockItem } from "../features/pantry/inventorySync";
 const locationIcons = { fridge: Refrigerator, cupboard: Archive, freezer: Snowflake };
 
-export function StockInventoryList({ items, today, busy, onEdit, onUse, onIdeas, onLocationChange, readOnly = false }: {
+export function StockInventoryList({ items, today, busy, onEdit, onUse, onIdeas, onLocationChange, readOnly = false, isReadOnly, out = [], onRestock, onBuy, onDeleteOut }: {
   readOnly?: boolean;
+  /** Items Pantry does not let this account change. */
+  isReadOnly?: (item: StockItem) => boolean;
+  /** Pantry products used up by the household, kept apart from what is at home. */
+  out?: OutOfStockItem[];
+  onRestock?: (item: OutOfStockItem) => void;
+  onBuy?: (item: OutOfStockItem) => void;
+  onDeleteOut?: (item: OutOfStockItem) => void;
   items: StockItem[];
   today: string;
   busy: boolean;
@@ -26,14 +36,43 @@ export function StockInventoryList({ items, today, busy, onEdit, onUse, onIdeas,
   const [filter, setFilter] = useState<StockFilter>("all");
   const [query, setQuery] = useState("");
   const [limit, setLimit] = useState(20);
+  const soonLimit = shiftDate(today, 3);
   const counts = useMemo(() => {
-    const result = { fridge: 0, cupboard: 0, freezer: 0 };
-    for (const item of items) result[item.location]++;
+    const result = { fridge: 0, cupboard: 0, freezer: 0, soon: 0 };
+    for (const item of items) {
+      result[item.location]++;
+      if (item.expires && item.expires <= soonLimit) result.soon++;
+    }
     return result;
-  }, [items]);
+  }, [items, soonLimit]);
   const [expanded, setExpanded] = useState<string | null>(null);
-  const groups = useMemo(() => stockGroups(items, query, filter, i18n.language), [items, query, filter, i18n.language]);
-  if (!items.length) return <AppText muted>{t("kitchen.emptyStock")}</AppText>;
+  const [soonOnly, setSoonOnly] = useState(false);
+  const groups = useMemo(
+    () => stockGroups(soonOnly ? items.filter((item) => !!item.expires && item.expires <= soonLimit) : items, query, filter, i18n.language),
+    [items, query, filter, i18n.language, soonOnly, soonLimit],
+  );
+  const outSection = out.length ? (
+    <DisclosureSection title={`${t("inventorySync.outTitle")} · ${out.length}`}>
+      <AppText muted variant="caption">{t("inventorySync.outBody")}</AppText>
+      <View style={[styles.list, { backgroundColor: colors.backgroundElevated, borderColor: colors.border }]}>
+        {out.map((item, index) => (
+          <View key={item.itemId} style={[styles.outRow, index ? { borderTopWidth: StyleSheet.hairlineWidth, borderColor: colors.border } : null]}>
+            <View style={styles.productCopy}>
+              <AppText variant="label">{item.name}</AppText>
+              <AppText muted variant="caption">{t(`kitchen.${item.location}`)}</AppText>
+            </View>
+            {!readOnly && <View style={styles.outActions}>
+              {onBuy && <IconButton icon={ShoppingCart} label={t("inventorySync.buy", { name: item.name })} disabled={busy} onPress={() => onBuy(item)} />}
+              {onRestock && <IconButton icon={PackageCheck} label={t("inventorySync.restock", { name: item.name })} disabled={busy} onPress={() => onRestock(item)} />}
+              {onDeleteOut && <IconButton icon={Trash2} tone="danger" label={t("inventorySync.deleteOut", { name: item.name })} disabled={busy}
+                onPress={() => Alert.alert(item.name, t("inventorySync.deleteOutConfirm"), [{ text: t("common.cancel"), style: "cancel" }, { text: t("kitchen.remove"), style: "destructive", onPress: () => onDeleteOut(item) }])} />}
+            </View>}
+          </View>
+        ))}
+      </View>
+    </DisclosureSection>
+  ) : null;
+  if (!items.length) return <View style={styles.content}><AppText muted>{t("kitchen.emptyStock")}</AppText>{outSection}</View>;
   return (
     <View style={styles.content}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
@@ -50,6 +89,15 @@ export function StockInventoryList({ items, today, busy, onEdit, onUse, onIdeas,
             </Pressable>
           );
         })}
+        {(counts.soon > 0 || soonOnly) && (
+          <Pressable accessibilityRole="switch" accessibilityState={{ checked: soonOnly }} accessibilityLabel={`${t("inventorySync.soonFilter")} · ${counts.soon}`}
+            onPress={() => { setSoonOnly((value) => !value); setLimit(20); setExpanded(null); }}
+            style={({ pressed }) => [styles.filter, { backgroundColor: soonOnly ? colors.chip : colors.backgroundElevated, borderColor: soonOnly ? colors.warning : colors.border, opacity: pressed ? 0.7 : 1 }]}>
+            <AlertTriangle size={14} color={colors.warning} />
+            <AppText variant="caption" style={{ color: soonOnly ? colors.text : colors.textMuted }}>{t("inventorySync.soonFilter")}</AppText>
+            <AppText muted variant="caption">{counts.soon}</AppText>
+          </Pressable>
+        )}
       </ScrollView>
       {(items.length > 5 || query) && <TextField hideLabel label={t("common.search")} placeholder={t("common.search")} value={query} onChangeText={(value) => { setQuery(value); setLimit(20); setExpanded(null); }} />}
       {!groups.length && <AppText muted accessibilityLiveRegion="polite">{t("kitchen.noFoodFound")}</AppText>}
@@ -70,14 +118,20 @@ export function StockInventoryList({ items, today, busy, onEdit, onUse, onIdeas,
                 const dateColor = expired ? colors.danger : soon ? colors.warning : colors.textMuted;
                 const date = item.expires ? new Date(`${item.expires}T12:00:00`).toLocaleDateString(i18n.language, { day: "numeric", month: "short", ...(item.expires.slice(0, 4) !== today.slice(0, 4) ? { year: "numeric" as const } : {}) }) : t("kitchen.noExpiry");
                 const status = expired ? `${t("kitchen.expiredShort")} · ${date}` : soon ? `${t("kitchen.soonShort")} · ${date}` : date;
+                const locked = readOnly || Boolean(isReadOnly?.(item));
+                const amount = item.pantry?.level ? t(`inventorySync.level_${item.pantry.level}`) : item.quantity;
+                const low = Boolean(item.pantry?.low) && item.pantry?.level !== "low";
                 return (
                   <View key={item.id} style={index ? { borderTopWidth: StyleSheet.hairlineWidth, borderColor: colors.border } : undefined}>
-                    <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} accessibilityLabel={[item.name, item.quantity, status].filter(Boolean).join(", ")}
+                    <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} accessibilityLabel={[item.name, amount, low ? t("inventorySync.low") : "", status, locked && !readOnly ? t("inventorySync.readOnly") : ""].filter(Boolean).join(", ")}
                       onPress={() => setExpanded(open ? null : item.id)}
                       style={({ pressed }) => [styles.product, { opacity: pressed ? 0.65 : 1 }]}>
                       <View style={styles.productCopy}>
-                        <AppText variant="label">{item.name}</AppText>
-                        {!!item.quantity && <AppText muted variant="caption">{item.quantity}</AppText>}
+                        <View style={styles.nameRow}>
+                          <AppText variant="label" style={styles.flexShrink}>{item.name}</AppText>
+                          {locked && !readOnly && <Lock size={14} color={colors.textMuted} />}
+                        </View>
+                        {(!!amount || low) && <AppText muted variant="caption" style={item.pantry?.level === "low" || low ? { color: colors.warning } : undefined}>{[amount, low ? t("inventorySync.low") : ""].filter(Boolean).join(" · ")}</AppText>}
                         <AppText variant="caption" style={{ color: dateColor }}>{status}</AppText>
                       </View>
                       <ChevronDown size={18} color={colors.textMuted} style={open ? { transform: [{ rotate: "180deg" }] } : undefined} />
@@ -85,7 +139,8 @@ export function StockInventoryList({ items, today, busy, onEdit, onUse, onIdeas,
                     {open && <View style={styles.details}>
                       {expired && <AppText muted variant="caption">{t("kitchen.datePassed")}</AppText>}
                       <StockProductScores item={item} />
-                      {!readOnly && <View style={styles.actions}>
+                      {locked && !readOnly && <AppText muted variant="caption">{t("inventorySync.readOnlyHelp")}</AppText>}
+                      {!locked && <View style={styles.actions}>
                         <View style={styles.actionRow}>{!expired && <PrimaryButton fillAvailableSpace numberOfLines={0} style={styles.actionButton} icon={Utensils} variant="ghost" label={t("kitchen.findUse")} onPress={() => onIdeas(item)} />}
                         <PrimaryButton fillAvailableSpace numberOfLines={0} style={styles.actionButton} icon={Pencil} variant="ghost" label={t("kitchen.edit")} onPress={() => onEdit(item)} /></View>
                         <PrimaryButton fillAvailableSpace numberOfLines={0} icon={Check} variant="ghost" disabled={busy} label={t(expired ? "kitchen.remove" : "kitchen.usedUp")} onPress={() => Alert.alert(item.name, t("kitchen.useStockConfirm"), [{ text: t("common.cancel"), style: "cancel" }, { text: t(expired ? "kitchen.remove" : "kitchen.usedUp"), onPress: () => onUse(item) }])} />
@@ -99,6 +154,7 @@ export function StockInventoryList({ items, today, busy, onEdit, onUse, onIdeas,
           </View>
         );
       })}
+      {outSection}
     </View>
   );
 }
@@ -108,5 +164,8 @@ const styles = StyleSheet.create({
   group: { gap: 10 }, groupHeading: { flexDirection: "row", alignItems: "center", gap: 8, paddingHorizontal: 4 }, flex: { flex: 1 },
   list: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, overflow: "hidden" },
   product: { flexDirection: "row", alignItems: "center", gap: 12, padding: 16, minHeight: 76 }, productCopy: { flex: 1, minWidth: 0, gap: 4 },
+  nameRow: { flexDirection: "row", alignItems: "center", gap: 6 }, flexShrink: { flexShrink: 1 },
+  outRow: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 8, paddingLeft: 16, paddingRight: 4, minHeight: 60 },
+  outActions: { flexDirection: "row", alignItems: "center" },
   details: { paddingHorizontal: 12, paddingBottom: 12, gap: 8 }, actions: { gap: 10 }, actionRow: { flexDirection: "row", gap: 10 }, actionButton: { flex: 1, minWidth: 0 },
 });
