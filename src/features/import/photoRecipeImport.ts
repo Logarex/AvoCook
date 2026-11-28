@@ -1,5 +1,6 @@
 import { jsonLdToRecipe } from "./schemaRecipeParser";
 import type { Recipe } from "../recipes/types";
+import { pickRecommendedModel, type ModelInfo } from "./llmModels";
 
 export type LlmProviderId =
   | "openai"
@@ -14,6 +15,10 @@ export type LlmProviderPreset = {
   id: LlmProviderId;
   label: string;
   baseUrl: string;
+  /**
+   * Used only when the provider's model list cannot be read: by default the
+   * app picks the recommended model from that list (see llmModels.ts).
+   */
   defaultModel: string;
   modelDocsUrl: string;
   apiFormat: "openai" | "anthropic";
@@ -24,7 +29,7 @@ export const LLM_PROVIDERS: LlmProviderPreset[] = [
     id: "openai",
     label: "OpenAI (ChatGPT)",
     baseUrl: "https://api.openai.com/v1",
-    defaultModel: "gpt-4o",
+    defaultModel: "gpt-6-luna",
     modelDocsUrl: "https://platform.openai.com/docs/models",
     apiFormat: "openai",
   },
@@ -32,7 +37,7 @@ export const LLM_PROVIDERS: LlmProviderPreset[] = [
     id: "gemini",
     label: "Google Gemini",
     baseUrl: "https://generativelanguage.googleapis.com/v1beta/openai/",
-    defaultModel: "gemini-2.5-flash",
+    defaultModel: "gemini-flash-latest",
     modelDocsUrl: "https://ai.google.dev/gemini-api/docs/models/gemini",
     apiFormat: "openai",
   },
@@ -40,7 +45,7 @@ export const LLM_PROVIDERS: LlmProviderPreset[] = [
     id: "groq",
     label: "Groq",
     baseUrl: "https://api.groq.com/openai/v1",
-    defaultModel: "meta-llama/llama-4-scout-17b-16e-instruct",
+    defaultModel: "qwen/qwen3.8-27b",
     modelDocsUrl: "https://console.groq.com/docs/models",
     apiFormat: "openai",
   },
@@ -48,7 +53,7 @@ export const LLM_PROVIDERS: LlmProviderPreset[] = [
     id: "grok",
     label: "Grok (xAI)",
     baseUrl: "https://api.x.ai/v1",
-    defaultModel: "grok-3",
+    defaultModel: "grok-4.7",
     modelDocsUrl: "https://docs.x.ai/docs/models",
     apiFormat: "openai",
   },
@@ -56,7 +61,7 @@ export const LLM_PROVIDERS: LlmProviderPreset[] = [
     id: "mistral",
     label: "Mistral (Le Chat)",
     baseUrl: "https://api.mistral.ai/v1",
-    defaultModel: "mistral-small-latest",
+    defaultModel: "mistral-medium-latest",
     modelDocsUrl:
       "https://docs.mistral.ai/getting-started/models/models_overview/",
     apiFormat: "openai",
@@ -65,7 +70,7 @@ export const LLM_PROVIDERS: LlmProviderPreset[] = [
     id: "claude",
     label: "Anthropic (Claude)",
     baseUrl: "https://api.anthropic.com",
-    defaultModel: "claude-haiku-4-5",
+    defaultModel: "claude-haiku-5-5",
     modelDocsUrl: "https://docs.anthropic.com/en/docs/about-claude/models",
     apiFormat: "anthropic",
   },
@@ -178,69 +183,136 @@ export async function fetchAvailableModels(
   providerId: LlmProviderId,
   userBaseUrl: string,
 ): Promise<string[]> {
-  const preset = LLM_PROVIDERS.find((p) => p.id === providerId);
-  const format = preset?.apiFormat ?? "openai";
-  const baseUrl =
-    providerId === "custom" ? userBaseUrl : (preset?.baseUrl ?? userBaseUrl);
+  const models = await listProviderModels(apiKey, providerId, userBaseUrl);
+  return models.map((model) => model.id).sort();
+}
 
-  if (!apiKey.trim() || !baseUrl.trim()) {
+function providerPreset(providerId: LlmProviderId) {
+  return LLM_PROVIDERS.find((preset) => preset.id === providerId);
+}
+
+function providerBaseUrl(providerId: LlmProviderId, userBaseUrl: string) {
+  return providerId === "custom"
+    ? userBaseUrl.trim()
+    : (providerPreset(providerId)?.baseUrl ?? userBaseUrl.trim());
+}
+
+type ListedModel = {
+  id?: unknown;
+  name?: unknown;
+  capabilities?: { image_input?: { supported?: unknown } };
+  deprecated_at?: unknown;
+};
+
+/** The provider's models, in the provider's own order (Anthropic lists the newest first). */
+export async function listProviderModels(
+  apiKey: string,
+  providerId: LlmProviderId,
+  userBaseUrl: string,
+): Promise<ModelInfo[]> {
+  const anthropic = providerPreset(providerId)?.apiFormat === "anthropic";
+  const baseUrl = providerBaseUrl(providerId, userBaseUrl).replace(/\/$/, "");
+  if (!apiKey.trim() || !baseUrl) {
     throw new Error("API key and base URL are required");
   }
-
-  if (format === "anthropic") {
-    return fetchAnthropicModels(apiKey, baseUrl);
-  }
-  return fetchOpenAiModels(apiKey, baseUrl);
-}
-
-async function fetchOpenAiModels(
-  apiKey: string,
-  baseUrl: string,
-): Promise<string[]> {
-  const url = `${baseUrl.replace(/\/$/, "")}/models`;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 30000);
-
   try {
-    const response = await fetch(url, {
-      headers: { Authorization: `Bearer ${apiKey}` },
+    const response = await fetch(anthropic ? `${baseUrl}/v1/models?limit=100` : `${baseUrl}/models`, {
+      headers: anthropic
+        ? { "x-api-key": apiKey.trim(), "anthropic-version": "2023-06-01" }
+        : { Authorization: `Bearer ${apiKey.trim()}` },
       signal: controller.signal as RequestInit["signal"],
     });
     if (!response.ok) {
       const body = await response.text().catch(() => "");
       throw new LlmApiError(response.status, body);
     }
-    const data = (await response.json()) as { data?: { id: string }[] };
-    return (data?.data ?? []).map((m) => m.id).sort();
+    const data = (await response.json()) as { data?: ListedModel[]; models?: ListedModel[] };
+    const now = Date.now();
+    return (data?.data ?? data?.models ?? []).flatMap((model) => {
+      const rawId = typeof model.id === "string" ? model.id : typeof model.name === "string" ? model.name : "";
+      const id = rawId.replace(/^models\//, "");
+      if (!id) return [];
+      const supported = model.capabilities?.image_input?.supported;
+      const deprecated = typeof model.deprecated_at === "string" && Date.parse(model.deprecated_at) <= now;
+      return [{ id, supportsImages: typeof supported === "boolean" ? supported : undefined, retiring: deprecated }];
+    });
   } finally {
     clearTimeout(timeoutId);
   }
 }
 
-async function fetchAnthropicModels(
-  apiKey: string,
-  baseUrl: string,
-): Promise<string[]> {
-  const url = `${baseUrl.replace(/\/$/, "")}/v1/models`;
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000);
+const RECOMMENDED_MODEL_TTL_MS = 6 * 60 * 60 * 1000;
+const recommendedModels = new Map<string, { model: string | null; at: number }>();
 
+/** Test hook. */
+export function clearRecommendedModelCache() {
+  recommendedModels.clear();
+}
+
+/**
+ * The newest suitable model the provider offers, read from its own list and
+ * remembered for a few hours; the preset fallback when the list cannot be read.
+ */
+export async function recommendedModel(settings: LlmRequestSettings, refresh = false): Promise<string | null> {
+  const key = `${settings.providerId}|${providerBaseUrl(settings.providerId, settings.baseUrl)}|${settings.apiKey.trim().slice(-8)}`;
+  const cached = recommendedModels.get(key);
+  if (!refresh && cached && Date.now() - cached.at < RECOMMENDED_MODEL_TTL_MS) return cached.model;
+  let model: string | null = null;
   try {
-    const response = await fetch(url, {
-      headers: {
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
-      },
-      signal: controller.signal as RequestInit["signal"],
-    });
-    if (!response.ok) {
-      const body = await response.text().catch(() => "");
-      throw new LlmApiError(response.status, body);
+    model =
+      pickRecommendedModel(
+        settings.providerId,
+        await listProviderModels(settings.apiKey, settings.providerId, settings.baseUrl),
+      ) ?? null;
+  } catch (error) {
+    console.warn("network", "Could not list the provider's models; using the built-in fallback", error);
+  }
+  model ??= providerPreset(settings.providerId)?.defaultModel || null;
+  recommendedModels.set(key, { model, at: Date.now() });
+  return model;
+}
+
+type LlmRequest = { prompt: string; imageBase64: string | null; signal?: AbortSignal };
+
+function callProvider(settings: LlmRequestSettings, model: string, request: LlmRequest): Promise<string> {
+  const baseUrl = providerBaseUrl(settings.providerId, settings.baseUrl);
+  const apiKey = settings.apiKey.trim();
+  return providerPreset(settings.providerId)?.apiFormat === "anthropic"
+    ? callAnthropicApi(request.imageBase64, apiKey, baseUrl, model, request.prompt, request.signal)
+    : callOpenAiCompatibleApi(request.imageBase64, apiKey, baseUrl, model, request.prompt, request.signal);
+}
+
+function modelNotFound(error: LlmApiError, model: string, providerId: LlmProviderId) {
+  return new LlmModelNotFoundError(error.status, error.message, model, providerPreset(providerId)?.modelDocsUrl ?? "");
+}
+
+/**
+ * Sends the request with the user's model, or the recommended one when the
+ * choice is "Automatic". When the provider says the model no longer exists,
+ * it retries once with the recommended model, so a retired model never stops imports.
+ */
+async function runWithModel(settings: LlmRequestSettings, request: LlmRequest): Promise<string> {
+  const chosen = settings.model.trim();
+  const first = chosen || (await recommendedModel(settings));
+  if (!first) throw new LlmConfigurationError();
+  console.info("network", `Requesting ${settings.providerId} (${first}${chosen ? "" : ", automatic"})`);
+  try {
+    return await callProvider(settings, first, request);
+  } catch (error) {
+    if (!(error instanceof LlmApiError) || !isModelNotFoundError(error)) throw error;
+    const replacement = await recommendedModel(settings, true);
+    if (!replacement || replacement === first) throw modelNotFound(error, first, settings.providerId);
+    console.warn("network", `Model ${first} is not available any more; using ${replacement}`);
+    try {
+      return await callProvider(settings, replacement, request);
+    } catch (retryError) {
+      if (retryError instanceof LlmApiError && isModelNotFoundError(retryError)) {
+        throw modelNotFound(retryError, first, settings.providerId);
+      }
+      throw retryError;
     }
-    const data = (await response.json()) as { data?: { id: string }[] };
-    return (data?.data ?? []).map((m) => m.id).sort();
-  } finally {
-    clearTimeout(timeoutId);
   }
 }
 
@@ -252,52 +324,16 @@ export async function extractRecipeFromPhoto(
   userModel: string,
   userLocale: string = "en",
 ): Promise<Recipe> {
-  const preset = LLM_PROVIDERS.find((p) => p.id === providerId);
-  const format = preset?.apiFormat ?? "openai";
-
-  const baseUrl =
-    providerId === "custom" ? userBaseUrl : (preset?.baseUrl ?? userBaseUrl);
-  const model = userModel || (preset?.defaultModel ?? "");
-  const modelDocsUrl = preset?.modelDocsUrl ?? "";
-  const prompt = buildExtractionPrompt(userLocale);
-
-  console.info(
-    "network",
-    `Requesting recipe extraction from ${providerId} (${model}) in locale ${userLocale}`,
-  );
-
   let responseText: string;
   try {
-    if (format === "anthropic") {
-      responseText = await callAnthropicApi(
-        imageBase64,
-        apiKey,
-        baseUrl,
-        model,
-        prompt,
-      );
-    } else {
-      responseText = await callOpenAiCompatibleApi(
-        imageBase64,
-        apiKey,
-        baseUrl,
-        model,
-        prompt,
-      );
-    }
+    responseText = await runWithModel(
+      { apiKey, providerId, baseUrl: userBaseUrl, model: userModel },
+      { prompt: buildExtractionPrompt(userLocale), imageBase64 },
+    );
   } catch (err) {
     console.error("network", "Failed to call LLM API for photo import", err);
-    if (err instanceof LlmApiError && isModelNotFoundError(err)) {
-      throw new LlmModelNotFoundError(
-        err.status,
-        err.message,
-        model,
-        modelDocsUrl,
-      );
-    }
     throw err;
   }
-
   return parseRecipeFromLlmResponse(responseText);
 }
 
@@ -309,52 +345,16 @@ export async function generateRecipeFromText(
   userModel: string,
   userLocale: string = "en",
 ): Promise<Recipe> {
-  const preset = LLM_PROVIDERS.find((p) => p.id === providerId);
-  const format = preset?.apiFormat ?? "openai";
-
-  const baseUrl =
-    providerId === "custom" ? userBaseUrl : (preset?.baseUrl ?? userBaseUrl);
-  const model = userModel || (preset?.defaultModel ?? "");
-  const modelDocsUrl = preset?.modelDocsUrl ?? "";
-  const prompt = buildTextPrompt(userLocale, textPrompt);
-
-  console.info(
-    "network",
-    `Requesting recipe generation from ${providerId} (${model}) in locale ${userLocale}`,
-  );
-
   let responseText: string;
   try {
-    if (format === "anthropic") {
-      responseText = await callAnthropicApi(
-        null,
-        apiKey,
-        baseUrl,
-        model,
-        prompt,
-      );
-    } else {
-      responseText = await callOpenAiCompatibleApi(
-        null,
-        apiKey,
-        baseUrl,
-        model,
-        prompt,
-      );
-    }
+    responseText = await runWithModel(
+      { apiKey, providerId, baseUrl: userBaseUrl, model: userModel },
+      { prompt: buildTextPrompt(userLocale, textPrompt), imageBase64: null },
+    );
   } catch (err) {
     console.error("network", "Failed to call LLM API for text generation", err);
-    if (err instanceof LlmApiError && isModelNotFoundError(err)) {
-      throw new LlmModelNotFoundError(
-        err.status,
-        err.message,
-        model,
-        modelDocsUrl,
-      );
-    }
     throw err;
   }
-
   return parseRecipeFromLlmResponse(responseText);
 }
 
@@ -362,6 +362,7 @@ export type LlmRequestSettings = {
   apiKey: string;
   providerId: LlmProviderId;
   baseUrl: string;
+  /** Empty means "Automatic": the recommended model of the provider. */
   model: string;
 };
 
@@ -371,14 +372,7 @@ export async function requestLlmContent(
   imageBase64: string | null = null,
   signal?: AbortSignal,
 ): Promise<string> {
-  const preset = LLM_PROVIDERS.find(
-    (provider) => provider.id === settings.providerId,
-  );
-  const baseUrl =
-    settings.providerId === "custom"
-      ? settings.baseUrl.trim()
-      : (preset?.baseUrl ?? "");
-  const model = settings.model.trim() || preset?.defaultModel || "";
+  const baseUrl = providerBaseUrl(settings.providerId, settings.baseUrl);
   let url: URL;
   try {
     url = new URL(baseUrl);
@@ -387,7 +381,6 @@ export async function requestLlmContent(
   }
   if (
     !settings.apiKey.trim() ||
-    !model ||
     !["https:", "http:"].includes(url.protocol) ||
     url.username ||
     url.password ||
@@ -395,23 +388,8 @@ export async function requestLlmContent(
     url.hash
   )
     throw new LlmConfigurationError();
-  return preset?.apiFormat === "anthropic"
-    ? callAnthropicApi(
-        imageBase64,
-        settings.apiKey.trim(),
-        baseUrl,
-        model,
-        prompt,
-        signal,
-      )
-    : callOpenAiCompatibleApi(
-        imageBase64,
-        settings.apiKey.trim(),
-        baseUrl,
-        model,
-        prompt,
-        signal,
-      );
+  if (signal?.aborted) throw llmAbortError();
+  return runWithModel(settings, { prompt, imageBase64, signal });
 }
 
 export class LlmConfigurationError extends Error {
@@ -479,6 +457,11 @@ async function fetchLlmJson(
   }
 }
 
+/**
+ * Only the model and the message are sent: sampling and length settings are
+ * left to the provider, because newer models reject the older ones
+ * (`temperature`, `max_tokens`) and the defaults suit a recipe.
+ */
 async function callOpenAiCompatibleApi(
   imageBase64: string | null,
   apiKey: string,
@@ -504,21 +487,26 @@ async function callOpenAiCompatibleApi(
         "Content-Type": "application/json",
         Authorization: `Bearer ${apiKey}`,
       },
-      body: JSON.stringify({
-        model,
-        temperature: 0.2,
-        max_tokens: 4096,
-        messages: [{ role: "user", content }],
-      }),
+      body: JSON.stringify({ model, messages: [{ role: "user", content }] }),
     },
     signal,
   )) as OpenAiResponse;
-  const result = data?.choices?.[0]?.message?.content;
+  const message = data?.choices?.[0]?.message?.content;
+  // Some providers return the answer as a list of parts.
+  const result = Array.isArray(message)
+    ? message.map((part) => (typeof part?.text === "string" ? part.text : "")).join("")
+    : message;
   if (typeof result !== "string" || !result.trim())
     throw new Error("Empty response from LLM");
   return result;
 }
 
+const ANTHROPIC_MAX_TOKENS = 16000;
+
+/**
+ * Claude needs `max_tokens`, and its thinking counts toward it. A model with a
+ * smaller output limit says so in a 400; the request is then sent again within it.
+ */
 async function callAnthropicApi(
   imageBase64: string | null,
   apiKey: string,
@@ -526,6 +514,7 @@ async function callAnthropicApi(
   model: string,
   prompt: string,
   signal?: AbortSignal,
+  maxTokens = ANTHROPIC_MAX_TOKENS,
 ): Promise<string> {
   const content = imageBase64
     ? [
@@ -540,25 +529,32 @@ async function callAnthropicApi(
         { type: "text", text: prompt },
       ]
     : prompt;
-  const data = (await fetchLlmJson(
-    `${baseUrl.replace(/\/$/, "")}/v1/messages`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-        "anthropic-version": "2023-06-01",
+  let data: AnthropicResponse;
+  try {
+    data = (await fetchLlmJson(
+      `${baseUrl.replace(/\/$/, "")}/v1/messages`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({
+          model,
+          max_tokens: maxTokens,
+          messages: [{ role: "user", content }],
+        }),
       },
-      body: JSON.stringify({
-        model,
-        // Claude 4.7 and later reject a custom temperature with a 400, and their
-        // thinking, on by default since Claude 5, counts toward max_tokens.
-        max_tokens: 16000,
-        messages: [{ role: "user", content }],
-      }),
-    },
-    signal,
-  )) as AnthropicResponse;
+      signal,
+    )) as AnthropicResponse;
+  } catch (error) {
+    const lower = error instanceof LlmApiError && error.status === 400 && /max_tokens/i.test(error.message)
+      ? lowerTokenLimit(error.message, maxTokens)
+      : null;
+    if (lower) return callAnthropicApi(imageBase64, apiKey, baseUrl, model, prompt, signal, lower);
+    throw error;
+  }
   const result = data?.content
     ?.filter((block) => block.type === "text")
     .map((block) => block.text ?? "")
@@ -566,6 +562,13 @@ async function callAnthropicApi(
   if (typeof result !== "string" || !result.trim())
     throw new Error("Empty response from LLM");
   return result;
+}
+
+/** "max_tokens: 16000 > 8192, which is the maximum…" → 8192. */
+export function lowerTokenLimit(message: string, current: number): number | null {
+  const limits = (message.match(/\d{3,6}/g) ?? []).map(Number).filter((value) => value >= 256 && value < current);
+  if (limits.length) return Math.max(...limits);
+  return current > 4096 ? 4096 : null;
 }
 
 function parseRecipeFromLlmResponse(responseText: string): Recipe {
@@ -655,23 +658,30 @@ export function isLlmBillingError(err: LlmApiError): boolean {
   );
 }
 
-function isModelNotFoundError(err: LlmApiError): boolean {
-  if (err.status === 404) return true;
-  if (err.status === 400) {
-    const msg = err.message.toLowerCase();
-    return (
-      msg.includes("model not found") ||
-      msg.includes("invalid model") ||
-      msg.includes("does not exist") ||
-      msg.includes("unknown model") ||
-      msg.includes("no such model")
-    );
-  }
-  return false;
+/** The provider no longer offers this model, or this account cannot use it. */
+export function isModelNotFoundError(err: LlmApiError): boolean {
+  if (err.status === 404 || err.status === 410) return true;
+  if (err.status !== 400 && err.status !== 403) return false;
+  const msg = err.message.toLowerCase();
+  return (
+    msg.includes("model not found") ||
+    msg.includes("model_not_found") ||
+    msg.includes("invalid model") ||
+    msg.includes("does not exist") ||
+    msg.includes("unknown model") ||
+    msg.includes("no such model") ||
+    msg.includes("decommissioned") ||
+    msg.includes("has been deprecated") ||
+    msg.includes("is deprecated") ||
+    msg.includes("retired") ||
+    msg.includes("no longer available") ||
+    msg.includes("no longer supported") ||
+    /do not have access to (the )?model|not allowed to (use|access) (the )?model|must be verified to use the model/.test(msg)
+  );
 }
 
 type OpenAiResponse = {
-  choices?: { message?: { content?: string } }[];
+  choices?: { message?: { content?: string | { text?: string }[] } }[];
 };
 
 type AnthropicResponse = {

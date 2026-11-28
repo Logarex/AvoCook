@@ -34,6 +34,8 @@ In Impostazioni > Account, «Elimina i miei dati della community» cancella le r
 
 ## Importazione, IA e traduzione
 
+La scansione di una foto o di un PDF di ricetta avviene sul dispositivo: il testo viene letto dal sistema (Apple Vision su iOS, ML Kit su Android) e, se il dispositivo lo offre, impaginato dalla sua IA integrata (Apple Intelligence o Gemini Nano). Non viene inviato nulla, non servono account né chiavi API e le foto non vengono conservate. La bozza viene salvata solo se scegli Salva.
+
 L’importazione da URL scarica la pagina scelta direttamente dal sito. Il sito riceve le normali informazioni di una richiesta di rete.
 
 L’importazione e la generazione con IA sono facoltative e inviano la foto selezionata o il testo inserito al fornitore configurato nelle Impostazioni, usando la tua chiave API. Fotocamera e libreria foto consentono anche di aggiungere immagini locali. Le immagini delle ricette sincronizzate, condivise o pubblicate possono lasciare il dispositivo.

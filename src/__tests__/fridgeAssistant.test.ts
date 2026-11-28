@@ -16,6 +16,7 @@ import {
   LlmConfigurationError,
   LlmNotFoodError,
   LlmTimeoutError,
+  clearRecommendedModelCache,
   requestLlmContent,
   type LlmRequestSettings,
 } from "../features/import/photoRecipeImport";
@@ -56,6 +57,7 @@ function reply(content: unknown, anthropic = false) {
 beforeEach(() => {
   vi.stubGlobal("fetch", fetcher);
   fetcher.mockReset();
+  clearRecommendedModelCache();
 });
 afterEach(() => {
   vi.useRealTimers();
@@ -227,7 +229,8 @@ describe("fridge assistant transport and generation", () => {
         expect(fridgeErrorKey(error)).not.toContain("private");
         expect(fridgeErrorKey(error)).toMatch(/^(kitchen|importRecipe)\./);
       }
-      expect(fetcher).toHaveBeenCalledTimes(1);
+      // A missing model gets one retry with the recommended model, after reading the model list.
+      expect(fetcher).toHaveBeenCalledTimes(status === 404 ? 3 : 1);
     },
   );
   it("rejects a mismatched serving count instead of silently relabelling ingredient quantities", async () => {

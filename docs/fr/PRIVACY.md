@@ -34,6 +34,8 @@ Dans Réglages > Compte, « Supprimer mes données communautaires » efface vos 
 
 ## Importation, IA et traduction
 
+Le scan d’une photo ou d’un PDF de recette se fait sur l’appareil : le texte est lu par le système (Apple Vision sur iOS, ML Kit sur Android) puis, si l’appareil le propose, mis en forme par son IA intégrée (Apple Intelligence ou Gemini Nano). Rien n’est envoyé, aucun compte ni clé API n’est nécessaire, et les photos ne sont pas conservées. Le brouillon n’est enregistré que si vous choisissez Enregistrer.
+
 L’importation par URL télécharge directement la page choisie. Le site reçoit les informations habituelles d’une requête réseau.
 
 L’analyse et la génération par IA, facultatives, transmettent la photo sélectionnée ou le texte saisi au fournisseur configuré dans les Réglages, avec votre clé API. L’accès à l’appareil photo et à la photothèque permet aussi d’ajouter des images locales. Les images de recettes synchronisées, partagées ou publiées peuvent quitter l’appareil.

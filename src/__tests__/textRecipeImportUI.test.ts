@@ -13,7 +13,9 @@ vi.mock("react-native", () => ({
   StyleSheet: { create: (value: unknown) => value },
 }));
 vi.mock("expo-image-picker", () => ({ useCameraPermissions: () => [null, vi.fn(), vi.fn()] }));
-vi.mock("lucide-react-native", () => ({ Camera: "Camera", Download: "Download", FileJson: "FileJson", Globe: "Globe", Sparkles: "Sparkles", Upload: "Upload" }));
+vi.mock("expo-file-system", () => ({ File: { pickFileAsync: vi.fn() } }));
+vi.mock("expo", () => ({ requireOptionalNativeModule: () => null }));
+vi.mock("lucide-react-native", () => ({ Camera: "Camera", Download: "Download", FileJson: "FileJson", FileText: "FileText", Globe: "Globe", ScanText: "ScanText", Sparkles: "Sparkles", Upload: "Upload" }));
 vi.mock("react-i18next", () => ({ useTranslation: () => ({ t: (key: string) => key }) }));
 vi.mock("../i18n", () => ({ default: { language: "en" } }));
 vi.mock("../theme/ThemeProvider", () => ({ useAppTheme: () => ({ colors: { danger: "red" } }) }));

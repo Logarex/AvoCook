@@ -17,7 +17,7 @@ AvoCook is a free, open-source app for iOS and Android. I’m building it alongs
 
 ## Features
 
-- Recipes with photos, categories, adjustable servings, web import and optional Markdown.
+- Recipes with photos, categories, adjustable servings, web import and optional Markdown. Scan cookbook pages, printed recipes and PDFs for free, on the device.
 - Fridge, pantry and freezer inventory, with barcode entry, dates and expiry reminders; put groceries away and update stock after cooking.
 - Daily and weekly meal plans, simple meals, leftovers, saved menus and meal history.
 - Step-by-step cooking, persistent timers, local voice commands and private notes.
@@ -85,7 +85,7 @@ src/
 │   ├── community/                 # Firebase
 │   ├── recipes/                   # Local storage (SQLite), recipe logic, backup/restore
 │   ├── nextcloud/                 # HTTP client for Nextcloud Cookbook
-│   ├── import/                    # URL and photo recipe import
+│   ├── import/                    # URL, photo, PDF and on-device recipe import
 │   ├── shopping/                  # Shopping list and iOS Reminders sync
 │   ├── timers/                    # Cooking timers
 │   ├── preferences/               # App settings

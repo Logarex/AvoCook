@@ -1,10 +1,13 @@
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { File, type PickSingleFileResult } from "expo-file-system";
 import * as ImagePicker from "expo-image-picker";
 import {
   Camera,
   Download,
   FileJson,
+  FileText,
   Globe,
+  ScanText,
   Sparkles,
   Upload,
 } from "lucide-react-native";
@@ -19,6 +22,18 @@ import { Screen } from "../components/Screen";
 import { ScreenHeader } from "../components/ScreenHeader";
 import { SettingsRow } from "../components/SettingsRow";
 import { TextField } from "../components/TextField";
+import {
+  getLocalAiStatus,
+  isDeviceScanAvailable,
+  MAX_SCAN_PAGES,
+  NoRecipeFoundError,
+  PdfLockedError,
+  recipeFromPastedText,
+  recipeFromPdf,
+  recipeFromPhotos,
+  type LocalAiStatus,
+  type LocalRecipeResult,
+} from "../features/import/localRecipeScan";
 import {
   extractRecipeFromPhoto,
   generateRecipeFromText,
@@ -49,20 +64,34 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
     useRecipes();
   const { llmSettings } = usePreferences();
   const [method, setMethod] = useState<
-    "url" | "photo" | "text" | "file" | null
+    "url" | "photo" | "text" | "file" | "pdf" | null
   >(route.params?.url ? "url" : route.params?.fileUri ? "file" : null);
   const [url, setUrl] = useState(route.params?.url ?? "");
   const [prompt, setPrompt] = useState("");
   const [submitting, setSubmitting] = useState<
-    "url" | "file" | "photo" | "text" | null
+    "url" | "file" | "photo" | "text" | "scan" | "pdf" | "localText" | null
   >(null);
   const [error, setError] = useState<string | null>(null);
   const textImportPending = useRef(false);
+  const localImportPending = useRef(false);
+  const deviceScan = isDeviceScanAvailable();
+  const [localAi, setLocalAi] = useState<LocalAiStatus>("unavailable");
   const { watchLongAction } = useLongActionToast();
   const [cameraPermission, requestCameraPermission, getCameraPermission] =
     ImagePicker.useCameraPermissions({ get: false });
 
   const hasLlmKey = Boolean(llmSettings.apiKey.trim());
+
+  React.useEffect(() => {
+    if (method !== "photo" && method !== "pdf" && method !== "text") return;
+    let active = true;
+    void getLocalAiStatus().then((status) => {
+      if (active) setLocalAi(status);
+    });
+    return () => {
+      active = false;
+    };
+  }, [method]);
 
   React.useEffect(() => {
     if (route.params?.url) {
@@ -198,19 +227,128 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
     ]);
   }
 
-  async function processCamera() {
+  async function ensureCameraPermission() {
     const currentPermission = cameraPermission ?? (await getCameraPermission());
-    if (!currentPermission?.granted) {
-      const result = await requestCameraPermission();
-      if (!result.granted) {
-        Alert.alert(
-          t("importRecipe.photoCameraPermissionTitle"),
-          t("importRecipe.photoCameraPermissionBody"),
-        );
-        return;
-      }
+    if (currentPermission?.granted) return true;
+    const result = await requestCameraPermission();
+    if (!result.granted) {
+      Alert.alert(
+        t("importRecipe.photoCameraPermissionTitle"),
+        t("importRecipe.photoCameraPermissionBody"),
+      );
     }
-    void processImage(ImagePicker.launchCameraAsync);
+    return result.granted;
+  }
+
+  async function processCamera() {
+    if (await ensureCameraPermission()) {
+      void processImage(ImagePicker.launchCameraAsync);
+    }
+  }
+
+  /** Free import read on the device; the draft opens in the editor for review. */
+  async function openLocalDraft(
+    kind: "scan" | "pdf" | "localText",
+    read: () => Promise<LocalRecipeResult>,
+  ) {
+    if (localImportPending.current || submitting !== null) return;
+    localImportPending.current = true;
+    Keyboard.dismiss();
+    setSubmitting(kind);
+    setError(null);
+    const stopLongActionNotice = watchLongAction("longActions.importRecipe");
+    try {
+      const { recipe } = await read();
+      navigation.replace("RecipeEditor", { draft: recipe });
+    } catch (err) {
+      console.error("app", "On-device import failed in ImportRecipeScreen", err);
+      if (err instanceof NoRecipeFoundError) {
+        setError(
+          t(kind === "localText" ? "importRecipe.textNoRecipe" : "importRecipe.scanNoText"),
+        );
+      } else if (err instanceof PdfLockedError) {
+        setError(t("importRecipe.pdfLocked"));
+      } else {
+        setError(
+          t(kind === "pdf" ? "importRecipe.pdfFailed" : "importRecipe.scanFailed"),
+        );
+      }
+    } finally {
+      stopLongActionNotice();
+      localImportPending.current = false;
+      setSubmitting(null);
+    }
+  }
+
+  function scanPages(uris: string[]) {
+    void openLocalDraft("scan", () => recipeFromPhotos(uris));
+  }
+
+  function handleDeviceScan() {
+    Alert.alert(t("importRecipe.photoSourceTitle"), "", [
+      { text: t("common.cancel"), style: "cancel" },
+      {
+        text: t("importRecipe.photoSourceCamera"),
+        onPress: () => void scanFromCamera([]),
+      },
+      {
+        text: t("importRecipe.photoSourceGallery"),
+        onPress: () => void scanFromLibrary(),
+      },
+    ]);
+  }
+
+  /** One photo per page; cookbooks often spread a recipe over two pages. */
+  async function scanFromCamera(pages: string[]) {
+    if (!pages.length && !(await ensureCameraPermission())) return;
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ["images"],
+      quality: 1,
+    }).catch(() => null);
+    const uri = result && !result.canceled ? result.assets[0]?.uri : undefined;
+    if (!uri) {
+      if (pages.length) scanPages(pages);
+      return;
+    }
+    const next = [...pages, uri];
+    if (next.length >= MAX_SCAN_PAGES) {
+      scanPages(next);
+      return;
+    }
+    Alert.alert(
+      t("importRecipe.scanAddPageTitle"),
+      t("importRecipe.scanAddPageBody", { count: next.length }),
+      [
+        { text: t("importRecipe.scanAddPage"), onPress: () => void scanFromCamera(next) },
+        { text: t("importRecipe.scanDone"), onPress: () => scanPages(next) },
+      ],
+    );
+  }
+
+  async function scanFromLibrary() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
+      allowsMultipleSelection: true,
+      selectionLimit: MAX_SCAN_PAGES,
+      orderedSelection: true,
+      quality: 1,
+    }).catch(() => null);
+    if (!result || result.canceled || !result.assets.length) return;
+    scanPages(result.assets.map((asset) => asset.uri));
+  }
+
+  async function handlePickPdf() {
+    setError(null);
+    let picked: PickSingleFileResult;
+    try {
+      picked = await File.pickFileAsync({ mimeTypes: "application/pdf" });
+    } catch (err) {
+      if (!isPickerCancel(err)) setError(t("importRecipe.pdfFailed"));
+      return;
+    }
+    if (picked.canceled) return;
+    const { uri } = picked.result;
+    void openLocalDraft("pdf", () => recipeFromPdf(uri));
   }
 
   async function processImage(
@@ -427,7 +565,9 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
         ? t("ui.importPhoto")
         : method === "text"
           ? t("ui.importText")
-          : t("ui.importFile");
+          : method === "pdf"
+            ? t("ui.importPdf")
+            : t("ui.importFile");
   return (
     <Screen
       contentWidth={640}
@@ -468,6 +608,13 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
               title={t("ui.importPhoto")}
               onPress={() => setMethod("photo")}
             />
+            {deviceScan ? (
+              <SettingsRow
+                icon={FileText}
+                title={t("ui.importPdf")}
+                onPress={() => setMethod("pdf")}
+              />
+            ) : null}
             <SettingsRow
               icon={Sparkles}
               title={t("ui.importText")}
@@ -510,58 +657,116 @@ export function ImportRecipeScreen({ navigation, route }: Props) {
           />
         </GlassPanel>
       ) : null}
-      {method === "photo" || method === "text" ? (
+      {method === "photo" ? (
         <GlassPanel style={styles.section}>
+          {deviceScan ? (
+            <>
+              <AppText muted>{t("importRecipe.scanHint")}</AppText>
+              <LocalAiNote status={localAi} />
+              <PrimaryButton
+                icon={ScanText}
+                label={
+                  submitting === "scan"
+                    ? t("importRecipe.scanReading")
+                    : t("importRecipe.scanAction")
+                }
+                disabled={submitting !== null}
+                onPress={handleDeviceScan}
+              />
+            </>
+          ) : null}
           {hasLlmKey ? (
-            method === "photo" ? (
-              <>
-                <AppText muted>{t("importRecipe.photoHint")}</AppText>
-                <PrimaryButton
-                  icon={Camera}
-                  label={
-                    submitting === "photo"
-                      ? t("common.loading")
-                      : t("importRecipe.photoAction")
-                  }
-                  disabled={submitting !== null}
-                  onPress={() => void handleScanPhoto()}
-                />
-              </>
-            ) : (
-              <>
-                <TextField
-                  label={t("importRecipe.promptLabel")}
-                  value={prompt}
-                  onChangeText={setPrompt}
-                  multiline
-                  autoCapitalize="sentences"
-                  editable={submitting === null}
-                />
-                <PrimaryButton
-                  icon={Sparkles}
-                  label={
-                    submitting === "text"
-                      ? t("common.loading")
-                      : t("importRecipe.generateTextAction")
-                  }
-                  disabled={!prompt.trim() || submitting !== null}
-                  // Keep presses in React Native so the ScrollView handles them
-                  // while the multiline input's iOS keyboard is open.
-                  fillAvailableSpace
-                  onPress={() => void handleTextPromptSubmit()}
-                />
-              </>
-            )
+            <>
+              <AppText muted>
+                {t(deviceScan ? "importRecipe.cloudPhotoHint" : "importRecipe.photoHint")}
+              </AppText>
+              <PrimaryButton
+                icon={Camera}
+                variant={deviceScan ? "secondary" : "primary"}
+                label={
+                  submitting === "photo"
+                    ? t("common.loading")
+                    : t(deviceScan ? "importRecipe.cloudPhotoAction" : "importRecipe.photoAction")
+                }
+                disabled={submitting !== null}
+                onPress={() => void handleScanPhoto()}
+              />
+            </>
           ) : (
             <>
-              <AppText muted>{t("importRecipe.photoNoKeyHint")}</AppText>
+              <AppText muted>
+                {t(deviceScan ? "importRecipe.scanNoKeyHint" : "importRecipe.photoNoKeyHint")}
+              </AppText>
               <PrimaryButton
+                variant={deviceScan ? "secondary" : "primary"}
                 label={t("ui.assistant")}
+                disabled={submitting !== null}
                 onPress={() =>
                   navigation.navigate("Settings", { section: "assistant" })
                 }
               />
             </>
+          )}
+        </GlassPanel>
+      ) : null}
+      {method === "pdf" ? (
+        <GlassPanel style={styles.section}>
+          <AppText muted>{t("importRecipe.pdfHint")}</AppText>
+          <LocalAiNote status={localAi} />
+          <PrimaryButton
+            icon={FileText}
+            label={
+              submitting === "pdf"
+                ? t("importRecipe.scanReading")
+                : t("importRecipe.pdfAction")
+            }
+            disabled={submitting !== null}
+            onPress={() => void handlePickPdf()}
+          />
+        </GlassPanel>
+      ) : null}
+      {method === "text" ? (
+        <GlassPanel style={styles.section}>
+          {hasLlmKey ? null : (
+            <>
+              <AppText muted>{t("importRecipe.textLocalHint")}</AppText>
+              <LocalAiNote status={localAi} />
+            </>
+          )}
+          <TextField
+            label={t("importRecipe.promptLabel")}
+            value={prompt}
+            onChangeText={setPrompt}
+            multiline
+            autoCapitalize="sentences"
+            editable={submitting === null}
+          />
+          <PrimaryButton
+            icon={hasLlmKey ? Sparkles : ScanText}
+            label={
+              submitting === "text" || submitting === "localText"
+                ? t("common.loading")
+                : t(hasLlmKey ? "importRecipe.generateTextAction" : "importRecipe.textLocalAction")
+            }
+            disabled={!prompt.trim() || submitting !== null}
+            // Keep presses in React Native so the ScrollView handles them
+            // while the multiline input's iOS keyboard is open.
+            fillAvailableSpace
+            onPress={() =>
+              void (hasLlmKey
+                ? handleTextPromptSubmit()
+                : openLocalDraft("localText", () => recipeFromPastedText(prompt)))
+            }
+          />
+          {hasLlmKey ? null : (
+            <PrimaryButton
+              variant="link"
+              label={t("importRecipe.textCloudLink")}
+              disabled={submitting !== null}
+              onPress={() =>
+                navigation.navigate("Settings", { section: "assistant" })
+              }
+            />
           )}
         </GlassPanel>
       ) : null}
@@ -594,6 +799,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
 });
+
+/** Tells the user when the device's own AI helps, or how to turn it on. */
+function LocalAiNote({ status }: { status: LocalAiStatus }) {
+  const { t } = useTranslation();
+  if (status === "available") {
+    return <AppText muted variant="caption">{t("importRecipe.localAiOn")}</AppText>;
+  }
+  if (status === "disabled") {
+    return <AppText muted variant="caption">{t("importRecipe.localAiDisabled")}</AppText>;
+  }
+  return null;
+}
 
 function isPickerCancel(error: unknown) {
   return (

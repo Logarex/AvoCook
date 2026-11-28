@@ -34,6 +34,8 @@ Unter Einstellungen > Konto entfernt „Meine Community-Daten löschen“ deine 
 
 ## Import, KI und Übersetzung
 
+Das Scannen eines Rezeptfotos oder PDFs geschieht auf dem Gerät: Der Text wird vom System gelesen (Apple Vision unter iOS, ML Kit unter Android) und, wenn das Gerät es anbietet, von seiner integrierten KI gegliedert (Apple Intelligence oder Gemini Nano). Nichts wird gesendet, es ist weder ein Konto noch ein API-Schlüssel nötig, und die Fotos werden nicht aufbewahrt. Der Entwurf wird nur gespeichert, wenn du Speichern wählst.
+
 Der URL-Import lädt die gewählte Seite direkt vom Anbieter. Die Website erhält übliche Netzwerkinformationen.
 
 Optionaler KI-Import und Rezeptgenerierung senden das gewählte Foto oder den eingegebenen Text mit deinem API-Schlüssel an den in den Einstellungen gewählten Anbieter. Kamera und Fotomediathek ermöglichen auch lokale Rezeptbilder. Bilder synchronisierter, geteilter oder veröffentlichter Rezepte können das Gerät verlassen.

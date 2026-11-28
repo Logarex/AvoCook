@@ -30,6 +30,7 @@ export function PrivacyScreen({ navigation }: Props) {
         t("kitchen.privacyVoiceSummary"),
         t("privacy.credentials"),
         t("privacy.photos"),
+        t("privacy.localScan"),
       ],
     },
     {

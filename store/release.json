@@ -1,11 +1,11 @@
 {
-  "version": "5.0.3",
+  "version": "5.1.0",
   "notes": {
-    "fr-FR": "Correctif pour l’import par IA : créer une recette depuis un texte ou une photo fonctionne de nouveau avec les modèles récents comme Claude Haiku 5.5. En cas d’échec, le message d’erreur est plus précis, et les Réglages affichent le bon numéro de version.",
-    "en-US": "A fix for AI import: creating a recipe from text or a photo works again with recent models such as Claude Haiku 5.5. When it fails, the error message is more precise, and Settings shows the right version number.",
-    "de-DE": "Eine Korrektur für den KI-Import: Rezepte aus Text oder Foto lassen sich wieder mit aktuellen Modellen wie Claude Haiku 5.5 erstellen. Schlägt es fehl, ist die Fehlermeldung genauer, und die Einstellungen zeigen die richtige Versionsnummer.",
-    "es-ES": "Una corrección para la importación con IA: crear una receta a partir de un texto o una foto vuelve a funcionar con modelos recientes como Claude Haiku 5.5. Si falla, el mensaje de error es más preciso, y los Ajustes muestran el número de versión correcto.",
-    "it-IT": "Una correzione per l’importazione con IA: creare una ricetta da un testo o da una foto funziona di nuovo con i modelli recenti come Claude Haiku 5.5. Se non riesce, il messaggio di errore è più preciso e le Impostazioni mostrano il numero di versione corretto.",
-    "da-DK": "En rettelse til AI-import: Opskrifter fra tekst eller foto kan igen laves med nyere modeller som Claude Haiku 5.5. Hvis det mislykkes, er fejlbeskeden mere præcis, og Indstillinger viser det rigtige versionsnummer."
+    "fr-FR": "Nouveau : scannez gratuitement une page de livre, une recette imprimée ou un PDF. AvoCook la lit sur votre téléphone, sans connexion ni clé IA, et vous la vérifiez avant de l’enregistrer. Avec votre propre clé IA, l’app choisit désormais seule le modèle le plus récent de votre fournisseur. Aussi : l’import par IA refonctionne avec les modèles récents comme Claude Haiku 5.5.",
+    "en-US": "New: scan a cookbook page, a printed recipe or a PDF for free. AvoCook reads it on your phone, offline and without any AI key, and you check it before saving. With your own AI key, the app now picks your provider's newest model by itself. Also: AI import works again with recent models such as Claude Haiku 5.5.",
+    "de-DE": "Neu: Scanne kostenlos eine Kochbuchseite, ein gedrucktes Rezept oder ein PDF. AvoCook liest es auf deinem Telefon, offline und ohne KI-Schlüssel, und du prüfst es vor dem Speichern. Mit deinem eigenen KI-Schlüssel wählt die App jetzt selbst das neueste Modell deines Anbieters. Außerdem funktioniert der KI-Import wieder mit aktuellen Modellen wie Claude Haiku 5.5.",
+    "es-ES": "Novedad: escanea gratis una página de un libro, una receta impresa o un PDF. AvoCook la lee en tu teléfono, sin conexión ni clave de IA, y la revisas antes de guardarla. Con tu propia clave de IA, la app elige ahora sola el modelo más reciente de tu proveedor. Además, la importación con IA vuelve a funcionar con modelos recientes como Claude Haiku 5.5.",
+    "it-IT": "Novità: scansiona gratis una pagina di un libro, una ricetta stampata o un PDF. AvoCook la legge sul tuo telefono, offline e senza chiave IA, e la controlli prima di salvarla. Con la tua chiave IA, l’app ora sceglie da sola il modello più recente del tuo fornitore. Inoltre l’importazione con IA funziona di nuovo con i modelli recenti come Claude Haiku 5.5.",
+    "da-DK": "Nyt: Scan en kogebogsside, en trykt opskrift eller en PDF gratis. AvoCook læser den på din telefon, offline og uden AI-nøgle, og du tjekker den, før du gemmer. Med din egen AI-nøgle vælger appen nu selv udbyderens nyeste model. Desuden virker AI-import igen med nyere modeller som Claude Haiku 5.5."
   }
 }

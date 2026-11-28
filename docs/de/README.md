@@ -17,7 +17,7 @@ AvoCook ist eine kostenlose Open-Source-App für iOS und Android. Ich entwickle 
 
 ## Funktionen
 
-- Rezepte mit Fotos, Kategorien, anpassbaren Portionen, Webimport und optionalem Markdown.
+- Rezepte mit Fotos, Kategorien, anpassbaren Portionen, Webimport und optionalem Markdown. Kostenloser Scan von Kochbuchseiten, gedruckten Rezepten und PDFs direkt auf dem Gerät.
 - Vorräte in Kühlschrank, Schrank und Gefrierfach mit Strichcodes, Daten und Ablauf-Erinnerungen.
 - Tages- und Wochenplanung, einfache Mahlzeiten, Reste, gespeicherte Menüs und Verlauf.
 - Schrittweises Kochen, gespeicherte Timer, lokale Sprachbefehle und private Notizen.

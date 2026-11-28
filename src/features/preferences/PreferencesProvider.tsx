@@ -15,6 +15,7 @@ import {
   resolveAppLanguage,
   type AppLanguage
 } from "../../i18n/languages";
+import { isLegacyDefaultModel } from "../import/llmModels";
 import {
   LLM_PROVIDERS,
   type LlmProviderId
@@ -73,7 +74,8 @@ const DEFAULT_LLM_SETTINGS: LlmSettings = {
   providerId: DEFAULT_PROVIDER.id,
   apiKey: "",
   baseUrl: DEFAULT_PROVIDER.baseUrl,
-  model: DEFAULT_PROVIDER.defaultModel
+  // Empty: the provider's recommended model, chosen automatically.
+  model: ""
 };
 
 const PreferencesContext = createContext<PreferencesContextValue | undefined>(
@@ -174,7 +176,8 @@ export function PreferencesProvider({
           providerId,
           apiKey: storedApiKey ?? "",
           baseUrl: storedBaseUrl ?? preset.baseUrl,
-          model: storedModel ?? preset.defaultModel
+          // Older versions stored the preset default; it now follows the newest model.
+          model: storedModel && !isLegacyDefaultModel(providerId, storedModel) ? storedModel : ""
         });
         if (storedCommunityPseudonym !== null) {
           setCommunityPseudonymState(storedCommunityPseudonym);

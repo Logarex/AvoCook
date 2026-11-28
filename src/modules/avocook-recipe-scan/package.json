@@ -1,0 +1,7 @@
+{
+  "name": "avocook-recipe-scan",
+  "version": "1.0.0",
+  "description": "Reads recipe photos and PDFs on the device, with the device's own AI when available.",
+  "license": "GPL-3.0",
+  "private": true
+}

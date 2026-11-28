@@ -1,0 +1,65 @@
+[
+{
+"text": "Banana Bread",
+"x": 0.0958,
+"y": 0.0712,
+"width": 0.3333,
+"height": 0.0292
+},
+{
+"y": 0.1261,
+"width": 0.5272,
+"x": 0.0937,
+"height": 0.0203,
+"text": "Serves 8 • Prep time: 15 minutes • Cook time: 1 hour"
+},
+{
+"height": 0.0225,
+"y": 0.1726,
+"width": 0.1658,
+"x": 0.0897,
+"text": "Ingredients"
+},
+{
+"text": "3 ripe bananas",
+"y": 0.2091,
+"height": 0.0177,
+"x": 0.0938,
+"width": 0.1637
+},
+{
+"height": 0.0207,
+"x": 0.0935,
+"text": "75 g melted butter",
+"y": 0.2396,
+"width": 0.2021
+},
+{
+"text": "150 g sugar",
+"height": 0.0176,
+"width": 0.1324,
+"x": 0.0933,
+"y": 0.2724
+},
+{
+"y": 0.3022,
+"x": 0.0938,
+"width": 0.1517,
+"height": 0.0191,
+"text": "1 egg, beaten"
+},
+{
+"x": 0.0938,
+"text": "1 tsp baking soda",
+"width": 0.1936,
+"y": 0.3327,
+"height": 0.0177
+},
+{
+"height": 0.0204,
+"x": 0.0935,
+"y": 0.3628,
+"text": "190 g plain flour",
+"width": 0.1802
+}
+]

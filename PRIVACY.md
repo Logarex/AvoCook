@@ -34,6 +34,8 @@ In Settings > Account, Delete my community data removes your published recipes, 
 
 ## Recipe import, AI and translation
 
+Scanning a recipe photo or PDF happens on the device: the text is read by the operating system (Apple Vision on iOS, ML Kit on Android) and, when the device offers it, arranged by its built-in AI (Apple Intelligence or Gemini Nano). Nothing is sent, no account or API key is needed, and the photos are not kept. The draft is saved only when you choose Save.
+
 URL import downloads the selected page directly from its website. That site receives normal network request information.
 
 Optional AI scanning and generation send the selected photo or entered text to the API provider configured in Settings, using your API key. Camera and photo access also let you add recipe images locally. Images in recipes you sync, share or publish may leave the device.

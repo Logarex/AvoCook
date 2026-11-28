@@ -34,6 +34,8 @@ Under Indstillinger > Konto sletter “Slet mine fællesskabsdata” dine udgivn
 
 ## Import, AI og oversættelse
 
+Scanning af et opskriftsbillede eller en PDF sker på enheden: Teksten læses af systemet (Apple Vision på iOS, ML Kit på Android) og sættes, hvis enheden tilbyder det, op af dens indbyggede AI (Apple Intelligence eller Gemini Nano). Intet sendes, der kræves ingen konto eller API-nøgle, og billederne gemmes ikke. Kladden gemmes kun, hvis du vælger Gem.
+
 URL-import henter den valgte side direkte fra webstedet. Webstedet modtager sædvanlige oplysninger om netværksanmodningen.
 
 Valgfri AI-import og opskriftsgenerering sender det valgte billede eller den indtastede tekst til udbyderen i Indstillinger med din API-nøgle. Kamera og billedbibliotek kan også bruges til at tilføje lokale billeder. Billeder fra synkroniserede, delte eller udgivne opskrifter kan forlade enheden.

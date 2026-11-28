@@ -1,9 +1,5 @@
 export const RELEASE_NOTE_KEYS = [
-  "kitchenFlow",
-  "kitchenSync",
-  "backups",
-  "iphone",
-  "community",
-  "appIcon",
+  "freeScan",
+  "aiModels",
   "fixes",
 ] as const;

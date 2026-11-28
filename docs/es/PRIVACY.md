@@ -34,6 +34,8 @@ En Ajustes > Cuenta, «Eliminar mis datos de la comunidad» borra tus recetas pu
 
 ## Importación, IA y traducción
 
+El escaneo de una foto o un PDF de receta se hace en el dispositivo: el sistema lee el texto (Apple Vision en iOS, ML Kit en Android) y, si el dispositivo lo ofrece, su IA integrada lo organiza (Apple Intelligence o Gemini Nano). No se envía nada, no hace falta cuenta ni clave de API y las fotos no se guardan. El borrador solo se guarda si eliges Guardar.
+
 La importación por URL descarga la página elegida directamente del sitio. Este recibe la información habitual de una solicitud de red.
 
 La importación y generación con IA son opcionales y envían la foto seleccionada o el texto introducido al proveedor configurado en Ajustes, usando tu clave API. La cámara y la galería también permiten añadir imágenes locales. Las imágenes de recetas sincronizadas, compartidas o publicadas pueden salir del dispositivo.

@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["AvoCookRecipeScanModule"]
+  },
+  "android": {
+    "modules": ["app.avocook.recipescan.AvoCookRecipeScanModule"]
+  }
+}

@@ -1,0 +1,24 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'app.avocook'
+version = '1.0.0'
+
+android {
+  namespace "app.avocook.recipescan"
+
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
+}
+
+dependencies {
+  // Text recognition with the Latin model bundled in the app: works offline, no Play Services download.
+  implementation 'com.google.mlkit:text-recognition:16.0.1'
+  // Gemini Nano through AICore, used only on devices where it is available
+  implementation 'com.google.mlkit:genai-prompt:1.0.0-beta2'
+  // (Later betas require Kotlin 2.4; this one builds with the app's Kotlin version.)
+}

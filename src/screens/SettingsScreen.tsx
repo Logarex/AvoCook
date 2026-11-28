@@ -181,7 +181,7 @@ export function SettingsScreen({ navigation, route }: Props) {
       providerId: id,
       apiKey: currentLlm.apiKey,
       baseUrl: preset.baseUrl,
-      model: preset.defaultModel,
+      model: "",
     };
     setLlmDraft(next);
     void setLlmSettings(next);
@@ -1185,16 +1185,24 @@ export function SettingsScreen({ navigation, route }: Props) {
                 </AppText>
               ) : null}
 
-              {availableModels?.length ? (
-                <ChoiceField
-                  label={t("settings.llmPickModel")}
-                  value={currentLlm.model}
-                  onChange={handlePickModel}
-                  options={availableModels.map((id) => ({
-                    value: id,
-                    label: id,
-                  }))}
-                />
+              {currentLlm.providerId !== "custom" ? (
+                <>
+                  <ChoiceField
+                    label={t("settings.llmPickModel")}
+                    value={currentLlm.model}
+                    onChange={handlePickModel}
+                    options={[
+                      { value: "", label: t("settings.llmModelAuto") },
+                      ...[...new Set([
+                        ...(availableModels ?? []),
+                        ...(currentLlm.model ? [currentLlm.model] : []),
+                      ])].map((id) => ({ value: id, label: id })),
+                    ]}
+                  />
+                  <AppText muted variant="caption">
+                    {t("settings.llmModelAutoHint")}
+                  </AppText>
+                </>
               ) : null}
 
               <DisclosureSection title={t("ui.details")}>

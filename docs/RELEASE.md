@@ -22,6 +22,10 @@ npx expo export --platform ios --platform android --output-dir dist/app
 
 Test local recipes offline, URL imports, Nextcloud Cookbook sync and images, all three shopping modes, Apple Reminders, shared-list push with a locked recipient, barcode entry, expiry reminders, voice permissions, timer restoration, PDF photos and backup restoration. Check small screens, tablets, large text and both themes.
 
+With an AI key, check that Automatic (the default model choice) works for each provider you can test, and that a removed model chosen by hand is replaced by the recommended one.
+
+Also check the free on-device import: a cookbook page photo (straight and askew, one and two pages, two columns), a dish photo without text (clear message), a text PDF, a scanned PDF and a password-protected PDF, and pasted text without an AI key; with Apple Intelligence on (iPhone 15 Pro or later) and off, and on an Android device with and without Gemini Nano. The draft must open in the editor and nothing is saved before Save.
+
 Since 5.1, also check: putting checked groceries away and the stock review after cooking; My kitchen sync between two devices on the same Nextcloud account (including an edit made offline on each); an automatic backup version and its restoration; on iPhone, a cooking timer as a Live Activity on the Lock Screen and in the Dynamic Island (start, pause, reset, finish), the Today widget after planning a meal, the four Siri / Shortcuts actions from a cold start, and opening a recipe from Spotlight; community report while offline, blocking and unblocking an author, and Delete my community data.
 
 ## Native targets and App Store Connect
